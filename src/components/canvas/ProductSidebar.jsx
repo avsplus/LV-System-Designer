@@ -40,7 +40,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
   const toggleCategory = (category) => {
     setExpandedCategories(prev => ({
-      ...prev,
       [category]: !prev[category]
     }));
   };
@@ -68,7 +67,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
             className="flex-1 overflow-y-auto p-3 space-y-3"
           >
             {Object.entries(productsByCategory).map(([category, categoryProducts]) => {
-              const isExpanded = expandedCategories[category] !== false;
+              const isExpanded = expandedCategories[category] === true;
               let draggableIndex = 0;
               
               return (
