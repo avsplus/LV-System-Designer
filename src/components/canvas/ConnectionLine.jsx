@@ -20,22 +20,7 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
-  // Apply offset perpendicular to the connection direction
-  const applyOffset = (point, nextPoint, offset) => {
-    if (offset === 0) return point;
-    const dx = nextPoint.x - point.x;
-    const dy = nextPoint.y - point.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    if (length === 0) return point;
-    
-    // Perpendicular offset
-    const perpX = -dy / length * offset;
-    const perpY = dx / length * offset;
-    
-    return { x: point.x + perpX, y: point.y + perpY };
-  };
-
-  // Generate orthogonal path
+  // Generate orthogonal path with offset
   const generatePath = () => {
     if (waypoints.length === 0) {
       // Determine if connection exits horizontally or vertically
@@ -43,25 +28,23 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
       const dy = Math.abs(to.y - from.y);
       
       if (dx > dy) {
-        // Horizontal primary direction - exit horizontally
+        // Horizontal primary direction - exit horizontally, offset vertically
         const midX = (from.x + to.x) / 2;
-        const p1 = applyOffset(from, { x: midX, y: from.y }, offset);
-        const p2 = { x: midX, y: from.y + offset };
-        const p3 = { x: midX, y: to.y + offset };
-        const p4 = applyOffset(to, { x: midX, y: to.y }, offset);
-        return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y}`;
+        return `M ${from.x} ${from.y + offset} L ${midX} ${from.y + offset} L ${midX} ${to.y + offset} L ${to.x} ${to.y + offset}`;
       } else {
-        // Vertical primary direction - exit vertically
+        // Vertical primary direction - exit vertically, offset horizontally
         const midY = (from.y + to.y) / 2;
-        const p1 = applyOffset(from, { x: from.x, y: midY }, offset);
-        const p2 = { x: from.x + offset, y: midY };
-        const p3 = { x: to.x + offset, y: midY };
-        const p4 = applyOffset(to, { x: to.x, y: midY }, offset);
-        return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y}`;
+        return `M ${from.x + offset} ${from.y} L ${from.x + offset} ${midY} L ${to.x + offset} ${midY} L ${to.x + offset} ${to.y}`;
       }
     } else {
-      // Path through waypoints with orthogonal routing
-      let path = `M ${from.x} ${from.y}`;
+      // Path through waypoints - offset applied to segments
+      const dx = Math.abs(to.x - from.x);
+      const dy = Math.abs(to.y - from.y);
+      const primaryHorizontal = dx > dy;
+      
+      let path = primaryHorizontal 
+        ? `M ${from.x} ${from.y + offset}`
+        : `M ${from.x + offset} ${from.y}`;
       
       // Route to first waypoint orthogonally
       const firstWp = waypoints[0];
@@ -69,9 +52,13 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
       const dy1 = Math.abs(firstWp.y - from.y);
       
       if (dx1 > dy1) {
-        path += ` L ${firstWp.x} ${from.y} L ${firstWp.x} ${firstWp.y}`;
+        path += primaryHorizontal 
+          ? ` L ${firstWp.x} ${from.y + offset} L ${firstWp.x} ${firstWp.y + offset}`
+          : ` L ${firstWp.x} ${from.y + offset} L ${firstWp.x + offset} ${firstWp.y}`;
       } else {
-        path += ` L ${from.x} ${firstWp.y} L ${firstWp.x} ${firstWp.y}`;
+        path += primaryHorizontal 
+          ? ` L ${from.x} ${firstWp.y + offset} L ${firstWp.x} ${firstWp.y + offset}`
+          : ` L ${from.x + offset} ${firstWp.y} L ${firstWp.x + offset} ${firstWp.y}`;
       }
       
       // Route between waypoints
@@ -82,9 +69,13 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
         const dyW = Math.abs(currWp.y - prevWp.y);
         
         if (dxW > dyW) {
-          path += ` L ${currWp.x} ${prevWp.y} L ${currWp.x} ${currWp.y}`;
+          path += primaryHorizontal
+            ? ` L ${currWp.x} ${prevWp.y + offset} L ${currWp.x} ${currWp.y + offset}`
+            : ` L ${currWp.x + offset} ${prevWp.y} L ${currWp.x + offset} ${currWp.y}`;
         } else {
-          path += ` L ${prevWp.x} ${currWp.y} L ${currWp.x} ${currWp.y}`;
+          path += primaryHorizontal
+            ? ` L ${prevWp.x} ${currWp.y + offset} L ${currWp.x} ${currWp.y + offset}`
+            : ` L ${prevWp.x + offset} ${currWp.y} L ${currWp.x + offset} ${currWp.y}`;
         }
       }
       
@@ -94,9 +85,13 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
       const dyL = Math.abs(to.y - lastWp.y);
       
       if (dxL > dyL) {
-        path += ` L ${to.x} ${lastWp.y} L ${to.x} ${to.y}`;
+        path += primaryHorizontal
+          ? ` L ${to.x} ${lastWp.y + offset} L ${to.x} ${to.y + offset}`
+          : ` L ${to.x + offset} ${lastWp.y} L ${to.x + offset} ${to.y}`;
       } else {
-        path += ` L ${lastWp.x} ${to.y} L ${to.x} ${to.y}`;
+        path += primaryHorizontal
+          ? ` L ${lastWp.x} ${to.y + offset} L ${to.x} ${to.y + offset}`
+          : ` L ${lastWp.x + offset} ${to.y} L ${to.x + offset} ${to.y}`;
       }
       
       return path;
