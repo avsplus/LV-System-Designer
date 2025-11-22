@@ -161,47 +161,46 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
     conn => conn.from === product.id || conn.to === product.id
   );
   
+  // Map display names to connection type IDs
+  const typeToId = {
+    'HDMI': 'hdmi',
+    'Optical': 'optical',
+    'RCA': 'rca',
+    'XLR': 'xlr',
+    'Speaker Wire': 'speaker_wire',
+    'Ethernet': 'ethernet',
+    'USB': 'usb',
+    'Coaxial': 'coaxial',
+    '3.5mm Jack': '3.5mm_jack',
+    'Various': 'various'
+  };
+  
   // Count connections by type
   const getConnectionCount = (connectionType, isInput) => {
+    const typeId = typeToId[connectionType];
+    if (!typeId) return 0;
+    
     return deviceConnections.filter(conn => {
-      const isInputConnection = conn.to === product.id;
-      if (isInput !== isInputConnection) return false;
+      // If isInput is true, this device should be the receiver (to)
+      // If isInput is false, this device should be the sender (from)
+      const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
+      if (!isCorrectDirection) return false;
       
-      // Map connection types
-      const typeMap = {
-        'hdmi': 'HDMI',
-        'optical': 'Optical',
-        'rca': 'RCA',
-        'xlr': 'XLR',
-        'speaker_wire': 'Speaker Wire',
-        'ethernet': 'Ethernet',
-        'usb': 'USB',
-        'coaxial': 'Coaxial'
-      };
-      
-      return typeMap[conn.type] === connectionType;
+      return conn.type === typeId;
     }).length;
   };
   
   // Get connected device info
   const getConnectedDevices = (connectionType, isInput) => {
+    const typeId = typeToId[connectionType];
+    if (!typeId) return [];
+    
     return deviceConnections
       .filter(conn => {
-        const isInputConnection = conn.to === product.id;
-        if (isInput !== isInputConnection) return false;
+        const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
+        if (!isCorrectDirection) return false;
         
-        const typeMap = {
-          'hdmi': 'HDMI',
-          'optical': 'Optical',
-          'rca': 'RCA',
-          'xlr': 'XLR',
-          'speaker_wire': 'Speaker Wire',
-          'ethernet': 'Ethernet',
-          'usb': 'USB',
-          'coaxial': 'Coaxial'
-        };
-        
-        return typeMap[conn.type] === connectionType;
+        return conn.type === typeId;
       })
       .map(conn => {
         const connectedId = conn.from === product.id ? conn.to : conn.from;
