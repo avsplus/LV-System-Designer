@@ -73,7 +73,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     };
     
     if (waypoints.length === 0) {
-      let path = `M ${fromStandoff.x} ${fromStandoff.y}`;
+      let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
 
       // Determine routing based on edge directions
       const fromIsHorizontal = fromEdge === 'left' || fromEdge === 'right';
@@ -97,11 +97,11 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         path = addRoundedCorner(path, fromStandoff, { x: toStandoff.x, y: fromStandoff.y }, toStandoff, cornerRadius);
       }
 
-      path += ` L ${toStandoff.x} ${toStandoff.y}`;
+      path += ` L ${toStandoff.x} ${toStandoff.y} L ${to.x} ${to.y}`;
       return path;
     } else {
       // With waypoints - route through them orthogonally
-      let path = `M ${fromStandoff.x} ${fromStandoff.y}`;
+      let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
 
       const fromIsHorizontal = fromEdge === 'left' || fromEdge === 'right';
       const firstWp = waypoints[0];
@@ -132,7 +132,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         path = addRoundedCorner(path, lastWp, { x: lastWp.x, y: toStandoff.y }, toStandoff, cornerRadius);
       }
 
-      path += ` L ${toStandoff.x} ${toStandoff.y}`;
+      path += ` L ${toStandoff.x} ${toStandoff.y} L ${to.x} ${to.y}`;
       return path;
     }
   };
