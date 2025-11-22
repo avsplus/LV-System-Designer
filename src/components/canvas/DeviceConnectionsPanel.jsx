@@ -252,7 +252,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               <Input
                 value={networkInfo?.sw || ''}
                 onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, sw: e.target.value })}
-                placeholder="Switch number"
+                placeholder="02"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
             </div>
@@ -261,7 +261,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               <Input
                 value={networkInfo?.port || ''}
                 onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, port: e.target.value })}
-                placeholder="Port number"
+                placeholder="09"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
             </div>
@@ -270,7 +270,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               <Input
                 value={networkInfo?.ip || ''}
                 onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, ip: e.target.value })}
-                placeholder="192.168.1.1"
+                placeholder="192.168.2.16"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
             </div>
@@ -279,7 +279,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               <Input
                 value={networkInfo?.mac || ''}
                 onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, mac: e.target.value })}
-                placeholder="00:00:00:00:00:00"
+                placeholder="34:26:76:90:87:92"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
             </div>
