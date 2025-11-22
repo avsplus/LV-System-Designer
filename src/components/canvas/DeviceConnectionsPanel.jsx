@@ -154,7 +154,7 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types" }
 };
 
-export default function DeviceConnectionsPanel({ product, activeConnections, allProducts, onClose, onHighlightConnections }) {
+export default function DeviceConnectionsPanel({ product, label, activeConnections, allProducts, onClose, onHighlightConnections }) {
   const instanceId = product.instanceId;
   const connections = connectionsByCategory[product.category] || { inputs: [], outputs: [], description: "" };
   
@@ -222,6 +222,11 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="bg-gray-800 rounded-lg p-4">
+          {label && (
+            <Badge className="bg-gray-700 text-white border-gray-600 font-mono font-bold mb-2">
+              {label}
+            </Badge>
+          )}
           <h3 className="text-lg font-bold text-white mb-1">{product.brand}</h3>
           <p className="text-sm text-gray-300 mb-2">{product.model}</p>
           <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">

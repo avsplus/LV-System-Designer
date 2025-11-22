@@ -570,6 +570,7 @@ export default function AVCanvas() {
         {selectedCanvasProduct && !selectedConnection && (
           <DeviceConnectionsPanel
             product={selectedCanvasProduct}
+            label={canvasProducts.find(cp => cp.instanceId === selectedCanvasProduct.instanceId)?.label}
             activeConnections={connections}
             allProducts={canvasProducts}
             onClose={() => setSelectedCanvasProduct(null)}
