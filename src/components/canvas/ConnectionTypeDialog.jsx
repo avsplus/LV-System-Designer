@@ -96,7 +96,10 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
           <Button variant="outline" onClick={onCancel} className="border-gray-700 text-gray-300">
             Cancel
           </Button>
-          <Button onClick={() => onSelect(selectedType)} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => {
+            const selectedTypeObj = connectionTypes.find(t => t.id === selectedType);
+            onSelect(selectedTypeObj.name);
+          }} className="bg-blue-600 hover:bg-blue-700">
             Create Connection
           </Button>
         </div>
