@@ -20,6 +20,7 @@ export default function AVCanvas() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
   const [selectedConnection, setSelectedConnection] = useState(null);
+  const [highlightedConnections, setHighlightedConnections] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -293,6 +294,7 @@ export default function AVCanvas() {
                     {connections.map((connection, index) => {
                       const from = getProductCenter(connection.from);
                       const to = getProductCenter(connection.to);
+                      const isHighlighted = highlightedConnections.includes(index);
                       return (
                         <ConnectionLine
                           key={index}
@@ -300,6 +302,7 @@ export default function AVCanvas() {
                           to={to}
                           connectionType={connection.type}
                           waypoints={connection.waypoints}
+                          isHighlighted={isHighlighted}
                           onRemove={() => handleRemoveConnection(index)}
                           onClick={() => handleConnectionClick(connection, index)}
                           onWaypointsChange={(newWaypoints) => {
@@ -339,23 +342,30 @@ export default function AVCanvas() {
                   transition: isPanning ? 'none' : 'transform 0.1s ease-out',
                   pointerEvents: isPanning ? 'none' : 'auto'
                 }}>
-                  {canvasProducts.map((cp) => (
-                    <CanvasProduct
-                      key={cp.instanceId}
-                      instanceId={cp.instanceId}
-                      product={cp.product}
-                      position={cp.position}
-                      onRemove={handleRemoveProduct}
-                      onConnect={handleConnect}
-                      onPositionChange={handlePositionChange}
-                      isConnecting={connectingFrom === cp.instanceId}
-                      onClick={() => {
-                        setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId });
-                        setSelectedProduct(null);
-                        setSelectedConnection(null);
-                      }}
-                    />
-                  ))}
+                  {canvasProducts.map((cp) => {
+                    const isHighlighted = highlightedConnections.some(idx => {
+                      const conn = connections[idx];
+                      return conn && (conn.from === cp.instanceId || conn.to === cp.instanceId);
+                    });
+                    return (
+                      <CanvasProduct
+                        key={cp.instanceId}
+                        instanceId={cp.instanceId}
+                        product={cp.product}
+                        position={cp.position}
+                        onRemove={handleRemoveProduct}
+                        onConnect={handleConnect}
+                        onPositionChange={handlePositionChange}
+                        isConnecting={connectingFrom === cp.instanceId}
+                        isHighlighted={isHighlighted}
+                        onClick={() => {
+                          setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId });
+                          setSelectedProduct(null);
+                          setSelectedConnection(null);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
                 {provided.placeholder}
               </div>
@@ -374,8 +384,9 @@ export default function AVCanvas() {
           <DeviceConnectionsPanel
             product={selectedCanvasProduct}
             activeConnections={connections}
-            allProducts={canvasProducts.map(cp => cp.product)}
+            allProducts={canvasProducts}
             onClose={() => setSelectedCanvasProduct(null)}
+            onHighlightConnections={setHighlightedConnections}
           />
         )}
 

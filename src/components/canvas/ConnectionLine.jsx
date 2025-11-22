@@ -12,7 +12,7 @@ const connectionTypeColors = {
   "Coaxial": "#eab308"
 };
 
-export default function ConnectionLine({ from, to, connectionType, waypoints: initialWaypoints, onRemove, onClick, onWaypointsChange }) {
+export default function ConnectionLine({ from, to, connectionType, waypoints: initialWaypoints, isHighlighted, onRemove, onClick, onWaypointsChange }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
@@ -105,10 +105,14 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
       <path
         d={pathData}
         stroke={color}
-        strokeWidth={isHovered ? "4" : "3"}
+        strokeWidth={isHighlighted ? "6" : isHovered ? "4" : "3"}
         fill="none"
         className="transition-all cursor-pointer"
-        style={{ pointerEvents: 'stroke' }}
+        style={{ 
+          pointerEvents: 'stroke',
+          filter: isHighlighted ? 'drop-shadow(0 0 8px currentColor)' : 'none',
+          opacity: isHighlighted ? 1 : isHovered ? 0.9 : 0.8
+        }}
         onClick={onClick}
         onDoubleClick={handlePathDoubleClick}
         onMouseEnter={() => setIsHovered(true)}

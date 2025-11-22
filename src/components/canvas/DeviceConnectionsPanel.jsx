@@ -154,7 +154,7 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types" }
 };
 
-export default function DeviceConnectionsPanel({ product, activeConnections, allProducts, onClose }) {
+export default function DeviceConnectionsPanel({ product, activeConnections, allProducts, onClose, onHighlightConnections }) {
   const instanceId = product.instanceId;
   const connections = connectionsByCategory[product.category] || { inputs: [], outputs: [], description: "" };
   
@@ -195,6 +195,23 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
         return allProducts.find(p => p.instanceId === connectedId);
       })
       .filter(Boolean);
+  };
+
+  // Get connection indices for highlighting
+  const getConnectionIndices = (connectionType, isInput) => {
+    const normalizedConnectionType = normalizeType(connectionType);
+    
+    return activeConnections
+      .map((conn, idx) => {
+        const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
+        if (!isCorrectDirection) return -1;
+        
+        if (normalizeType(conn.type || '') === normalizedConnectionType) {
+          return idx;
+        }
+        return -1;
+      })
+      .filter(idx => idx !== -1);
   };
 
   return (
@@ -250,9 +267,15 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                 const used = getConnectionCount(input.type, true);
                 const available = input.max - used;
                 const connectedDevices = getConnectedDevices(input.type, true);
+                const connectionIndices = getConnectionIndices(input.type, true);
                 
                 return (
-                  <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <div 
+                    key={idx} 
+                    className="bg-gray-800 rounded-lg p-3 border border-gray-700 transition-all hover:border-blue-500 cursor-pointer"
+                    onMouseEnter={() => onHighlightConnections && onHighlightConnections(connectionIndices)}
+                    onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <Badge className={`${info.color} border text-sm`}>
                         {input.type}
@@ -291,6 +314,7 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                 const used = getConnectionCount(output.type, false);
                 const available = output.max - used;
                 const connectedDevices = getConnectedDevices(output.type, false);
+                const connectionIndices = getConnectionIndices(output.type, false);
                 
                 const matchingConns = deviceConnections.filter(conn => 
                   conn.from === instanceId && normalizeType(conn.type || '') === normalizeType(output.type)
@@ -300,7 +324,12 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                 const allOutConns = deviceConnections.filter(c => c.from === instanceId);
                 
                 return (
-                  <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <div 
+                    key={idx} 
+                    className="bg-gray-800 rounded-lg p-3 border border-gray-700 transition-all hover:border-blue-500 cursor-pointer"
+                    onMouseEnter={() => onHighlightConnections && onHighlightConnections(connectionIndices)}
+                    onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <Badge className={`${info.color} border text-sm`}>
                         {output.type}
