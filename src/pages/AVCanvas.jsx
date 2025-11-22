@@ -10,6 +10,7 @@ import ConnectionLine from "../components/canvas/ConnectionLine";
 import ProductDetailsPanel from "../components/canvas/ProductDetailsPanel";
 import ConnectionDetailsPanel from "../components/canvas/ConnectionDetailsPanel";
 import ConnectionTypeDialog from "../components/canvas/ConnectionTypeDialog";
+import DeviceConnectionsPanel from "../components/canvas/DeviceConnectionsPanel";
 
 export default function AVCanvas() {
   const [canvasProducts, setCanvasProducts] = useState([]);
@@ -17,6 +18,7 @@ export default function AVCanvas() {
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [connectingTo, setConnectingTo] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -337,6 +339,11 @@ export default function AVCanvas() {
                       onConnect={handleConnect}
                       onPositionChange={handlePositionChange}
                       isConnecting={connectingFrom === cp.product.id}
+                      onClick={() => {
+                        setSelectedCanvasProduct(cp.product);
+                        setSelectedProduct(null);
+                        setSelectedConnection(null);
+                      }}
                     />
                   ))}
                 </div>
@@ -346,10 +353,17 @@ export default function AVCanvas() {
           </Droppable>
         </div>
 
-        {selectedProduct && !selectedConnection && (
+        {selectedProduct && !selectedConnection && !selectedCanvasProduct && (
           <ProductDetailsPanel
             product={selectedProduct}
             onClose={() => setSelectedProduct(null)}
+          />
+        )}
+
+        {selectedCanvasProduct && !selectedConnection && (
+          <DeviceConnectionsPanel
+            product={selectedCanvasProduct}
+            onClose={() => setSelectedCanvasProduct(null)}
           />
         )}
 

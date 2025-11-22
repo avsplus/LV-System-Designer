@@ -24,7 +24,8 @@ export default function CanvasProduct({
   onRemove,
   onConnect,
   onPositionChange,
-  isConnecting
+  isConnecting,
+  onClick
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -32,10 +33,15 @@ export default function CanvasProduct({
   const handleMouseDown = (e) => {
     if (e.target.closest('button')) return;
     
+    const clickTime = Date.now();
+    const clickPos = { x: e.clientX, y: e.clientY };
+    
     setIsDragging(true);
     dragOffset.current = {
       x: e.clientX - position.x,
-      y: e.clientY - position.y
+      y: e.clientY - position.y,
+      clickTime,
+      clickPos
     };
   };
 
@@ -48,7 +54,17 @@ export default function CanvasProduct({
     onPositionChange(product.id, { x: newX, y: newY });
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e) => {
+    const timeDiff = Date.now() - (dragOffset.current.clickTime || 0);
+    const moveDist = Math.sqrt(
+      Math.pow(e.clientX - (dragOffset.current.clickPos?.x || 0), 2) +
+      Math.pow(e.clientY - (dragOffset.current.clickPos?.y || 0), 2)
+    );
+    
+    if (timeDiff < 200 && moveDist < 5 && onClick) {
+      onClick();
+    }
+    
     setIsDragging(false);
   };
 
