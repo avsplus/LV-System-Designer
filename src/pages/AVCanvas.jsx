@@ -231,47 +231,58 @@ export default function AVCanvas() {
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
     
-    // Calculate intersection with fromProduct edges
-    const fromEdge = { ...fromCenter };
-    if (Math.abs(dx) > Math.abs(dy)) {
-      // Horizontal edge
-      if (dx > 0) {
-        fromEdge.x = fromProduct.position.x + cardWidth;
-        fromEdge.y = fromCenter.y + (dy / dx) * (cardWidth / 2);
-      } else {
-        fromEdge.x = fromProduct.position.x;
-        fromEdge.y = fromCenter.y + (dy / dx) * (-cardWidth / 2);
-      }
-    } else {
-      // Vertical edge
-      if (dy > 0) {
-        fromEdge.y = fromProduct.position.y + cardHeight;
-        fromEdge.x = fromCenter.x + (dx / dy) * (cardHeight / 2);
-      } else {
-        fromEdge.y = fromProduct.position.y;
-        fromEdge.x = fromCenter.x + (dx / dy) * (-cardHeight / 2);
-      }
-    }
+    // Determine which edge to use based on direction (perpendicular connections)
+    let fromEdge, toEdge;
     
-    // Calculate intersection with toProduct edges
-    const toEdge = { ...toCenter };
     if (Math.abs(dx) > Math.abs(dy)) {
-      // Horizontal edge
+      // Horizontal connection
       if (dx > 0) {
-        toEdge.x = toProduct.position.x;
-        toEdge.y = toCenter.y - (dy / dx) * (cardWidth / 2);
+        // Connect from right edge of fromProduct
+        fromEdge = {
+          x: fromProduct.position.x + cardWidth,
+          y: fromCenter.y
+        };
+        // Connect to left edge of toProduct
+        toEdge = {
+          x: toProduct.position.x,
+          y: toCenter.y
+        };
       } else {
-        toEdge.x = toProduct.position.x + cardWidth;
-        toEdge.y = toCenter.y - (dy / dx) * (-cardWidth / 2);
+        // Connect from left edge of fromProduct
+        fromEdge = {
+          x: fromProduct.position.x,
+          y: fromCenter.y
+        };
+        // Connect to right edge of toProduct
+        toEdge = {
+          x: toProduct.position.x + cardWidth,
+          y: toCenter.y
+        };
       }
     } else {
-      // Vertical edge
+      // Vertical connection
       if (dy > 0) {
-        toEdge.y = toProduct.position.y;
-        toEdge.x = toCenter.x - (dx / dy) * (cardHeight / 2);
+        // Connect from bottom edge of fromProduct
+        fromEdge = {
+          x: fromCenter.x,
+          y: fromProduct.position.y + cardHeight
+        };
+        // Connect to top edge of toProduct
+        toEdge = {
+          x: toCenter.x,
+          y: toProduct.position.y
+        };
       } else {
-        toEdge.y = toProduct.position.y + cardHeight;
-        toEdge.x = toCenter.x - (dx / dy) * (-cardHeight / 2);
+        // Connect from top edge of fromProduct
+        fromEdge = {
+          x: fromCenter.x,
+          y: fromProduct.position.y
+        };
+        // Connect to bottom edge of toProduct
+        toEdge = {
+          x: toCenter.x,
+          y: toProduct.position.y + cardHeight
+        };
       }
     }
     
