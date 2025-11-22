@@ -209,6 +209,75 @@ export default function AVCanvas() {
     };
   };
 
+  const getProductEdgePoint = (fromId, toId) => {
+    const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
+    const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
+    
+    if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
+    
+    const cardWidth = 256;
+    const cardHeight = 160;
+    
+    const fromCenter = {
+      x: fromProduct.position.x + cardWidth / 2,
+      y: fromProduct.position.y + cardHeight / 2
+    };
+    
+    const toCenter = {
+      x: toProduct.position.x + cardWidth / 2,
+      y: toProduct.position.y + cardHeight / 2
+    };
+    
+    const dx = toCenter.x - fromCenter.x;
+    const dy = toCenter.y - fromCenter.y;
+    
+    // Calculate intersection with fromProduct edges
+    const fromEdge = { ...fromCenter };
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal edge
+      if (dx > 0) {
+        fromEdge.x = fromProduct.position.x + cardWidth;
+        fromEdge.y = fromCenter.y + (dy / dx) * (cardWidth / 2);
+      } else {
+        fromEdge.x = fromProduct.position.x;
+        fromEdge.y = fromCenter.y + (dy / dx) * (-cardWidth / 2);
+      }
+    } else {
+      // Vertical edge
+      if (dy > 0) {
+        fromEdge.y = fromProduct.position.y + cardHeight;
+        fromEdge.x = fromCenter.x + (dx / dy) * (cardHeight / 2);
+      } else {
+        fromEdge.y = fromProduct.position.y;
+        fromEdge.x = fromCenter.x + (dx / dy) * (-cardHeight / 2);
+      }
+    }
+    
+    // Calculate intersection with toProduct edges
+    const toEdge = { ...toCenter };
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal edge
+      if (dx > 0) {
+        toEdge.x = toProduct.position.x;
+        toEdge.y = toCenter.y - (dy / dx) * (cardWidth / 2);
+      } else {
+        toEdge.x = toProduct.position.x + cardWidth;
+        toEdge.y = toCenter.y - (dy / dx) * (-cardWidth / 2);
+      }
+    } else {
+      // Vertical edge
+      if (dy > 0) {
+        toEdge.y = toProduct.position.y;
+        toEdge.x = toCenter.x - (dx / dy) * (cardHeight / 2);
+      } else {
+        toEdge.y = toProduct.position.y + cardHeight;
+        toEdge.x = toCenter.x - (dx / dy) * (-cardHeight / 2);
+      }
+    }
+    
+    return { from: fromEdge, to: toEdge };
+  };
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex h-screen bg-gray-950 overflow-hidden">
@@ -292,8 +361,7 @@ export default function AVCanvas() {
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
-                      const from = getProductCenter(connection.from);
-                      const to = getProductCenter(connection.to);
+                      const { from, to } = getProductEdgePoint(connection.from, connection.to);
                       const isHighlighted = highlightedConnections.includes(index);
                       return (
                         <ConnectionLine
