@@ -40,14 +40,14 @@ export default function AVCanvas() {
         }]);
       }
     }
+  };
 
-    // Reordering within canvas
-    if (source.droppableId === 'canvas' && destination.droppableId === 'canvas') {
-      const reordered = Array.from(canvasProducts);
-      const [moved] = reordered.splice(source.index, 1);
-      reordered.splice(destination.index, 0, moved);
-      setCanvasProducts(reordered);
-    }
+  const handlePositionChange = (productId, newPosition) => {
+    setCanvasProducts(canvasProducts.map(cp => 
+      cp.product.id === productId 
+        ? { ...cp, position: newPosition }
+        : cp
+    ));
   };
 
   const handleRemoveProduct = (productId) => {
@@ -159,7 +159,7 @@ export default function AVCanvas() {
                 </svg>
 
                 {canvasProducts.length === 0 && !snapshot.isDraggingOver && (
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
                         <Plus className="w-8 h-8 text-gray-600" />
@@ -174,15 +174,15 @@ export default function AVCanvas() {
                   </div>
                 )}
 
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                  {canvasProducts.map((cp, index) => (
+                <div style={{ position: 'relative', zIndex: 2, minHeight: '100%', minWidth: '100%' }}>
+                  {canvasProducts.map((cp) => (
                     <CanvasProduct
                       key={cp.product.id}
                       product={cp.product}
                       position={cp.position}
-                      index={index}
                       onRemove={handleRemoveProduct}
                       onConnect={handleConnect}
+                      onPositionChange={handlePositionChange}
                       isConnecting={connectingFrom === cp.product.id}
                     />
                   ))}

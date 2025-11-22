@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X, Link2 } from "lucide-react";
-import { Draggable } from '@hello-pangea/dnd';
 
 const categoryColors = {
   speakers: "bg-blue-500/10 text-blue-400 border-blue-500/50",
@@ -24,75 +23,106 @@ export default function CanvasProduct({
   position,
   onRemove,
   onConnect,
-  isConnecting,
-  index
+  onPositionChange,
+  isConnecting
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    if (e.target.closest('button')) return;
+    
+    setIsDragging(true);
+    dragOffset.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragOffset.current.x;
+    const newY = e.clientY - dragOffset.current.y;
+    
+    onPositionChange(product.id, { x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, position]);
+
   return (
-    <Draggable draggableId={`canvas-${product.id}`} index={index}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          style={{
-            ...provided.draggableProps.style,
-            position: 'absolute',
-            left: position.x,
-            top: position.y,
-          }}
-          className={`w-64 bg-gray-800 border-2 rounded-xl p-4 cursor-move transition-all ${
-            snapshot.isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105' : 
-            isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
-          }`}
-        >
-          <div className="flex items-start justify-between mb-3">
-            <Badge className={`${categoryColors[product.category]} border`}>
-              {product.category}
-            </Badge>
-            <div className="flex gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onConnect(product.id);
-                }}
-              >
-                <Link2 className="w-3 h-3" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-red-500/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove(product.id);
-                }}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-          </div>
-          
-          <h3 className="font-semibold text-white text-base mb-1">
-            {product.brand}
-          </h3>
-          <p className="text-sm text-gray-300 mb-2">{product.model}</p>
-          
-          {product.description && (
-            <p className="text-xs text-gray-400 line-clamp-2 mb-2">
-              {product.description}
-            </p>
-          )}
-          
-          {product.price && (
-            <p className="text-sm font-medium text-blue-400">
-              ${product.price.toLocaleString()}
-            </p>
-          )}
+    <div
+      onMouseDown={handleMouseDown}
+      style={{
+        position: 'absolute',
+        left: position.x,
+        top: position.y,
+        userSelect: 'none'
+      }}
+      className={`w-64 bg-gray-800 border-2 rounded-xl p-4 cursor-move transition-all ${
+        isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
+        isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
+      }`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <Badge className={`${categoryColors[product.category]} border`}>
+          {product.category}
+        </Badge>
+        <div className="flex gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnect(product.id);
+            }}
+          >
+            <Link2 className="w-3 h-3" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(product.id);
+            }}
+          >
+            <X className="w-3 h-3" />
+          </Button>
         </div>
+      </div>
+      
+      <h3 className="font-semibold text-white text-base mb-1">
+        {product.brand}
+      </h3>
+      <p className="text-sm text-gray-300 mb-2">{product.model}</p>
+      
+      {product.description && (
+        <p className="text-xs text-gray-400 line-clamp-2 mb-2">
+          {product.description}
+        </p>
       )}
-    </Draggable>
+      
+      {product.price && (
+        <p className="text-sm font-medium text-blue-400">
+          ${product.price.toLocaleString()}
+        </p>
+      )}
+    </div>
   );
 }
