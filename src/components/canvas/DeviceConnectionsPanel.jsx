@@ -161,21 +161,24 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
     conn => conn.from === product.id || conn.to === product.id
   );
   
+  // Normalize connection type strings for comparison
+  const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
   // Count connections by type (flexible matching)
   const getConnectionCount = (connectionType, isInput) => {
-    return deviceConnections.filter(conn => {
+    const matches = deviceConnections.filter(conn => {
       const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
       if (!isCorrectDirection) return false;
       
-      // Normalize both strings for comparison
-      const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
-      return normalizeType(conn.type || '') === normalizeType(connectionType);
-    }).length;
+      const connTypeNorm = normalizeType(conn.type || '');
+      const expectedTypeNorm = normalizeType(connectionType);
+      return connTypeNorm === expectedTypeNorm;
+    });
+    return matches.length;
   };
   
   // Get connected device info
   const getConnectedDevices = (connectionType, isInput) => {
-    const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
     const normalizedConnectionType = normalizeType(connectionType);
     
     return deviceConnections
@@ -287,7 +290,6 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                 const available = output.max - used;
                 const connectedDevices = getConnectedDevices(output.type, false);
                 
-                const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
                 const matchingConns = deviceConnections.filter(conn => 
                   conn.from === product.id && normalizeType(conn.type || '') === normalizeType(output.type)
                 );
@@ -303,7 +305,9 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
-                    <p className="text-xs text-gray-500 font-mono">Debug: matched={matchingConns.length}</p>
+                    <p className="text-xs text-gray-500 font-mono">
+                      Debug: norm={normalizeType(output.type)} matched={matchingConns.length} used={used}
+                    </p>
                     {connectedDevices.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-gray-700">
                         <p className="text-xs text-gray-500 mb-1">Connected to:</p>
