@@ -22,9 +22,9 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   // Generate orthogonal path perpendicular to edges
   const generatePath = () => {
-    const standoffDistance = 40; // Distance to extend perpendicular from edge
+    const standoffDistance = 30; // Distance to extend perpendicular from edge
     
-    // Calculate perpendicular standoff points
+    // Calculate perpendicular standoff points OUTSIDE the device
     let fromStandoff, toStandoff;
     
     if (fromEdge === 'right') {
