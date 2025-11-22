@@ -49,11 +49,14 @@ export default function CanvasProduct({
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
+    e.preventDefault();
     
     const newX = e.clientX - dragOffset.current.x;
     const newY = e.clientY - dragOffset.current.y;
     
-    onPositionChange(instanceId, { x: newX, y: newY });
+    requestAnimationFrame(() => {
+      onPositionChange(instanceId, { x: newX, y: newY });
+    });
   };
 
   const handleMouseUp = (e) => {
@@ -88,9 +91,11 @@ export default function CanvasProduct({
         position: 'absolute',
         left: position.x,
         top: position.y,
-        userSelect: 'none'
+        userSelect: 'none',
+        willChange: isDragging ? 'transform' : 'auto',
+        transition: isDragging ? 'none' : 'border-color 0.15s ease'
       }}
-      className={`w-64 bg-gray-800 border-2 rounded-xl p-4 cursor-move transition-all ${
+      className={`w-64 bg-gray-800 border-2 rounded-xl p-4 cursor-move ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
