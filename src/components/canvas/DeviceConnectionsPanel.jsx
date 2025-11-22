@@ -219,6 +219,17 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
           <p className="text-sm text-gray-400 mb-2">{connections.description}</p>
         </div>
 
+        {deviceConnections.length > 0 && (
+          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+            <p className="text-xs text-gray-500 mb-2">Active Connections: {deviceConnections.length}</p>
+            {deviceConnections.map((conn, i) => (
+              <div key={i} className="text-xs text-gray-400 mb-1">
+                • Type: {conn.type} | {conn.from === product.id ? 'OUTPUT' : 'INPUT'}
+              </div>
+            ))}
+          </div>
+        )}
+
         {connections.inputs.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold text-white mb-3 flex items-center">
