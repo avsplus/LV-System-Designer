@@ -125,8 +125,8 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
           <div className="space-y-3">
             <div className="bg-gray-800 rounded-lg p-3">
               <p className="text-xs text-gray-400 mb-1">From</p>
-              <p className="text-sm font-medium text-white">{fromProduct.brand}</p>
-              <p className="text-xs text-gray-400">{fromProduct.model}</p>
+              <p className="text-sm font-medium text-white">{fromProduct?.brand || 'Unknown Device'}</p>
+              <p className="text-xs text-gray-400">{fromProduct?.model || 'N/A'}</p>
               {connection.fromPort && (
                 <div className="mt-2 inline-block">
                   <Badge className="bg-purple-500/10 text-purple-300 border-purple-500/30 text-xs">
@@ -140,8 +140,8 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
             </div>
             <div className="bg-gray-800 rounded-lg p-3">
               <p className="text-xs text-gray-400 mb-1">To</p>
-              <p className="text-sm font-medium text-white">{toProduct.brand}</p>
-              <p className="text-xs text-gray-400">{toProduct.model}</p>
+              <p className="text-sm font-medium text-white">{toProduct?.brand || 'Unknown Device'}</p>
+              <p className="text-xs text-gray-400">{toProduct?.model || 'N/A'}</p>
               {connection.toPort && (
                 <div className="mt-2 inline-block">
                   <Badge className="bg-blue-500/10 text-blue-300 border-blue-500/30 text-xs">
