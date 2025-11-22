@@ -221,12 +221,16 @@ export default function DeviceConnectionsPanel({ product, label, activeConnectio
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-750 rounded-lg p-4 border border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs text-gray-400 uppercase tracking-wider">Device Label</span>
+          </div>
+          <div className="text-3xl font-mono font-bold text-white">
+            {label || 'N/A'}
+          </div>
+        </div>
+
         <div className="bg-gray-800 rounded-lg p-4">
-          {label && (
-            <Badge className="bg-gray-700 text-white border-gray-600 font-mono font-bold mb-2">
-              {label}
-            </Badge>
-          )}
           <h3 className="text-lg font-bold text-white mb-1">{product.brand}</h3>
           <p className="text-sm text-gray-300 mb-2">{product.model}</p>
           <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">
