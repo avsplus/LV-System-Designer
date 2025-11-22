@@ -1,0 +1,111 @@
+import React, { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Search, Grip } from "lucide-react";
+import { Draggable, Droppable } from '@hello-pangea/dnd';
+
+const categoryColors = {
+  speakers: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  amplifiers: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  receivers: "bg-green-500/10 text-green-400 border-green-500/20",
+  subwoofers: "bg-red-500/10 text-red-400 border-red-500/20",
+  turntables: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  dacs: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  streamers: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+  headphones: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+  processors: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  cables: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+  microphones: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  mixers: "bg-teal-500/10 text-teal-400 border-teal-500/20"
+};
+
+export default function ProductSidebar({ products, onProductSelect }) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredProducts = products.filter(product => 
+    product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
+      <div className="p-4 border-b border-gray-800">
+        <h2 className="text-lg font-semibold text-white mb-3">AV Products</h2>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Input
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      <Droppable droppableId="sidebar" isDropDisabled={true}>
+        {(provided) => (
+          <div 
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="flex-1 overflow-y-auto p-3 space-y-2"
+          >
+            {filteredProducts.map((product, index) => (
+              <Draggable 
+                key={product.id} 
+                draggableId={product.id} 
+                index={index}
+              >
+                {(provided, snapshot) => (
+                  <>
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      onClick={() => onProductSelect(product)}
+                      className={`group bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-lg p-3 cursor-pointer transition-all ${
+                        snapshot.isDragging ? 'shadow-xl shadow-blue-500/20 border-blue-500' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-medium text-white text-sm truncate">
+                              {product.brand}
+                            </h3>
+                            <Badge className={`${categoryColors[product.category]} border text-xs`}>
+                              {product.category}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">{product.model}</p>
+                          {product.price && (
+                            <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {snapshot.isDragging && (
+                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 opacity-50">
+                        <div className="flex items-start gap-3">
+                          <Grip className="w-4 h-4 text-gray-600 mt-1" />
+                          <div className="flex-1">
+                            <h3 className="font-medium text-white text-sm">{product.brand}</h3>
+                            <p className="text-xs text-gray-400">{product.model}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </div>
+  );
+}
