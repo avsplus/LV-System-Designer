@@ -44,13 +44,15 @@ export default function AVCanvas() {
       if (product) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
         const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
+        const deviceLabel = `D${canvasProducts.length + 1}`;
         setCanvasProducts([...canvasProducts, {
           instanceId,
           product,
           position: { 
             x: Math.random() * (canvasRect.width - 300) + 50, 
             y: Math.random() * (canvasRect.height - 200) + 50 
-          }
+          },
+          label: deviceLabel
         }]);
       }
     }
@@ -542,6 +544,7 @@ export default function AVCanvas() {
                         onPositionChange={handlePositionChange}
                         isConnecting={connectingFrom === cp.instanceId}
                         isHighlighted={isHighlighted}
+                        label={cp.label}
                         onClick={() => {
                           setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId });
                           setSelectedProduct(null);
@@ -579,6 +582,9 @@ export default function AVCanvas() {
             connection={selectedConnection}
             fromProduct={canvasProducts.find(cp => cp.instanceId === selectedConnection.from)?.product}
             toProduct={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.product}
+            fromLabel={canvasProducts.find(cp => cp.instanceId === selectedConnection.from)?.label}
+            toLabel={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.label}
+            allConnections={connections}
             onClose={() => setSelectedConnection(null)}
             onDelete={handleDeleteConnection}
           />

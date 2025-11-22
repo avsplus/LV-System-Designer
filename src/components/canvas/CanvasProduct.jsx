@@ -27,7 +27,8 @@ export default function CanvasProduct({
   onPositionChange,
   isConnecting,
   isHighlighted,
-  onClick
+  onClick,
+  label
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -102,9 +103,16 @@ export default function CanvasProduct({
       }`}
     >
       <div className="flex items-start justify-between mb-3">
-        <Badge className={`${categoryColors[product.category]} border`}>
-          {product.category}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {label && (
+            <Badge className="bg-gray-700 text-white border-gray-600 font-mono font-bold">
+              {label}
+            </Badge>
+          )}
+          <Badge className={`${categoryColors[product.category]} border`}>
+            {product.category}
+          </Badge>
+        </div>
         <div className="flex gap-1">
           <Button
             size="icon"

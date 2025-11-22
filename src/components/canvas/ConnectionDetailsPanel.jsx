@@ -54,7 +54,7 @@ const connectionTypes = {
   }
 };
 
-export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, onClose, onDelete }) {
+export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, fromLabel, toLabel, allConnections, onClose, onDelete }) {
   // Normalize connection type - handle both "Speaker Wire" and "speaker_wire"
   const normalizeTypeKey = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const typeKey = normalizeTypeKey(connection.type);
@@ -84,13 +84,13 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
           <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
             <p className="text-lg font-mono font-bold text-white">
               {(() => {
-                const typeAbbrev = {
-                  "HDMI": "H", "Optical": "O", "RCA": "R", "XLR": "X", 
-                  "Speaker Wire": "SW", "Ethernet": "E", "USB": "U", "Coaxial": "C"
-                }[connectionInfo.name] || connectionInfo.name.charAt(0);
-                const from = connection.fromPort?.match(/\d+/)?.[0] || '';
-                const to = connection.toPort?.match(/\d+/)?.[0] || '';
-                return `${typeAbbrev}${from}${to}`;
+                // Count connections between same two devices
+                const sameDeviceConnections = allConnections.filter(
+                  c => (c.from === connection.from && c.to === connection.to) ||
+                       (c.from === connection.to && c.to === connection.from)
+                );
+                const connectionNumber = sameDeviceConnections.findIndex(c => c === connection) + 1;
+                return `${fromLabel || 'D?'}${toLabel || 'D?'}${connectionNumber}`;
               })()}
             </p>
             <p className="text-xs text-gray-500 mt-1">Wire identifier</p>
