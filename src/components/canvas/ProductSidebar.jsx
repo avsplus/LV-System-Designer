@@ -66,9 +66,8 @@ export default function ProductSidebar({ products, onProductSelect }) {
             {...provided.droppableProps}
             className="flex-1 overflow-y-auto p-3 space-y-3"
           >
-            {Object.entries(productsByCategory).map(([category, categoryProducts]) => {
+            {Object.entries(productsByCategory).map(([category, categoryProducts], catIndex) => {
               const isExpanded = expandedCategories[category] === true;
-              let draggableIndex = 0;
               
               return (
                 <div key={category} className="space-y-2">
@@ -91,56 +90,53 @@ export default function ProductSidebar({ products, onProductSelect }) {
                   
                   {isExpanded && (
                     <div className="space-y-2 pl-2">
-                      {categoryProducts.map((product) => {
-                        const currentIndex = draggableIndex++;
-                        return (
-                          <Draggable 
-                            key={product.id} 
-                            draggableId={product.id} 
-                            index={currentIndex}
-                          >
-                            {(provided, snapshot) => (
-                              <>
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  onClick={() => onProductSelect(product)}
-                                  className={`group bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-lg p-3 cursor-pointer transition-all ${
-                                    snapshot.isDragging ? 'shadow-xl shadow-blue-500/20 border-blue-500' : ''
-                                  }`}
-                                >
+                      {categoryProducts.map((product, prodIndex) => (
+                        <Draggable 
+                          key={product.id} 
+                          draggableId={product.id} 
+                          index={filteredProducts.findIndex(p => p.id === product.id)}
+                        >
+                          {(provided, snapshot) => (
+                            <>
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                onClick={() => onProductSelect(product)}
+                                className={`group bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-lg p-3 cursor-pointer transition-all ${
+                                  snapshot.isDragging ? 'shadow-xl shadow-blue-500/20 border-blue-500' : ''
+                                }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-1">
+                                    <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-white text-sm truncate mb-1">
+                                      {product.brand}
+                                    </h3>
+                                    <p className="text-xs text-gray-400 truncate">{product.model}</p>
+                                    {product.price && (
+                                      <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              {snapshot.isDragging && (
+                                <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 opacity-50">
                                   <div className="flex items-start gap-3">
-                                    <div className="mt-1">
-                                      <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h3 className="font-medium text-white text-sm truncate mb-1">
-                                        {product.brand}
-                                      </h3>
-                                      <p className="text-xs text-gray-400 truncate">{product.model}</p>
-                                      {product.price && (
-                                        <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
-                                      )}
+                                    <Grip className="w-4 h-4 text-gray-600 mt-1" />
+                                    <div className="flex-1">
+                                      <h3 className="font-medium text-white text-sm">{product.brand}</h3>
+                                      <p className="text-xs text-gray-400">{product.model}</p>
                                     </div>
                                   </div>
                                 </div>
-                                {snapshot.isDragging && (
-                                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 opacity-50">
-                                    <div className="flex items-start gap-3">
-                                      <Grip className="w-4 h-4 text-gray-600 mt-1" />
-                                      <div className="flex-1">
-                                        <h3 className="font-medium text-white text-sm">{product.brand}</h3>
-                                        <p className="text-xs text-gray-400">{product.model}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </Draggable>
-                        );
-                      })}
+                              )}
+                            </>
+                          )}
+                        </Draggable>
+                      ))}
                     </div>
                   )}
                 </div>
