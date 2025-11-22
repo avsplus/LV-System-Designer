@@ -246,51 +246,53 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
           <p className="text-sm text-gray-400 mb-2">{connections.description}</p>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <h4 className="text-sm font-semibold text-white mb-3">Network Information</h4>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">SW#</label>
-              <Input
-                value={localNetworkInfo.sw}
-                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, sw: e.target.value })}
-                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                placeholder="02"
-                className="bg-gray-900 border-gray-700 text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Port</label>
-              <Input
-                value={localNetworkInfo.port}
-                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, port: e.target.value })}
-                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                placeholder="09"
-                className="bg-gray-900 border-gray-700 text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">IP Address</label>
-              <Input
-                value={localNetworkInfo.ip}
-                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, ip: e.target.value })}
-                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                placeholder="192.168.2.16"
-                className="bg-gray-900 border-gray-700 text-white text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">MAC Address</label>
-              <Input
-                value={localNetworkInfo.mac}
-                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, mac: e.target.value })}
-                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                placeholder="34:26:76:90:87:92"
-                className="bg-gray-900 border-gray-700 text-white text-sm"
-              />
+        {(connections.inputs.some(input => input.type === "Ethernet") || connections.outputs.some(output => output.type === "Ethernet")) && (
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h4 className="text-sm font-semibold text-white mb-3">Network Information</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">SW#</label>
+                <Input
+                  value={localNetworkInfo.sw}
+                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, sw: e.target.value })}
+                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                  placeholder="02"
+                  className="bg-gray-900 border-gray-700 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Port</label>
+                <Input
+                  value={localNetworkInfo.port}
+                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, port: e.target.value })}
+                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                  placeholder="09"
+                  className="bg-gray-900 border-gray-700 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">IP Address</label>
+                <Input
+                  value={localNetworkInfo.ip}
+                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, ip: e.target.value })}
+                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                  placeholder="192.168.2.16"
+                  className="bg-gray-900 border-gray-700 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">MAC Address</label>
+                <Input
+                  value={localNetworkInfo.mac}
+                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, mac: e.target.value })}
+                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                  placeholder="34:26:76:90:87:92"
+                  className="bg-gray-900 border-gray-700 text-white text-sm"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
 
 
