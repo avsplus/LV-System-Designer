@@ -159,14 +159,14 @@ export default function CanvasProduct({
 
       <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
         <p className="text-xs text-gray-400">
-          <span className="text-gray-500">IP:</span> {networkInfo?.ip || '---'}
+          <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '---'}
         </p>
         <p className="text-xs text-gray-400">
+          <span className="text-gray-500">IP:</span> {networkInfo?.ip || '---'}
+          <span className="mx-1">|</span>
           <span className="text-gray-500">SW#:</span> {networkInfo?.sw || '---'} 
           <span className="mx-1">|</span>
-          <span className="text-gray-500">Port:</span> {networkInfo?.port || '---'} 
-          <span className="mx-1">|</span>
-          <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '---'}
+          <span className="text-gray-500">Port:</span> {networkInfo?.port || '---'}
         </p>
       </div>
     </div>
