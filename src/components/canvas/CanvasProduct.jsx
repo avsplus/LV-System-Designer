@@ -157,30 +157,18 @@ export default function CanvasProduct({
         </p>
       )}
 
-      {networkInfo && (networkInfo.sw || networkInfo.port || networkInfo.ip || networkInfo.mac) && (
-        <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
-          {networkInfo.sw && (
-            <p className="text-xs text-gray-400">
-              <span className="text-gray-500">SW#:</span> {networkInfo.sw}
-            </p>
-          )}
-          {networkInfo.port && (
-            <p className="text-xs text-gray-400">
-              <span className="text-gray-500">Port:</span> {networkInfo.port}
-            </p>
-          )}
-          {networkInfo.ip && (
-            <p className="text-xs text-gray-400">
-              <span className="text-gray-500">IP:</span> {networkInfo.ip}
-            </p>
-          )}
-          {networkInfo.mac && (
-            <p className="text-xs text-gray-400">
-              <span className="text-gray-500">MAC:</span> {networkInfo.mac}
-            </p>
-          )}
-        </div>
-      )}
+      <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
+        <p className="text-xs text-gray-400">
+          <span className="text-gray-500">IP:</span> {networkInfo?.ip || '---'}
+        </p>
+        <p className="text-xs text-gray-400">
+          <span className="text-gray-500">SW#:</span> {networkInfo?.sw || '---'} 
+          <span className="mx-1">|</span>
+          <span className="text-gray-500">Port:</span> {networkInfo?.port || '---'} 
+          <span className="mx-1">|</span>
+          <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '---'}
+        </p>
+      </div>
     </div>
   );
 }
