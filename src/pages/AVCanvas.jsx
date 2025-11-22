@@ -209,7 +209,7 @@ export default function AVCanvas() {
     };
   };
 
-  const getProductEdgePoint = (fromId, toId) => {
+  const getProductEdgePoint = (fromId, toId, offsetIndex = 0) => {
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
     
@@ -231,56 +231,51 @@ export default function AVCanvas() {
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
     
+    // Apply offset at connection points to separate parallel lines
+    const edgeOffset = offsetIndex * 20;
+    
     // Determine which edge to use based on direction (perpendicular connections)
     let fromEdge, toEdge;
     
     if (Math.abs(dx) > Math.abs(dy)) {
-      // Horizontal connection
+      // Horizontal connection - offset vertically at edges
       if (dx > 0) {
-        // Connect from right edge of fromProduct
         fromEdge = {
           x: fromProduct.position.x + cardWidth,
-          y: fromCenter.y
+          y: fromCenter.y + edgeOffset
         };
-        // Connect to left edge of toProduct
         toEdge = {
           x: toProduct.position.x,
-          y: toCenter.y
+          y: toCenter.y + edgeOffset
         };
       } else {
-        // Connect from left edge of fromProduct
         fromEdge = {
           x: fromProduct.position.x,
-          y: fromCenter.y
+          y: fromCenter.y + edgeOffset
         };
-        // Connect to right edge of toProduct
         toEdge = {
           x: toProduct.position.x + cardWidth,
-          y: toCenter.y
+          y: toCenter.y + edgeOffset
         };
       }
     } else {
-      // Vertical connection
+      // Vertical connection - offset horizontally at edges
       if (dy > 0) {
-        // Connect from bottom edge of fromProduct
         fromEdge = {
-          x: fromCenter.x,
+          x: fromCenter.x + edgeOffset,
           y: fromProduct.position.y + cardHeight
         };
-        // Connect to top edge of toProduct
         toEdge = {
-          x: toCenter.x,
+          x: toCenter.x + edgeOffset,
           y: toProduct.position.y
         };
       } else {
-        // Connect from top edge of fromProduct
         fromEdge = {
-          x: fromCenter.x,
+          x: fromCenter.x + edgeOffset,
           y: fromProduct.position.y
         };
-        // Connect to bottom edge of toProduct
         toEdge = {
-          x: toCenter.x,
+          x: toCenter.x + edgeOffset,
           y: toProduct.position.y + cardHeight
         };
       }
@@ -372,11 +367,7 @@ export default function AVCanvas() {
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
-                      const { from, to } = getProductEdgePoint(connection.from, connection.to);
-                      const isHighlighted = highlightedConnections.includes(index);
-
-                      // Calculate offset for parallel connections
-                      let offset = 0;
+                      // Calculate offset index for parallel connections
                       const parallelConnections = connections.filter((conn, idx) => {
                         if (idx >= index) return false;
                         const isSameDirection = 
@@ -384,7 +375,10 @@ export default function AVCanvas() {
                           (conn.from === connection.to && conn.to === connection.from);
                         return isSameDirection;
                       });
-                      offset = parallelConnections.length * 50;
+                      const offsetIndex = parallelConnections.length;
+                      
+                      const { from, to } = getProductEdgePoint(connection.from, connection.to, offsetIndex);
+                      const isHighlighted = highlightedConnections.includes(index);
 
                       return (
                         <ConnectionLine
@@ -394,7 +388,7 @@ export default function AVCanvas() {
                           connectionType={connection.type}
                           waypoints={connection.waypoints}
                           isHighlighted={isHighlighted}
-                          offset={offset}
+                          offset={0}
                           onRemove={() => handleRemoveConnection(index)}
                           onClick={() => handleConnectionClick(connection, index)}
                           onWaypointsChange={(newWaypoints) => {

@@ -20,58 +20,52 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
-  // Generate orthogonal path with offset applied consistently
+  // Generate orthogonal path - offset already applied at connection points
   const generatePath = () => {
     if (waypoints.length === 0) {
       const dx = to.x - from.x;
       const dy = to.y - from.y;
       
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Horizontal primary - offset perpendicular (vertically)
+        // Horizontal primary
         const midX = (from.x + to.x) / 2;
-        return `M ${from.x} ${from.y + offset} L ${midX} ${from.y + offset} L ${midX} ${to.y + offset} L ${to.x} ${to.y + offset}`;
+        return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
       } else {
-        // Vertical primary - offset perpendicular (horizontally)
+        // Vertical primary
         const midY = (from.y + to.y) / 2;
-        return `M ${from.x + offset} ${from.y} L ${from.x + offset} ${midY} L ${to.x + offset} ${midY} L ${to.x + offset} ${to.y}`;
+        return `M ${from.x} ${from.y} L ${from.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.y}`;
       }
     } else {
-      // With waypoints - apply offset consistently throughout entire path
+      // With waypoints
       const dx = to.x - from.x;
       const dy = to.y - from.y;
       const primaryHorizontal = Math.abs(dx) > Math.abs(dy);
       
-      // Start with offset
-      let path = primaryHorizontal 
-        ? `M ${from.x} ${from.y + offset}`
-        : `M ${from.x + offset} ${from.y}`;
+      let path = `M ${from.x} ${from.y}`;
       
-      // Route to first waypoint with consistent offset
       const firstWp = waypoints[0];
       if (primaryHorizontal) {
-        path += ` L ${firstWp.x} ${from.y + offset} L ${firstWp.x} ${firstWp.y + offset}`;
+        path += ` L ${firstWp.x} ${from.y} L ${firstWp.x} ${firstWp.y}`;
       } else {
-        path += ` L ${from.x + offset} ${firstWp.y} L ${firstWp.x + offset} ${firstWp.y}`;
+        path += ` L ${from.x} ${firstWp.y} L ${firstWp.x} ${firstWp.y}`;
       }
       
-      // Route between waypoints with consistent offset
       for (let i = 1; i < waypoints.length; i++) {
         const prevWp = waypoints[i - 1];
         const currWp = waypoints[i];
         
         if (primaryHorizontal) {
-          path += ` L ${currWp.x} ${prevWp.y + offset} L ${currWp.x} ${currWp.y + offset}`;
+          path += ` L ${currWp.x} ${prevWp.y} L ${currWp.x} ${currWp.y}`;
         } else {
-          path += ` L ${prevWp.x + offset} ${currWp.y} L ${currWp.x + offset} ${currWp.y}`;
+          path += ` L ${prevWp.x} ${currWp.y} L ${currWp.x} ${currWp.y}`;
         }
       }
       
-      // Route from last waypoint to end with consistent offset
       const lastWp = waypoints[waypoints.length - 1];
       if (primaryHorizontal) {
-        path += ` L ${to.x} ${lastWp.y + offset} L ${to.x} ${to.y + offset}`;
+        path += ` L ${to.x} ${lastWp.y} L ${to.x} ${to.y}`;
       } else {
-        path += ` L ${lastWp.x + offset} ${to.y} L ${to.x + offset} ${to.y}`;
+        path += ` L ${lastWp.x} ${to.y} L ${to.x} ${to.y}`;
       }
       
       return path;
