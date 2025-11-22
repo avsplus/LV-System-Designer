@@ -363,7 +363,7 @@ export default function DeviceConnectionsPanel({ product, label, activeConnectio
           <div className="border-t border-gray-800 pt-4">
             <h4 className="text-sm font-semibold text-white mb-3">Technical Specifications</h4>
             <div className="space-y-2">
-              {Object.entries(product.specs).map(([key, value]) => 
+              {Object.entries(productData.specs).map(([key, value]) => 
                 value ? (
                   <div key={key} className="flex justify-between items-start py-2 border-b border-gray-800">
                     <span className="text-xs text-gray-400 capitalize">
