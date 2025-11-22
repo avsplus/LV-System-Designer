@@ -546,7 +546,7 @@ export default function AVCanvas() {
                         isHighlighted={isHighlighted}
                         label={cp.label}
                         onClick={() => {
-                          setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId });
+                          setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId, label: cp.label });
                           setSelectedProduct(null);
                           setSelectedConnection(null);
                         }}
@@ -570,7 +570,7 @@ export default function AVCanvas() {
         {selectedCanvasProduct && !selectedConnection && (
           <DeviceConnectionsPanel
             product={selectedCanvasProduct}
-            label={canvasProducts.find(cp => cp.instanceId === selectedCanvasProduct.instanceId)?.label}
+            label={selectedCanvasProduct.label}
             activeConnections={connections}
             allProducts={canvasProducts}
             onClose={() => setSelectedCanvasProduct(null)}
