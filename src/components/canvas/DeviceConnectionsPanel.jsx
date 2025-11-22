@@ -359,7 +359,7 @@ export default function DeviceConnectionsPanel({ product, label, activeConnectio
           </div>
         )}
 
-        {product.specs && Object.keys(product.specs).length > 0 && (
+        {productData.specs && Object.keys(productData.specs).length > 0 && (
           <div className="border-t border-gray-800 pt-4">
             <h4 className="text-sm font-semibold text-white mb-3">Technical Specifications</h4>
             <div className="space-y-2">
