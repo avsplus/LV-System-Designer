@@ -374,6 +374,18 @@ export default function AVCanvas() {
                     {connections.map((connection, index) => {
                       const { from, to } = getProductEdgePoint(connection.from, connection.to);
                       const isHighlighted = highlightedConnections.includes(index);
+
+                      // Calculate offset for parallel connections
+                      let offset = 0;
+                      const parallelConnections = connections.filter((conn, idx) => {
+                        if (idx >= index) return false;
+                        const isSameDirection = 
+                          (conn.from === connection.from && conn.to === connection.to) ||
+                          (conn.from === connection.to && conn.to === connection.from);
+                        return isSameDirection;
+                      });
+                      offset = parallelConnections.length * 10;
+
                       return (
                         <ConnectionLine
                           key={index}
@@ -382,6 +394,7 @@ export default function AVCanvas() {
                           connectionType={connection.type}
                           waypoints={connection.waypoints}
                           isHighlighted={isHighlighted}
+                          offset={offset}
                           onRemove={() => handleRemoveConnection(index)}
                           onClick={() => handleConnectionClick(connection, index)}
                           onWaypointsChange={(newWaypoints) => {

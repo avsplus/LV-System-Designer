@@ -12,13 +12,28 @@ const connectionTypeColors = {
   "Coaxial": "#eab308"
 };
 
-export default function ConnectionLine({ from, to, connectionType, waypoints: initialWaypoints, isHighlighted, onRemove, onClick, onWaypointsChange }) {
+export default function ConnectionLine({ from, to, connectionType, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onWaypointsChange }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const waypointRefs = useRef([]);
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
+
+  // Apply offset perpendicular to the connection direction
+  const applyOffset = (point, nextPoint, offset) => {
+    if (offset === 0) return point;
+    const dx = nextPoint.x - point.x;
+    const dy = nextPoint.y - point.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length === 0) return point;
+    
+    // Perpendicular offset
+    const perpX = -dy / length * offset;
+    const perpY = dx / length * offset;
+    
+    return { x: point.x + perpX, y: point.y + perpY };
+  };
 
   // Generate orthogonal path
   const generatePath = () => {
@@ -30,11 +45,19 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
       if (dx > dy) {
         // Horizontal primary direction - exit horizontally
         const midX = (from.x + to.x) / 2;
-        return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
+        const p1 = applyOffset(from, { x: midX, y: from.y }, offset);
+        const p2 = { x: midX, y: from.y + offset };
+        const p3 = { x: midX, y: to.y + offset };
+        const p4 = applyOffset(to, { x: midX, y: to.y }, offset);
+        return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y}`;
       } else {
         // Vertical primary direction - exit vertically
         const midY = (from.y + to.y) / 2;
-        return `M ${from.x} ${from.y} L ${from.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.y}`;
+        const p1 = applyOffset(from, { x: from.x, y: midY }, offset);
+        const p2 = { x: from.x + offset, y: midY };
+        const p3 = { x: to.x + offset, y: midY };
+        const p4 = applyOffset(to, { x: to.x, y: midY }, offset);
+        return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y}`;
       }
     } else {
       // Path through waypoints with orthogonal routing
