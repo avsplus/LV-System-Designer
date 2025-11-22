@@ -8,12 +8,16 @@ import ProductSidebar from "../components/canvas/ProductSidebar";
 import CanvasProduct from "../components/canvas/CanvasProduct";
 import ConnectionLine from "../components/canvas/ConnectionLine";
 import ProductDetailsPanel from "../components/canvas/ProductDetailsPanel";
+import ConnectionDetailsPanel from "../components/canvas/ConnectionDetailsPanel";
+import ConnectionTypeDialog from "../components/canvas/ConnectionTypeDialog";
 
 export default function AVCanvas() {
   const [canvasProducts, setCanvasProducts] = useState([]);
   const [connections, setConnections] = useState([]);
   const [connectingFrom, setConnectingFrom] = useState(null);
+  const [connectingTo, setConnectingTo] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedConnection, setSelectedConnection] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -73,11 +77,34 @@ export default function AVCanvas() {
       );
       
       if (!existingConnection) {
-        setConnections([...connections, { from: connectingFrom, to: productId }]);
+        setConnectingTo(productId);
+      } else {
+        setConnectingFrom(null);
       }
-      setConnectingFrom(null);
     } else {
       setConnectingFrom(null);
+    }
+  };
+
+  const handleConnectionTypeSelect = (type) => {
+    setConnections([...connections, { 
+      from: connectingFrom, 
+      to: connectingTo,
+      type: type
+    }]);
+    setConnectingFrom(null);
+    setConnectingTo(null);
+  };
+
+  const handleConnectionClick = (connection, index) => {
+    setSelectedConnection({ ...connection, index });
+    setSelectedProduct(null);
+  };
+
+  const handleDeleteConnection = () => {
+    if (selectedConnection) {
+      setConnections(connections.filter((_, i) => i !== selectedConnection.index));
+      setSelectedConnection(null);
     }
   };
 
@@ -89,6 +116,7 @@ export default function AVCanvas() {
     setCanvasProducts([]);
     setConnections([]);
     setSelectedProduct(null);
+    setSelectedConnection(null);
   };
 
   const handleZoomIn = () => {
@@ -267,6 +295,7 @@ export default function AVCanvas() {
                           from={from}
                           to={to}
                           onRemove={() => handleRemoveConnection(index)}
+                          onClick={() => handleConnectionClick(connection, index)}
                         />
                       );
                     })}
@@ -317,10 +346,32 @@ export default function AVCanvas() {
           </Droppable>
         </div>
 
-        {selectedProduct && (
+        {selectedProduct && !selectedConnection && (
           <ProductDetailsPanel
             product={selectedProduct}
             onClose={() => setSelectedProduct(null)}
+          />
+        )}
+
+        {selectedConnection && (
+          <ConnectionDetailsPanel
+            connection={selectedConnection}
+            fromProduct={canvasProducts.find(cp => cp.product.id === selectedConnection.from)?.product}
+            toProduct={canvasProducts.find(cp => cp.product.id === selectedConnection.to)?.product}
+            onClose={() => setSelectedConnection(null)}
+            onDelete={handleDeleteConnection}
+          />
+        )}
+
+        {connectingFrom !== null && connectingTo !== null && (
+          <ConnectionTypeDialog
+            fromProduct={canvasProducts.find(cp => cp.product.id === connectingFrom)?.product}
+            toProduct={canvasProducts.find(cp => cp.product.id === connectingTo)?.product}
+            onSelect={handleConnectionTypeSelect}
+            onCancel={() => {
+              setConnectingFrom(null);
+              setConnectingTo(null);
+            }}
           />
         )}
       </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function ConnectionLine({ from, to, onRemove }) {
+export default function ConnectionLine({ from, to, onRemove, onClick }) {
   const [isHovered, setIsHovered] = useState(false);
   const midX = (from.x + to.x) / 2;
   const midY = (from.y + to.y) / 2;
@@ -12,30 +12,48 @@ export default function ConnectionLine({ from, to, onRemove }) {
         y1={from.y}
         x2={to.x}
         y2={to.y}
-        stroke={isHovered ? "#ef4444" : "#3b82f6"}
+        stroke={isHovered ? "#3b82f6" : "#3b82f6"}
         strokeWidth={isHovered ? "3" : "2"}
         strokeDasharray="5,5"
-        className="transition-all"
-        style={{ pointerEvents: 'none' }}
+        className="transition-all cursor-pointer"
+        style={{ pointerEvents: 'stroke' }}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       />
-      {/* Invisible larger hit area */}
+      {/* Invisible larger hit area for line */}
+      <line
+        x1={from.x}
+        y1={from.y}
+        x2={to.x}
+        y2={to.y}
+        stroke="transparent"
+        strokeWidth="20"
+        className="cursor-pointer"
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
+      {/* Delete button */}
       <circle
         cx={midX}
         cy={midY}
         r="20"
         fill="transparent"
         className="cursor-pointer"
-        onClick={onRemove}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       />
-      {/* Visible delete button */}
       <circle
         cx={midX}
         cy={midY}
         r={isHovered ? "12" : "10"}
-        fill={isHovered ? "#ef4444" : "#1f2937"}
-        stroke={isHovered ? "#ef4444" : "#3b82f6"}
+        fill="#ef4444"
+        stroke="#ef4444"
         strokeWidth="2"
         className="transition-all"
         style={{ pointerEvents: 'none' }}
