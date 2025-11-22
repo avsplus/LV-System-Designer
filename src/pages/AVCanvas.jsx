@@ -212,74 +212,83 @@ export default function AVCanvas() {
   const getProductEdgePoint = (fromId, toId, connectionIndex) => {
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
-    
+
     if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
-    
+
     const cardWidth = 256;
     const cardHeight = 160;
-    
+
     const fromCenter = {
       x: fromProduct.position.x + cardWidth / 2,
       y: fromProduct.position.y + cardHeight / 2
     };
-    
+
     const toCenter = {
       x: toProduct.position.x + cardWidth / 2,
       y: toProduct.position.y + cardHeight / 2
     };
-    
+
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
-    
-    // Helper to count connections using a specific edge
-    const countEdgeConnections = (deviceId, edge) => {
-      return connections.filter((c, idx) => {
-        if (idx >= connectionIndex) return false;
-        
+
+    // Get all connections for a specific device and edge, with their indices
+    const getEdgeConnectionIndices = (deviceId, edge) => {
+      const indices = [];
+      connections.forEach((c, idx) => {
         const isFromDevice = c.from === deviceId;
         const isToDevice = c.to === deviceId;
-        
-        if (!isFromDevice && !isToDevice) return false;
-        
+
+        if (!isFromDevice && !isToDevice) return;
+
         const otherId = isFromDevice ? c.to : c.from;
         const otherProduct = canvasProducts.find(cp => cp.instanceId === otherId);
-        if (!otherProduct) return false;
-        
+        if (!otherProduct) return;
+
         const otherCenter = {
           x: otherProduct.position.x + cardWidth / 2,
           y: otherProduct.position.y + cardHeight / 2
         };
-        
+
         const deviceProduct = canvasProducts.find(cp => cp.instanceId === deviceId);
         const deviceCenter = {
           x: deviceProduct.position.x + cardWidth / 2,
           y: deviceProduct.position.y + cardHeight / 2
         };
-        
+
         const cdx = otherCenter.x - deviceCenter.x;
         const cdy = otherCenter.y - deviceCenter.y;
-        
+
+        let matchesEdge = false;
         if (Math.abs(cdx) > Math.abs(cdy)) {
-          if (edge === 'right') return cdx > 0;
-          if (edge === 'left') return cdx < 0;
+          if (edge === 'right') matchesEdge = cdx > 0;
+          if (edge === 'left') matchesEdge = cdx < 0;
         } else {
-          if (edge === 'bottom') return cdy > 0;
-          if (edge === 'top') return cdy < 0;
+          if (edge === 'bottom') matchesEdge = cdy > 0;
+          if (edge === 'top') matchesEdge = cdy < 0;
         }
-        return false;
-      }).length;
+
+        if (matchesEdge) {
+          indices.push(idx);
+        }
+      });
+      return indices.sort((a, b) => a - b);
     };
-    
-    let fromEdge, toEdge, fromOffset, toOffset;
-    
+
+    let fromEdge, toEdge;
+
     if (Math.abs(dx) > Math.abs(dy)) {
       // Horizontal connection
       if (dx > 0) {
-        const fromCount = countEdgeConnections(fromId, 'right');
-        const toCount = countEdgeConnections(toId, 'left');
-        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
-        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
-        
+        const fromIndices = getEdgeConnectionIndices(fromId, 'right');
+        const toIndices = getEdgeConnectionIndices(toId, 'left');
+        const fromPosition = fromIndices.indexOf(connectionIndex);
+        const toPosition = toIndices.indexOf(connectionIndex);
+        const fromTotal = fromIndices.length;
+        const toTotal = toIndices.length;
+
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+
         fromEdge = {
           x: fromProduct.position.x + cardWidth,
           y: fromCenter.y + fromOffset
@@ -289,11 +298,16 @@ export default function AVCanvas() {
           y: toCenter.y + toOffset
         };
       } else {
-        const fromCount = countEdgeConnections(fromId, 'left');
-        const toCount = countEdgeConnections(toId, 'right');
-        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
-        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
-        
+        const fromIndices = getEdgeConnectionIndices(fromId, 'left');
+        const toIndices = getEdgeConnectionIndices(toId, 'right');
+        const fromPosition = fromIndices.indexOf(connectionIndex);
+        const toPosition = toIndices.indexOf(connectionIndex);
+        const fromTotal = fromIndices.length;
+        const toTotal = toIndices.length;
+
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+
         fromEdge = {
           x: fromProduct.position.x,
           y: fromCenter.y + fromOffset
@@ -306,11 +320,16 @@ export default function AVCanvas() {
     } else {
       // Vertical connection
       if (dy > 0) {
-        const fromCount = countEdgeConnections(fromId, 'bottom');
-        const toCount = countEdgeConnections(toId, 'top');
-        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
-        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
-        
+        const fromIndices = getEdgeConnectionIndices(fromId, 'bottom');
+        const toIndices = getEdgeConnectionIndices(toId, 'top');
+        const fromPosition = fromIndices.indexOf(connectionIndex);
+        const toPosition = toIndices.indexOf(connectionIndex);
+        const fromTotal = fromIndices.length;
+        const toTotal = toIndices.length;
+
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+
         fromEdge = {
           x: fromCenter.x + fromOffset,
           y: fromProduct.position.y + cardHeight
@@ -320,11 +339,16 @@ export default function AVCanvas() {
           y: toProduct.position.y
         };
       } else {
-        const fromCount = countEdgeConnections(fromId, 'top');
-        const toCount = countEdgeConnections(toId, 'bottom');
-        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
-        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
-        
+        const fromIndices = getEdgeConnectionIndices(fromId, 'top');
+        const toIndices = getEdgeConnectionIndices(toId, 'bottom');
+        const fromPosition = fromIndices.indexOf(connectionIndex);
+        const toPosition = toIndices.indexOf(connectionIndex);
+        const fromTotal = fromIndices.length;
+        const toTotal = toIndices.length;
+
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+
         fromEdge = {
           x: fromCenter.x + fromOffset,
           y: fromProduct.position.y
@@ -335,7 +359,7 @@ export default function AVCanvas() {
         };
       }
     }
-    
+
     return { from: fromEdge, to: toEdge };
   };
 
