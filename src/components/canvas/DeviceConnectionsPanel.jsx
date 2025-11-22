@@ -5,63 +5,137 @@ import { X } from "lucide-react";
 
 const connectionsByCategory = {
   speakers: {
-    inputs: ["Speaker Wire", "XLR"],
+    inputs: [
+      { type: "Speaker Wire", max: 2 },
+      { type: "XLR", max: 2 }
+    ],
     outputs: [],
     description: "Audio output device"
   },
   amplifiers: {
-    inputs: ["RCA", "XLR", "Optical", "Coaxial", "USB"],
-    outputs: ["Speaker Wire", "RCA", "XLR"],
+    inputs: [
+      { type: "RCA", max: 4 },
+      { type: "XLR", max: 2 },
+      { type: "Optical", max: 2 },
+      { type: "Coaxial", max: 1 },
+      { type: "USB", max: 1 }
+    ],
+    outputs: [
+      { type: "Speaker Wire", max: 4 },
+      { type: "RCA", max: 2 },
+      { type: "XLR", max: 2 }
+    ],
     description: "Power amplification for speakers"
   },
   receivers: {
-    inputs: ["HDMI", "RCA", "Optical", "Coaxial", "USB", "Ethernet"],
-    outputs: ["HDMI", "Speaker Wire", "RCA", "Optical"],
+    inputs: [
+      { type: "HDMI", max: 6 },
+      { type: "RCA", max: 4 },
+      { type: "Optical", max: 2 },
+      { type: "Coaxial", max: 1 },
+      { type: "USB", max: 2 },
+      { type: "Ethernet", max: 1 }
+    ],
+    outputs: [
+      { type: "HDMI", max: 2 },
+      { type: "Speaker Wire", max: 7 },
+      { type: "RCA", max: 2 },
+      { type: "Optical", max: 1 }
+    ],
     description: "Central hub for audio/video"
   },
   subwoofers: {
-    inputs: ["RCA", "Speaker Wire", "XLR"],
+    inputs: [
+      { type: "RCA", max: 2 },
+      { type: "Speaker Wire", max: 1 },
+      { type: "XLR", max: 1 }
+    ],
     outputs: [],
     description: "Low-frequency audio output"
   },
   turntables: {
     inputs: [],
-    outputs: ["RCA", "USB"],
+    outputs: [
+      { type: "RCA", max: 1 },
+      { type: "USB", max: 1 }
+    ],
     description: "Analog audio source"
   },
   dacs: {
-    inputs: ["USB", "Optical", "Coaxial", "Ethernet"],
-    outputs: ["RCA", "XLR"],
+    inputs: [
+      { type: "USB", max: 2 },
+      { type: "Optical", max: 2 },
+      { type: "Coaxial", max: 1 },
+      { type: "Ethernet", max: 1 }
+    ],
+    outputs: [
+      { type: "RCA", max: 2 },
+      { type: "XLR", max: 2 }
+    ],
     description: "Digital to analog conversion"
   },
   streamers: {
-    inputs: ["Ethernet", "USB"],
-    outputs: ["RCA", "Optical", "Coaxial", "XLR"],
+    inputs: [
+      { type: "Ethernet", max: 1 },
+      { type: "USB", max: 1 }
+    ],
+    outputs: [
+      { type: "RCA", max: 2 },
+      { type: "Optical", max: 1 },
+      { type: "Coaxial", max: 1 },
+      { type: "XLR", max: 2 }
+    ],
     description: "Network audio streaming"
   },
   headphones: {
-    inputs: ["3.5mm Jack", "XLR", "USB"],
+    inputs: [
+      { type: "3.5mm Jack", max: 1 },
+      { type: "XLR", max: 1 },
+      { type: "USB", max: 1 }
+    ],
     outputs: [],
     description: "Personal audio output"
   },
   processors: {
-    inputs: ["HDMI", "RCA", "XLR", "Optical", "Ethernet"],
-    outputs: ["HDMI", "RCA", "XLR", "Optical"],
+    inputs: [
+      { type: "HDMI", max: 4 },
+      { type: "RCA", max: 4 },
+      { type: "XLR", max: 2 },
+      { type: "Optical", max: 2 },
+      { type: "Ethernet", max: 1 }
+    ],
+    outputs: [
+      { type: "HDMI", max: 2 },
+      { type: "RCA", max: 4 },
+      { type: "XLR", max: 2 },
+      { type: "Optical", max: 1 }
+    ],
     description: "Audio/video signal processing"
   },
   cables: {
-    inputs: ["Various"],
-    outputs: ["Various"],
+    inputs: [{ type: "Various", max: 999 }],
+    outputs: [{ type: "Various", max: 999 }],
     description: "Signal transmission"
   },
   microphones: {
     inputs: [],
-    outputs: ["XLR", "USB"],
+    outputs: [
+      { type: "XLR", max: 1 },
+      { type: "USB", max: 1 }
+    ],
     description: "Audio input device"
   },
   mixers: {
-    inputs: ["XLR", "RCA", "USB"],
-    outputs: ["XLR", "RCA", "USB"],
+    inputs: [
+      { type: "XLR", max: 8 },
+      { type: "RCA", max: 4 },
+      { type: "USB", max: 1 }
+    ],
+    outputs: [
+      { type: "XLR", max: 2 },
+      { type: "RCA", max: 2 },
+      { type: "USB", max: 1 }
+    ],
     description: "Multi-channel audio mixing"
   }
 };
@@ -79,8 +153,62 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types" }
 };
 
-export default function DeviceConnectionsPanel({ product, onClose }) {
+export default function DeviceConnectionsPanel({ product, activeConnections, allProducts, onClose }) {
   const connections = connectionsByCategory[product.category] || { inputs: [], outputs: [], description: "" };
+  
+  // Get connections for this device
+  const deviceConnections = activeConnections.filter(
+    conn => conn.from === product.id || conn.to === product.id
+  );
+  
+  // Count connections by type
+  const getConnectionCount = (connectionType, isInput) => {
+    return deviceConnections.filter(conn => {
+      const isInputConnection = conn.to === product.id;
+      if (isInput !== isInputConnection) return false;
+      
+      // Map connection types
+      const typeMap = {
+        'hdmi': 'HDMI',
+        'optical': 'Optical',
+        'rca': 'RCA',
+        'xlr': 'XLR',
+        'speaker_wire': 'Speaker Wire',
+        'ethernet': 'Ethernet',
+        'usb': 'USB',
+        'coaxial': 'Coaxial'
+      };
+      
+      return typeMap[conn.type] === connectionType;
+    }).length;
+  };
+  
+  // Get connected device info
+  const getConnectedDevices = (connectionType, isInput) => {
+    return deviceConnections
+      .filter(conn => {
+        const isInputConnection = conn.to === product.id;
+        if (isInput !== isInputConnection) return false;
+        
+        const typeMap = {
+          'hdmi': 'HDMI',
+          'optical': 'Optical',
+          'rca': 'RCA',
+          'xlr': 'XLR',
+          'speaker_wire': 'Speaker Wire',
+          'ethernet': 'Ethernet',
+          'usb': 'USB',
+          'coaxial': 'Coaxial'
+        };
+        
+        return typeMap[conn.type] === connectionType;
+      })
+      .map(conn => {
+        const connectedId = conn.from === product.id ? conn.to : conn.from;
+        return allProducts.find(p => p.id === connectedId);
+      })
+      .filter(Boolean);
+  };
 
   return (
     <div className="w-96 bg-gray-900 border-l border-gray-800 flex flex-col h-full">
@@ -117,15 +245,32 @@ export default function DeviceConnectionsPanel({ product, onClose }) {
             </h4>
             <div className="space-y-2">
               {connections.inputs.map((input, idx) => {
-                const info = connectionTypeInfo[input] || connectionTypeInfo["Various"];
+                const info = connectionTypeInfo[input.type] || connectionTypeInfo["Various"];
+                const used = getConnectionCount(input.type, true);
+                const available = input.max - used;
+                const connectedDevices = getConnectedDevices(input.type, true);
+                
                 return (
                   <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <div className="flex items-center justify-between mb-1">
                       <Badge className={`${info.color} border text-sm`}>
-                        {input}
+                        {input.type}
                       </Badge>
+                      <span className={`text-xs font-medium ${available > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {used}/{input.max}
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-400">{info.signals}</p>
+                    <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
+                    {connectedDevices.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-gray-700">
+                        <p className="text-xs text-gray-500 mb-1">Connected to:</p>
+                        {connectedDevices.map((dev, i) => (
+                          <div key={i} className="text-xs text-gray-300 truncate">
+                            • {dev.brand} {dev.model}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -141,15 +286,32 @@ export default function DeviceConnectionsPanel({ product, onClose }) {
             </h4>
             <div className="space-y-2">
               {connections.outputs.map((output, idx) => {
-                const info = connectionTypeInfo[output] || connectionTypeInfo["Various"];
+                const info = connectionTypeInfo[output.type] || connectionTypeInfo["Various"];
+                const used = getConnectionCount(output.type, false);
+                const available = output.max - used;
+                const connectedDevices = getConnectedDevices(output.type, false);
+                
                 return (
                   <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <div className="flex items-center justify-between mb-1">
                       <Badge className={`${info.color} border text-sm`}>
-                        {output}
+                        {output.type}
                       </Badge>
+                      <span className={`text-xs font-medium ${available > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {used}/{output.max}
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-400">{info.signals}</p>
+                    <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
+                    {connectedDevices.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-gray-700">
+                        <p className="text-xs text-gray-500 mb-1">Connected to:</p>
+                        {connectedDevices.map((dev, i) => (
+                          <div key={i} className="text-xs text-gray-300 truncate">
+                            • {dev.brand} {dev.model}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -363,6 +363,8 @@ export default function AVCanvas() {
         {selectedCanvasProduct && !selectedConnection && (
           <DeviceConnectionsPanel
             product={selectedCanvasProduct}
+            activeConnections={connections}
+            allProducts={canvasProducts.map(cp => cp.product)}
             onClose={() => setSelectedCanvasProduct(null)}
           />
         )}
