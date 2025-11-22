@@ -23,16 +23,59 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
   // Generate orthogonal path
   const generatePath = () => {
     if (waypoints.length === 0) {
-      // Default orthogonal routing
-      const midX = (from.x + to.x) / 2;
-      return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
+      // Determine if connection exits horizontally or vertically
+      const dx = Math.abs(to.x - from.x);
+      const dy = Math.abs(to.y - from.y);
+      
+      if (dx > dy) {
+        // Horizontal primary direction - exit horizontally
+        const midX = (from.x + to.x) / 2;
+        return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
+      } else {
+        // Vertical primary direction - exit vertically
+        const midY = (from.y + to.y) / 2;
+        return `M ${from.x} ${from.y} L ${from.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.y}`;
+      }
     } else {
-      // Path through waypoints
+      // Path through waypoints with orthogonal routing
       let path = `M ${from.x} ${from.y}`;
-      waypoints.forEach(wp => {
-        path += ` L ${wp.x} ${wp.y}`;
-      });
-      path += ` L ${to.x} ${to.y}`;
+      
+      // Route to first waypoint orthogonally
+      const firstWp = waypoints[0];
+      const dx1 = Math.abs(firstWp.x - from.x);
+      const dy1 = Math.abs(firstWp.y - from.y);
+      
+      if (dx1 > dy1) {
+        path += ` L ${firstWp.x} ${from.y} L ${firstWp.x} ${firstWp.y}`;
+      } else {
+        path += ` L ${from.x} ${firstWp.y} L ${firstWp.x} ${firstWp.y}`;
+      }
+      
+      // Route between waypoints
+      for (let i = 1; i < waypoints.length; i++) {
+        const prevWp = waypoints[i - 1];
+        const currWp = waypoints[i];
+        const dxW = Math.abs(currWp.x - prevWp.x);
+        const dyW = Math.abs(currWp.y - prevWp.y);
+        
+        if (dxW > dyW) {
+          path += ` L ${currWp.x} ${prevWp.y} L ${currWp.x} ${currWp.y}`;
+        } else {
+          path += ` L ${prevWp.x} ${currWp.y} L ${currWp.x} ${currWp.y}`;
+        }
+      }
+      
+      // Route from last waypoint to end
+      const lastWp = waypoints[waypoints.length - 1];
+      const dxL = Math.abs(to.x - lastWp.x);
+      const dyL = Math.abs(to.y - lastWp.y);
+      
+      if (dxL > dyL) {
+        path += ` L ${to.x} ${lastWp.y} L ${to.x} ${to.y}`;
+      } else {
+        path += ` L ${lastWp.x} ${to.y} L ${to.x} ${to.y}`;
+      }
+      
       return path;
     }
   };
