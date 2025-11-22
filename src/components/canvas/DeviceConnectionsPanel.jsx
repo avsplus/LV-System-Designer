@@ -6,50 +6,50 @@ import { X } from "lucide-react";
 const connectionsByCategory = {
   speakers: {
     inputs: [
-      { type: "Speaker Wire", max: 2 },
-      { type: "XLR", max: 2 }
+      { type: "Speaker Wire", ports: ["Left", "Right"] },
+      { type: "XLR", ports: ["Left", "Right"] }
     ],
     outputs: [],
     description: "Audio output device"
   },
   amplifiers: {
     inputs: [
-      { type: "RCA", max: 4 },
-      { type: "XLR", max: 2 },
-      { type: "Optical", max: 2 },
-      { type: "Coaxial", max: 1 },
-      { type: "USB", max: 1 }
+      { type: "RCA", ports: ["RCA-1", "RCA-2", "RCA-3", "RCA-4"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "USB", ports: ["USB"] }
     ],
     outputs: [
-      { type: "Speaker Wire", max: 4 },
-      { type: "RCA", max: 2 },
-      { type: "XLR", max: 2 }
+      { type: "Speaker Wire", ports: ["Speaker-A", "Speaker-B", "Speaker-C", "Speaker-D"] },
+      { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] },
+      { type: "XLR", ports: ["XLR-Out-L", "XLR-Out-R"] }
     ],
     description: "Power amplification for speakers"
   },
   receivers: {
     inputs: [
-      { type: "HDMI", max: 6 },
-      { type: "RCA", max: 4 },
-      { type: "Optical", max: 2 },
-      { type: "Coaxial", max: 1 },
-      { type: "USB", max: 2 },
-      { type: "Ethernet", max: 1 },
-      { type: "Speaker Wire", max: 7 }
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6"] },
+      { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "USB", ports: ["USB-A", "USB-B"] },
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R"] }
     ],
     outputs: [
-      { type: "HDMI", max: 2 },
-      { type: "Speaker Wire", max: 7 },
-      { type: "RCA", max: 2 },
-      { type: "Optical", max: 1 }
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R"] },
+      { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
+      { type: "Optical", ports: ["Optical-Out"] }
     ],
     description: "Central hub for audio/video"
   },
   subwoofers: {
     inputs: [
-      { type: "RCA", max: 2 },
-      { type: "Speaker Wire", max: 1 },
-      { type: "XLR", max: 1 }
+      { type: "RCA", ports: ["LFE-L", "LFE-R"] },
+      { type: "Speaker Wire", ports: ["LFE"] },
+      { type: "XLR", ports: ["XLR"] }
     ],
     outputs: [],
     description: "Low-frequency audio output"
@@ -57,85 +57,85 @@ const connectionsByCategory = {
   turntables: {
     inputs: [],
     outputs: [
-      { type: "RCA", max: 1 },
-      { type: "USB", max: 1 }
+      { type: "RCA", ports: ["Phono-Out"] },
+      { type: "USB", ports: ["USB-Out"] }
     ],
     description: "Analog audio source"
   },
   dacs: {
     inputs: [
-      { type: "USB", max: 2 },
-      { type: "Optical", max: 2 },
-      { type: "Coaxial", max: 1 },
-      { type: "Ethernet", max: 1 }
+      { type: "USB", ports: ["USB-A", "USB-B"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "Ethernet", ports: ["LAN"] }
     ],
     outputs: [
-      { type: "RCA", max: 2 },
-      { type: "XLR", max: 2 }
+      { type: "RCA", ports: ["Out-L", "Out-R"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
     ],
     description: "Digital to analog conversion"
   },
   streamers: {
     inputs: [
-      { type: "Ethernet", max: 1 },
-      { type: "USB", max: 1 }
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "USB", ports: ["USB"] }
     ],
     outputs: [
-      { type: "RCA", max: 2 },
-      { type: "Optical", max: 1 },
-      { type: "Coaxial", max: 1 },
-      { type: "XLR", max: 2 }
+      { type: "RCA", ports: ["Out-L", "Out-R"] },
+      { type: "Optical", ports: ["Optical-Out"] },
+      { type: "Coaxial", ports: ["Coaxial-Out"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
     ],
     description: "Network audio streaming"
   },
   headphones: {
     inputs: [
-      { type: "3.5mm Jack", max: 1 },
-      { type: "XLR", max: 1 },
-      { type: "USB", max: 1 }
+      { type: "3.5mm Jack", ports: ["Input"] },
+      { type: "XLR", ports: ["XLR"] },
+      { type: "USB", ports: ["USB"] }
     ],
     outputs: [],
     description: "Personal audio output"
   },
   processors: {
     inputs: [
-      { type: "HDMI", max: 4 },
-      { type: "RCA", max: 4 },
-      { type: "XLR", max: 2 },
-      { type: "Optical", max: 2 },
-      { type: "Ethernet", max: 1 }
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+      { type: "RCA", ports: ["RCA-1", "RCA-2", "RCA-3", "RCA-4"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Ethernet", ports: ["LAN"] }
     ],
     outputs: [
-      { type: "HDMI", max: 2 },
-      { type: "RCA", max: 4 },
-      { type: "XLR", max: 2 },
-      { type: "Optical", max: 1 }
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "RCA", ports: ["Out-1", "Out-2", "Out-3", "Out-4"] },
+      { type: "XLR", ports: ["XLR-Out-L", "XLR-Out-R"] },
+      { type: "Optical", ports: ["Optical-Out"] }
     ],
     description: "Audio/video signal processing"
   },
   cables: {
-    inputs: [{ type: "Various", max: 999 }],
-    outputs: [{ type: "Various", max: 999 }],
+    inputs: [{ type: "Various", ports: ["In"] }],
+    outputs: [{ type: "Various", ports: ["Out"] }],
     description: "Signal transmission"
   },
   microphones: {
     inputs: [],
     outputs: [
-      { type: "XLR", max: 1 },
-      { type: "USB", max: 1 }
+      { type: "XLR", ports: ["XLR-Out"] },
+      { type: "USB", ports: ["USB-Out"] }
     ],
     description: "Audio input device"
   },
   mixers: {
     inputs: [
-      { type: "XLR", max: 8 },
-      { type: "RCA", max: 4 },
-      { type: "USB", max: 1 }
+      { type: "XLR", ports: ["Ch-1", "Ch-2", "Ch-3", "Ch-4", "Ch-5", "Ch-6", "Ch-7", "Ch-8"] },
+      { type: "RCA", ports: ["Stereo-1", "Stereo-2", "Stereo-3", "Stereo-4"] },
+      { type: "USB", ports: ["USB"] }
     ],
     outputs: [
-      { type: "XLR", max: 2 },
-      { type: "RCA", max: 2 },
-      { type: "USB", max: 1 }
+      { type: "XLR", ports: ["Main-L", "Main-R"] },
+      { type: "RCA", ports: ["Rec-L", "Rec-R"] },
+      { type: "USB", ports: ["USB-Out"] }
     ],
     description: "Multi-channel audio mixing"
   }
@@ -163,55 +163,47 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
     conn => conn.from === instanceId || conn.to === instanceId
   );
   
-  // Normalize connection type strings for comparison
-  const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
-  // Count connections by type (flexible matching)
-  const getConnectionCount = (connectionType, isInput) => {
-    const matches = deviceConnections.filter(conn => {
+  // Get used ports for a connection type
+  const getUsedPorts = (connectionType, ports, isInput) => {
+    const used = new Set();
+    deviceConnections.forEach(conn => {
       const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
-      if (!isCorrectDirection) return false;
+      if (!isCorrectDirection || conn.type !== connectionType) return;
       
-      const connTypeNorm = normalizeType(conn.type || '');
-      const expectedTypeNorm = normalizeType(connectionType);
-      return connTypeNorm === expectedTypeNorm;
+      const port = isInput ? conn.toPort : conn.fromPort;
+      if (port) used.add(port);
     });
-    return matches.length;
+    return used;
   };
   
-  // Get connected device info
-  const getConnectedDevices = (connectionType, isInput) => {
-    const normalizedConnectionType = normalizeType(connectionType);
+  // Get connected device info for a specific port
+  const getConnectedDevice = (connectionType, port, isInput) => {
+    const conn = deviceConnections.find(c => {
+      const isCorrectDirection = isInput ? (c.to === instanceId) : (c.from === instanceId);
+      if (!isCorrectDirection || c.type !== connectionType) return false;
+      
+      const checkPort = isInput ? c.toPort : c.fromPort;
+      return checkPort === port;
+    });
     
-    return deviceConnections
-      .filter(conn => {
-        const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
-        if (!isCorrectDirection) return false;
-        
-        return normalizeType(conn.type || '') === normalizedConnectionType;
-      })
-      .map(conn => {
-        const connectedId = conn.from === instanceId ? conn.to : conn.from;
-        return allProducts.find(p => p.instanceId === connectedId);
-      })
-      .filter(Boolean);
+    if (!conn) return null;
+    
+    const connectedId = conn.from === instanceId ? conn.to : conn.from;
+    const connectedDevice = allProducts.find(p => p.instanceId === connectedId);
+    const connectedPort = conn.from === instanceId ? conn.toPort : conn.fromPort;
+    
+    return { device: connectedDevice, port: connectedPort };
   };
 
-  // Get connection indices for highlighting
-  const getConnectionIndices = (connectionType, isInput) => {
-    const normalizedConnectionType = normalizeType(connectionType);
-    
-    return activeConnections
-      .map((conn, idx) => {
-        const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
-        if (!isCorrectDirection) return -1;
-        
-        if (normalizeType(conn.type || '') === normalizedConnectionType) {
-          return idx;
-        }
-        return -1;
-      })
-      .filter(idx => idx !== -1);
+  // Get connection index for highlighting
+  const getConnectionIndex = (connectionType, port, isInput) => {
+    return activeConnections.findIndex(conn => {
+      const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
+      if (!isCorrectDirection || conn.type !== connectionType) return false;
+      
+      const checkPort = isInput ? conn.toPort : conn.fromPort;
+      return checkPort === port;
+    });
   };
 
   return (
@@ -241,19 +233,7 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
           <p className="text-sm text-gray-400 mb-2">{connections.description}</p>
         </div>
 
-        {deviceConnections.length > 0 && (
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-            <p className="text-xs text-gray-500 mb-2">Debug - Total Active: {deviceConnections.length}</p>
-            {deviceConnections.map((conn, i) => {
-              const otherDevice = allProducts.find(p => p.instanceId === (conn.from === instanceId ? conn.to : conn.from));
-              return (
-                <div key={i} className="text-xs text-gray-300 mb-1 font-mono">
-                  • Type="{conn.type}" norm="{normalizeType(conn.type || '')}" dir={conn.from === instanceId ? 'OUT' : 'IN'} to={otherDevice?.brand}
-                </div>
-              );
-            })}
-          </div>
-        )}
+
 
         {connections.inputs.length > 0 && (
           <div>
@@ -261,40 +241,50 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
               <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
               Input Connections
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {connections.inputs.map((input, idx) => {
                 const info = connectionTypeInfo[input.type] || connectionTypeInfo["Various"];
-                const used = getConnectionCount(input.type, true);
-                const available = input.max - used;
-                const connectedDevices = getConnectedDevices(input.type, true);
-                const connectionIndices = getConnectionIndices(input.type, true);
-                
+                const usedPorts = getUsedPorts(input.type, input.ports, true);
+
                 return (
-                  <div 
-                    key={idx} 
-                    className="bg-gray-800 rounded-lg p-3 border border-gray-700 transition-all hover:border-blue-500 cursor-pointer"
-                    onMouseEnter={() => onHighlightConnections && onHighlightConnections(connectionIndices)}
-                    onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
-                  >
-                    <div className="flex items-center justify-between mb-1">
+                  <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <div className="flex items-center justify-between mb-2">
                       <Badge className={`${info.color} border text-sm`}>
                         {input.type}
                       </Badge>
-                      <span className={`text-xs font-medium ${available > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {used}/{input.max}
+                      <span className={`text-xs font-medium ${usedPorts.size < input.ports.length ? 'text-green-400' : 'text-red-400'}`}>
+                        {usedPorts.size}/{input.ports.length}
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
-                    {connectedDevices.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-gray-700">
-                        <p className="text-xs text-gray-500 mb-1">Connected to:</p>
-                        {connectedDevices.map((dev, i) => (
-                          <div key={i} className="text-xs text-gray-300 truncate">
-                            • {dev.brand} {dev.model}
+                    <div className="space-y-1 mt-2">
+                      {input.ports.map((port) => {
+                        const isUsed = usedPorts.has(port);
+                        const connectedInfo = isUsed ? getConnectedDevice(input.type, port, true) : null;
+                        const connectionIdx = isUsed ? getConnectionIndex(input.type, port, true) : -1;
+
+                        return (
+                          <div 
+                            key={port}
+                            className={`flex items-center justify-between p-2 rounded text-xs transition-all ${
+                              isUsed 
+                                ? 'bg-blue-500/10 border border-blue-500/30 hover:border-blue-500 cursor-pointer' 
+                                : 'bg-gray-900/50'
+                            }`}
+                            onMouseEnter={() => isUsed && onHighlightConnections && onHighlightConnections([connectionIdx])}
+                            onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
+                          >
+                            <span className={isUsed ? 'text-blue-300 font-medium' : 'text-gray-500'}>{port}</span>
+                            {isUsed && connectedInfo?.device && (
+                              <span className="text-gray-400 text-[10px] truncate ml-2">
+                                ← {connectedInfo.device.brand} ({connectedInfo.port})
+                              </span>
+                            )}
+                            {!isUsed && <span className="text-gray-600 text-[10px]">Available</span>}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
@@ -308,55 +298,50 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
               <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
               Output Connections
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {connections.outputs.map((output, idx) => {
                 const info = connectionTypeInfo[output.type] || connectionTypeInfo["Various"];
-                const used = getConnectionCount(output.type, false);
-                const available = output.max - used;
-                const connectedDevices = getConnectedDevices(output.type, false);
-                const connectionIndices = getConnectionIndices(output.type, false);
-                
-                const matchingConns = deviceConnections.filter(conn => 
-                  conn.from === instanceId && normalizeType(conn.type || '') === normalizeType(output.type)
-                );
+                const usedPorts = getUsedPorts(output.type, output.ports, false);
 
-                // Detailed debug
-                const allOutConns = deviceConnections.filter(c => c.from === instanceId);
-                
                 return (
-                  <div 
-                    key={idx} 
-                    className="bg-gray-800 rounded-lg p-3 border border-gray-700 transition-all hover:border-blue-500 cursor-pointer"
-                    onMouseEnter={() => onHighlightConnections && onHighlightConnections(connectionIndices)}
-                    onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
-                  >
-                    <div className="flex items-center justify-between mb-1">
+                  <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                    <div className="flex items-center justify-between mb-2">
                       <Badge className={`${info.color} border text-sm`}>
                         {output.type}
                       </Badge>
-                      <span className={`text-xs font-medium ${available > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {used}/{output.max}
+                      <span className={`text-xs font-medium ${usedPorts.size < output.ports.length ? 'text-green-400' : 'text-red-400'}`}>
+                        {usedPorts.size}/{output.ports.length}
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
-                    <div className="text-xs text-gray-500 font-mono space-y-1">
-                      <div>Expected: "{output.type}" → "{normalizeType(output.type)}"</div>
-                      <div>Total OUT: {allOutConns.length}</div>
-                      {allOutConns.map((c, i) => (
-                        <div key={i}>Conn{i}: "{c.type}" → "{normalizeType(c.type || '')}"</div>
-                      ))}
-                      <div>Matched: {matchingConns.length} | Used: {used}</div>
-                    </div>
-                    {connectedDevices.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-gray-700">
-                        <p className="text-xs text-gray-500 mb-1">Connected to:</p>
-                        {connectedDevices.map((dev, i) => (
-                          <div key={i} className="text-xs text-gray-300 truncate">
-                            • {dev.brand} {dev.model}
+                    <div className="space-y-1 mt-2">
+                      {output.ports.map((port) => {
+                        const isUsed = usedPorts.has(port);
+                        const connectedInfo = isUsed ? getConnectedDevice(output.type, port, false) : null;
+                        const connectionIdx = isUsed ? getConnectionIndex(output.type, port, false) : -1;
+
+                        return (
+                          <div 
+                            key={port}
+                            className={`flex items-center justify-between p-2 rounded text-xs transition-all ${
+                              isUsed 
+                                ? 'bg-purple-500/10 border border-purple-500/30 hover:border-purple-500 cursor-pointer' 
+                                : 'bg-gray-900/50'
+                            }`}
+                            onMouseEnter={() => isUsed && onHighlightConnections && onHighlightConnections([connectionIdx])}
+                            onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
+                          >
+                            <span className={isUsed ? 'text-purple-300 font-medium' : 'text-gray-500'}>{port}</span>
+                            {isUsed && connectedInfo?.device && (
+                              <span className="text-gray-400 text-[10px] truncate ml-2">
+                                → {connectedInfo.device.brand} ({connectedInfo.port})
+                              </span>
+                            )}
+                            {!isUsed && <span className="text-gray-600 text-[10px]">Available</span>}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
