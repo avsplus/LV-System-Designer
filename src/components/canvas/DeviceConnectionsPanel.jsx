@@ -294,6 +294,9 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                   conn.from === product.id && normalizeType(conn.type || '') === normalizeType(output.type)
                 );
                 
+                // Detailed debug
+                const allOutConns = deviceConnections.filter(c => c.from === product.id);
+                
                 return (
                   <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <div className="flex items-center justify-between mb-1">
@@ -305,9 +308,14 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
-                    <p className="text-xs text-gray-500 font-mono">
-                      Debug: norm={normalizeType(output.type)} matched={matchingConns.length} used={used}
-                    </p>
+                    <div className="text-xs text-gray-500 font-mono space-y-1">
+                      <div>Expected: "{output.type}" → "{normalizeType(output.type)}"</div>
+                      <div>Total OUT: {allOutConns.length}</div>
+                      {allOutConns.map((c, i) => (
+                        <div key={i}>Conn{i}: "{c.type}" → "{normalizeType(c.type || '')}"</div>
+                      ))}
+                      <div>Matched: {matchingConns.length} | Used: {used}</div>
+                    </div>
                     {connectedDevices.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-gray-700">
                         <p className="text-xs text-gray-500 mb-1">Connected to:</p>
