@@ -82,10 +82,18 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
         <div>
           <p className="text-sm text-gray-500 mb-2">Wire Label</p>
           <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-            <p className="text-sm font-mono text-white">
-              {connectionInfo.name}-{connection.fromPort?.replace(/[^a-zA-Z0-9]/g, '')}-{connection.toPort?.replace(/[^a-zA-Z0-9]/g, '')}
+            <p className="text-lg font-mono font-bold text-white">
+              {(() => {
+                const typeAbbrev = {
+                  "HDMI": "H", "Optical": "O", "RCA": "R", "XLR": "X", 
+                  "Speaker Wire": "SW", "Ethernet": "E", "USB": "U", "Coaxial": "C"
+                }[connectionInfo.name] || connectionInfo.name.charAt(0);
+                const from = connection.fromPort?.match(/\d+/)?.[0] || '?';
+                const to = connection.toPort?.match(/\d+/)?.[0] || '?';
+                return `${typeAbbrev}${from}→${to}`;
+              })()}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Unique identifier for this connection</p>
+            <p className="text-xs text-gray-500 mt-1">Wire identifier</p>
           </div>
         </div>
 
