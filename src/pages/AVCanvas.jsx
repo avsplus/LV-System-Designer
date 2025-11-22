@@ -384,7 +384,7 @@ export default function AVCanvas() {
                           (conn.from === connection.to && conn.to === connection.from);
                         return isSameDirection;
                       });
-                      offset = parallelConnections.length * 15;
+                      offset = parallelConnections.length * 25;
 
                       return (
                         <ConnectionLine
