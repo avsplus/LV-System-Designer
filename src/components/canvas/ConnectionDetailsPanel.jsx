@@ -109,6 +109,13 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
               <p className="text-xs text-gray-400 mb-1">From</p>
               <p className="text-sm font-medium text-white">{fromProduct.brand}</p>
               <p className="text-xs text-gray-400">{fromProduct.model}</p>
+              {connection.fromPort && (
+                <div className="mt-2 inline-block">
+                  <Badge className="bg-purple-500/10 text-purple-300 border-purple-500/30 text-xs">
+                    {connection.fromPort}
+                  </Badge>
+                </div>
+              )}
             </div>
             <div className="text-center">
               <div className="w-px h-6 bg-gray-700 mx-auto"></div>
@@ -117,6 +124,13 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
               <p className="text-xs text-gray-400 mb-1">To</p>
               <p className="text-sm font-medium text-white">{toProduct.brand}</p>
               <p className="text-xs text-gray-400">{toProduct.model}</p>
+              {connection.toPort && (
+                <div className="mt-2 inline-block">
+                  <Badge className="bg-blue-500/10 text-blue-300 border-blue-500/30 text-xs">
+                    {connection.toPort}
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
         </div>
