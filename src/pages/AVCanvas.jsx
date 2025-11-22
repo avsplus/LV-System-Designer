@@ -548,7 +548,7 @@ export default function AVCanvas() {
                         isHighlighted={isHighlighted}
                         label={cp.label}
                         onClick={() => {
-                          setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId, label: cp.label });
+                          setSelectedCanvasProduct(cp);
                           setSelectedProduct(null);
                           setSelectedConnection(null);
                         }}
