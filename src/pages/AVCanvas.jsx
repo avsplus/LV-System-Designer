@@ -286,8 +286,8 @@ export default function AVCanvas() {
         const fromTotal = fromIndices.length;
         const toTotal = toIndices.length;
 
-        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
-        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
         fromEdge = {
           x: fromProduct.position.x + cardWidth,
@@ -305,8 +305,8 @@ export default function AVCanvas() {
         const fromTotal = fromIndices.length;
         const toTotal = toIndices.length;
 
-        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
-        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
         fromEdge = {
           x: fromProduct.position.x,
@@ -327,8 +327,8 @@ export default function AVCanvas() {
         const fromTotal = fromIndices.length;
         const toTotal = toIndices.length;
 
-        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
-        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
         fromEdge = {
           x: fromCenter.x + fromOffset,
@@ -346,8 +346,8 @@ export default function AVCanvas() {
         const fromTotal = fromIndices.length;
         const toTotal = toIndices.length;
 
-        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 25) : 0;
-        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 25) : 0;
+        const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
+        const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
         fromEdge = {
           x: fromCenter.x + fromOffset,
