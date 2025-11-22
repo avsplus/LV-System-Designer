@@ -19,17 +19,18 @@ const categoryColors = {
 };
 
 export default function CanvasProduct({ 
-  instanceId,
-  product, 
-  position,
-  onRemove,
-  onConnect,
-  onPositionChange,
-  isConnecting,
-  isHighlighted,
-  onClick,
-  label
-}) {
+        instanceId,
+        product, 
+        position,
+        onRemove,
+        onConnect,
+        onPositionChange,
+        isConnecting,
+        isHighlighted,
+        onClick,
+        label,
+        networkInfo
+      }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
@@ -154,6 +155,31 @@ export default function CanvasProduct({
         <p className="text-sm font-medium text-blue-400">
           ${product.price.toLocaleString()}
         </p>
+      )}
+
+      {networkInfo && (networkInfo.sw || networkInfo.port || networkInfo.ip || networkInfo.mac) && (
+        <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
+          {networkInfo.sw && (
+            <p className="text-xs text-gray-400">
+              <span className="text-gray-500">SW#:</span> {networkInfo.sw}
+            </p>
+          )}
+          {networkInfo.port && (
+            <p className="text-xs text-gray-400">
+              <span className="text-gray-500">Port:</span> {networkInfo.port}
+            </p>
+          )}
+          {networkInfo.ip && (
+            <p className="text-xs text-gray-400">
+              <span className="text-gray-500">IP:</span> {networkInfo.ip}
+            </p>
+          )}
+          {networkInfo.mac && (
+            <p className="text-xs text-gray-400">
+              <span className="text-gray-500">MAC:</span> {networkInfo.mac}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

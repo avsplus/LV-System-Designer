@@ -54,7 +54,13 @@ export default function AVCanvas() {
             x: Math.random() * (canvasRect.width - 300) + 50, 
             y: Math.random() * (canvasRect.height - 200) + 50 
           },
-          label: deviceLabel
+          label: deviceLabel,
+          networkInfo: {
+            sw: '',
+            port: '',
+            ip: '',
+            mac: ''
+          }
         }]);
       }
     }
@@ -64,6 +70,14 @@ export default function AVCanvas() {
     setCanvasProducts(canvasProducts.map(cp => 
       cp.instanceId === instanceId 
         ? { ...cp, position: newPosition }
+        : cp
+    ));
+  };
+
+  const handleNetworkInfoChange = (instanceId, networkInfo) => {
+    setCanvasProducts(canvasProducts.map(cp => 
+      cp.instanceId === instanceId 
+        ? { ...cp, networkInfo }
         : cp
     ));
   };
@@ -547,6 +561,7 @@ export default function AVCanvas() {
                         isConnecting={connectingFrom === cp.instanceId}
                         isHighlighted={isHighlighted}
                         label={cp.label}
+                        networkInfo={cp.networkInfo}
                         onClick={() => {
                           setSelectedCanvasProduct(cp);
                           setSelectedProduct(null);
@@ -573,10 +588,12 @@ export default function AVCanvas() {
           <DeviceConnectionsPanel
             product={selectedCanvasProduct}
             label={selectedCanvasProduct.label}
+            networkInfo={selectedCanvasProduct.networkInfo}
             activeConnections={connections}
             allProducts={canvasProducts}
             onClose={() => setSelectedCanvasProduct(null)}
             onHighlightConnections={setHighlightedConnections}
+            onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
           />
         )}
 

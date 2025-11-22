@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 
 const connectionsByCategory = {
@@ -154,7 +155,7 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types" }
 };
 
-export default function DeviceConnectionsPanel({ product, label, activeConnections, allProducts, onClose, onHighlightConnections }) {
+export default function DeviceConnectionsPanel({ product, label, networkInfo, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
   const instanceId = product.instanceId;
   const productData = product.product || product;
   const connections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
@@ -241,6 +242,48 @@ export default function DeviceConnectionsPanel({ product, label, activeConnectio
 
         <div>
           <p className="text-sm text-gray-400 mb-2">{connections.description}</p>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+          <h4 className="text-sm font-semibold text-white mb-3">Network Information</h4>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-gray-400 mb-1 block">SW#</label>
+              <Input
+                value={networkInfo?.sw || ''}
+                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, sw: e.target.value })}
+                placeholder="Switch number"
+                className="bg-gray-900 border-gray-700 text-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 mb-1 block">Port</label>
+              <Input
+                value={networkInfo?.port || ''}
+                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, port: e.target.value })}
+                placeholder="Port number"
+                className="bg-gray-900 border-gray-700 text-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 mb-1 block">IP Address</label>
+              <Input
+                value={networkInfo?.ip || ''}
+                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, ip: e.target.value })}
+                placeholder="192.168.1.1"
+                className="bg-gray-900 border-gray-700 text-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 mb-1 block">MAC Address</label>
+              <Input
+                value={networkInfo?.mac || ''}
+                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, mac: e.target.value })}
+                placeholder="00:00:00:00:00:00"
+                className="bg-gray-900 border-gray-700 text-white text-sm"
+              />
+            </div>
+          </div>
         </div>
 
 
