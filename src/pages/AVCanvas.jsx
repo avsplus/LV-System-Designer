@@ -231,24 +231,55 @@ export default function AVCanvas() {
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
     
-    // Count connections from/to same device edge
-    const fromConnections = connections.filter((c, idx) => 
-      idx < connectionIndex && c.from === fromId
-    ).length;
+    // Helper to count connections using a specific edge
+    const countEdgeConnections = (deviceId, edge) => {
+      return connections.filter((c, idx) => {
+        if (idx >= connectionIndex) return false;
+        
+        const isFromDevice = c.from === deviceId;
+        const isToDevice = c.to === deviceId;
+        
+        if (!isFromDevice && !isToDevice) return false;
+        
+        const otherId = isFromDevice ? c.to : c.from;
+        const otherProduct = canvasProducts.find(cp => cp.instanceId === otherId);
+        if (!otherProduct) return false;
+        
+        const otherCenter = {
+          x: otherProduct.position.x + cardWidth / 2,
+          y: otherProduct.position.y + cardHeight / 2
+        };
+        
+        const deviceProduct = canvasProducts.find(cp => cp.instanceId === deviceId);
+        const deviceCenter = {
+          x: deviceProduct.position.x + cardWidth / 2,
+          y: deviceProduct.position.y + cardHeight / 2
+        };
+        
+        const cdx = otherCenter.x - deviceCenter.x;
+        const cdy = otherCenter.y - deviceCenter.y;
+        
+        if (Math.abs(cdx) > Math.abs(cdy)) {
+          if (edge === 'right') return cdx > 0;
+          if (edge === 'left') return cdx < 0;
+        } else {
+          if (edge === 'bottom') return cdy > 0;
+          if (edge === 'top') return cdy < 0;
+        }
+        return false;
+      }).length;
+    };
     
-    const toConnections = connections.filter((c, idx) => 
-      idx < connectionIndex && c.to === toId
-    ).length;
-    
-    // Spread connections along the edge (30px spacing)
-    const fromOffset = (fromConnections - Math.floor(fromConnections / 2)) * 30;
-    const toOffset = (toConnections - Math.floor(toConnections / 2)) * 30;
-    
-    let fromEdge, toEdge;
+    let fromEdge, toEdge, fromOffset, toOffset;
     
     if (Math.abs(dx) > Math.abs(dy)) {
       // Horizontal connection
       if (dx > 0) {
+        const fromCount = countEdgeConnections(fromId, 'right');
+        const toCount = countEdgeConnections(toId, 'left');
+        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
+        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
+        
         fromEdge = {
           x: fromProduct.position.x + cardWidth,
           y: fromCenter.y + fromOffset
@@ -258,6 +289,11 @@ export default function AVCanvas() {
           y: toCenter.y + toOffset
         };
       } else {
+        const fromCount = countEdgeConnections(fromId, 'left');
+        const toCount = countEdgeConnections(toId, 'right');
+        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
+        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
+        
         fromEdge = {
           x: fromProduct.position.x,
           y: fromCenter.y + fromOffset
@@ -270,6 +306,11 @@ export default function AVCanvas() {
     } else {
       // Vertical connection
       if (dy > 0) {
+        const fromCount = countEdgeConnections(fromId, 'bottom');
+        const toCount = countEdgeConnections(toId, 'top');
+        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
+        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
+        
         fromEdge = {
           x: fromCenter.x + fromOffset,
           y: fromProduct.position.y + cardHeight
@@ -279,6 +320,11 @@ export default function AVCanvas() {
           y: toProduct.position.y
         };
       } else {
+        const fromCount = countEdgeConnections(fromId, 'top');
+        const toCount = countEdgeConnections(toId, 'bottom');
+        fromOffset = (fromCount - Math.floor(fromCount / 2)) * 30;
+        toOffset = (toCount - Math.floor(toCount / 2)) * 30;
+        
         fromEdge = {
           x: fromCenter.x + fromOffset,
           y: fromProduct.position.y
