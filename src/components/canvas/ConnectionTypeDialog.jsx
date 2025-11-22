@@ -53,8 +53,36 @@ const connectionTypes = [
   }
 ];
 
+const connectionsByCategory = {
+  speakers: { inputs: ["Speaker Wire", "XLR"], outputs: [] },
+  amplifiers: { inputs: ["RCA", "XLR", "Optical", "Coaxial", "USB"], outputs: ["Speaker Wire", "RCA", "XLR"] },
+  receivers: { inputs: ["HDMI", "RCA", "Optical", "Coaxial", "USB", "Ethernet", "Speaker Wire"], outputs: ["HDMI", "Speaker Wire", "RCA", "Optical"] },
+  subwoofers: { inputs: ["RCA", "Speaker Wire", "XLR"], outputs: [] },
+  turntables: { inputs: [], outputs: ["RCA", "USB"] },
+  dacs: { inputs: ["USB", "Optical", "Coaxial", "Ethernet"], outputs: ["RCA", "XLR"] },
+  streamers: { inputs: ["Ethernet", "USB"], outputs: ["RCA", "Optical", "Coaxial", "XLR"] },
+  headphones: { inputs: ["3.5mm Jack", "XLR", "USB"], outputs: [] },
+  processors: { inputs: ["HDMI", "RCA", "XLR", "Optical", "Ethernet"], outputs: ["HDMI", "RCA", "XLR", "Optical"] },
+  cables: { inputs: ["Various"], outputs: ["Various"] },
+  microphones: { inputs: [], outputs: ["XLR", "USB"] },
+  mixers: { inputs: ["XLR", "RCA", "USB"], outputs: ["XLR", "RCA", "USB"] }
+};
+
+const normalizeType = (type) => type.toLowerCase().replace(/\//g, ' ').trim();
+
 export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel }) {
-  const [selectedType, setSelectedType] = useState("hdmi");
+  // Get compatible connection types
+  const fromCategory = connectionsByCategory[fromProduct.category] || { inputs: [], outputs: [] };
+  const toCategory = connectionsByCategory[toProduct.category] || { inputs: [], outputs: [] };
+  
+  // Find connection types where fromProduct has it as output and toProduct has it as input
+  const compatibleTypes = connectionTypes.filter(type => {
+    const fromHasOutput = fromCategory.outputs.some(o => normalizeType(o) === normalizeType(type.name));
+    const toHasInput = toCategory.inputs.some(i => normalizeType(i) === normalizeType(type.name));
+    return fromHasOutput && toHasInput;
+  });
+
+  const [selectedType, setSelectedType] = useState(compatibleTypes[0]?.id || "");
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onCancel}>
@@ -67,8 +95,15 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
           Choose how to connect <span className="text-white">{fromProduct.brand}</span> to <span className="text-white">{toProduct.brand}</span>
         </p>
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {connectionTypes.map((type) => (
+        {compatibleTypes.length === 0 ? (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-400">
+              No compatible connection types found between these devices.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {compatibleTypes.map((type) => (
             <button
               key={type.id}
               onClick={() => setSelectedType(type.id)}
@@ -89,17 +124,22 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
                 ))}
               </div>
             </button>
-          ))}
-        </div>
+            ))}
+            </div>
+            )}
 
-        <div className="flex gap-3 justify-end">
+            <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={onCancel} className="border-gray-700 text-gray-300">
             Cancel
           </Button>
-          <Button onClick={() => {
-            const selectedTypeObj = connectionTypes.find(t => t.id === selectedType);
-            onSelect(selectedTypeObj.name);
-          }} className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            onClick={() => {
+              const selectedTypeObj = compatibleTypes.find(t => t.id === selectedType);
+              onSelect(selectedTypeObj.name);
+            }} 
+            className="bg-blue-600 hover:bg-blue-700"
+            disabled={compatibleTypes.length === 0}
+          >
             Create Connection
           </Button>
         </div>
