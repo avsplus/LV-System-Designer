@@ -141,8 +141,8 @@ export default function AVCanvas() {
                 }}
               >
                 <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ zIndex: 1 }}
+                  className="absolute inset-0 w-full h-full"
+                  style={{ zIndex: 1, pointerEvents: 'none' }}
                 >
                   {connections.map((connection, index) => {
                     const from = getProductCenter(connection.from);
