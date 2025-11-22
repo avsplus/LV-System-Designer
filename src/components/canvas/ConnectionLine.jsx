@@ -12,7 +12,7 @@ const connectionTypeColors = {
   "Coaxial": "#eab308"
 };
 
-export default function ConnectionLine({ from, to, connectionType, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onWaypointsChange }) {
+export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onWaypointsChange }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
@@ -20,34 +20,65 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
-  // Generate orthogonal path - offset already applied at connection points
+  // Generate orthogonal path perpendicular to edges
   const generatePath = () => {
+    const standoffDistance = 40; // Distance to extend perpendicular from edge
+    
+    // Calculate perpendicular standoff points
+    let fromStandoff, toStandoff;
+    
+    if (fromEdge === 'right') {
+      fromStandoff = { x: from.x + standoffDistance, y: from.y };
+    } else if (fromEdge === 'left') {
+      fromStandoff = { x: from.x - standoffDistance, y: from.y };
+    } else if (fromEdge === 'bottom') {
+      fromStandoff = { x: from.x, y: from.y + standoffDistance };
+    } else { // top
+      fromStandoff = { x: from.x, y: from.y - standoffDistance };
+    }
+    
+    if (toEdge === 'right') {
+      toStandoff = { x: to.x + standoffDistance, y: to.y };
+    } else if (toEdge === 'left') {
+      toStandoff = { x: to.x - standoffDistance, y: to.y };
+    } else if (toEdge === 'bottom') {
+      toStandoff = { x: to.x, y: to.y + standoffDistance };
+    } else { // top
+      toStandoff = { x: to.x, y: to.y - standoffDistance };
+    }
+    
     if (waypoints.length === 0) {
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
+      // Route from standoff to standoff
+      const dx = toStandoff.x - fromStandoff.x;
+      const dy = toStandoff.y - fromStandoff.y;
+      
+      let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
       
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Horizontal primary
-        const midX = (from.x + to.x) / 2;
-        return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
+        // Horizontal routing
+        const midX = (fromStandoff.x + toStandoff.x) / 2;
+        path += ` L ${midX} ${fromStandoff.y} L ${midX} ${toStandoff.y}`;
       } else {
-        // Vertical primary
-        const midY = (from.y + to.y) / 2;
-        return `M ${from.x} ${from.y} L ${from.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.y}`;
+        // Vertical routing
+        const midY = (fromStandoff.y + toStandoff.y) / 2;
+        path += ` L ${fromStandoff.x} ${midY} L ${toStandoff.x} ${midY}`;
       }
+      
+      path += ` L ${toStandoff.x} ${toStandoff.y} L ${to.x} ${to.y}`;
+      return path;
     } else {
       // With waypoints
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
+      const dx = toStandoff.x - fromStandoff.x;
+      const dy = toStandoff.y - fromStandoff.y;
       const primaryHorizontal = Math.abs(dx) > Math.abs(dy);
       
-      let path = `M ${from.x} ${from.y}`;
+      let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
       
       const firstWp = waypoints[0];
       if (primaryHorizontal) {
-        path += ` L ${firstWp.x} ${from.y} L ${firstWp.x} ${firstWp.y}`;
+        path += ` L ${firstWp.x} ${fromStandoff.y} L ${firstWp.x} ${firstWp.y}`;
       } else {
-        path += ` L ${from.x} ${firstWp.y} L ${firstWp.x} ${firstWp.y}`;
+        path += ` L ${fromStandoff.x} ${firstWp.y} L ${firstWp.x} ${firstWp.y}`;
       }
       
       for (let i = 1; i < waypoints.length; i++) {
@@ -63,11 +94,12 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
       
       const lastWp = waypoints[waypoints.length - 1];
       if (primaryHorizontal) {
-        path += ` L ${to.x} ${lastWp.y} L ${to.x} ${to.y}`;
+        path += ` L ${toStandoff.x} ${lastWp.y} L ${toStandoff.x} ${toStandoff.y}`;
       } else {
-        path += ` L ${lastWp.x} ${to.y} L ${to.x} ${to.y}`;
+        path += ` L ${lastWp.x} ${toStandoff.y} L ${toStandoff.x} ${toStandoff.y}`;
       }
       
+      path += ` L ${to.x} ${to.y}`;
       return path;
     }
   };

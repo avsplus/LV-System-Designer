@@ -422,6 +422,31 @@ export default function AVCanvas() {
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
+                      const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+                      const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+                      
+                      if (!fromProduct || !toProduct) return null;
+                      
+                      const fromCenter = {
+                        x: fromProduct.position.x + 128,
+                        y: fromProduct.position.y + 80
+                      };
+                      const toCenter = {
+                        x: toProduct.position.x + 128,
+                        y: toProduct.position.y + 80
+                      };
+                      const dx = toCenter.x - fromCenter.x;
+                      const dy = toCenter.y - fromCenter.y;
+                      
+                      let fromEdge, toEdge;
+                      if (Math.abs(dx) > Math.abs(dy)) {
+                        fromEdge = dx > 0 ? 'right' : 'left';
+                        toEdge = dx > 0 ? 'left' : 'right';
+                      } else {
+                        fromEdge = dy > 0 ? 'bottom' : 'top';
+                        toEdge = dy > 0 ? 'top' : 'bottom';
+                      }
+                      
                       const { from, to } = getProductEdgePoint(connection.from, connection.to, index);
                       const isHighlighted = highlightedConnections.includes(index);
 
@@ -430,6 +455,8 @@ export default function AVCanvas() {
                           key={index}
                           from={from}
                           to={to}
+                          fromEdge={fromEdge}
+                          toEdge={toEdge}
                           connectionType={connection.type}
                           waypoints={connection.waypoints}
                           isHighlighted={isHighlighted}
