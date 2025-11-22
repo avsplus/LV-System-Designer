@@ -142,7 +142,7 @@ export default function AVCanvas() {
               >
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ zIndex: 1 }}
+                  style={{ zIndex: 10 }}
                 >
                   <g style={{ pointerEvents: 'auto' }}>
                     {connections.map((connection, index) => {
