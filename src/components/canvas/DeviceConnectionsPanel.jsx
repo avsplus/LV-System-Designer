@@ -229,7 +229,7 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
               const otherDevice = allProducts.find(p => p.id === (conn.from === product.id ? conn.to : conn.from));
               return (
                 <div key={i} className="text-xs text-gray-300 mb-1 font-mono">
-                  • {conn.type} [{conn.from === product.id ? 'OUT→' : 'IN←'}] {otherDevice?.brand || 'Unknown'}
+                  • Type="{conn.type}" norm="{normalizeType(conn.type || '')}" dir={conn.from === product.id ? 'OUT' : 'IN'} to={otherDevice?.brand}
                 </div>
               );
             })}
