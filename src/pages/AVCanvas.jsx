@@ -44,7 +44,9 @@ export default function AVCanvas() {
       if (product) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
         const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
-        const deviceLabel = `D${canvasProducts.length + 1}`;
+        // Count how many of this brand already exist
+        const brandCount = canvasProducts.filter(cp => cp.product.brand === product.brand).length + 1;
+        const deviceLabel = `${product.brand} ${brandCount}`;
         setCanvasProducts([...canvasProducts, {
           instanceId,
           product,
