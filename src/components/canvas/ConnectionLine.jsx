@@ -59,6 +59,10 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
       const r = Math.min(radius, dist1 / 2, dist2 / 2);
       
+      if (dist1 === 0 || dist2 === 0) {
+        return path;
+      }
+      
       const startX = cornerPt.x - (dx1 / dist1) * r;
       const startY = cornerPt.y - (dy1 / dist1) * r;
       const endX = cornerPt.x + (dx2 / dist2) * r;
@@ -69,32 +73,40 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     };
     
     if (waypoints.length === 0) {
-      const dx = toStandoff.x - fromStandoff.x;
-      const dy = toStandoff.y - fromStandoff.y;
-      
       let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
       
-      if (Math.abs(dx) > Math.abs(dy)) {
+      // Determine routing based on edge directions
+      const fromIsHorizontal = fromEdge === 'left' || fromEdge === 'right';
+      const toIsHorizontal = toEdge === 'left' || toEdge === 'right';
+      
+      if (fromIsHorizontal && toIsHorizontal) {
+        // Both horizontal edges - need 3 segments
         const midX = (fromStandoff.x + toStandoff.x) / 2;
         path = addRoundedCorner(path, fromStandoff, { x: midX, y: fromStandoff.y }, { x: midX, y: toStandoff.y }, cornerRadius);
         path = addRoundedCorner(path, { x: midX, y: fromStandoff.y }, { x: midX, y: toStandoff.y }, toStandoff, cornerRadius);
-      } else {
+      } else if (!fromIsHorizontal && !toIsHorizontal) {
+        // Both vertical edges - need 3 segments
         const midY = (fromStandoff.y + toStandoff.y) / 2;
         path = addRoundedCorner(path, fromStandoff, { x: fromStandoff.x, y: midY }, { x: toStandoff.x, y: midY }, cornerRadius);
         path = addRoundedCorner(path, { x: fromStandoff.x, y: midY }, { x: toStandoff.x, y: midY }, toStandoff, cornerRadius);
+      } else if (fromIsHorizontal && !toIsHorizontal) {
+        // From horizontal, to vertical - single corner
+        path = addRoundedCorner(path, fromStandoff, { x: fromStandoff.x, y: toStandoff.y }, toStandoff, cornerRadius);
+      } else {
+        // From vertical, to horizontal - single corner
+        path = addRoundedCorner(path, fromStandoff, { x: toStandoff.x, y: fromStandoff.y }, toStandoff, cornerRadius);
       }
       
       path += ` L ${to.x} ${to.y}`;
       return path;
     } else {
-      const dx = toStandoff.x - fromStandoff.x;
-      const dy = toStandoff.y - fromStandoff.y;
-      const primaryHorizontal = Math.abs(dx) > Math.abs(dy);
-      
+      // With waypoints - route through them orthogonally
       let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
       
+      const fromIsHorizontal = fromEdge === 'left' || fromEdge === 'right';
       const firstWp = waypoints[0];
-      if (primaryHorizontal) {
+      
+      if (fromIsHorizontal) {
         path = addRoundedCorner(path, fromStandoff, { x: firstWp.x, y: fromStandoff.y }, firstWp, cornerRadius);
       } else {
         path = addRoundedCorner(path, fromStandoff, { x: fromStandoff.x, y: firstWp.y }, firstWp, cornerRadius);
@@ -104,7 +116,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         const prevWp = waypoints[i - 1];
         const currWp = waypoints[i];
         
-        if (primaryHorizontal) {
+        if (Math.abs(currWp.x - prevWp.x) > Math.abs(currWp.y - prevWp.y)) {
           path = addRoundedCorner(path, prevWp, { x: currWp.x, y: prevWp.y }, currWp, cornerRadius);
         } else {
           path = addRoundedCorner(path, prevWp, { x: prevWp.x, y: currWp.y }, currWp, cornerRadius);
@@ -112,7 +124,9 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       }
       
       const lastWp = waypoints[waypoints.length - 1];
-      if (primaryHorizontal) {
+      const toIsHorizontal = toEdge === 'left' || toEdge === 'right';
+      
+      if (toIsHorizontal) {
         path = addRoundedCorner(path, lastWp, { x: toStandoff.x, y: lastWp.y }, toStandoff, cornerRadius);
       } else {
         path = addRoundedCorner(path, lastWp, { x: lastWp.x, y: toStandoff.y }, toStandoff, cornerRadius);
