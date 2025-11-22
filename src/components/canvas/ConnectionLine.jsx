@@ -15,7 +15,8 @@ export default function ConnectionLine({ from, to, onRemove }) {
         stroke={isHovered ? "#ef4444" : "#3b82f6"}
         strokeWidth={isHovered ? "3" : "2"}
         strokeDasharray="5,5"
-        className="transition-all pointer-events-none"
+        className="transition-all"
+        style={{ pointerEvents: 'none' }}
       />
       {/* Invisible larger hit area */}
       <circle
@@ -24,7 +25,6 @@ export default function ConnectionLine({ from, to, onRemove }) {
         r="20"
         fill="transparent"
         className="cursor-pointer"
-        style={{ pointerEvents: 'auto' }}
         onClick={onRemove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -37,14 +37,15 @@ export default function ConnectionLine({ from, to, onRemove }) {
         fill={isHovered ? "#ef4444" : "#1f2937"}
         stroke={isHovered ? "#ef4444" : "#3b82f6"}
         strokeWidth="2"
-        className="transition-all pointer-events-none"
+        className="transition-all"
+        style={{ pointerEvents: 'none' }}
       />
       <text
         x={midX}
         y={midY + 1}
         textAnchor="middle"
-        className="fill-white pointer-events-none select-none font-bold"
-        style={{ fontSize: isHovered ? '14px' : '12px' }}
+        className="fill-white select-none font-bold"
+        style={{ fontSize: isHovered ? '14px' : '12px', pointerEvents: 'none' }}
       >
         ×
       </text>

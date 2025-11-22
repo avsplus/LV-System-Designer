@@ -141,21 +141,23 @@ export default function AVCanvas() {
                 }}
               >
                 <svg
-                  className="absolute inset-0 w-full h-full"
-                  style={{ zIndex: 1, pointerEvents: 'none' }}
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  style={{ zIndex: 1 }}
                 >
-                  {connections.map((connection, index) => {
-                    const from = getProductCenter(connection.from);
-                    const to = getProductCenter(connection.to);
-                    return (
-                      <ConnectionLine
-                        key={index}
-                        from={from}
-                        to={to}
-                        onRemove={() => handleRemoveConnection(index)}
-                      />
-                    );
-                  })}
+                  <g style={{ pointerEvents: 'auto' }}>
+                    {connections.map((connection, index) => {
+                      const from = getProductCenter(connection.from);
+                      const to = getProductCenter(connection.to);
+                      return (
+                        <ConnectionLine
+                          key={index}
+                          from={from}
+                          to={to}
+                          onRemove={() => handleRemoveConnection(index)}
+                        />
+                      );
+                    })}
+                  </g>
                 </svg>
 
                 {canvasProducts.length === 0 && !snapshot.isDraggingOver && (
