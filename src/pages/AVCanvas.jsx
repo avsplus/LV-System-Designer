@@ -298,8 +298,15 @@ export default function AVCanvas() {
                           key={index}
                           from={from}
                           to={to}
+                          connectionType={connection.type}
+                          waypoints={connection.waypoints}
                           onRemove={() => handleRemoveConnection(index)}
                           onClick={() => handleConnectionClick(connection, index)}
+                          onWaypointsChange={(newWaypoints) => {
+                            const newConnections = [...connections];
+                            newConnections[index].waypoints = newWaypoints;
+                            setConnections(newConnections);
+                          }}
                         />
                       );
                     })}
