@@ -161,46 +161,29 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
     conn => conn.from === product.id || conn.to === product.id
   );
   
-  // Map display names to connection type IDs
-  const typeToId = {
-    'HDMI': 'hdmi',
-    'Optical': 'optical',
-    'RCA': 'rca',
-    'XLR': 'xlr',
-    'Speaker Wire': 'speaker_wire',
-    'Ethernet': 'ethernet',
-    'USB': 'usb',
-    'Coaxial': 'coaxial',
-    '3.5mm Jack': '3.5mm_jack',
-    'Various': 'various'
-  };
-  
-  // Count connections by type
+  // Count connections by type (flexible matching)
   const getConnectionCount = (connectionType, isInput) => {
-    const typeId = typeToId[connectionType];
-    if (!typeId) return 0;
-    
     return deviceConnections.filter(conn => {
-      // If isInput is true, this device should be the receiver (to)
-      // If isInput is false, this device should be the sender (from)
       const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
       if (!isCorrectDirection) return false;
       
-      return conn.type === typeId;
+      // Normalize both strings for comparison
+      const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return normalizeType(conn.type || '') === normalizeType(connectionType);
     }).length;
   };
   
   // Get connected device info
   const getConnectedDevices = (connectionType, isInput) => {
-    const typeId = typeToId[connectionType];
-    if (!typeId) return [];
+    const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normalizedConnectionType = normalizeType(connectionType);
     
     return deviceConnections
       .filter(conn => {
         const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
         if (!isCorrectDirection) return false;
         
-        return conn.type === typeId;
+        return normalizeType(conn.type || '') === normalizedConnectionType;
       })
       .map(conn => {
         const connectedId = conn.from === product.id ? conn.to : conn.from;
