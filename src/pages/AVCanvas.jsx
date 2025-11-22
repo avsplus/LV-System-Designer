@@ -15,6 +15,10 @@ export default function AVCanvas() {
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [spacePressed, setSpacePressed] = useState(false);
   const canvasRef = useRef(null);
 
   const { data: products = [], isLoading } = useQuery({
@@ -107,6 +111,62 @@ export default function AVCanvas() {
     }
   };
 
+  const handleMouseDown = (e) => {
+    if (e.button === 1 || (e.button === 0 && spacePressed) || (e.button === 0 && e.target === canvasRef.current)) {
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isPanning) {
+      setPan({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        setSpacePressed(true);
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.code === 'Space') {
+        setSpacePressed(false);
+        setIsPanning(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isPanning) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isPanning, panStart, pan]);
+
   const getProductCenter = (productId) => {
     const canvasProduct = canvasProducts.find(cp => cp.product.id === productId);
     if (!canvasProduct) return { x: 0, y: 0 };
@@ -183,19 +243,21 @@ export default function AVCanvas() {
                 }}
                 {...provided.droppableProps}
                 onWheel={handleWheel}
+                onMouseDown={handleMouseDown}
                 className={`flex-1 relative overflow-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                   snapshot.isDraggingOver ? 'bg-blue-950/20' : ''
-                }`}
+                } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
                 style={{
                   backgroundImage: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)',
-                  backgroundSize: `${30 * zoom}px ${30 * zoom}px`
+                  backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
+                  backgroundPosition: `${pan.x}px ${pan.y}px`
                 }}
               >
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ zIndex: 10 }}
                 >
-                  <g style={{ pointerEvents: 'auto' }} transform={`scale(${zoom})`}>
+                  <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
                       const from = getProductCenter(connection.from);
                       const to = getProductCenter(connection.to);
@@ -232,9 +294,10 @@ export default function AVCanvas() {
                   zIndex: 2, 
                   minHeight: '100%', 
                   minWidth: '100%',
-                  transform: `scale(${zoom})`,
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                   transformOrigin: 'top left',
-                  transition: 'transform 0.1s ease-out'
+                  transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+                  pointerEvents: isPanning ? 'none' : 'auto'
                 }}>
                   {canvasProducts.map((cp) => (
                     <CanvasProduct
