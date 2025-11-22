@@ -256,7 +256,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                   value={localNetworkInfo.sw}
                   onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, sw: e.target.value })}
                   onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                  placeholder="02"
+                  placeholder={networkInfo?.sw || "00"}
                   className="bg-gray-900 border-gray-700 text-white text-sm"
                 />
               </div>
@@ -266,7 +266,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                   value={localNetworkInfo.port}
                   onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, port: e.target.value })}
                   onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                  placeholder="09"
+                  placeholder={networkInfo?.port || "00"}
                   className="bg-gray-900 border-gray-700 text-white text-sm"
                 />
               </div>
@@ -276,7 +276,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                   value={localNetworkInfo.ip}
                   onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, ip: e.target.value })}
                   onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                  placeholder="192.168.2.16"
+                  placeholder={networkInfo?.ip || "000.000.000.000"}
                   className="bg-gray-900 border-gray-700 text-white text-sm"
                 />
               </div>
@@ -286,7 +286,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                   value={localNetworkInfo.mac}
                   onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, mac: e.target.value })}
                   onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                  placeholder="34:26:76:90:87:92"
+                  placeholder={networkInfo?.mac || "00:00:00:00:00:00"}
                   className="bg-gray-900 border-gray-700 text-white text-sm"
                 />
               </div>
