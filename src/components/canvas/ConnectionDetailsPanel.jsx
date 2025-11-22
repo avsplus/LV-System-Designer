@@ -80,6 +80,16 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div>
+          <p className="text-sm text-gray-500 mb-2">Wire Label</p>
+          <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+            <p className="text-sm font-mono text-white">
+              {connectionInfo.name}-{connection.fromPort?.replace(/[^a-zA-Z0-9]/g, '')}-{connection.toPort?.replace(/[^a-zA-Z0-9]/g, '')}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">Unique identifier for this connection</p>
+          </div>
+        </div>
+
+        <div>
           <p className="text-sm text-gray-500 mb-2">Connection Type</p>
           <Badge className={`${connectionInfo.color} border text-base px-3 py-1`}>
             {connectionInfo.name}
