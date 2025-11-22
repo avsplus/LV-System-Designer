@@ -156,7 +156,8 @@ const connectionTypeInfo = {
 
 export default function DeviceConnectionsPanel({ product, label, activeConnections, allProducts, onClose, onHighlightConnections }) {
   const instanceId = product.instanceId;
-  const connections = connectionsByCategory[product.category] || { inputs: [], outputs: [], description: "" };
+  const productData = product.product || product;
+  const connections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
   
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(
