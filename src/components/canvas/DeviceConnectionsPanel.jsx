@@ -34,7 +34,8 @@ const connectionsByCategory = {
       { type: "Optical", max: 2 },
       { type: "Coaxial", max: 1 },
       { type: "USB", max: 2 },
-      { type: "Ethernet", max: 1 }
+      { type: "Ethernet", max: 1 },
+      { type: "Speaker Wire", max: 7 }
     ],
     outputs: [
       { type: "HDMI", max: 2 },
