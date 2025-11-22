@@ -209,7 +209,7 @@ export default function AVCanvas() {
     };
   };
 
-  const getProductEdgePoint = (fromId, toId, offsetIndex = 0) => {
+  const getProductEdgePoint = (fromId, toId, connectionIndex) => {
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
     
@@ -231,51 +231,60 @@ export default function AVCanvas() {
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
     
-    // Apply offset at connection points to separate parallel lines
-    const edgeOffset = offsetIndex * 20;
+    // Count connections from/to same device edge
+    const fromConnections = connections.filter((c, idx) => 
+      idx < connectionIndex && c.from === fromId
+    ).length;
     
-    // Determine which edge to use based on direction (perpendicular connections)
+    const toConnections = connections.filter((c, idx) => 
+      idx < connectionIndex && c.to === toId
+    ).length;
+    
+    // Spread connections along the edge (30px spacing)
+    const fromOffset = (fromConnections - Math.floor(fromConnections / 2)) * 30;
+    const toOffset = (toConnections - Math.floor(toConnections / 2)) * 30;
+    
     let fromEdge, toEdge;
     
     if (Math.abs(dx) > Math.abs(dy)) {
-      // Horizontal connection - offset vertically at edges
+      // Horizontal connection
       if (dx > 0) {
         fromEdge = {
           x: fromProduct.position.x + cardWidth,
-          y: fromCenter.y + edgeOffset
+          y: fromCenter.y + fromOffset
         };
         toEdge = {
           x: toProduct.position.x,
-          y: toCenter.y + edgeOffset
+          y: toCenter.y + toOffset
         };
       } else {
         fromEdge = {
           x: fromProduct.position.x,
-          y: fromCenter.y + edgeOffset
+          y: fromCenter.y + fromOffset
         };
         toEdge = {
           x: toProduct.position.x + cardWidth,
-          y: toCenter.y + edgeOffset
+          y: toCenter.y + toOffset
         };
       }
     } else {
-      // Vertical connection - offset horizontally at edges
+      // Vertical connection
       if (dy > 0) {
         fromEdge = {
-          x: fromCenter.x + edgeOffset,
+          x: fromCenter.x + fromOffset,
           y: fromProduct.position.y + cardHeight
         };
         toEdge = {
-          x: toCenter.x + edgeOffset,
+          x: toCenter.x + toOffset,
           y: toProduct.position.y
         };
       } else {
         fromEdge = {
-          x: fromCenter.x + edgeOffset,
+          x: fromCenter.x + fromOffset,
           y: fromProduct.position.y
         };
         toEdge = {
-          x: toCenter.x + edgeOffset,
+          x: toCenter.x + toOffset,
           y: toProduct.position.y + cardHeight
         };
       }
@@ -367,17 +376,7 @@ export default function AVCanvas() {
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
-                      // Calculate offset index for parallel connections
-                      const parallelConnections = connections.filter((conn, idx) => {
-                        if (idx >= index) return false;
-                        const isSameDirection = 
-                          (conn.from === connection.from && conn.to === connection.to) ||
-                          (conn.from === connection.to && conn.to === connection.from);
-                        return isSameDirection;
-                      });
-                      const offsetIndex = parallelConnections.length;
-                      
-                      const { from, to } = getProductEdgePoint(connection.from, connection.to, offsetIndex);
+                      const { from, to } = getProductEdgePoint(connection.from, connection.to, index);
                       const isHighlighted = highlightedConnections.includes(index);
 
                       return (
