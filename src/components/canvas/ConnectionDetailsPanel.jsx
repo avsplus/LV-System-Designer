@@ -88,9 +88,9 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
                   "HDMI": "H", "Optical": "O", "RCA": "R", "XLR": "X", 
                   "Speaker Wire": "SW", "Ethernet": "E", "USB": "U", "Coaxial": "C"
                 }[connectionInfo.name] || connectionInfo.name.charAt(0);
-                const from = connection.fromPort?.match(/\d+/)?.[0] || '?';
-                const to = connection.toPort?.match(/\d+/)?.[0] || '?';
-                return `${typeAbbrev}${from}→${to}`;
+                const from = connection.fromPort?.match(/\d+/)?.[0] || '';
+                const to = connection.toPort?.match(/\d+/)?.[0] || '';
+                return `${typeAbbrev}${from}${to}`;
               })()}
             </p>
             <p className="text-xs text-gray-500 mt-1">Wire identifier</p>
