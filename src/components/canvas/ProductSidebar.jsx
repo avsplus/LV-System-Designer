@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Grip } from "lucide-react";
+import { Search, Grip, ChevronDown, ChevronRight } from "lucide-react";
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 
 const categoryColors = {
@@ -21,12 +21,29 @@ const categoryColors = {
 
 export default function ProductSidebar({ products, onProductSelect }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   const filteredProducts = products.filter(product => 
     product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Group products by category
+  const productsByCategory = filteredProducts.reduce((acc, product) => {
+    if (!acc[product.category]) {
+      acc[product.category] = [];
+    }
+    acc[product.category].push(product);
+    return acc;
+  }, {});
+
+  const toggleCategory = (category) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
 
   return (
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
@@ -48,60 +65,88 @@ export default function ProductSidebar({ products, onProductSelect }) {
           <div 
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex-1 overflow-y-auto p-3 space-y-2"
+            className="flex-1 overflow-y-auto p-3 space-y-3"
           >
-            {filteredProducts.map((product, index) => (
-              <Draggable 
-                key={product.id} 
-                draggableId={product.id} 
-                index={index}
-              >
-                {(provided, snapshot) => (
-                  <>
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      onClick={() => onProductSelect(product)}
-                      className={`group bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-lg p-3 cursor-pointer transition-all ${
-                        snapshot.isDragging ? 'shadow-xl shadow-blue-500/20 border-blue-500' : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                          <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-medium text-white text-sm truncate">
-                              {product.brand}
-                            </h3>
-                            <Badge className={`${categoryColors[product.category]} border text-xs`}>
-                              {product.category}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-400 truncate">{product.model}</p>
-                          {product.price && (
-                            <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
+            {Object.entries(productsByCategory).map(([category, categoryProducts]) => {
+              const isExpanded = expandedCategories[category] !== false;
+              let draggableIndex = 0;
+              
+              return (
+                <div key={category} className="space-y-2">
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      )}
+                      <Badge className={`${categoryColors[category]} border text-xs`}>
+                        {category}
+                      </Badge>
+                      <span className="text-xs text-gray-500">({categoryProducts.length})</span>
                     </div>
-                    {snapshot.isDragging && (
-                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 opacity-50">
-                        <div className="flex items-start gap-3">
-                          <Grip className="w-4 h-4 text-gray-600 mt-1" />
-                          <div className="flex-1">
-                            <h3 className="font-medium text-white text-sm">{product.brand}</h3>
-                            <p className="text-xs text-gray-400">{product.model}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </Draggable>
-            ))}
+                  </button>
+                  
+                  {isExpanded && (
+                    <div className="space-y-2 pl-2">
+                      {categoryProducts.map((product) => {
+                        const currentIndex = draggableIndex++;
+                        return (
+                          <Draggable 
+                            key={product.id} 
+                            draggableId={product.id} 
+                            index={currentIndex}
+                          >
+                            {(provided, snapshot) => (
+                              <>
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  onClick={() => onProductSelect(product)}
+                                  className={`group bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-lg p-3 cursor-pointer transition-all ${
+                                    snapshot.isDragging ? 'shadow-xl shadow-blue-500/20 border-blue-500' : ''
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="mt-1">
+                                      <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="font-medium text-white text-sm truncate mb-1">
+                                        {product.brand}
+                                      </h3>
+                                      <p className="text-xs text-gray-400 truncate">{product.model}</p>
+                                      {product.price && (
+                                        <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                {snapshot.isDragging && (
+                                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 opacity-50">
+                                    <div className="flex items-start gap-3">
+                                      <Grip className="w-4 h-4 text-gray-600 mt-1" />
+                                      <div className="flex-1">
+                                        <h3 className="font-medium text-white text-sm">{product.brand}</h3>
+                                        <p className="text-xs text-gray-400">{product.model}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {provided.placeholder}
           </div>
         )}
