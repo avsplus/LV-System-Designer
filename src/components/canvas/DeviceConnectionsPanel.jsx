@@ -232,10 +232,10 @@ export default function DeviceConnectionsPanel({ product, label, activeConnectio
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4">
-          <h3 className="text-lg font-bold text-white mb-1">{product.brand}</h3>
-          <p className="text-sm text-gray-300 mb-2">{product.model}</p>
+          <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
+          <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
           <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">
-            {product.category}
+            {productData.category}
           </Badge>
         </div>
 
