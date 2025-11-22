@@ -221,12 +221,15 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
 
         {deviceConnections.length > 0 && (
           <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-            <p className="text-xs text-gray-500 mb-2">Active Connections: {deviceConnections.length}</p>
-            {deviceConnections.map((conn, i) => (
-              <div key={i} className="text-xs text-gray-400 mb-1">
-                • Type: {conn.type} | {conn.from === product.id ? 'OUTPUT' : 'INPUT'}
-              </div>
-            ))}
+            <p className="text-xs text-gray-500 mb-2">Debug - Total Active: {deviceConnections.length}</p>
+            {deviceConnections.map((conn, i) => {
+              const otherDevice = allProducts.find(p => p.id === (conn.from === product.id ? conn.to : conn.from));
+              return (
+                <div key={i} className="text-xs text-gray-300 mb-1 font-mono">
+                  • {conn.type} [{conn.from === product.id ? 'OUT→' : 'IN←'}] {otherDevice?.brand || 'Unknown'}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -284,6 +287,11 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                 const available = output.max - used;
                 const connectedDevices = getConnectedDevices(output.type, false);
                 
+                const normalizeType = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const matchingConns = deviceConnections.filter(conn => 
+                  conn.from === product.id && normalizeType(conn.type || '') === normalizeType(output.type)
+                );
+                
                 return (
                   <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                     <div className="flex items-center justify-between mb-1">
@@ -295,6 +303,7 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
+                    <p className="text-xs text-gray-500 font-mono">Debug: matched={matchingConns.length}</p>
                     {connectedDevices.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-gray-700">
                         <p className="text-xs text-gray-500 mb-1">Connected to:</p>
