@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import ProductSidebar from "../components/canvas/ProductSidebar";
 import CanvasProduct from "../components/canvas/CanvasProduct";
 import ConnectionLine from "../components/canvas/ConnectionLine";
@@ -14,6 +14,7 @@ export default function AVCanvas() {
   const [connections, setConnections] = useState([]);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [zoom, setZoom] = useState(1);
   const canvasRef = useRef(null);
 
   const { data: products = [], isLoading } = useQuery({
@@ -86,6 +87,26 @@ export default function AVCanvas() {
     setSelectedProduct(null);
   };
 
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.1, 0.5));
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
+  };
+
+  const handleWheel = (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.05 : 0.05;
+      setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
+    }
+  };
+
   const getProductCenter = (productId) => {
     const canvasProduct = canvasProducts.find(cp => cp.product.id === productId);
     if (!canvasProduct) return { x: 0, y: 0 };
@@ -112,6 +133,35 @@ export default function AVCanvas() {
               </p>
             </div>
             <div className="flex gap-2">
+              <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleZoomOut}
+                  className="h-7 w-7 text-gray-300 hover:text-white"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <span className="text-sm text-gray-400 min-w-[3rem] text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleZoomIn}
+                  className="h-7 w-7 text-gray-300 hover:text-white"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleZoomReset}
+                  className="h-7 w-7 text-gray-300 hover:text-white"
+                >
+                  <Maximize2 className="w-3 h-3" />
+                </Button>
+              </div>
               <Button
                 variant="outline"
                 onClick={clearCanvas}
@@ -132,19 +182,20 @@ export default function AVCanvas() {
                   canvasRef.current = el;
                 }}
                 {...provided.droppableProps}
+                onWheel={handleWheel}
                 className={`flex-1 relative overflow-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                   snapshot.isDraggingOver ? 'bg-blue-950/20' : ''
                 }`}
                 style={{
                   backgroundImage: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)',
-                  backgroundSize: '30px 30px'
+                  backgroundSize: `${30 * zoom}px ${30 * zoom}px`
                 }}
               >
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ zIndex: 10 }}
                 >
-                  <g style={{ pointerEvents: 'auto' }}>
+                  <g style={{ pointerEvents: 'auto' }} transform={`scale(${zoom})`}>
                     {connections.map((connection, index) => {
                       const from = getProductCenter(connection.from);
                       const to = getProductCenter(connection.to);
@@ -176,7 +227,15 @@ export default function AVCanvas() {
                   </div>
                 )}
 
-                <div style={{ position: 'relative', zIndex: 2, minHeight: '100%', minWidth: '100%' }}>
+                <div style={{ 
+                  position: 'relative', 
+                  zIndex: 2, 
+                  minHeight: '100%', 
+                  minWidth: '100%',
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'top left',
+                  transition: 'transform 0.1s ease-out'
+                }}>
                   {canvasProducts.map((cp) => (
                     <CanvasProduct
                       key={cp.product.id}
