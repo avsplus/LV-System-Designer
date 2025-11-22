@@ -158,6 +158,10 @@ const connectionTypeInfo = {
 export default function DeviceConnectionsPanel({ product, label, networkInfo, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
   const [localNetworkInfo, setLocalNetworkInfo] = React.useState(networkInfo || { sw: '', port: '', ip: '', mac: '' });
   
+  React.useEffect(() => {
+    setLocalNetworkInfo(networkInfo || { sw: '', port: '', ip: '', mac: '' });
+  }, [product.instanceId, networkInfo]);
+  
   const instanceId = product.instanceId;
   const productData = product.product || product;
   const connections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
