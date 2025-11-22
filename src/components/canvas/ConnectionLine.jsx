@@ -20,78 +20,58 @@ export default function ConnectionLine({ from, to, connectionType, waypoints: in
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
-  // Generate orthogonal path with offset
+  // Generate orthogonal path with offset applied consistently
   const generatePath = () => {
     if (waypoints.length === 0) {
-      // Determine if connection exits horizontally or vertically
-      const dx = Math.abs(to.x - from.x);
-      const dy = Math.abs(to.y - from.y);
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
       
-      if (dx > dy) {
-        // Horizontal primary direction - exit horizontally, offset vertically
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal primary - offset perpendicular (vertically)
         const midX = (from.x + to.x) / 2;
         return `M ${from.x} ${from.y + offset} L ${midX} ${from.y + offset} L ${midX} ${to.y + offset} L ${to.x} ${to.y + offset}`;
       } else {
-        // Vertical primary direction - exit vertically, offset horizontally
+        // Vertical primary - offset perpendicular (horizontally)
         const midY = (from.y + to.y) / 2;
         return `M ${from.x + offset} ${from.y} L ${from.x + offset} ${midY} L ${to.x + offset} ${midY} L ${to.x + offset} ${to.y}`;
       }
     } else {
-      // Path through waypoints - offset applied to segments
-      const dx = Math.abs(to.x - from.x);
-      const dy = Math.abs(to.y - from.y);
-      const primaryHorizontal = dx > dy;
+      // With waypoints - apply offset consistently throughout entire path
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const primaryHorizontal = Math.abs(dx) > Math.abs(dy);
       
+      // Start with offset
       let path = primaryHorizontal 
         ? `M ${from.x} ${from.y + offset}`
         : `M ${from.x + offset} ${from.y}`;
       
-      // Route to first waypoint orthogonally
+      // Route to first waypoint with consistent offset
       const firstWp = waypoints[0];
-      const dx1 = Math.abs(firstWp.x - from.x);
-      const dy1 = Math.abs(firstWp.y - from.y);
-      
-      if (dx1 > dy1) {
-        path += primaryHorizontal 
-          ? ` L ${firstWp.x} ${from.y + offset} L ${firstWp.x} ${firstWp.y + offset}`
-          : ` L ${firstWp.x} ${from.y + offset} L ${firstWp.x + offset} ${firstWp.y}`;
+      if (primaryHorizontal) {
+        path += ` L ${firstWp.x} ${from.y + offset} L ${firstWp.x} ${firstWp.y + offset}`;
       } else {
-        path += primaryHorizontal 
-          ? ` L ${from.x} ${firstWp.y + offset} L ${firstWp.x} ${firstWp.y + offset}`
-          : ` L ${from.x + offset} ${firstWp.y} L ${firstWp.x + offset} ${firstWp.y}`;
+        path += ` L ${from.x + offset} ${firstWp.y} L ${firstWp.x + offset} ${firstWp.y}`;
       }
       
-      // Route between waypoints
+      // Route between waypoints with consistent offset
       for (let i = 1; i < waypoints.length; i++) {
         const prevWp = waypoints[i - 1];
         const currWp = waypoints[i];
-        const dxW = Math.abs(currWp.x - prevWp.x);
-        const dyW = Math.abs(currWp.y - prevWp.y);
         
-        if (dxW > dyW) {
-          path += primaryHorizontal
-            ? ` L ${currWp.x} ${prevWp.y + offset} L ${currWp.x} ${currWp.y + offset}`
-            : ` L ${currWp.x + offset} ${prevWp.y} L ${currWp.x + offset} ${currWp.y}`;
+        if (primaryHorizontal) {
+          path += ` L ${currWp.x} ${prevWp.y + offset} L ${currWp.x} ${currWp.y + offset}`;
         } else {
-          path += primaryHorizontal
-            ? ` L ${prevWp.x} ${currWp.y + offset} L ${currWp.x} ${currWp.y + offset}`
-            : ` L ${prevWp.x + offset} ${currWp.y} L ${currWp.x + offset} ${currWp.y}`;
+          path += ` L ${prevWp.x + offset} ${currWp.y} L ${currWp.x + offset} ${currWp.y}`;
         }
       }
       
-      // Route from last waypoint to end
+      // Route from last waypoint to end with consistent offset
       const lastWp = waypoints[waypoints.length - 1];
-      const dxL = Math.abs(to.x - lastWp.x);
-      const dyL = Math.abs(to.y - lastWp.y);
-      
-      if (dxL > dyL) {
-        path += primaryHorizontal
-          ? ` L ${to.x} ${lastWp.y + offset} L ${to.x} ${to.y + offset}`
-          : ` L ${to.x + offset} ${lastWp.y} L ${to.x + offset} ${to.y}`;
+      if (primaryHorizontal) {
+        path += ` L ${to.x} ${lastWp.y + offset} L ${to.x} ${to.y + offset}`;
       } else {
-        path += primaryHorizontal
-          ? ` L ${lastWp.x} ${to.y + offset} L ${to.x} ${to.y + offset}`
-          : ` L ${lastWp.x + offset} ${to.y} L ${to.x + offset} ${to.y}`;
+        path += ` L ${lastWp.x + offset} ${to.y} L ${to.x + offset} ${to.y}`;
       }
       
       return path;
