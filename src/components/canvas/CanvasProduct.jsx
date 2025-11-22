@@ -19,6 +19,7 @@ const categoryColors = {
 };
 
 export default function CanvasProduct({ 
+  instanceId,
   product, 
   position,
   onRemove,
@@ -51,7 +52,7 @@ export default function CanvasProduct({
     const newX = e.clientX - dragOffset.current.x;
     const newY = e.clientY - dragOffset.current.y;
     
-    onPositionChange(product.id, { x: newX, y: newY });
+    onPositionChange(instanceId, { x: newX, y: newY });
   };
 
   const handleMouseUp = (e) => {
@@ -104,7 +105,7 @@ export default function CanvasProduct({
             className="h-6 w-6 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
             onClick={(e) => {
               e.stopPropagation();
-              onConnect(product.id);
+              onConnect(instanceId);
             }}
           >
             <Link2 className="w-3 h-3" />
@@ -115,7 +116,7 @@ export default function CanvasProduct({
             className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-red-500/10"
             onClick={(e) => {
               e.stopPropagation();
-              onRemove(product.id);
+              onRemove(instanceId);
             }}
           >
             <X className="w-3 h-3" />

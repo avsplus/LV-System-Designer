@@ -155,11 +155,12 @@ const connectionTypeInfo = {
 };
 
 export default function DeviceConnectionsPanel({ product, activeConnections, allProducts, onClose }) {
+  const instanceId = product.instanceId;
   const connections = connectionsByCategory[product.category] || { inputs: [], outputs: [], description: "" };
   
-  // Get connections for this device
+  // Get connections for this device instance
   const deviceConnections = activeConnections.filter(
-    conn => conn.from === product.id || conn.to === product.id
+    conn => conn.from === instanceId || conn.to === instanceId
   );
   
   // Normalize connection type strings for comparison
@@ -168,7 +169,7 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
   // Count connections by type (flexible matching)
   const getConnectionCount = (connectionType, isInput) => {
     const matches = deviceConnections.filter(conn => {
-      const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
+      const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
       if (!isCorrectDirection) return false;
       
       const connTypeNorm = normalizeType(conn.type || '');
@@ -184,14 +185,14 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
     
     return deviceConnections
       .filter(conn => {
-        const isCorrectDirection = isInput ? (conn.to === product.id) : (conn.from === product.id);
+        const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
         if (!isCorrectDirection) return false;
         
         return normalizeType(conn.type || '') === normalizedConnectionType;
       })
       .map(conn => {
-        const connectedId = conn.from === product.id ? conn.to : conn.from;
-        return allProducts.find(p => p.id === connectedId);
+        const connectedId = conn.from === instanceId ? conn.to : conn.from;
+        return allProducts.find(p => p.instanceId === connectedId);
       })
       .filter(Boolean);
   };
@@ -227,10 +228,10 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
           <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
             <p className="text-xs text-gray-500 mb-2">Debug - Total Active: {deviceConnections.length}</p>
             {deviceConnections.map((conn, i) => {
-              const otherDevice = allProducts.find(p => p.id === (conn.from === product.id ? conn.to : conn.from));
+              const otherDevice = allProducts.find(p => p.instanceId === (conn.from === instanceId ? conn.to : conn.from));
               return (
                 <div key={i} className="text-xs text-gray-300 mb-1 font-mono">
-                  • Type="{conn.type}" norm="{normalizeType(conn.type || '')}" dir={conn.from === product.id ? 'OUT' : 'IN'} to={otherDevice?.brand}
+                  • Type="{conn.type}" norm="{normalizeType(conn.type || '')}" dir={conn.from === instanceId ? 'OUT' : 'IN'} to={otherDevice?.brand}
                 </div>
               );
             })}
@@ -292,11 +293,11 @@ export default function DeviceConnectionsPanel({ product, activeConnections, all
                 const connectedDevices = getConnectedDevices(output.type, false);
                 
                 const matchingConns = deviceConnections.filter(conn => 
-                  conn.from === product.id && normalizeType(conn.type || '') === normalizeType(output.type)
+                  conn.from === instanceId && normalizeType(conn.type || '') === normalizeType(output.type)
                 );
-                
+
                 // Detailed debug
-                const allOutConns = deviceConnections.filter(c => c.from === product.id);
+                const allOutConns = deviceConnections.filter(c => c.from === instanceId);
                 
                 return (
                   <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">

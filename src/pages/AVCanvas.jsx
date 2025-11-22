@@ -40,9 +40,11 @@ export default function AVCanvas() {
     // Dragging from sidebar to canvas
     if (source.droppableId === 'sidebar' && destination.droppableId === 'canvas') {
       const product = products.find(p => p.id === draggableId);
-      if (product && !canvasProducts.find(cp => cp.product.id === product.id)) {
+      if (product) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
+        const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
         setCanvasProducts([...canvasProducts, {
+          instanceId,
           product,
           position: { 
             x: Math.random() * (canvasRect.width - 300) + 50, 
@@ -53,33 +55,33 @@ export default function AVCanvas() {
     }
   };
 
-  const handlePositionChange = (productId, newPosition) => {
+  const handlePositionChange = (instanceId, newPosition) => {
     setCanvasProducts(canvasProducts.map(cp => 
-      cp.product.id === productId 
+      cp.instanceId === instanceId 
         ? { ...cp, position: newPosition }
         : cp
     ));
   };
 
-  const handleRemoveProduct = (productId) => {
-    setCanvasProducts(canvasProducts.filter(cp => cp.product.id !== productId));
-    setConnections(connections.filter(c => c.from !== productId && c.to !== productId));
-    if (selectedProduct?.id === productId) {
-      setSelectedProduct(null);
+  const handleRemoveProduct = (instanceId) => {
+    setCanvasProducts(canvasProducts.filter(cp => cp.instanceId !== instanceId));
+    setConnections(connections.filter(c => c.from !== instanceId && c.to !== instanceId));
+    if (selectedCanvasProduct?.instanceId === instanceId) {
+      setSelectedCanvasProduct(null);
     }
   };
 
-  const handleConnect = (productId) => {
+  const handleConnect = (instanceId) => {
     if (connectingFrom === null) {
-      setConnectingFrom(productId);
-    } else if (connectingFrom !== productId) {
+      setConnectingFrom(instanceId);
+    } else if (connectingFrom !== instanceId) {
       const existingConnection = connections.find(
-        c => (c.from === connectingFrom && c.to === productId) ||
-             (c.from === productId && c.to === connectingFrom)
+        c => (c.from === connectingFrom && c.to === instanceId) ||
+             (c.from === instanceId && c.to === connectingFrom)
       );
       
       if (!existingConnection) {
-        setConnectingTo(productId);
+        setConnectingTo(instanceId);
       } else {
         setConnectingFrom(null);
       }
@@ -197,8 +199,8 @@ export default function AVCanvas() {
     }
   }, [isPanning, panStart, pan]);
 
-  const getProductCenter = (productId) => {
-    const canvasProduct = canvasProducts.find(cp => cp.product.id === productId);
+  const getProductCenter = (instanceId) => {
+    const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!canvasProduct) return { x: 0, y: 0 };
     return {
       x: canvasProduct.position.x + 128, // half of width (256px / 2)
@@ -332,15 +334,16 @@ export default function AVCanvas() {
                 }}>
                   {canvasProducts.map((cp) => (
                     <CanvasProduct
-                      key={cp.product.id}
+                      key={cp.instanceId}
+                      instanceId={cp.instanceId}
                       product={cp.product}
                       position={cp.position}
                       onRemove={handleRemoveProduct}
                       onConnect={handleConnect}
                       onPositionChange={handlePositionChange}
-                      isConnecting={connectingFrom === cp.product.id}
+                      isConnecting={connectingFrom === cp.instanceId}
                       onClick={() => {
-                        setSelectedCanvasProduct(cp.product);
+                        setSelectedCanvasProduct({ ...cp.product, instanceId: cp.instanceId });
                         setSelectedProduct(null);
                         setSelectedConnection(null);
                       }}
@@ -372,8 +375,8 @@ export default function AVCanvas() {
         {selectedConnection && (
           <ConnectionDetailsPanel
             connection={selectedConnection}
-            fromProduct={canvasProducts.find(cp => cp.product.id === selectedConnection.from)?.product}
-            toProduct={canvasProducts.find(cp => cp.product.id === selectedConnection.to)?.product}
+            fromProduct={canvasProducts.find(cp => cp.instanceId === selectedConnection.from)?.product}
+            toProduct={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.product}
             onClose={() => setSelectedConnection(null)}
             onDelete={handleDeleteConnection}
           />
@@ -381,8 +384,8 @@ export default function AVCanvas() {
 
         {connectingFrom !== null && connectingTo !== null && (
           <ConnectionTypeDialog
-            fromProduct={canvasProducts.find(cp => cp.product.id === connectingFrom)?.product}
-            toProduct={canvasProducts.find(cp => cp.product.id === connectingTo)?.product}
+            fromProduct={canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product}
+            toProduct={canvasProducts.find(cp => cp.instanceId === connectingTo)?.product}
             onSelect={handleConnectionTypeSelect}
             onCancel={() => {
               setConnectingFrom(null);
