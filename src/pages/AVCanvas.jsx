@@ -91,11 +91,13 @@ export default function AVCanvas() {
     }
   };
 
-  const handleConnectionTypeSelect = (type) => {
+  const handleConnectionTypeSelect = (connectionData) => {
     setConnections([...connections, { 
       from: connectingFrom, 
       to: connectingTo,
-      type: type
+      type: connectionData.type,
+      fromPort: connectionData.fromPort,
+      toPort: connectionData.toPort
     }]);
     setConnectingFrom(null);
     setConnectingTo(null);
@@ -584,8 +586,9 @@ export default function AVCanvas() {
 
         {connectingFrom !== null && connectingTo !== null && (
           <ConnectionTypeDialog
-            fromProduct={canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product}
-            toProduct={canvasProducts.find(cp => cp.instanceId === connectingTo)?.product}
+            fromProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product, instanceId: connectingFrom }}
+            toProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product, instanceId: connectingTo }}
+            existingConnections={connections}
             onSelect={handleConnectionTypeSelect}
             onCancel={() => {
               setConnectingFrom(null);

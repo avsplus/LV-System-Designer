@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const connectionTypes = [
   { 
@@ -54,45 +55,203 @@ const connectionTypes = [
 ];
 
 const connectionsByCategory = {
-  speakers: { inputs: ["Speaker Wire", "XLR"], outputs: [] },
-  amplifiers: { inputs: ["RCA", "XLR", "Optical", "Coaxial", "USB"], outputs: ["Speaker Wire", "RCA", "XLR"] },
-  receivers: { inputs: ["HDMI", "RCA", "Optical", "Coaxial", "USB", "Ethernet", "Speaker Wire"], outputs: ["HDMI", "Speaker Wire", "RCA", "Optical"] },
-  subwoofers: { inputs: ["RCA", "Speaker Wire", "XLR"], outputs: [] },
-  turntables: { inputs: [], outputs: ["RCA", "USB"] },
-  dacs: { inputs: ["USB", "Optical", "Coaxial", "Ethernet"], outputs: ["RCA", "XLR"] },
-  streamers: { inputs: ["Ethernet", "USB"], outputs: ["RCA", "Optical", "Coaxial", "XLR"] },
-  headphones: { inputs: ["3.5mm Jack", "XLR", "USB"], outputs: [] },
-  processors: { inputs: ["HDMI", "RCA", "XLR", "Optical", "Ethernet"], outputs: ["HDMI", "RCA", "XLR", "Optical"] },
-  cables: { inputs: ["Various"], outputs: ["Various"] },
-  microphones: { inputs: [], outputs: ["XLR", "USB"] },
-  mixers: { inputs: ["XLR", "RCA", "USB"], outputs: ["XLR", "RCA", "USB"] }
+  speakers: {
+    inputs: [
+      { type: "Speaker Wire", ports: ["Left", "Right"] },
+      { type: "XLR", ports: ["Left", "Right"] }
+    ],
+    outputs: []
+  },
+  amplifiers: {
+    inputs: [
+      { type: "RCA", ports: ["RCA-1", "RCA-2", "RCA-3", "RCA-4"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "USB", ports: ["USB"] }
+    ],
+    outputs: [
+      { type: "Speaker Wire", ports: ["Speaker-A", "Speaker-B", "Speaker-C", "Speaker-D"] },
+      { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] },
+      { type: "XLR", ports: ["XLR-Out-L", "XLR-Out-R"] }
+    ]
+  },
+  receivers: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6"] },
+      { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "USB", ports: ["USB-A", "USB-B"] },
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R"] },
+      { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
+      { type: "Optical", ports: ["Optical-Out"] }
+    ]
+  },
+  subwoofers: {
+    inputs: [
+      { type: "RCA", ports: ["LFE-L", "LFE-R"] },
+      { type: "Speaker Wire", ports: ["LFE"] },
+      { type: "XLR", ports: ["XLR"] }
+    ],
+    outputs: []
+  },
+  turntables: {
+    inputs: [],
+    outputs: [
+      { type: "RCA", ports: ["Phono-Out"] },
+      { type: "USB", ports: ["USB-Out"] }
+    ]
+  },
+  dacs: {
+    inputs: [
+      { type: "USB", ports: ["USB-A", "USB-B"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "RCA", ports: ["Out-L", "Out-R"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
+    ]
+  },
+  streamers: {
+    inputs: [
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "USB", ports: ["USB"] }
+    ],
+    outputs: [
+      { type: "RCA", ports: ["Out-L", "Out-R"] },
+      { type: "Optical", ports: ["Optical-Out"] },
+      { type: "Coaxial", ports: ["Coaxial-Out"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
+    ]
+  },
+  headphones: {
+    inputs: [
+      { type: "3.5mm Jack", ports: ["Input"] },
+      { type: "XLR", ports: ["XLR"] },
+      { type: "USB", ports: ["USB"] }
+    ],
+    outputs: []
+  },
+  processors: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+      { type: "RCA", ports: ["RCA-1", "RCA-2", "RCA-3", "RCA-4"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "RCA", ports: ["Out-1", "Out-2", "Out-3", "Out-4"] },
+      { type: "XLR", ports: ["XLR-Out-L", "XLR-Out-R"] },
+      { type: "Optical", ports: ["Optical-Out"] }
+    ]
+  },
+  cables: {
+    inputs: [{ type: "Various", ports: ["In"] }],
+    outputs: [{ type: "Various", ports: ["Out"] }]
+  },
+  microphones: {
+    inputs: [],
+    outputs: [
+      { type: "XLR", ports: ["XLR-Out"] },
+      { type: "USB", ports: ["USB-Out"] }
+    ]
+  },
+  mixers: {
+    inputs: [
+      { type: "XLR", ports: ["Ch-1", "Ch-2", "Ch-3", "Ch-4", "Ch-5", "Ch-6", "Ch-7", "Ch-8"] },
+      { type: "RCA", ports: ["Stereo-1", "Stereo-2", "Stereo-3", "Stereo-4"] },
+      { type: "USB", ports: ["USB"] }
+    ],
+    outputs: [
+      { type: "XLR", ports: ["Main-L", "Main-R"] },
+      { type: "RCA", ports: ["Rec-L", "Rec-R"] },
+      { type: "USB", ports: ["USB-Out"] }
+    ]
+  }
 };
 
-const normalizeType = (type) => type.toLowerCase().replace(/\//g, ' ').trim();
+const normalizeType = (type) => type.toLowerCase().replace(/\//g, ' ').replace('toslink', '').trim();
 
-export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel }) {
-  // Get compatible connection types
+export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel, existingConnections }) {
   const fromCategory = connectionsByCategory[fromProduct.category] || { inputs: [], outputs: [] };
   const toCategory = connectionsByCategory[toProduct.category] || { inputs: [], outputs: [] };
   
-  // Find connection types where fromProduct has it as output and toProduct has it as input
-  const compatibleTypes = connectionTypes.filter(type => {
-    const fromHasOutput = fromCategory.outputs.some(o => normalizeType(o) === normalizeType(type.name));
-    const toHasInput = toCategory.inputs.some(i => normalizeType(i) === normalizeType(type.name));
-    return fromHasOutput && toHasInput;
+  // Find compatible connection types
+  const compatibleTypes = [];
+  fromCategory.outputs.forEach(output => {
+    toCategory.inputs.forEach(input => {
+      if (normalizeType(output.type) === normalizeType(input.type)) {
+        compatibleTypes.push({
+          type: output.type,
+          fromPorts: output.ports,
+          toPorts: input.ports
+        });
+      }
+    });
   });
 
-  const [selectedType, setSelectedType] = useState(compatibleTypes[0]?.id || "");
+  const [selectedType, setSelectedType] = useState(compatibleTypes[0]?.type || "");
+  const [selectedFromPort, setSelectedFromPort] = useState("");
+  const [selectedToPort, setSelectedToPort] = useState("");
+
+  // Get ports that are already used
+  const getUsedPorts = (instanceId, connectionType, isInput) => {
+    const used = new Set();
+    (existingConnections || []).forEach(conn => {
+      if (isInput) {
+        if (conn.to === instanceId && conn.type === connectionType) {
+          used.add(conn.toPort);
+        }
+      } else {
+        if (conn.from === instanceId && conn.type === connectionType) {
+          used.add(conn.fromPort);
+        }
+      }
+    });
+    return used;
+  };
+
+  const selectedCompatible = compatibleTypes.find(c => c.type === selectedType);
+  const usedFromPorts = selectedCompatible ? getUsedPorts(fromProduct.instanceId, selectedType, false) : new Set();
+  const usedToPorts = selectedCompatible ? getUsedPorts(toProduct.instanceId, selectedType, true) : new Set();
+  const availableFromPorts = selectedCompatible?.fromPorts.filter(p => !usedFromPorts.has(p)) || [];
+  const availableToPorts = selectedCompatible?.toPorts.filter(p => !usedToPorts.has(p)) || [];
+
+  // Auto-select first available port when type changes
+  React.useEffect(() => {
+    if (availableFromPorts.length > 0) {
+      setSelectedFromPort(availableFromPorts[0]);
+    } else {
+      setSelectedFromPort("");
+    }
+    if (availableToPorts.length > 0) {
+      setSelectedToPort(availableToPorts[0]);
+    } else {
+      setSelectedToPort("");
+    }
+  }, [selectedType]);
+
+  const canCreate = selectedType && selectedFromPort && selectedToPort;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onCancel}>
       <div 
-        className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4"
+        className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-xl font-semibold text-white mb-2">Select Connection Type</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Choose how to connect <span className="text-white">{fromProduct.brand}</span> to <span className="text-white">{toProduct.brand}</span>
+        <h3 className="text-xl font-semibold text-white mb-2">Select Connection</h3>
+        <p className="text-sm text-gray-400 mb-6">
+          Connect <span className="text-white font-medium">{fromProduct.brand} {fromProduct.model}</span> to <span className="text-white font-medium">{toProduct.brand} {toProduct.model}</span>
         </p>
 
         {compatibleTypes.length === 0 ? (
@@ -102,43 +261,108 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {compatibleTypes.map((type) => (
-            <button
-              key={type.id}
-              onClick={() => setSelectedType(type.id)}
-              className={`text-left p-4 rounded-lg border-2 transition-all ${
-                selectedType === type.id
-                  ? 'border-blue-500 bg-blue-500/10'
-                  : 'border-gray-700 hover:border-gray-600 bg-gray-800'
-              }`}
-            >
-              <Badge className={`${type.color} border mb-2`}>
-                {type.name}
-              </Badge>
-              <div className="flex flex-wrap gap-1">
-                {type.signals.map(signal => (
-                  <span key={signal} className="text-xs text-gray-400">
-                    {signal}
-                  </span>
-                ))}
+          <>
+            <div className="mb-6">
+              <label className="text-sm font-medium text-white mb-2 block">Connection Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                {compatibleTypes.map((compat) => {
+                  const typeInfo = connectionTypes.find(t => normalizeType(t.name) === normalizeType(compat.type));
+                  return (
+                    <button
+                      key={compat.type}
+                      onClick={() => setSelectedType(compat.type)}
+                      className={`text-left p-4 rounded-lg border-2 transition-all ${
+                        selectedType === compat.type
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-gray-700 hover:border-gray-600 bg-gray-800'
+                      }`}
+                    >
+                      <Badge className={`${typeInfo?.color} border mb-2`}>
+                        {compat.type}
+                      </Badge>
+                      <div className="text-xs text-gray-400">
+                        {compat.fromPorts.length} outputs • {compat.toPorts.length} inputs
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-            </button>
-            ))}
             </div>
-            )}
 
-            <div className="flex gap-3 justify-end">
+            {selectedType && (
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="text-sm font-medium text-white mb-2 block">Output Port</label>
+                  <Select value={selectedFromPort} onValueChange={setSelectedFromPort}>
+                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                      <SelectValue placeholder="Select output port" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableFromPorts.map(port => (
+                        <SelectItem key={port} value={port}>{port}</SelectItem>
+                      ))}
+                      {usedFromPorts.size > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
+                          {selectedCompatible.fromPorts.filter(p => usedFromPorts.has(p)).map(port => (
+                            <SelectItem key={port} value={port} disabled>
+                              {port} (in use)
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {fromProduct.brand} • {availableFromPorts.length} available
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-white mb-2 block">Input Port</label>
+                  <Select value={selectedToPort} onValueChange={setSelectedToPort}>
+                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                      <SelectValue placeholder="Select input port" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableToPorts.map(port => (
+                        <SelectItem key={port} value={port}>{port}</SelectItem>
+                      ))}
+                      {usedToPorts.size > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
+                          {selectedCompatible.toPorts.filter(p => usedToPorts.has(p)).map(port => (
+                            <SelectItem key={port} value={port} disabled>
+                              {port} (in use)
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {toProduct.brand} • {availableToPorts.length} available
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={onCancel} className="border-gray-700 text-gray-300">
             Cancel
           </Button>
           <Button 
             onClick={() => {
-              const selectedTypeObj = compatibleTypes.find(t => t.id === selectedType);
-              onSelect(selectedTypeObj.name);
+              onSelect({
+                type: selectedType,
+                fromPort: selectedFromPort,
+                toPort: selectedToPort
+              });
             }} 
             className="bg-blue-600 hover:bg-blue-700"
-            disabled={compatibleTypes.length === 0}
+            disabled={!canCreate}
           >
             Create Connection
           </Button>
