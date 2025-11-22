@@ -55,7 +55,14 @@ const connectionTypes = {
 };
 
 export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, onClose, onDelete }) {
-  const connectionInfo = connectionTypes[connection.type] || connectionTypes.hdmi;
+  // Normalize connection type - handle both "Speaker Wire" and "speaker_wire"
+  const normalizeTypeKey = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const typeKey = normalizeTypeKey(connection.type);
+  
+  // Try to find by normalized key, fallback to hdmi
+  const connectionInfo = Object.entries(connectionTypes).find(([key]) => 
+    normalizeTypeKey(key) === typeKey || key === typeKey
+  )?.[1] || connectionTypes.speaker_wire;
 
   return (
     <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full">
