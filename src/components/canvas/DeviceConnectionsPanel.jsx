@@ -156,6 +156,8 @@ const connectionTypeInfo = {
 };
 
 export default function DeviceConnectionsPanel({ product, label, networkInfo, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
+  const [localNetworkInfo, setLocalNetworkInfo] = React.useState(networkInfo || { sw: '', port: '', ip: '', mac: '' });
+  
   const instanceId = product.instanceId;
   const productData = product.product || product;
   const connections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
@@ -250,8 +252,9 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
             <div>
               <label className="text-xs text-gray-400 mb-1 block">SW#</label>
               <Input
-                value={networkInfo?.sw || ''}
-                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, sw: e.target.value })}
+                value={localNetworkInfo.sw}
+                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, sw: e.target.value })}
+                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
                 placeholder="02"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
@@ -259,8 +262,9 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Port</label>
               <Input
-                value={networkInfo?.port || ''}
-                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, port: e.target.value })}
+                value={localNetworkInfo.port}
+                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, port: e.target.value })}
+                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
                 placeholder="09"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
@@ -268,8 +272,9 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
             <div>
               <label className="text-xs text-gray-400 mb-1 block">IP Address</label>
               <Input
-                value={networkInfo?.ip || ''}
-                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, ip: e.target.value })}
+                value={localNetworkInfo.ip}
+                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, ip: e.target.value })}
+                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
                 placeholder="192.168.2.16"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
@@ -277,8 +282,9 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
             <div>
               <label className="text-xs text-gray-400 mb-1 block">MAC Address</label>
               <Input
-                value={networkInfo?.mac || ''}
-                onChange={(e) => onNetworkInfoChange && onNetworkInfoChange({ ...networkInfo, mac: e.target.value })}
+                value={localNetworkInfo.mac}
+                onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, mac: e.target.value })}
+                onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
                 placeholder="34:26:76:90:87:92"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
