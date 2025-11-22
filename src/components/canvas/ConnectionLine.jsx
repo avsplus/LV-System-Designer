@@ -248,6 +248,31 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         />
       ))}
 
+      {/* Connection Label */}
+      {!isHovered && (
+        <g>
+          <rect
+            x={midpoint.x - 40}
+            y={midpoint.y - 12}
+            width="80"
+            height="24"
+            rx="4"
+            fill={color}
+            opacity="0.9"
+            style={{ pointerEvents: 'none' }}
+          />
+          <text
+            x={midpoint.x}
+            y={midpoint.y + 4}
+            textAnchor="middle"
+            className="fill-white select-none font-medium"
+            style={{ fontSize: '11px', pointerEvents: 'none' }}
+          >
+            {connectionType}
+          </text>
+        </g>
+      )}
+
       {/* Delete button */}
       <circle
         cx={midpoint.x}
@@ -262,25 +287,29 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       />
-      <circle
-        cx={midpoint.x}
-        cy={midpoint.y}
-        r={isHovered ? "12" : "10"}
-        fill="#ef4444"
-        stroke="#ef4444"
-        strokeWidth="2"
-        className="transition-all"
-        style={{ pointerEvents: 'none' }}
-      />
-      <text
-        x={midpoint.x}
-        y={midpoint.y + 1}
-        textAnchor="middle"
-        className="fill-white select-none font-bold"
-        style={{ fontSize: isHovered ? '14px' : '12px', pointerEvents: 'none' }}
-      >
-        ×
-      </text>
+      {isHovered && (
+        <>
+          <circle
+            cx={midpoint.x}
+            cy={midpoint.y}
+            r="12"
+            fill="#ef4444"
+            stroke="#ef4444"
+            strokeWidth="2"
+            className="transition-all"
+            style={{ pointerEvents: 'none' }}
+          />
+          <text
+            x={midpoint.x}
+            y={midpoint.y + 1}
+            textAnchor="middle"
+            className="fill-white select-none font-bold"
+            style={{ fontSize: '14px', pointerEvents: 'none' }}
+          >
+            ×
+          </text>
+        </>
+      )}
     </g>
   );
 }
