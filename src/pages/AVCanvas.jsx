@@ -155,6 +155,22 @@ export default function AVCanvas() {
   const handleConnectionClick = (connection, index) => {
     setSelectedConnection({ ...connection, index });
     setSelectedProduct(null);
+    setSelectedCanvasProduct(null);
+  };
+
+  const handlePortClick = (instanceId, connectionType, portName, isInput) => {
+    // Find the connection that uses this port
+    const connectionIndex = connections.findIndex(conn => {
+      if (isInput) {
+        return conn.to === instanceId && conn.type === connectionType && conn.toPort === portName;
+      } else {
+        return conn.from === instanceId && conn.type === connectionType && conn.fromPort === portName;
+      }
+    });
+
+    if (connectionIndex !== -1) {
+      handleConnectionClick(connections[connectionIndex], connectionIndex);
+    }
   };
 
   const handleDeleteConnection = () => {

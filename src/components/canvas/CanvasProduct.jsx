@@ -206,7 +206,8 @@ export default function CanvasProduct({
         isHighlighted,
         onClick,
         label,
-        networkInfo
+        networkInfo,
+        onPortClick
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -285,14 +286,14 @@ export default function CanvasProduct({
     "Wireless": "#7c3aed"
   };
 
-  // Get connection points with their types
+  // Get connection points with their types and port names
   const getConnectionPoints = (connections, type) => {
     if (!connections || !connections[type]) return [];
     const points = [];
     connections[type].forEach(conn => {
       const color = connectionTypeColors[conn.type] || "#6b7280";
-      conn.ports?.forEach(() => {
-        points.push({ type: conn.type, color });
+      conn.ports?.forEach((port) => {
+        points.push({ type: conn.type, color, port });
       });
     });
     return points;
@@ -341,6 +342,12 @@ export default function CanvasProduct({
               style={{ backgroundColor: point.color }}
               data-port-index={i}
               data-port-type="input"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPortClick) {
+                  onPortClick(instanceId, point.type, point.port, true);
+                }
+              }}
             />
           ))}
         </div>
@@ -356,6 +363,12 @@ export default function CanvasProduct({
               style={{ backgroundColor: point.color }}
               data-port-index={i}
               data-port-type="output"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPortClick) {
+                  onPortClick(instanceId, point.type, point.port, false);
+                }
+              }}
             />
           ))}
         </div>
