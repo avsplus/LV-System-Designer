@@ -247,12 +247,12 @@ export default function AVCanvas() {
 
     const fromCenter = {
       x: fromProduct.position.x + cardWidth / 2,
-      y: fromProduct.position.y + cardHeight / 2
+      y: fromProduct.position.y + fromCardHeight / 2
     };
 
     const toCenter = {
       x: toProduct.position.x + cardWidth / 2,
-      y: toProduct.position.y + cardHeight / 2
+      y: toProduct.position.y + toCardHeight / 2
     };
 
     const dx = toCenter.x - fromCenter.x;
