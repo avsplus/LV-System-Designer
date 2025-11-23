@@ -221,9 +221,9 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
     deviceConnections.forEach(conn => {
       const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
       if (!isCorrectDirection || conn.type !== connectionType) return;
-      
+
       const port = isInput ? conn.toPort : conn.fromPort;
-      if (port) used.add(port);
+      if (port && ports.includes(port)) used.add(port);
     });
     return used;
   };
@@ -233,18 +233,18 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
     const conn = deviceConnections.find(c => {
       const isCorrectDirection = isInput ? (c.to === instanceId) : (c.from === instanceId);
       if (!isCorrectDirection || c.type !== connectionType) return false;
-      
+
       const checkPort = isInput ? c.toPort : c.fromPort;
       return checkPort === port;
     });
-    
+
     if (!conn) return null;
-    
+
     const connectedId = conn.from === instanceId ? conn.to : conn.from;
     const connectedDevice = allProducts.find(p => p.instanceId === connectedId);
     const connectedPort = conn.from === instanceId ? conn.toPort : conn.fromPort;
-    
-    return { device: connectedDevice, port: connectedPort };
+
+    return { device: connectedDevice, port: connectedPort, conn };
   };
 
   // Get connection index for highlighting
@@ -255,6 +255,14 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
       
       const checkPort = isInput ? conn.toPort : conn.fromPort;
       return checkPort === port;
+    });
+  };
+  
+  // Get all connections for a connection type
+  const getTypeConnections = (connectionType, isInput) => {
+    return deviceConnections.filter(conn => {
+      const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
+      return isCorrectDirection && conn.type === connectionType;
     });
   };
 
@@ -388,7 +396,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                       {input.ports.map((port) => {
                         const isUsed = usedPorts.has(port);
                         const connectedInfo = isUsed ? getConnectedDevice(input.type, port, true) : null;
-                        const connectionIdx = isUsed ? getConnectionIndex(input.type, port, true) : -1;
+                        const connectionIdx = connectedInfo?.conn ? activeConnections.indexOf(connectedInfo.conn) : -1;
 
                         return (
                           <div 
@@ -398,13 +406,13 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                                 ? 'bg-blue-500/10 border border-blue-500/30 hover:border-blue-500 cursor-pointer' 
                                 : 'bg-gray-900/50'
                             }`}
-                            onMouseEnter={() => isUsed && onHighlightConnections && onHighlightConnections([connectionIdx])}
+                            onMouseEnter={() => isUsed && connectionIdx !== -1 && onHighlightConnections && onHighlightConnections([connectionIdx])}
                             onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
                           >
                             <span className={isUsed ? 'text-blue-300 font-medium' : 'text-gray-500'}>{port}</span>
                             {isUsed && connectedInfo?.device && (
                               <span className="text-gray-400 text-[10px] truncate ml-2">
-                                ← {connectedInfo.device.brand} ({connectedInfo.port})
+                                ← {connectedInfo.device.label || connectedInfo.device.brand} ({connectedInfo.port})
                               </span>
                             )}
                             {!isUsed && <span className="text-gray-600 text-[10px]">Available</span>}
@@ -445,7 +453,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                       {output.ports.map((port) => {
                         const isUsed = usedPorts.has(port);
                         const connectedInfo = isUsed ? getConnectedDevice(output.type, port, false) : null;
-                        const connectionIdx = isUsed ? getConnectionIndex(output.type, port, false) : -1;
+                        const connectionIdx = connectedInfo?.conn ? activeConnections.indexOf(connectedInfo.conn) : -1;
 
                         return (
                           <div 
@@ -455,13 +463,13 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                                 ? 'bg-purple-500/10 border border-purple-500/30 hover:border-purple-500 cursor-pointer' 
                                 : 'bg-gray-900/50'
                             }`}
-                            onMouseEnter={() => isUsed && onHighlightConnections && onHighlightConnections([connectionIdx])}
+                            onMouseEnter={() => isUsed && connectionIdx !== -1 && onHighlightConnections && onHighlightConnections([connectionIdx])}
                             onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
                           >
                             <span className={isUsed ? 'text-purple-300 font-medium' : 'text-gray-500'}>{port}</span>
                             {isUsed && connectedInfo?.device && (
                               <span className="text-gray-400 text-[10px] truncate ml-2">
-                                → {connectedInfo.device.brand} ({connectedInfo.port})
+                                → {connectedInfo.device.label || connectedInfo.device.brand} ({connectedInfo.port})
                               </span>
                             )}
                             {!isUsed && <span className="text-gray-600 text-[10px]">Available</span>}
