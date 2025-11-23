@@ -211,7 +211,6 @@ export default function CanvasProduct({
         onPortDragStart
       }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [portDragStartTime, setPortDragStartTime] = useState(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e) => {
@@ -347,17 +346,9 @@ export default function CanvasProduct({
               style={{ backgroundColor: point.color }}
               data-port-index={i}
               data-port-type="input"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onPortClick) {
-                  const wasDragging = portDragStartTime && (Date.now() - portDragStartTime) > 150;
-                  onPortClick(instanceId, point.type, point.port, true, wasDragging);
-                  setPortDragStartTime(null);
-                }
-              }}
               onMouseDown={(e) => {
                 e.stopPropagation();
-                setPortDragStartTime(Date.now());
+                e.preventDefault();
                 if (onPortDragStart) {
                   onPortDragStart(instanceId, point.type, point.port, true, e.currentTarget);
                 }
@@ -377,17 +368,9 @@ export default function CanvasProduct({
               style={{ backgroundColor: point.color }}
               data-port-index={i}
               data-port-type="output"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onPortClick) {
-                  const wasDragging = portDragStartTime && (Date.now() - portDragStartTime) > 150;
-                  onPortClick(instanceId, point.type, point.port, false, wasDragging);
-                  setPortDragStartTime(null);
-                }
-              }}
               onMouseDown={(e) => {
                 e.stopPropagation();
-                setPortDragStartTime(Date.now());
+                e.preventDefault();
                 if (onPortDragStart) {
                   onPortDragStart(instanceId, point.type, point.port, false, e.currentTarget);
                 }
@@ -407,17 +390,9 @@ export default function CanvasProduct({
               style={{ backgroundColor: point.color }}
               data-port-index={i + 6}
               data-port-type={point.isInput ? "input" : "output"}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onPortClick) {
-                  const wasDragging = portDragStartTime && (Date.now() - portDragStartTime) > 150;
-                  onPortClick(instanceId, point.type, point.port, point.isInput, wasDragging);
-                  setPortDragStartTime(null);
-                }
-              }}
               onMouseDown={(e) => {
                 e.stopPropagation();
-                setPortDragStartTime(Date.now());
+                e.preventDefault();
                 if (onPortDragStart) {
                   onPortDragStart(instanceId, point.type, point.port, point.isInput, e.currentTarget);
                 }
