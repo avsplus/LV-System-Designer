@@ -423,20 +423,21 @@ export default function AVCanvas() {
     const baseX = canvasProduct.position.x;
     const baseY = canvasProduct.position.y;
     const centerY = baseY + cardHeight / 2;
+    const halfCircle = circleSize / 2;
 
     if (pointIndex < 6) {
       // Left edge (inputs) or Right edge (outputs)
       const verticalCount = Math.min(allPoints.length, 6);
       const totalHeight = (verticalCount - 1) * (circleSize + gapSize);
-      const startY = centerY - totalHeight / 2;
+      const startY = centerY - totalHeight / 2 + halfCircle; // Add halfCircle to center on circle
       const y = startY + pointIndex * (circleSize + gapSize);
 
       if (isOutput) {
-        // Right edge circles are centered at cardWidth (after translate-x-1/2 transform)
-        return { x: baseX + cardWidth, y };
+        // Right edge: right-0 + translate-x-1/2 = cardWidth + halfCircle
+        return { x: baseX + cardWidth + halfCircle, y };
       } else {
-        // Left edge circles are centered at 0 (after -translate-x-1/2 transform)
-        return { x: baseX, y };
+        // Left edge: left-0 + -translate-x-1/2 = -halfCircle from card edge
+        return { x: baseX - halfCircle, y };
       }
     } else {
       // Top edge (overflow)
@@ -444,11 +445,11 @@ export default function AVCanvas() {
       const horizontalCount = Math.min(allPoints.length - 6, 8);
       const totalWidth = (horizontalCount - 1) * (circleSize + gapSize);
       const centerX = baseX + cardWidth / 2;
-      const startX = centerX - totalWidth / 2;
+      const startX = centerX - totalWidth / 2 + halfCircle; // Add halfCircle to center on circle
       const x = startX + overflowIndex * (circleSize + gapSize);
 
-      // Top edge circles are centered at 0 (after -translate-y-1/2 transform)
-      return { x, y: baseY };
+      // Top edge: top-0 + -translate-y-1/2 = -halfCircle from card edge
+      return { x, y: baseY - halfCircle };
     }
   };
 
