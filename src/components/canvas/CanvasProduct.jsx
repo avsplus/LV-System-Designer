@@ -208,7 +208,9 @@ export default function CanvasProduct({
         label,
         networkInfo,
         onPortClick,
-        onPortDragStart
+        onPortMouseDown,
+        registerPort,
+        getPortId
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -339,66 +341,81 @@ export default function CanvasProduct({
       {/* Left edge connection points (inputs) */}
       {inputPoints.length > 0 && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-2">
-          {inputPoints.slice(0, 6).map((point, i) => (
-            <div 
-              key={i} 
-              className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
-              style={{ backgroundColor: point.color }}
-              data-port-index={i}
-              data-port-type="input"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (onPortDragStart) {
-                  onPortDragStart(instanceId, point.type, point.port, true, e.currentTarget);
-                }
-              }}
-            />
-          ))}
+          {inputPoints.slice(0, 6).map((point, i) => {
+            const portId = getPortId(instanceId, point.type, point.port, true);
+            return (
+              <div 
+                key={i}
+                ref={(el) => registerPort(portId, el)}
+                className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
+                style={{ backgroundColor: point.color }}
+                data-port-id={portId}
+                data-port-index={i}
+                data-port-type="input"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (onPortMouseDown) {
+                    onPortMouseDown(instanceId, point.type, point.port, true, e.currentTarget);
+                  }
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
       {/* Right edge connection points (outputs) */}
       {outputPoints.length > 0 && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-2">
-          {outputPoints.slice(0, 6).map((point, i) => (
-            <div 
-              key={i} 
-              className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
-              style={{ backgroundColor: point.color }}
-              data-port-index={i}
-              data-port-type="output"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (onPortDragStart) {
-                  onPortDragStart(instanceId, point.type, point.port, false, e.currentTarget);
-                }
-              }}
-            />
-          ))}
+          {outputPoints.slice(0, 6).map((point, i) => {
+            const portId = getPortId(instanceId, point.type, point.port, false);
+            return (
+              <div 
+                key={i}
+                ref={(el) => registerPort(portId, el)}
+                className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
+                style={{ backgroundColor: point.color }}
+                data-port-id={portId}
+                data-port-index={i}
+                data-port-type="output"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (onPortMouseDown) {
+                    onPortMouseDown(instanceId, point.type, point.port, false, e.currentTarget);
+                  }
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
       {/* Top edge connection points (for overflow) */}
       {(inputPoints.length > 6 || outputPoints.length > 6) && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2">
-          {[...inputPoints.slice(6).map(p => ({...p, isInput: true})), ...outputPoints.slice(6).map(p => ({...p, isInput: false}))].slice(0, 8).map((point, i) => (
-            <div 
-              key={i} 
-              className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
-              style={{ backgroundColor: point.color }}
-              data-port-index={i + 6}
-              data-port-type={point.isInput ? "input" : "output"}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (onPortDragStart) {
-                  onPortDragStart(instanceId, point.type, point.port, point.isInput, e.currentTarget);
-                }
-              }}
-            />
-          ))}
+          {[...inputPoints.slice(6).map(p => ({...p, isInput: true})), ...outputPoints.slice(6).map(p => ({...p, isInput: false}))].slice(0, 8).map((point, i) => {
+            const portId = getPortId(instanceId, point.type, point.port, point.isInput);
+            return (
+              <div 
+                key={i}
+                ref={(el) => registerPort(portId, el)}
+                className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
+                style={{ backgroundColor: point.color }}
+                data-port-id={portId}
+                data-port-index={i + 6}
+                data-port-type={point.isInput ? "input" : "output"}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (onPortMouseDown) {
+                    onPortMouseDown(instanceId, point.type, point.port, point.isInput, e.currentTarget);
+                  }
+                }}
+              />
+            );
+          })}
         </div>
       )}
       <div className="flex items-start justify-between mb-3 flex-shrink-0">

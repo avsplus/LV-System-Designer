@@ -27,8 +27,9 @@ export default function AVCanvas() {
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [spacePressed, setSpacePressed] = useState(false);
   const [dragMousePosition, setDragMousePosition] = useState(null);
-  const [draggingConnection, setDraggingConnection] = useState(null);
+  const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, mousePos: {...} }
   const canvasRef = useRef(null);
+  const portRefs = useRef(new Map()); // Map of portId -> DOM element
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['avProducts'],
@@ -186,165 +187,139 @@ export default function AVCanvas() {
     }
   };
 
-  const handlePortDragStart = (instanceId, connectionType, portName, isInput, portElement) => {
+  // Port ID helper
+  const getPortId = (instanceId, connectionType, portName, isInput) => {
+    return `${instanceId}:${isInput ? 'in' : 'out'}:${connectionType}:${portName}`;
+  };
+
+  // Register port element for hit-testing
+  const registerPort = (portId, element) => {
+    if (element) {
+      portRefs.current.set(portId, element);
+    } else {
+      portRefs.current.delete(portId);
+    }
+  };
+
+  // Get port position in canvas coordinates
+  const getPortPosition = (portElement) => {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
-    if (!canvasRect) return;
+    if (!canvasRect || !portElement) return null;
 
     const portRect = portElement.getBoundingClientRect();
-    const startPos = {
+    return {
       x: (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom,
       y: (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom
     };
+  };
 
-    setDraggingConnection({
-      fromInstanceId: instanceId,
-      fromType: connectionType,
-      fromPort: portName,
-      isFromInput: isInput,
+  // Start connecting from a port
+  const handlePortMouseDown = (instanceId, connectionType, portName, isInput, portElement) => {
+    const startPos = getPortPosition(portElement);
+    if (!startPos) return;
+
+    setConnectingState({
+      mode: 'connecting',
+      fromPort: {
+        instanceId,
+        connectionType,
+        portName,
+        isInput
+      },
       startPos,
-      currentPos: startPos,
+      mousePos: startPos,
       startTime: Date.now()
     });
   };
 
+  // Update mouse position while dragging
   const handleGlobalMouseMove = React.useCallback((e) => {
-    if (!draggingConnection) return;
+    if (!connectingState) return;
 
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
 
-    const currentPos = {
+    const mousePos = {
       x: (e.clientX - canvasRect.left - pan.x) / zoom,
       y: (e.clientY - canvasRect.top - pan.y) / zoom
     };
 
-    setDraggingConnection(prev => ({
+    setConnectingState(prev => ({
       ...prev,
-      currentPos
+      mousePos
     }));
-  }, [draggingConnection, zoom, pan]);
+  }, [connectingState, zoom, pan]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
-    if (!draggingConnection) return;
+    if (!connectingState) return;
 
-    const timeDiff = Date.now() - (draggingConnection.startTime || 0);
-    
-    // Find which element the mouse is over
+    const timeDiff = Date.now() - (connectingState.startTime || 0);
     const element = document.elementFromPoint(e.clientX, e.clientY);
-    const portDot = element?.closest('[data-port-type]');
+    const portDot = element?.closest('[data-port-id]');
     
     // Quick click - show connection details
-    if (timeDiff < 150 && portDot) {
-      const instanceId = portDot.closest('[data-instance-id]')?.getAttribute('data-instance-id');
-      const portType = portDot.getAttribute('data-port-type');
-      const isInput = portType === 'input';
-      
-      const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
-      if (canvasProduct) {
-        const product = canvasProduct.product;
-        const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
-        const hasRealConnections = product.connections && 
-          ((product.connections.inputs && product.connections.inputs.length > 0) || 
-           (product.connections.outputs && product.connections.outputs.length > 0));
-        
-        let productConnections = hasRealConnections ? product.connections : defaultConnections;
-        const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
-          ? { ...productConnections, outputs: [] }
-          : productConnections;
-
-        const direction = isInput ? 'inputs' : 'outputs';
-        const allPoints = [];
-        (finalConnections[direction] || []).forEach(conn => {
-          (conn.ports || []).forEach(port => {
-            allPoints.push({ type: conn.type, port });
-          });
-        });
-
-        const portIndex = parseInt(portDot.getAttribute('data-port-index'));
-        const point = allPoints[portIndex];
-        
-        if (point) {
-          handlePortClick(instanceId, point.type, point.port, isInput);
-        }
+    if (timeDiff < 150) {
+      const portId = portDot?.getAttribute('data-port-id');
+      if (portId) {
+        const [instanceId, direction, connectionType, portName] = portId.split(':');
+        const isInput = direction === 'in';
+        handlePortClick(instanceId, connectionType, portName, isInput);
       }
-      setDraggingConnection(null);
+      setConnectingState(null);
       return;
     }
     
-    // Drag operation - create connection if over valid port
+    // Drag operation - create connection if dropped on valid port
     if (portDot) {
-      const instanceId = portDot.closest('[data-instance-id]')?.getAttribute('data-instance-id');
-      const portType = portDot.getAttribute('data-port-type');
-      const isInput = portType === 'input';
+      const toPortId = portDot.getAttribute('data-port-id');
+      const [toInstanceId, toDirection, toConnectionType, toPortName] = toPortId.split(':');
+      const toIsInput = toDirection === 'in';
       
-      const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
-      if (canvasProduct) {
-        const product = canvasProduct.product;
-        const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
-        const hasRealConnections = product.connections && 
-          ((product.connections.inputs && product.connections.inputs.length > 0) || 
-           (product.connections.outputs && product.connections.outputs.length > 0));
+      const { fromPort } = connectingState;
+      
+      // Validate connection
+      const validDirection = fromPort.isInput !== toIsInput;
+      const sameType = fromPort.connectionType === toConnectionType;
+      const differentDevice = fromPort.instanceId !== toInstanceId;
+      
+      if (validDirection && sameType && differentDevice) {
+        const fromId = fromPort.isInput ? toInstanceId : fromPort.instanceId;
+        const toId = fromPort.isInput ? fromPort.instanceId : toInstanceId;
+        const fromPortName = fromPort.isInput ? toPortName : fromPort.portName;
+        const toPortName = fromPort.isInput ? fromPort.portName : toPortName;
+
+        const connectionCategories = {
+          'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
+          'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
+          'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
+          'Ethernet': 'N', 'USB': 'N',
+          'RS232': 'C', 'Control': 'C'
+        };
         
-        let productConnections = hasRealConnections ? product.connections : defaultConnections;
-        const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
-          ? { ...productConnections, outputs: [] }
-          : productConnections;
+        const prefix = connectionCategories[toConnectionType] || 'W';
+        
+        setConnections(prevConnections => {
+          const existingOfType = prevConnections.filter(c => {
+            const cPrefix = connectionCategories[c.type] || 'W';
+            return cPrefix === prefix;
+          }).length;
+          
+          const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
 
-        const direction = isInput ? 'inputs' : 'outputs';
-        const allPoints = [];
-        (finalConnections[direction] || []).forEach(conn => {
-          (conn.ports || []).forEach(port => {
-            allPoints.push({ type: conn.type, port });
-          });
+          return [...prevConnections, {
+            from: fromId,
+            to: toId,
+            type: toConnectionType,
+            fromPort: fromPortName,
+            toPort: toPortName,
+            wireId
+          }];
         });
-
-        const portIndex = parseInt(portDot.getAttribute('data-port-index'));
-        const point = allPoints[portIndex];
-
-        if (point) {
-          const validDirection = draggingConnection.isFromInput !== isInput;
-          const sameType = draggingConnection.fromType === point.type;
-
-          if (validDirection && sameType && draggingConnection.fromInstanceId !== instanceId) {
-            const fromId = draggingConnection.isFromInput ? instanceId : draggingConnection.fromInstanceId;
-            const toId = draggingConnection.isFromInput ? draggingConnection.fromInstanceId : instanceId;
-            const fromPort = draggingConnection.isFromInput ? point.port : draggingConnection.fromPort;
-            const toPort = draggingConnection.isFromInput ? draggingConnection.fromPort : point.port;
-
-            const connectionCategories = {
-              'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
-              'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
-              'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
-              'Ethernet': 'N', 'USB': 'N',
-              'RS232': 'C', 'Control': 'C'
-            };
-            
-            const prefix = connectionCategories[point.type] || 'W';
-            
-            setConnections(prevConnections => {
-              const existingOfType = prevConnections.filter(c => {
-                const cPrefix = connectionCategories[c.type] || 'W';
-                return cPrefix === prefix;
-              }).length;
-              
-              const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
-
-              return [...prevConnections, {
-                from: fromId,
-                to: toId,
-                type: point.type,
-                fromPort,
-                toPort,
-                wireId
-              }];
-            });
-          }
-        }
       }
     }
 
-    setDraggingConnection(null);
-  }, [draggingConnection, canvasProducts, handlePortClick]);
+    setConnectingState(null);
+  }, [connectingState, canvasProducts, handlePortClick]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
@@ -1110,14 +1085,14 @@ export default function AVCanvas() {
                       );
                     })}
 
-                    {/* Dragging connection line */}
-                    {draggingConnection && draggingConnection.currentPos && (
+                    {/* Rubber-band connection line while dragging */}
+                    {connectingState && connectingState.mousePos && (
                       <g>
                         <line
-                          x1={draggingConnection.startPos.x}
-                          y1={draggingConnection.startPos.y}
-                          x2={draggingConnection.currentPos.x}
-                          y2={draggingConnection.currentPos.y}
+                          x1={connectingState.startPos.x}
+                          y1={connectingState.startPos.y}
+                          x2={connectingState.mousePos.x}
+                          y2={connectingState.mousePos.y}
                           stroke="#3b82f6"
                           strokeWidth="4"
                           strokeDasharray="8,4"
@@ -1125,15 +1100,15 @@ export default function AVCanvas() {
                           opacity="0.8"
                         />
                         <circle
-                          cx={draggingConnection.startPos.x}
-                          cy={draggingConnection.startPos.y}
+                          cx={connectingState.startPos.x}
+                          cy={connectingState.startPos.y}
                           r="6"
                           fill="#3b82f6"
                           className="pointer-events-none"
                         />
                         <circle
-                          cx={draggingConnection.currentPos.x}
-                          cy={draggingConnection.currentPos.y}
+                          cx={connectingState.mousePos.x}
+                          cy={connectingState.mousePos.y}
                           r="6"
                           fill="#3b82f6"
                           className="pointer-events-none"
@@ -1194,7 +1169,9 @@ export default function AVCanvas() {
                           setSelectedConnection(null);
                         }}
                         onPortClick={handlePortClick}
-                        onPortDragStart={handlePortDragStart}
+                        onPortMouseDown={handlePortMouseDown}
+                        registerPort={registerPort}
+                        getPortId={getPortId}
                       />
                     );
                   })}
