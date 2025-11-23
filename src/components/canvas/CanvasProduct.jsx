@@ -213,7 +213,7 @@ export default function CanvasProduct({
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e) => {
-    if (e.target.closest('button')) return;
+    if (e.target.closest('button') || e.target.hasAttribute('data-port-type')) return;
     
     const clickTime = Date.now();
     const clickPos = { x: e.clientX, y: e.clientY };
