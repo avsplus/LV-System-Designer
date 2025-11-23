@@ -754,7 +754,7 @@ export default function AVCanvas() {
     }
   };
 
-  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
+  const getConnectionPointPosition = React.useCallback((instanceId, connectionType, portName, isOutput) => {
     // Use registered port refs for accurate positioning
     const portId = getPortId(instanceId, connectionType, portName, !isOutput);
     const portData = portRefs.current.get(portId);
@@ -772,64 +772,66 @@ export default function AVCanvas() {
     }
 
     return null;
-  };
+  }, [zoom, pan]);
 
   // Calculate connection positions and edges on every render
-  const connectionPositions = connections.map((connection, index) => {
-    const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
-    const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+  const connectionPositions = React.useMemo(() => {
+    return connections.map((connection, index) => {
+      const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+      const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
 
-    if (!fromProduct || !toProduct) return { fromPoint: null, toPoint: null, fromEdge: null, toEdge: null };
+      if (!fromProduct || !toProduct) return { fromPoint: null, toPoint: null, fromEdge: null, toEdge: null };
 
-    const fromPoint = getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
-    const toPoint = getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
+      const fromPoint = getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
+      const toPoint = getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
 
-    // Determine edge based on where the port actually is relative to the card
-    let fromEdge = null, toEdge = null;
+      // Determine edge based on where the port actually is relative to the card
+      let fromEdge = null, toEdge = null;
 
-    if (fromPoint) {
-      const cardWidth = 320;
-      const cardHeight = 280;
-      const fromLeft = fromProduct.position.x;
-      const fromRight = fromProduct.position.x + cardWidth;
-      const fromTop = fromProduct.position.y;
-      const fromBottom = fromProduct.position.y + cardHeight;
+      if (fromPoint) {
+        const cardWidth = 320;
+        const cardHeight = 280;
+        const fromLeft = fromProduct.position.x;
+        const fromRight = fromProduct.position.x + cardWidth;
+        const fromTop = fromProduct.position.y;
+        const fromBottom = fromProduct.position.y + cardHeight;
 
-      // Check which edge the port is closest to
-      const distToLeft = Math.abs(fromPoint.x - fromLeft);
-      const distToRight = Math.abs(fromPoint.x - fromRight);
-      const distToTop = Math.abs(fromPoint.y - fromTop);
-      const distToBottom = Math.abs(fromPoint.y - fromBottom);
+        // Check which edge the port is closest to
+        const distToLeft = Math.abs(fromPoint.x - fromLeft);
+        const distToRight = Math.abs(fromPoint.x - fromRight);
+        const distToTop = Math.abs(fromPoint.y - fromTop);
+        const distToBottom = Math.abs(fromPoint.y - fromBottom);
 
-      const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-      if (minDist === distToLeft) fromEdge = 'left';
-      else if (minDist === distToRight) fromEdge = 'right';
-      else if (minDist === distToTop) fromEdge = 'top';
-      else fromEdge = 'bottom';
-    }
+        const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+        if (minDist === distToLeft) fromEdge = 'left';
+        else if (minDist === distToRight) fromEdge = 'right';
+        else if (minDist === distToTop) fromEdge = 'top';
+        else fromEdge = 'bottom';
+      }
 
-    if (toPoint) {
-      const cardWidth = 320;
-      const cardHeight = 280;
-      const toLeft = toProduct.position.x;
-      const toRight = toProduct.position.x + cardWidth;
-      const toTop = toProduct.position.y;
-      const toBottom = toProduct.position.y + cardHeight;
+      if (toPoint) {
+        const cardWidth = 320;
+        const cardHeight = 280;
+        const toLeft = toProduct.position.x;
+        const toRight = toProduct.position.x + cardWidth;
+        const toTop = toProduct.position.y;
+        const toBottom = toProduct.position.y + cardHeight;
 
-      const distToLeft = Math.abs(toPoint.x - toLeft);
-      const distToRight = Math.abs(toPoint.x - toRight);
-      const distToTop = Math.abs(toPoint.y - toTop);
-      const distToBottom = Math.abs(toPoint.y - toBottom);
+        const distToLeft = Math.abs(toPoint.x - toLeft);
+        const distToRight = Math.abs(toPoint.x - toRight);
+        const distToTop = Math.abs(toPoint.y - toTop);
+        const distToBottom = Math.abs(toPoint.y - toBottom);
 
-      const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-      if (minDist === distToLeft) toEdge = 'left';
-      else if (minDist === distToRight) toEdge = 'right';
-      else if (minDist === distToTop) toEdge = 'top';
-      else toEdge = 'bottom';
-    }
+        const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+        if (minDist === distToLeft) toEdge = 'left';
+        else if (minDist === distToRight) toEdge = 'right';
+        else if (minDist === distToTop) toEdge = 'top';
+        else toEdge = 'bottom';
+      }
 
-    return { fromPoint, toPoint, fromEdge, toEdge };
-  });
+      return { fromPoint, toPoint, fromEdge, toEdge };
+    });
+  }, [connections, canvasProducts, zoom, pan]);
 
   const getProductEdgePoint = (fromId, toId, connectionIndex) => {
     const connection = connections[connectionIndex];
