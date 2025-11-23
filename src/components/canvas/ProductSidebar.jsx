@@ -83,7 +83,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       )}
-                      <div className={`w-5 h-5 rounded ${categorySolidColors[category]}`}></div>
                       <span className="text-xs text-gray-300 capitalize">{category.replace(/_/g, ' ')}</span>
                       <span className="text-xs text-gray-500">({categoryProducts.length})</span>
                     </div>
