@@ -20,6 +20,23 @@ const categoryColors = {
   av_receivers: "bg-emerald-500/10 text-emerald-400 border-emerald-500/50"
 };
 
+const categorySolidColors = {
+  televisions: "bg-blue-500",
+  projectors: "bg-purple-500",
+  projector_screens: "bg-indigo-500",
+  video_distribution: "bg-cyan-500",
+  matrix_switchers: "bg-teal-500",
+  audio_streamers: "bg-pink-500",
+  media_streamers: "bg-rose-500",
+  speakers: "bg-green-500",
+  soundbars: "bg-lime-500",
+  subwoofers: "bg-red-500",
+  stereo_amps: "bg-orange-500",
+  multizone_amps: "bg-amber-500",
+  surround_processors: "bg-yellow-500",
+  av_receivers: "bg-emerald-500"
+};
+
 export default function CanvasProduct({ 
         instanceId,
         product, 
@@ -112,7 +129,7 @@ export default function CanvasProduct({
               {label}
             </Badge>
           )}
-          <div className={`w-6 h-6 rounded-md ${categoryColors[product.category].split(' ')[0]}`}></div>
+          <div className={`w-6 h-6 rounded-md ${categorySolidColors[product.category]}`}></div>
         </div>
         <div className="flex gap-1">
           <Button
