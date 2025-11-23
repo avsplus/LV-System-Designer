@@ -210,7 +210,9 @@ export default function CanvasProduct({
         onPortClick,
         onPortMouseDown,
         registerPort,
-        getPortId
+        getPortId,
+        hoveredPortId,
+        connectingFromPortId
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -343,11 +345,17 @@ export default function CanvasProduct({
         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-2">
           {inputPoints.slice(0, 6).map((point, i) => {
             const portId = getPortId(instanceId, point.type, point.port, true);
+            const isHovered = hoveredPortId === portId;
+            const isConnecting = connectingFromPortId === portId;
             return (
               <div 
                 key={i}
-                ref={(el) => registerPort(portId, el)}
-                className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
+                ref={(el) => registerPort(portId, el, instanceId, point.type, point.port, true)}
+                className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-all ${
+                  isConnecting ? 'scale-150 border-blue-400' :
+                  isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
+                  'border-gray-800 hover:scale-125'
+                }`}
                 style={{ backgroundColor: point.color }}
                 data-port-id={portId}
                 data-port-index={i}
@@ -370,11 +378,17 @@ export default function CanvasProduct({
         <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-2">
           {outputPoints.slice(0, 6).map((point, i) => {
             const portId = getPortId(instanceId, point.type, point.port, false);
+            const isHovered = hoveredPortId === portId;
+            const isConnecting = connectingFromPortId === portId;
             return (
               <div 
                 key={i}
-                ref={(el) => registerPort(portId, el)}
-                className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
+                ref={(el) => registerPort(portId, el, instanceId, point.type, point.port, false)}
+                className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-all ${
+                  isConnecting ? 'scale-150 border-blue-400' :
+                  isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
+                  'border-gray-800 hover:scale-125'
+                }`}
                 style={{ backgroundColor: point.color }}
                 data-port-id={portId}
                 data-port-index={i}
@@ -397,11 +411,17 @@ export default function CanvasProduct({
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2">
           {[...inputPoints.slice(6).map(p => ({...p, isInput: true})), ...outputPoints.slice(6).map(p => ({...p, isInput: false}))].slice(0, 8).map((point, i) => {
             const portId = getPortId(instanceId, point.type, point.port, point.isInput);
+            const isHovered = hoveredPortId === portId;
+            const isConnecting = connectingFromPortId === portId;
             return (
               <div 
                 key={i}
-                ref={(el) => registerPort(portId, el)}
-                className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
+                ref={(el) => registerPort(portId, el, instanceId, point.type, point.port, point.isInput)}
+                className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-all ${
+                  isConnecting ? 'scale-150 border-blue-400' :
+                  isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
+                  'border-gray-800 hover:scale-125'
+                }`}
                 style={{ backgroundColor: point.color }}
                 data-port-id={portId}
                 data-port-index={i + 6}
