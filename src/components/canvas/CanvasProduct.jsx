@@ -99,7 +99,7 @@ export default function CanvasProduct({
         willChange: isDragging ? 'transform' : 'auto',
         transition: isDragging ? 'none' : 'border-color 0.15s ease'
       }}
-      className={`w-64 h-[230px] bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col ${
+      className={`w-64 h-[280px] bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
@@ -143,23 +143,29 @@ export default function CanvasProduct({
       </div>
       
       <div className="flex-1 min-h-0">
-        <h3 className="font-semibold text-white text-sm mb-0.5 truncate">
+        <h3 className="font-semibold text-white text-base mb-1">
           {product.brand}
         </h3>
-        <p className="text-xs text-gray-300 mb-2 truncate">{product.model}</p>
+        <p className="text-sm text-gray-300 mb-2">{product.model}</p>
+        
+        {product.description && (
+          <p className="text-xs text-gray-400 line-clamp-2 mb-2">
+            {product.description}
+          </p>
+        )}
         
         {product.price && (
-          <p className="text-xs font-medium text-blue-400 mb-2">
+          <p className="text-sm font-medium text-blue-400 mb-2">
             ${product.price.toLocaleString()}
           </p>
         )}
 
         {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && (
-          <div className="mt-2 pt-2 border-t border-gray-700 space-y-1">
-            <p className="text-xs text-gray-400 truncate">
+          <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
+            <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
             </p>
-            <p className="text-xs text-gray-400 truncate">
+            <p className="text-xs text-gray-400">
               <span className="text-gray-500">IP:</span> {networkInfo?.ip || '000.000.000.000'}
               <span className="mx-1">|</span>
               <span className="text-gray-500">SW#:</span> {networkInfo?.sw || '00'} 
