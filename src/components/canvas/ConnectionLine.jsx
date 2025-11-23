@@ -80,21 +80,27 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       const toIsHorizontal = toEdge === 'left' || toEdge === 'right';
 
       if (fromIsHorizontal && toIsHorizontal) {
-        // Both horizontal edges - need 3 segments
+        // Both horizontal edges
         const midX = (fromStandoff.x + toStandoff.x) / 2;
-        path = addRoundedCorner(path, fromStandoff, { x: midX, y: fromStandoff.y }, { x: midX, y: toStandoff.y }, cornerRadius);
-        path = addRoundedCorner(path, { x: midX, y: fromStandoff.y }, { x: midX, y: toStandoff.y }, toStandoff, cornerRadius);
+        const corner1 = { x: midX, y: fromStandoff.y };
+        const corner2 = { x: midX, y: toStandoff.y };
+        path = addRoundedCorner(path, fromStandoff, corner1, corner2, cornerRadius);
+        path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
       } else if (!fromIsHorizontal && !toIsHorizontal) {
-        // Both vertical edges - need 3 segments
+        // Both vertical edges
         const midY = (fromStandoff.y + toStandoff.y) / 2;
-        path = addRoundedCorner(path, fromStandoff, { x: fromStandoff.x, y: midY }, { x: toStandoff.x, y: midY }, cornerRadius);
-        path = addRoundedCorner(path, { x: fromStandoff.x, y: midY }, { x: toStandoff.x, y: midY }, toStandoff, cornerRadius);
+        const corner1 = { x: fromStandoff.x, y: midY };
+        const corner2 = { x: toStandoff.x, y: midY };
+        path = addRoundedCorner(path, fromStandoff, corner1, corner2, cornerRadius);
+        path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
       } else if (fromIsHorizontal && !toIsHorizontal) {
-        // From horizontal, to vertical - single corner
-        path = addRoundedCorner(path, fromStandoff, { x: fromStandoff.x, y: toStandoff.y }, toStandoff, cornerRadius);
+        // From horizontal to vertical: go horizontal first, then vertical
+        const corner1 = { x: fromStandoff.x, y: toStandoff.y };
+        path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       } else {
-        // From vertical, to horizontal - single corner
-        path = addRoundedCorner(path, fromStandoff, { x: toStandoff.x, y: fromStandoff.y }, toStandoff, cornerRadius);
+        // From vertical to horizontal: go vertical first, then horizontal
+        const corner1 = { x: toStandoff.x, y: fromStandoff.y };
+        path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       }
 
       path += ` L ${toStandoff.x} ${toStandoff.y} L ${to.x} ${to.y}`;
