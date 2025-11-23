@@ -11,13 +11,27 @@ Deno.serve(async (req) => {
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find 30 popular professional AV (audio/visual) products across these categories: speakers, amplifiers, receivers, subwoofers, turntables, dacs, streamers, headphones, processors, cables, microphones, and mixers. 
+            prompt: `Find 40 popular professional AV (audio/visual) products across these specific categories:
+- Televisions (4K, 8K, OLED, QLED TVs)
+- Projectors (home theater, business projectors)
+- Projector Screens (fixed, motorized screens)
+- Video Distribution (HDMI splitters, extenders)
+- Matrix switchers (HDMI matrix switches)
+- Audio Streamers (network audio streamers)
+- Media Streamers (streaming devices, media players)
+- Speakers (bookshelf, floor-standing, in-wall, outdoor)
+- Soundbars (TV soundbars)
+- Subwoofers (powered subwoofers)
+- Stereo Amps (2-channel amplifiers)
+- Multi-Zone Amps (multi-room amplifiers)
+- Surround Processors (AV processors, pre-amps)
+- AV Receivers (home theater receivers)
 
-Include products from brands like: Yamaha, Denon, Marantz, McIntosh, KEF, Bowers & Wilkins, Sonos, Cambridge Audio, NAD, Klipsch, SVS, Pro-Ject, Schiit, AudioQuest, Shure, Behringer, and other popular AV brands.
+Include products from brands like: Sony, LG, Samsung, Epson, BenQ, Screen Innovations, Elite Screens, Denon, Yamaha, Marantz, Anthem, Sonos, KEF, Bowers & Wilkins, Klipsch, SVS, McIntosh, NAD, Cambridge Audio, Rotel, and other popular AV brands.
 
-For each product, provide accurate current information including brand, model number, category, description, approximate price in USD, and any available product image URLs.
+For each product, provide accurate current information including brand, model number, the exact category name from the list above, description, approximate price in USD, and any available product image URLs.
 
-Return a diverse mix across all categories.`,
+Return a diverse mix across all categories with at least 2-3 products per category.`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",
@@ -31,7 +45,7 @@ Return a diverse mix across all categories.`,
                                 model: { type: "string" },
                                 category: { 
                                     type: "string",
-                                    enum: ["speakers", "amplifiers", "receivers", "subwoofers", "turntables", "dacs", "streamers", "headphones", "processors", "cables", "microphones", "mixers"]
+                                    enum: ["Televisions", "Projectors", "Projector Screens", "Video Distribution", "Matrix switchers", "Audio Streamers", "Media Streamers", "Speakers", "Soundbars", "Subwoofers", "Stereo Amps", "Multi-Zone Amps", "Surround Processors", "AV Receivers"]
                                 },
                                 description: { type: "string" },
                                 price: { type: "number" },
