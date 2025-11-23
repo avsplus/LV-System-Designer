@@ -244,24 +244,17 @@ export default function AVCanvas() {
 
     if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
-    const cardWidth = 256;
-
-    // Calculate actual card heights based on whether they have network info
-    const hasNetworkInfo = (product) => {
-      return ['receivers', 'dacs', 'streamers', 'processors'].includes(product.product?.category || product.category);
-    };
-
-    const fromCardHeight = hasNetworkInfo(fromProduct) ? 230 : 200;
-    const toCardHeight = hasNetworkInfo(toProduct) ? 230 : 200;
+    const cardWidth = 320; // w-80 = 20rem = 320px
+    const cardHeight = 280; // h-[280px]
 
     const fromCenter = {
       x: fromProduct.position.x + cardWidth / 2,
-      y: fromProduct.position.y + fromCardHeight / 2
+      y: fromProduct.position.y + cardHeight / 2
     };
 
     const toCenter = {
       x: toProduct.position.x + cardWidth / 2,
-      y: toProduct.position.y + toCardHeight / 2
+      y: toProduct.position.y + cardHeight / 2
     };
 
     const dx = toCenter.x - fromCenter.x;
@@ -281,18 +274,15 @@ export default function AVCanvas() {
         if (!otherProduct) return;
 
         const deviceProduct = canvasProducts.find(cp => cp.instanceId === deviceId);
-        
-        const otherHeight = hasNetworkInfo(otherProduct) ? 230 : 200;
-        const deviceHeight = hasNetworkInfo(deviceProduct) ? 230 : 200;
 
         const otherCenter = {
           x: otherProduct.position.x + cardWidth / 2,
-          y: otherProduct.position.y + otherHeight / 2
+          y: otherProduct.position.y + cardHeight / 2
         };
 
         const deviceCenter = {
           x: deviceProduct.position.x + cardWidth / 2,
-          y: deviceProduct.position.y + deviceHeight / 2
+          y: deviceProduct.position.y + cardHeight / 2
         };
 
         const cdx = otherCenter.x - deviceCenter.x;
@@ -372,7 +362,7 @@ export default function AVCanvas() {
 
         fromEdge = {
           x: fromCenter.x + fromOffset,
-          y: fromProduct.position.y + fromCardHeight
+          y: fromProduct.position.y + cardHeight
         };
         toEdge = {
           x: toCenter.x + toOffset,
@@ -395,7 +385,7 @@ export default function AVCanvas() {
         };
         toEdge = {
           x: toCenter.x + toOffset,
-          y: toProduct.position.y + toCardHeight
+          y: toProduct.position.y + cardHeight
         };
       }
     }
