@@ -806,7 +806,9 @@ export default function AVCanvas() {
       ((product.connections.inputs && product.connections.inputs.length > 0) || 
        (product.connections.outputs && product.connections.outputs.length > 0));
     
-    let connections = hasRealConnections ? product.connections : defaultConnections;
+    // For endpoint devices, always use defaults to ensure ports are inputs
+    const isEndpointDevice = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category);
+    let connections = (hasRealConnections && !isEndpointDevice) ? product.connections : defaultConnections;
     
     const checkDirection = isOutput ? 'outputs' : 'inputs';
     const hasRequestedType = (connections[checkDirection] || []).some(conn => conn.type === connectionType);
