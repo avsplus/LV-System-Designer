@@ -215,6 +215,12 @@ const connectionsByCategory = {
 const normalizeType = (type) => type.toLowerCase().replace(/\//g, ' ').replace('toslink', '').trim();
 
 export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel, existingConnections }) {
+  // Check if speaker already has a connection
+  const isSpeaker = toProduct.category === 'speakers';
+  const speakerHasConnection = isSpeaker && (existingConnections || []).some(
+    conn => conn.to === toProduct.instanceId
+  );
+
   const fromCategory = connectionsByCategory[fromProduct.category] || { inputs: [], outputs: [] };
   const toCategory = connectionsByCategory[toProduct.category] || { inputs: [], outputs: [] };
   
@@ -286,7 +292,13 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
           Connect <span className="text-white font-medium">{fromProduct.brand} {fromProduct.model}</span> to <span className="text-white font-medium">{toProduct.brand} {toProduct.model}</span>
         </p>
 
-        {compatibleTypes.length === 0 ? (
+        {speakerHasConnection ? (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-400">
+              This speaker already has an active connection. Speakers can only accept one audio channel connection at a time.
+            </p>
+          </div>
+        ) : compatibleTypes.length === 0 ? (
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
             <p className="text-sm text-red-400">
               No compatible connection types found between these devices.
@@ -394,7 +406,7 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
               });
             }} 
             className="bg-blue-600 hover:bg-blue-700"
-            disabled={!canCreate}
+            disabled={!canCreate || speakerHasConnection}
           >
             Create Connection
           </Button>
