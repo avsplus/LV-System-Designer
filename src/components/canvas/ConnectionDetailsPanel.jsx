@@ -90,7 +90,10 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
                        (c.from === connection.to && c.to === connection.from)
                 );
                 const connectionNumber = sameDeviceConnections.findIndex(c => c === connection) + 1;
-                return `${fromLabel || 'D?'}${toLabel || 'D?'}${connectionNumber}`;
+                // Extract device numbers from labels (e.g., "Sony 1" -> "1")
+                const fromNum = fromLabel?.match(/\d+$/)?.[0] || '?';
+                const toNum = toLabel?.match(/\d+$/)?.[0] || '?';
+                return `${fromNum}-${toNum}-${connectionNumber}`;
               })()}
             </p>
             <p className="text-xs text-gray-500 mt-1">Wire identifier</p>
