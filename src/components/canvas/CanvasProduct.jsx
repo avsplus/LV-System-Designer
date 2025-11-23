@@ -162,9 +162,26 @@ export default function CanvasProduct({
           )}
         </div>
 
-        {((product.connections?.inputs?.some(input => input.type === "Ethernet") || 
-           product.connections?.outputs?.some(output => output.type === "Ethernet")) ||
-          ['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers', 'televisions', 'projectors', 'soundbars'].includes(product.category)) && (
+        {(() => {
+          const categoryDefaults = {
+            televisions: { hasEthernet: true },
+            projectors: { hasEthernet: true },
+            video_distribution: { hasEthernet: true },
+            matrix_switchers: { hasEthernet: true },
+            audio_streamers: { hasEthernet: true },
+            media_streamers: { hasEthernet: true },
+            soundbars: { hasEthernet: true },
+            multizone_amps: { hasEthernet: true },
+            surround_processors: { hasEthernet: true },
+            av_receivers: { hasEthernet: true }
+          };
+          
+          const hasEthernetConnection = product.connections?.inputs?.some(input => input.type === "Ethernet") || 
+                                        product.connections?.outputs?.some(output => output.type === "Ethernet");
+          const categoryHasEthernet = categoryDefaults[product.category]?.hasEthernet;
+          
+          return hasEthernetConnection || categoryHasEthernet;
+        })() && (
           <div className="mt-auto pt-3 border-t border-gray-700 space-y-1 flex-shrink-0">
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
