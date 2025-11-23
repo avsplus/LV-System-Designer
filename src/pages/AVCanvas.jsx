@@ -398,6 +398,11 @@ export default function AVCanvas() {
        (product.connections.outputs && product.connections.outputs.length > 0));
     const connections = hasRealConnections ? product.connections : defaultConnections;
 
+    console.log(`Product ${product.brand} category: ${product.category}`);
+    console.log('Has real connections:', hasRealConnections);
+    console.log('Product.connections:', product.connections);
+    console.log('Using connections:', connections);
+
     const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
       ? { ...connections, outputs: [] }
       : connections;
