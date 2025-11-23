@@ -450,7 +450,14 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               <div className="text-yellow-300">Device Connections: {deviceConnections.length}</div>
               {deviceConnections.map((conn, i) => (
                 <div key={i} className="text-yellow-200 text-[10px] mt-1">
-                  {i + 1}. {conn.type}: {conn.fromPort} → {conn.toPort}
+                  {i + 1}. {conn.type}: {conn.fromPort} → {conn.toPort} | From={conn.from.slice(-4)} To={conn.to.slice(-4)}
+                </div>
+              ))}
+              <div className="text-yellow-300 mt-2">Instance ID: {instanceId.slice(-4)}</div>
+              <div className="text-yellow-300 mt-1">Outputs Defined:</div>
+              {connections.outputs.map((out, i) => (
+                <div key={i} className="text-yellow-200 text-[10px]">
+                  {out.type}: [{out.ports.join(', ')}]
                 </div>
               ))}
             </div>
