@@ -401,8 +401,8 @@ export default function AVCanvas() {
     let connections = hasRealConnections ? product.connections : defaultConnections;
     
     // Check if the requested connection type exists in the connections
-    const direction = isOutput ? 'outputs' : 'inputs';
-    const hasRequestedType = (connections[direction] || []).some(conn => conn.type === connectionType);
+    const checkDirection = isOutput ? 'outputs' : 'inputs';
+    const hasRequestedType = (connections[checkDirection] || []).some(conn => conn.type === connectionType);
     
     // If the requested connection type doesn't exist, fall back to defaults
     if (!hasRequestedType) {
