@@ -236,7 +236,7 @@ export default function AVCanvas() {
     if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
     const cardWidth = 256;
-    const cardHeight = 160;
+    const cardHeight = 200;
 
     const fromCenter = {
       x: fromProduct.position.x + cardWidth / 2,
