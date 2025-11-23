@@ -424,31 +424,43 @@ export default function AVCanvas() {
     const baseY = canvasProduct.position.y;
     const centerY = baseY + cardHeight / 2;
     const halfCircle = circleSize / 2;
+    const circleSpacing = circleSize + gapSize; // Distance between circle centers: 12 + 8 = 20px
 
     if (pointIndex < 6) {
       // Left edge (inputs) or Right edge (outputs)
       const verticalCount = Math.min(allPoints.length, 6);
-      const totalHeight = (verticalCount - 1) * (circleSize + gapSize);
-      const startY = centerY - totalHeight / 2 + halfCircle; // Add halfCircle to center on circle
-      const y = startY + pointIndex * (circleSize + gapSize);
+      
+      // Calculate total container height: N circles of 12px + (N-1) gaps of 8px
+      const totalContainerHeight = (verticalCount * circleSize) + ((verticalCount - 1) * gapSize);
+      
+      // Container top edge is centered vertically with -translate-y-1/2
+      const containerTop = centerY - (totalContainerHeight / 2);
+      
+      // Each circle's center is at: containerTop + halfCircle + (index * circleSpacing)
+      const y = containerTop + halfCircle + (pointIndex * circleSpacing);
 
       if (isOutput) {
-        // Right edge: right-0 + translate-x-1/2 = cardWidth + halfCircle
+        // Right edge circles: right-0 translate-x-1/2 positions center at cardWidth + 6px
         return { x: baseX + cardWidth + halfCircle, y };
       } else {
-        // Left edge: left-0 + -translate-x-1/2 = -halfCircle from card edge
+        // Left edge circles: left-0 -translate-x-1/2 positions center at -6px
         return { x: baseX - halfCircle, y };
       }
     } else {
       // Top edge (overflow)
       const overflowIndex = pointIndex - 6;
       const horizontalCount = Math.min(allPoints.length - 6, 8);
-      const totalWidth = (horizontalCount - 1) * (circleSize + gapSize);
-      const centerX = baseX + cardWidth / 2;
-      const startX = centerX - totalWidth / 2 + halfCircle; // Add halfCircle to center on circle
-      const x = startX + overflowIndex * (circleSize + gapSize);
+      
+      // Calculate total container width
+      const totalContainerWidth = (horizontalCount * circleSize) + ((horizontalCount - 1) * gapSize);
+      
+      // Container left edge is centered horizontally with -translate-x-1/2
+      const containerLeft = (baseX + cardWidth / 2) - (totalContainerWidth / 2);
+      
+      // Each circle's center is at: containerLeft + halfCircle + (index * circleSpacing)
+      const x = containerLeft + halfCircle + (overflowIndex * circleSpacing);
 
-      // Top edge: top-0 + -translate-y-1/2 = -halfCircle from card edge
+      // Top edge circles: top-0 -translate-y-1/2 positions center at -6px
       return { x, y: baseY - halfCircle };
     }
   };
