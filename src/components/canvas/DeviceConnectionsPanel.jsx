@@ -480,23 +480,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               Output Connections
             </h4>
             
-            {/* DEBUG INFO */}
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded p-2 mb-3 text-xs">
-              <div className="text-yellow-400 font-bold mb-1">DEBUG:</div>
-              <div className="text-yellow-300">Device Connections: {deviceConnections.length}</div>
-              {deviceConnections.map((conn, i) => (
-                <div key={i} className="text-yellow-200 text-[10px] mt-1">
-                  {i + 1}. {conn.type}: {conn.fromPort} → {conn.toPort} | From={conn.from.slice(-4)} To={conn.to.slice(-4)}
-                </div>
-              ))}
-              <div className="text-yellow-300 mt-2">Instance ID: {instanceId.slice(-4)}</div>
-              <div className="text-yellow-300 mt-1">Outputs Defined:</div>
-              {connections.outputs.map((out, i) => (
-                <div key={i} className="text-yellow-200 text-[10px]">
-                  {out.type}: [{out.ports.join(', ')}]
-                </div>
-              ))}
-            </div>
+
             
             <div className="space-y-3">
               {connections.outputs.map((output, idx) => {
