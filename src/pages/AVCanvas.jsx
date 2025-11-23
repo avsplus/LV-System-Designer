@@ -32,6 +32,7 @@ export default function AVCanvas() {
   const [hoveredPortId, setHoveredPortId] = useState(null);
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
+  const connectingStateRef = useRef(null);
   
   const PORT_HIT_RADIUS = 20; // Pixels for hit testing
   const PORT_OFFSET = 20; // Offset distance from port for clean routing
@@ -349,7 +350,7 @@ export default function AVCanvas() {
     const startPos = getPortPosition(portElement);
     if (!startPos) return;
 
-    setConnectingState({
+    const newState = {
       mode: 'connecting',
       fromPort: {
         instanceId,
@@ -360,12 +361,15 @@ export default function AVCanvas() {
       startPos,
       mousePos: startPos,
       startTime: Date.now()
-    });
+    };
+    setConnectingState(newState);
+    connectingStateRef.current = newState;
   };
 
   // Update mouse position while dragging
   const handleGlobalMouseMove = React.useCallback((e) => {
-    if (!connectingState) return;
+    const currentState = connectingStateRef.current;
+    if (!currentState) return;
 
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
@@ -376,9 +380,9 @@ export default function AVCanvas() {
     // Validate if this is a valid target port
     let validHitPort = null;
     if (hitPort) {
-      const validDirection = connectingState.fromPort.isInput !== hitPort.isInput;
-      const sameType = connectingState.fromPort.connectionType === hitPort.connectionType;
-      const differentDevice = connectingState.fromPort.instanceId !== hitPort.instanceId;
+      const validDirection = currentState.fromPort.isInput !== hitPort.isInput;
+      const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
+      const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
       
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
@@ -396,33 +400,65 @@ export default function AVCanvas() {
           y: (e.clientY - canvasRect.top - pan.y) / zoom
         };
 
-    setConnectingState(prev => ({
-      ...prev,
+    const newState = {
+      ...currentState,
       mousePos,
       hoveredPort: validHitPort
-    }));
-  }, [connectingState, zoom, pan, hitTestPort]);
+    };
+    setConnectingState(newState);
+    connectingStateRef.current = newState;
+  }, [zoom, pan]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
-    if (!connectingState) return;
+    const currentState = connectingStateRef.current;
+    if (!currentState) return;
 
-    const timeDiff = Date.now() - (connectingState.startTime || 0);
+    const timeDiff = Date.now() - (currentState.startTime || 0);
     
     // Quick click - show connection details
     if (timeDiff < 150) {
-      const hitPort = hitTestPort(e.clientX, e.clientY);
-      if (hitPort) {
-        handlePortClick(hitPort.instanceId, hitPort.connectionType, hitPort.portName, hitPort.isInput);
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (!canvasRect) {
+        setConnectingState(null);
+        connectingStateRef.current = null;
+        setHoveredPortId(null);
+        return;
+      }
+
+      let closestPort = null;
+      let closestDistance = PORT_HIT_RADIUS * zoom;
+      
+      for (const [portId, portData] of portRefs.current.entries()) {
+        if (!portData.element) continue;
+        
+        const portRect = portData.element.getBoundingClientRect();
+        const portCenterX = portRect.left + portRect.width / 2;
+        const portCenterY = portRect.top + portRect.height / 2;
+        
+        const distance = Math.sqrt(
+          Math.pow(e.clientX - portCenterX, 2) + 
+          Math.pow(e.clientY - portCenterY, 2)
+        );
+        
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestPort = portData;
+        }
+      }
+
+      if (closestPort) {
+        handlePortClick(closestPort.instanceId, closestPort.connectionType, closestPort.portName, closestPort.isInput);
       }
       setConnectingState(null);
+      connectingStateRef.current = null;
       setHoveredPortId(null);
       return;
     }
     
     // Drag operation - create connection using hovered port if valid
-    if (connectingState.hoveredPort) {
-      const toPort = connectingState.hoveredPort;
-      const { fromPort } = connectingState;
+    if (currentState.hoveredPort) {
+      const toPort = currentState.hoveredPort;
+      const { fromPort } = currentState;
       
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
@@ -459,8 +495,9 @@ export default function AVCanvas() {
     }
 
     setConnectingState(null);
+    connectingStateRef.current = null;
     setHoveredPortId(null);
-  }, [connectingState, handlePortClick, hitTestPort]);
+  }, [zoom, handlePortClick]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
@@ -570,6 +607,11 @@ export default function AVCanvas() {
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
   }, [handleGlobalMouseMove, handleGlobalMouseUp]);
+
+  // Sync connectingState to ref
+  useEffect(() => {
+    connectingStateRef.current = connectingState;
+  }, [connectingState]);
 
   const connectionsByCategory = {
     televisions: {
