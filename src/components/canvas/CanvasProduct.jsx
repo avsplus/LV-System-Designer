@@ -4,18 +4,20 @@ import { Button } from "@/components/ui/button";
 import { X, Link2 } from "lucide-react";
 
 const categoryColors = {
-  speakers: "bg-blue-500/10 text-blue-400 border-blue-500/50",
-  amplifiers: "bg-purple-500/10 text-purple-400 border-purple-500/50",
-  receivers: "bg-green-500/10 text-green-400 border-green-500/50",
+  televisions: "bg-blue-500/10 text-blue-400 border-blue-500/50",
+  projectors: "bg-purple-500/10 text-purple-400 border-purple-500/50",
+  projector_screens: "bg-indigo-500/10 text-indigo-400 border-indigo-500/50",
+  video_distribution: "bg-cyan-500/10 text-cyan-400 border-cyan-500/50",
+  matrix_switchers: "bg-teal-500/10 text-teal-400 border-teal-500/50",
+  audio_streamers: "bg-pink-500/10 text-pink-400 border-pink-500/50",
+  media_streamers: "bg-rose-500/10 text-rose-400 border-rose-500/50",
+  speakers: "bg-green-500/10 text-green-400 border-green-500/50",
+  soundbars: "bg-lime-500/10 text-lime-400 border-lime-500/50",
   subwoofers: "bg-red-500/10 text-red-400 border-red-500/50",
-  turntables: "bg-yellow-500/10 text-yellow-400 border-yellow-500/50",
-  dacs: "bg-cyan-500/10 text-cyan-400 border-cyan-500/50",
-  streamers: "bg-pink-500/10 text-pink-400 border-pink-500/50",
-  headphones: "bg-indigo-500/10 text-indigo-400 border-indigo-500/50",
-  processors: "bg-orange-500/10 text-orange-400 border-orange-500/50",
-  cables: "bg-gray-500/10 text-gray-400 border-gray-500/50",
-  microphones: "bg-rose-500/10 text-rose-400 border-rose-500/50",
-  mixers: "bg-teal-500/10 text-teal-400 border-teal-500/50"
+  stereo_amps: "bg-orange-500/10 text-orange-400 border-orange-500/50",
+  multizone_amps: "bg-amber-500/10 text-amber-400 border-amber-500/50",
+  surround_processors: "bg-yellow-500/10 text-yellow-400 border-yellow-500/50",
+  av_receivers: "bg-emerald-500/10 text-emerald-400 border-emerald-500/50"
 };
 
 export default function CanvasProduct({ 
@@ -157,7 +159,7 @@ export default function CanvasProduct({
         </p>
       )}
 
-      {['receivers', 'dacs', 'streamers', 'processors'].includes(product.category) && networkInfo && (
+      {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && networkInfo && (
         <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
           <p className="text-xs text-gray-400">
             <span className="text-gray-500">MAC:</span> {networkInfo.mac || '00:00:00:00:00:00'}

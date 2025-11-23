@@ -11,9 +11,9 @@ Deno.serve(async (req) => {
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find 30 popular professional AV (audio/visual) products across these categories: speakers, amplifiers, receivers, subwoofers, turntables, dacs, streamers, headphones, processors, cables, microphones, and mixers. 
+            prompt: `Find 30 popular professional AV (audio/visual) products across these categories: televisions, projectors, projector screens, video distribution, matrix switchers, audio streamers, media streamers, speakers, soundbars, subwoofers, stereo amps, multi-zone amps, surround processors, and AV receivers. 
 
-Include products from brands like: Yamaha, Denon, Marantz, McIntosh, KEF, Bowers & Wilkins, Sonos, Cambridge Audio, NAD, Klipsch, SVS, Pro-Ject, Schiit, AudioQuest, Shure, Behringer, and other popular AV brands.
+Include products from brands like: Sony, Samsung, LG, Epson, JVC, Crestron, Control4, Savant, RTI, Sonos, Denon, Marantz, Yamaha, KEF, Bowers & Wilkins, Klipsch, SVS, and other popular AV brands.
 
 For each product, provide accurate current information including brand, model number, category, description, approximate price in USD, and any available product image URLs.
 
@@ -31,7 +31,7 @@ Return a diverse mix across all categories.`,
                                 model: { type: "string" },
                                 category: { 
                                     type: "string",
-                                    enum: ["speakers", "amplifiers", "receivers", "subwoofers", "turntables", "dacs", "streamers", "headphones", "processors", "cables", "microphones", "mixers"]
+                                    enum: ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers"]
                                 },
                                 description: { type: "string" },
                                 price: { type: "number" },
