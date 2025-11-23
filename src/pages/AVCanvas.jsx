@@ -1020,6 +1020,20 @@ export default function AVCanvas() {
                         />
                       );
                     })}
+
+                    {/* Dragging connection line */}
+                    {draggingConnection && draggingConnection.currentPos && (
+                      <line
+                        x1={draggingConnection.startPos.x}
+                        y1={draggingConnection.startPos.y}
+                        x2={draggingConnection.currentPos.x}
+                        y2={draggingConnection.currentPos.y}
+                        stroke="#3b82f6"
+                        strokeWidth="3"
+                        strokeDasharray="5,5"
+                        className="pointer-events-none"
+                      />
+                    )}
                   </g>
                 </svg>
 
