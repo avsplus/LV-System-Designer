@@ -112,9 +112,7 @@ export default function CanvasProduct({
               {label}
             </Badge>
           )}
-          <Badge className={`${categoryColors[product.category]} border`}>
-            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
-          </Badge>
+          <div className={`w-6 h-6 rounded-md ${categoryColors[product.category].split(' ')[0]}`}></div>
         </div>
         <div className="flex gap-1">
           <Button
