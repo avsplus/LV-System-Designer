@@ -473,14 +473,10 @@ export default function AVCanvas() {
         }
       }
 
-      // Set connecting states to trigger the dialog with port information
+      // Set connecting states to trigger the dialog
       setConnectingFrom(fromId);
       setConnectingTo(toId);
-      setPendingConnection({
-        fromPort: fromPort.isInput ? toPort.portName : fromPort.portName,
-        toPort: fromPort.isInput ? fromPort.portName : toPort.portName,
-        connectionType: toPort.connectionType
-      });
+      setPendingConnection(null);
     } else {
       console.log('❌ No hovered port - connection cancelled');
     }
@@ -1483,9 +1479,6 @@ export default function AVCanvas() {
             fromProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product, instanceId: connectingFrom }}
             toProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product, instanceId: connectingTo }}
             existingConnections={connections}
-            defaultFromPort={pendingConnection?.fromPort}
-            defaultToPort={pendingConnection?.toPort}
-            defaultConnectionType={pendingConnection?.connectionType}
             onSelect={handleConnectionTypeSelect}
             onCancel={() => {
               setConnectingFrom(null);
