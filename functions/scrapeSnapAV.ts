@@ -113,8 +113,10 @@ Deno.serve(async (req) => {
         });
 
     } catch (error) {
+        console.error('Scrape error:', error);
         return Response.json({ 
             error: error.message,
+            stack: error.stack,
             details: 'Failed to scrape Portal.io. Please check your credentials or the site structure may have changed.'
         }, { status: 500 });
     }

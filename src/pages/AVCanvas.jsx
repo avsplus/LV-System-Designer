@@ -437,7 +437,10 @@ export default function AVCanvas() {
                     alert(`Successfully imported ${data.productsFound} products from Portal.io`);
                     window.location.reload();
                   } catch (error) {
-                    alert('Failed to import products: ' + error.message);
+                    console.error('Import error:', error);
+                    const errorMsg = error.response?.data?.error || error.message;
+                    const details = error.response?.data?.response || '';
+                    alert(`Failed to import products: ${errorMsg}\n${details}`);
                   }
                 }}
                 className="border-gray-700 text-gray-300 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500"
