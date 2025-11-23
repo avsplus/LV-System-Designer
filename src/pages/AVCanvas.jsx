@@ -236,7 +236,14 @@ export default function AVCanvas() {
     if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
     const cardWidth = 256;
-    const cardHeight = 200;
+
+    // Calculate actual card heights based on whether they have network info
+    const hasNetworkInfo = (product) => {
+      return ['receivers', 'dacs', 'streamers', 'processors'].includes(product.product?.category || product.category);
+    };
+
+    const fromCardHeight = hasNetworkInfo(fromProduct) ? 230 : 200;
+    const toCardHeight = hasNetworkInfo(toProduct) ? 230 : 200;
 
     const fromCenter = {
       x: fromProduct.position.x + cardWidth / 2,
