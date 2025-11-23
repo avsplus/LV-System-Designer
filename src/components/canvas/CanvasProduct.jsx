@@ -111,7 +111,7 @@ export default function CanvasProduct({
             </Badge>
           )}
           <Badge className={`${categoryColors[product.category]} border`}>
-            {product.category}
+            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
           </Badge>
         </div>
         <div className="flex gap-1">
