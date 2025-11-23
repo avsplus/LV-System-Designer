@@ -206,7 +206,7 @@ export default function AVCanvas() {
     });
   };
 
-  const handleGlobalMouseUp = (e) => {
+  const handleGlobalMouseUp = React.useCallback((e) => {
     if (!draggingConnection) return;
 
     // Check if this was a quick click (not a drag)
@@ -235,10 +235,10 @@ export default function AVCanvas() {
           ((product.connections.inputs && product.connections.inputs.length > 0) || 
            (product.connections.outputs && product.connections.outputs.length > 0));
         
-        let connections = hasRealConnections ? product.connections : defaultConnections;
+        let productConnections = hasRealConnections ? product.connections : defaultConnections;
         const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
-          ? { ...connections, outputs: [] }
-          : connections;
+          ? { ...productConnections, outputs: [] }
+          : productConnections;
 
         const direction = isInput ? 'inputs' : 'outputs';
         const allPoints = [];
@@ -273,30 +273,31 @@ export default function AVCanvas() {
             };
             
             const prefix = connectionCategories[point.type] || 'W';
-            const existingOfType = canvasProducts.flatMap(cp => 
-              [...(cp.connections || [])]
-            ).filter(c => {
-              const cPrefix = connectionCategories[c.type] || 'W';
-              return cPrefix === prefix;
-            }).length;
             
-            const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
+            setConnections(prevConnections => {
+              const existingOfType = prevConnections.filter(c => {
+                const cPrefix = connectionCategories[c.type] || 'W';
+                return cPrefix === prefix;
+              }).length;
+              
+              const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
 
-            setConnections([...connections, {
-              from: fromId,
-              to: toId,
-              type: point.type,
-              fromPort,
-              toPort,
-              wireId
-            }]);
+              return [...prevConnections, {
+                from: fromId,
+                to: toId,
+                type: point.type,
+                fromPort,
+                toPort,
+                wireId
+              }];
+            });
           }
         }
       }
     }
 
     setDraggingConnection(null);
-  };
+  }, [draggingConnection, canvasProducts]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
@@ -1139,7 +1140,6 @@ export default function AVCanvas() {
                         }}
                         onPortClick={handlePortClick}
                         onPortDragStart={handlePortDragStart}
-                        onPortDragEnd={handlePortDragEnd}
                       />
                     );
                   })}
