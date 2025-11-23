@@ -338,6 +338,8 @@ export default function CanvasProduct({
               key={i} 
               className="w-3 h-3 rounded-full border-2 border-gray-800" 
               style={{ backgroundColor: point.color }}
+              data-port-index={i}
+              data-port-type="input"
             />
           ))}
         </div>
@@ -351,6 +353,8 @@ export default function CanvasProduct({
               key={i} 
               className="w-3 h-3 rounded-full border-2 border-gray-800" 
               style={{ backgroundColor: point.color }}
+              data-port-index={i}
+              data-port-type="output"
             />
           ))}
         </div>
