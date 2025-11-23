@@ -108,8 +108,37 @@ export default function AVCanvas() {
   };
 
   const handleConnectionTypeSelect = (connectionData) => {
-    // Generate unique wire ID
-    const wireId = `W${connections.length + 1}`;
+    // Categorize connection types
+    const connectionCategories = {
+      'HDMI': 'V',
+      'HDBaseT': 'V',
+      'Component': 'V',
+      'Composite': 'V',
+      'VGA': 'V',
+      'Optical': 'A',
+      'Optical/TOSLINK': 'A',
+      'RCA': 'A',
+      'XLR': 'A',
+      'Speaker Wire': 'A',
+      'Coaxial': 'A',
+      'Subwoofer': 'A',
+      '3.5mm Jack': 'A',
+      'Wireless': 'A',
+      'Ethernet': 'N',
+      'USB': 'N',
+      'RS232': 'C',
+      'Control': 'C'
+    };
+    
+    const prefix = connectionCategories[connectionData.type] || 'W';
+    
+    // Count existing connections of this category
+    const existingOfType = connections.filter(c => {
+      const cPrefix = connectionCategories[c.type] || 'W';
+      return cPrefix === prefix;
+    }).length;
+    
+    const wireId = `${prefix}${existingOfType + 1}`;
     
     setConnections([...connections, { 
       from: connectingFrom, 
