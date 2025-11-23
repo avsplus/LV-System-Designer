@@ -488,13 +488,21 @@ export default function AVCanvas() {
     }
   };
 
+  // Memoize connection positions to avoid recalculating on every render
+  const connectionPositions = React.useMemo(() => {
+    return connections.map((connection, index) => {
+      const fromPoint = getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
+      const toPoint = getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
+      return { fromPoint, toPoint };
+    });
+  }, [connections, canvasProducts]);
+
   const getProductEdgePoint = (fromId, toId, connectionIndex) => {
     const connection = connections[connectionIndex];
     if (!connection) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
-    // Get exact connection point positions
-    const fromPoint = getConnectionPointPosition(fromId, connection.type, connection.fromPort, true);
-    const toPoint = getConnectionPointPosition(toId, connection.type, connection.toPort, false);
+    // Use memoized positions
+    const { fromPoint, toPoint } = connectionPositions[connectionIndex] || {};
 
     if (fromPoint && toPoint) {
       return { from: fromPoint, to: toPoint };
