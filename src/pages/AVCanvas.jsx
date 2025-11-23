@@ -37,24 +37,29 @@ export default function AVCanvas() {
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
 
-    if (!destination) return;
+    if (!destination) {
+      setDragMousePosition(null);
+      return;
+    }
 
     // Dragging from sidebar to canvas
     if (source.droppableId === 'sidebar' && destination.droppableId === 'canvas') {
       const product = products.find(p => p.id === draggableId);
-      if (product) {
+      if (product && dragMousePosition) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
         const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
         // Count how many of this brand already exist
         const brandCount = canvasProducts.filter(cp => cp.product.brand === product.brand).length + 1;
         const deviceLabel = `${product.brand} ${brandCount}`;
+        
+        // Calculate position relative to canvas, accounting for zoom and pan
+        const x = (dragMousePosition.x - canvasRect.left - pan.x) / zoom - 128; // center the card
+        const y = (dragMousePosition.y - canvasRect.top - pan.y) / zoom - 100;
+        
         setCanvasProducts([...canvasProducts, {
           instanceId,
           product,
-          position: { 
-            x: Math.random() * (canvasRect.width - 300) + 50, 
-            y: Math.random() * (canvasRect.height - 200) + 50 
-          },
+          position: { x, y },
           label: deviceLabel,
           networkInfo: {
             sw: '',
@@ -65,6 +70,7 @@ export default function AVCanvas() {
         }]);
       }
     }
+    setDragMousePosition(null);
   };
 
   const handlePositionChange = (instanceId, newPosition) => {
