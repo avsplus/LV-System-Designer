@@ -416,9 +416,20 @@ export default function AVCanvas() {
       });
     });
 
+    console.log(`Looking for ${isOutput ? 'output' : 'input'} on ${product.brand}:`, {
+      connectionType,
+      portName,
+      allPoints,
+      finalConnections: finalConnections[direction]
+    });
+
     // Find the index of our specific connection
     const pointIndex = allPoints.findIndex(p => p.type === connectionType && p.port === portName);
-    if (pointIndex === -1) return null;
+    if (pointIndex === -1) {
+      console.log('❌ Point not found!');
+      return null;
+    }
+    console.log('✅ Point found at index:', pointIndex);
 
     const baseX = canvasProduct.position.x;
     const baseY = canvasProduct.position.y;
