@@ -450,13 +450,28 @@ export default function AVCanvas() {
     if (currentState.hoveredPort) {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
-      
+
       console.log('🟢 Creating connection:', { fromPort, toPort });
-      
+
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
       const fromPortName = fromPort.isInput ? toPort.portName : fromPort.portName;
       const toPortName = fromPort.isInput ? fromPort.portName : toPort.portName;
+
+      // Check if target device is a speaker/subwoofer and already has a connection
+      const targetDevice = canvasProducts.find(cp => cp.instanceId === toId);
+      const isEndpointDevice = targetDevice && ['speakers', 'subwoofers'].includes(targetDevice.product.category);
+
+      if (isEndpointDevice) {
+        const existingConnection = connections.find(c => c.to === toId);
+        if (existingConnection) {
+          console.log('❌ Speaker/subwoofer already has a connection');
+          setConnectingState(null);
+          connectingStateRef.current = null;
+          setHoveredPortId(null);
+          return;
+        }
+      }
 
       const connectionCategories = {
         'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
@@ -465,15 +480,15 @@ export default function AVCanvas() {
         'Ethernet': 'N', 'USB': 'N',
         'RS232': 'C', 'Control': 'C'
       };
-      
+
       const prefix = connectionCategories[toPort.connectionType] || 'W';
-      
+
       setConnections(prevConnections => {
         const existingOfType = prevConnections.filter(c => {
           const cPrefix = connectionCategories[c.type] || 'W';
           return cPrefix === prefix;
         }).length;
-        
+
         const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
 
         const newConnection = {
@@ -484,7 +499,7 @@ export default function AVCanvas() {
           toPort: toPortName,
           wireId
         };
-        
+
         console.log('✨ Connection created:', newConnection);
         return [...prevConnections, newConnection];
       });
