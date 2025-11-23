@@ -221,8 +221,14 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         }}
         onClick={onClick}
         onDoubleClick={handlePathDoubleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (onHover) onHover();
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          if (onLeave) onLeave();
+        }}
       />
       {/* Invisible larger hit area */}
       <path
