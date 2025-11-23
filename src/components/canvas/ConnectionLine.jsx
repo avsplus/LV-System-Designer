@@ -271,9 +271,9 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         <g>
           <rect
             x={midpoint.x - 40}
-            y={midpoint.y - 12}
+            y={midpoint.y - 10}
             width="80"
-            height="24"
+            height="20"
             rx="4"
             fill={color}
             opacity="0.9"
