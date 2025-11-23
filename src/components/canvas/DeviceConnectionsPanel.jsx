@@ -443,6 +443,18 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
               <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
               Output Connections
             </h4>
+            
+            {/* DEBUG INFO */}
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded p-2 mb-3 text-xs">
+              <div className="text-yellow-400 font-bold mb-1">DEBUG:</div>
+              <div className="text-yellow-300">Device Connections: {deviceConnections.length}</div>
+              {deviceConnections.map((conn, i) => (
+                <div key={i} className="text-yellow-200 text-[10px] mt-1">
+                  {i + 1}. {conn.type}: {conn.fromPort} → {conn.toPort}
+                </div>
+              ))}
+            </div>
+            
             <div className="space-y-3">
               {connections.outputs.map((output, idx) => {
                 const info = connectionTypeInfo[output.type] || connectionTypeInfo["Various"];
