@@ -287,20 +287,20 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
           <div className="flex items-center gap-2">
             <div className={`w-5 h-5 rounded ${
               {
-                televisions: "bg-blue-500",
-                projectors: "bg-purple-500",
-                projector_screens: "bg-indigo-500",
+                televisions: "bg-blue-600",
+                projectors: "bg-purple-600",
+                projector_screens: "bg-fuchsia-600",
                 video_distribution: "bg-cyan-500",
-                matrix_switchers: "bg-teal-500",
+                matrix_switchers: "bg-teal-600",
                 audio_streamers: "bg-pink-500",
-                media_streamers: "bg-rose-500",
-                speakers: "bg-green-500",
+                media_streamers: "bg-rose-600",
+                speakers: "bg-green-600",
                 soundbars: "bg-lime-500",
-                subwoofers: "bg-red-500",
-                stereo_amps: "bg-orange-500",
-                multizone_amps: "bg-amber-500",
-                surround_processors: "bg-yellow-500",
-                av_receivers: "bg-emerald-500"
+                subwoofers: "bg-red-600",
+                stereo_amps: "bg-orange-600",
+                multizone_amps: "bg-amber-600",
+                surround_processors: "bg-yellow-400",
+                av_receivers: "bg-emerald-600"
               }[productData.category]
             }`}></div>
             <span className="text-sm text-gray-300 capitalize">{productData.category.replace(/_/g, ' ')}</span>
