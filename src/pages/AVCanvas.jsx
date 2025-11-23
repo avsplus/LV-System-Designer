@@ -382,7 +382,7 @@ export default function AVCanvas() {
         };
         toEdge = {
           x: toCenter.x + toOffset,
-          y: toProduct.position.y + cardHeight
+          y: toProduct.position.y + toCardHeight
         };
       }
     }
