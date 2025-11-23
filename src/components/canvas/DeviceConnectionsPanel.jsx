@@ -209,6 +209,11 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
       }
     : defaultConnections;
   
+  // Force empty outputs for endpoint devices
+  if (['speakers', 'subwoofers', 'projector_screens'].includes(productData.category)) {
+    connections.outputs = [];
+  }
+  
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(
     conn => conn.from === instanceId || conn.to === instanceId
