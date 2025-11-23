@@ -22,12 +22,12 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   // Generate orthogonal path perpendicular to edges with rounded corners
   const generatePath = () => {
-    const standoffDistance = 40;
+    const standoffDistance = 20;
     const cornerRadius = 12;
-    
+
     // Calculate perpendicular standoff points OUTSIDE the device
     let fromStandoff, toStandoff;
-    
+
     if (fromEdge === 'right') {
       fromStandoff = { x: from.x + standoffDistance, y: from.y };
     } else if (fromEdge === 'left') {
@@ -37,7 +37,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     } else { // top
       fromStandoff = { x: from.x, y: from.y - standoffDistance };
     }
-    
+
     if (toEdge === 'right') {
       toStandoff = { x: to.x + standoffDistance, y: to.y };
     } else if (toEdge === 'left') {
