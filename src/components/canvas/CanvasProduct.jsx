@@ -142,30 +142,24 @@ export default function CanvasProduct({
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <h3 className="font-semibold text-white text-base mb-1">
+      <div className="flex-1 min-h-0">
+        <h3 className="font-semibold text-white text-sm mb-0.5 truncate">
           {product.brand}
         </h3>
-        <p className="text-sm text-gray-300 mb-2">{product.model}</p>
-        
-        {product.description && (
-          <p className="text-xs text-gray-400 line-clamp-2 mb-2">
-            {product.description}
-          </p>
-        )}
+        <p className="text-xs text-gray-300 mb-2 truncate">{product.model}</p>
         
         {product.price && (
-          <p className="text-sm font-medium text-blue-400">
+          <p className="text-xs font-medium text-blue-400 mb-2">
             ${product.price.toLocaleString()}
           </p>
         )}
 
         {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && (
-          <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
-            <p className="text-xs text-gray-400">
+          <div className="mt-2 pt-2 border-t border-gray-700 space-y-1">
+            <p className="text-xs text-gray-400 truncate">
               <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 truncate">
               <span className="text-gray-500">IP:</span> {networkInfo?.ip || '000.000.000.000'}
               <span className="mx-1">|</span>
               <span className="text-gray-500">SW#:</span> {networkInfo?.sw || '00'} 
