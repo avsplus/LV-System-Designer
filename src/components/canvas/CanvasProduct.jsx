@@ -105,14 +105,43 @@ export default function CanvasProduct({
     }
   }, [isDragging, position]);
 
-  // Calculate connection points
-  const getTotalPorts = (connections, type) => {
-    if (!connections || !connections[type]) return 0;
-    return connections[type].reduce((sum, conn) => sum + (conn.ports?.length || 0), 0);
+  // Connection type colors mapping
+  const connectionTypeColors = {
+    "HDMI": "#a855f7",
+    "Optical": "#06b6d4",
+    "TOSLINK": "#06b6d4",
+    "RCA": "#ef4444",
+    "XLR": "#22c55e",
+    "Speaker Wire": "#f97316",
+    "Ethernet": "#3b82f6",
+    "USB": "#6366f1",
+    "Coaxial": "#eab308",
+    "3.5mm Jack": "#9ca3af",
+    "Component": "#ec4899",
+    "Composite": "#8b5cf6",
+    "VGA": "#14b8a6",
+    "RS232": "#f59e0b",
+    "HDBaseT": "#10b981",
+    "Control": "#64748b",
+    "Subwoofer": "#dc2626",
+    "Wireless": "#7c3aed"
   };
 
-  const inputCount = getTotalPorts(product.connections, 'inputs');
-  const outputCount = getTotalPorts(product.connections, 'outputs');
+  // Get connection points with their types
+  const getConnectionPoints = (connections, type) => {
+    if (!connections || !connections[type]) return [];
+    const points = [];
+    connections[type].forEach(conn => {
+      const color = connectionTypeColors[conn.type] || "#6b7280";
+      conn.ports?.forEach(() => {
+        points.push({ type: conn.type, color });
+      });
+    });
+    return points;
+  };
+
+  const inputPoints = getConnectionPoints(product.connections, 'inputs');
+  const outputPoints = getConnectionPoints(product.connections, 'outputs');
 
   return (
     <div
@@ -132,28 +161,40 @@ export default function CanvasProduct({
       }`}
     >
       {/* Left edge connection points (inputs) */}
-      {inputCount > 0 && (
+      {inputPoints.length > 0 && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-2">
-          {[...Array(Math.min(inputCount, 6))].map((_, i) => (
-            <div key={i} className="w-3 h-3 rounded-full bg-green-500 border-2 border-gray-800" />
+          {inputPoints.slice(0, 6).map((point, i) => (
+            <div 
+              key={i} 
+              className="w-3 h-3 rounded-full border-2 border-gray-800" 
+              style={{ backgroundColor: point.color }}
+            />
           ))}
         </div>
       )}
 
       {/* Right edge connection points (outputs) */}
-      {outputCount > 0 && (
+      {outputPoints.length > 0 && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-2">
-          {[...Array(Math.min(outputCount, 6))].map((_, i) => (
-            <div key={i} className="w-3 h-3 rounded-full bg-blue-500 border-2 border-gray-800" />
+          {outputPoints.slice(0, 6).map((point, i) => (
+            <div 
+              key={i} 
+              className="w-3 h-3 rounded-full border-2 border-gray-800" 
+              style={{ backgroundColor: point.color }}
+            />
           ))}
         </div>
       )}
 
       {/* Top edge connection points (for overflow) */}
-      {(inputCount > 6 || outputCount > 6) && (
+      {(inputPoints.length > 6 || outputPoints.length > 6) && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2">
-          {[...Array(Math.min(3, Math.max(inputCount - 6, outputCount - 6)))].map((_, i) => (
-            <div key={i} className="w-3 h-3 rounded-full bg-purple-500 border-2 border-gray-800" />
+          {[...inputPoints.slice(6), ...outputPoints.slice(6)].slice(0, 8).map((point, i) => (
+            <div 
+              key={i} 
+              className="w-3 h-3 rounded-full border-2 border-gray-800" 
+              style={{ backgroundColor: point.color }}
+            />
           ))}
         </div>
       )}
