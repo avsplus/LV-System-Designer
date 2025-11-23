@@ -138,7 +138,7 @@ export default function AVCanvas() {
       return cPrefix === prefix;
     }).length;
     
-    const wireId = `${prefix}${existingOfType + 1}`;
+    const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
     
     setConnections([...connections, { 
       from: connectingFrom, 
