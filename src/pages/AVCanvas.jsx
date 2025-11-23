@@ -396,12 +396,19 @@ export default function AVCanvas() {
     const hasRealConnections = product.connections && 
       ((product.connections.inputs && product.connections.inputs.length > 0) || 
        (product.connections.outputs && product.connections.outputs.length > 0));
-    const connections = hasRealConnections ? product.connections : defaultConnections;
-
-    console.log(`Product ${product.brand} category: ${product.category}`);
-    console.log('Has real connections:', hasRealConnections);
-    console.log('Product.connections:', product.connections);
-    console.log('Using connections:', connections);
+    
+    // First try with real connections if available
+    let connections = hasRealConnections ? product.connections : defaultConnections;
+    
+    // Check if the requested connection type exists in the connections
+    const direction = isOutput ? 'outputs' : 'inputs';
+    const hasRequestedType = (connections[direction] || []).some(conn => conn.type === connectionType);
+    
+    // If the requested connection type doesn't exist, fall back to defaults
+    if (!hasRequestedType) {
+      console.log(`Connection type "${connectionType}" not found in enriched data, falling back to category defaults`);
+      connections = defaultConnections;
+    }
 
     const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
       ? { ...connections, outputs: [] }
