@@ -790,7 +790,13 @@ export default function AVCanvas() {
                       
                       if (!fromProduct || !toProduct) return null;
                       
-                      const { from, to } = getProductEdgePoint(connection.from, connection.to, index);
+                      // Use memoized connection positions
+                      const { fromPoint, toPoint } = connectionPositions[index] || {};
+                      
+                      if (!fromPoint || !toPoint) return null;
+                      
+                      const from = fromPoint;
+                      const to = toPoint;
                       
                       // Determine actual edge based on connection point position relative to card
                       const cardWidth = 320;
