@@ -467,8 +467,22 @@ export default function AVCanvas() {
                       return;
                     }
 
-                    // Enrich products with specific connection information
+                    // Delete existing duplicates and import new products
                     if (result.output && result.output.length > 0) {
+                      // Get all model numbers from the upload
+                      const modelNumbers = result.output.map(p => p.model).filter(Boolean);
+
+                      // Delete any existing products with these model numbers
+                      const existingProducts = await base44.entities.AVProduct.list();
+                      const duplicates = existingProducts.filter(p => modelNumbers.includes(p.model));
+
+                      if (duplicates.length > 0) {
+                        for (const duplicate of duplicates) {
+                          await base44.entities.AVProduct.delete(duplicate.id);
+                        }
+                      }
+
+                      // Enrich products with specific connection information
                       const enrichedProducts = await Promise.all(
                         result.output.map(async (product) => {
                           try {
@@ -519,7 +533,10 @@ export default function AVCanvas() {
                       );
 
                       await base44.entities.AVProduct.bulkCreate(enrichedProducts);
-                      alert(`Successfully imported ${enrichedProducts.length} products with connection details`);
+                      const msg = duplicates.length > 0 
+                        ? `Replaced ${duplicates.length} duplicate(s) and imported ${enrichedProducts.length} products`
+                        : `Successfully imported ${enrichedProducts.length} products`;
+                      alert(msg);
                       window.location.reload();
                     } else {
                       alert('No products found in file');
