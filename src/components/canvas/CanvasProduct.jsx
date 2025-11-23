@@ -246,7 +246,10 @@ export default function CanvasProduct({
       Math.pow(e.clientY - (dragOffset.current.clickPos?.y || 0), 2)
     );
     
-    if (timeDiff < 200 && moveDist < 5 && onClick) {
+    // Don't trigger card click if clicking on a port dot
+    const isPortClick = e.target.hasAttribute('data-port-type');
+    
+    if (timeDiff < 200 && moveDist < 5 && onClick && !isPortClick) {
       onClick();
     }
     
