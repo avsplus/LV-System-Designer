@@ -80,8 +80,7 @@ const connectionsByCategory = {
   },
   speakers: {
     inputs: [
-      { type: "Speaker Wire", ports: ["Left", "Right"] },
-      { type: "XLR", ports: ["Left", "Right"] }
+      { type: "Speaker Wire", ports: ["Input"] }
     ],
     outputs: []
   },
@@ -99,10 +98,7 @@ const connectionsByCategory = {
   },
   subwoofers: {
     inputs: [
-      { type: "RCA", ports: ["LFE-L", "LFE-R"] },
-      { type: "Speaker Wire", ports: ["LFE"] },
-      { type: "XLR", ports: ["XLR"] },
-      { type: "Wireless", ports: ["Wireless"] }
+      { type: "Subwoofer", ports: ["Input"] }
     ],
     outputs: []
   },
