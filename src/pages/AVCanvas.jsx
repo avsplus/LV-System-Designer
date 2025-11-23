@@ -755,63 +755,14 @@ export default function AVCanvas() {
   };
 
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
-    // Try to find the actual DOM element for the port dot
-    const cardElement = document.querySelector(`[data-instance-id="${instanceId}"]`);
-    if (!cardElement) return null;
+    // Use registered port refs for accurate positioning
+    const portId = getPortId(instanceId, connectionType, portName, !isOutput);
+    const portData = portRefs.current.get(portId);
 
-    const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
-    if (!canvasProduct) return null;
-
-    const product = canvasProduct.product;
-    const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
-    const hasRealConnections = product.connections && 
-      ((product.connections.inputs && product.connections.inputs.length > 0) || 
-       (product.connections.outputs && product.connections.outputs.length > 0));
-    
-    // For endpoint devices, always use defaults AND force outputs to be empty
-    const isEndpointDevice = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category);
-    let connections = (hasRealConnections && !isEndpointDevice) ? product.connections : defaultConnections;
-    
-    // Force empty outputs for endpoint devices
-    if (isEndpointDevice) {
-      connections = { ...connections, outputs: [] };
-    }
-    
-    const checkDirection = isOutput ? 'outputs' : 'inputs';
-    const hasRequestedType = (connections[checkDirection] || []).some(conn => conn.type === connectionType);
-    
-    if (!hasRequestedType) {
-      connections = defaultConnections;
-    }
-
-    const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
-      ? { ...connections, outputs: [] }
-      : connections;
-
-    // Build list of all connection points with their types
-    const direction = isOutput ? 'outputs' : 'inputs';
-    const allPoints = [];
-    (finalConnections[direction] || []).forEach(conn => {
-      (conn.ports || []).forEach(port => {
-        allPoints.push({ type: conn.type, port });
-      });
-    });
-
-    // Find the index of our specific connection
-    const pointIndex = allPoints.findIndex(p => p.type === connectionType && p.port === portName);
-    
-    if (pointIndex === -1) {
-      return null;
-    }
-
-    // Try to get actual DOM position
-    const portType = isOutput ? 'output' : 'input';
-    const portElement = cardElement.querySelector(`[data-port-type="${portType}"][data-port-index="${pointIndex < 6 ? pointIndex : pointIndex - 6}"]`);
-    
-    if (portElement) {
-      const portRect = portElement.getBoundingClientRect();
+    if (portData && portData.element) {
+      const portRect = portData.element.getBoundingClientRect();
       const canvasRect = canvasRef.current?.getBoundingClientRect();
-      
+
       if (canvasRect) {
         // Get center of the port dot in canvas coordinates, accounting for zoom and pan
         const x = (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom;
@@ -820,39 +771,7 @@ export default function AVCanvas() {
       }
     }
 
-    // Fallback to calculated position if DOM element not found
-    const cardWidth = 320;
-    const cardHeight = 280;
-    const gapSize = 8;
-    const circleSize = 16;
-    const baseX = canvasProduct.position.x;
-    const baseY = canvasProduct.position.y;
-    const centerY = baseY + cardHeight / 2;
-    const halfCircle = circleSize / 2;
-
-    if (pointIndex < 6) {
-      const verticalCount = Math.min(allPoints.length, 6);
-      const totalContainerHeight = (verticalCount * circleSize) + ((verticalCount - 1) * gapSize);
-      const containerTop = centerY - (totalContainerHeight / 2);
-      const y = containerTop + (pointIndex * (circleSize + gapSize)) + halfCircle;
-
-      if (isOutput) {
-        const x = baseX + cardWidth + halfCircle;
-        return { x, y };
-      } else {
-        const x = baseX - halfCircle;
-        return { x, y };
-      }
-    } else {
-      const overflowIndex = pointIndex - 6;
-      const horizontalCount = Math.min(allPoints.length - 6, 8);
-      const totalContainerWidth = (horizontalCount * circleSize) + ((horizontalCount - 1) * gapSize);
-      const centerX = baseX + cardWidth / 2;
-      const containerLeft = centerX - (totalContainerWidth / 2);
-      const x = containerLeft + (overflowIndex * (circleSize + gapSize)) + halfCircle;
-      const y = baseY - halfCircle;
-      return { x, y };
-    }
+    return null;
   };
 
   // Calculate connection positions and edges on every render
