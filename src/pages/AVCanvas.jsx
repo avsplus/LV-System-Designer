@@ -229,23 +229,246 @@ export default function AVCanvas() {
     };
   }, []);
 
-  const getProductCenter = (instanceId) => {
+  const connectionsByCategory = {
+    televisions: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+        { type: "Component", ports: ["Component-1"] },
+        { type: "Composite", ports: ["Composite-1"] },
+        { type: "Optical", ports: ["Optical-In"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "Optical", ports: ["Optical-Out"] },
+        { type: "3.5mm Jack", ports: ["Headphone"] }
+      ]
+    },
+    projectors: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
+        { type: "VGA", ports: ["VGA"] },
+        { type: "Component", ports: ["Component-1"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "3.5mm Jack", ports: ["Audio-Out"] }
+      ]
+    },
+    projector_screens: {
+      inputs: [
+        { type: "Control", ports: ["Trigger-1", "Trigger-2"] },
+        { type: "RS232", ports: ["RS232"] }
+      ],
+      outputs: []
+    },
+    video_distribution: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6"] },
+        { type: "HDBaseT", ports: ["HDBaseT-1", "HDBaseT-2", "HDBaseT-3", "HDBaseT-4"] }
+      ]
+    },
+    matrix_switchers: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7", "HDMI-8"] },
+        { type: "Ethernet", ports: ["LAN"] },
+        { type: "RS232", ports: ["RS232"] }
+      ],
+      outputs: [
+        { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6", "HDMI-Out-7", "HDMI-Out-8"] }
+      ]
+    },
+    audio_streamers: {
+      inputs: [
+        { type: "Ethernet", ports: ["LAN"] },
+        { type: "USB", ports: ["USB"] },
+        { type: "Optical", ports: ["Optical-In"] }
+      ],
+      outputs: [
+        { type: "RCA", ports: ["Out-L", "Out-R"] },
+        { type: "Optical", ports: ["Optical-Out"] },
+        { type: "Coaxial", ports: ["Coaxial-Out"] },
+        { type: "XLR", ports: ["XLR-L", "XLR-R"] }
+      ]
+    },
+    media_streamers: {
+      inputs: [
+        { type: "Ethernet", ports: ["LAN"] },
+        { type: "USB", ports: ["USB"] }
+      ],
+      outputs: [
+        { type: "HDMI", ports: ["HDMI-Out"] },
+        { type: "Optical", ports: ["Optical-Out"] }
+      ]
+    },
+    speakers: {
+      inputs: [
+        { type: "Speaker Wire", ports: ["Left", "Right"] },
+        { type: "XLR", ports: ["Left", "Right"] }
+      ],
+      outputs: []
+    },
+    soundbars: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
+        { type: "Optical", ports: ["Optical-In"] },
+        { type: "RCA", ports: ["RCA-L", "RCA-R"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "HDMI", ports: ["HDMI-Out"] },
+        { type: "Subwoofer", ports: ["Sub-Out"] }
+      ]
+    },
+    subwoofers: {
+      inputs: [
+        { type: "RCA", ports: ["LFE-L", "LFE-R"] },
+        { type: "Speaker Wire", ports: ["LFE"] },
+        { type: "XLR", ports: ["XLR"] },
+        { type: "Wireless", ports: ["Wireless"] }
+      ],
+      outputs: []
+    },
+    stereo_amps: {
+      inputs: [
+        { type: "RCA", ports: ["RCA-1", "RCA-2"] },
+        { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+        { type: "Optical", ports: ["Optical-1"] },
+        { type: "Coaxial", ports: ["Coaxial"] }
+      ],
+      outputs: [
+        { type: "Speaker Wire", ports: ["Speaker-L", "Speaker-R"] },
+        { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] }
+      ]
+    },
+    multizone_amps: {
+      inputs: [
+        { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
+        { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "Speaker Wire", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] }
+      ]
+    },
+    surround_processors: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
+        { type: "RCA", ports: ["RCA-1", "RCA-2"] },
+        { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+        { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+        { type: "Coaxial", ports: ["Coaxial-1"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+        { type: "RCA", ports: ["FL", "FR", "C", "SL", "SR", "SBL", "SBR", "Sub"] },
+        { type: "XLR", ports: ["XLR-FL", "XLR-FR", "XLR-C", "XLR-SL", "XLR-SR", "XLR-Sub"] }
+      ]
+    },
+    av_receivers: {
+      inputs: [
+        { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
+        { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
+        { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+        { type: "Coaxial", ports: ["Coaxial"] },
+        { type: "USB", ports: ["USB-A", "USB-B"] },
+        { type: "Ethernet", ports: ["LAN"] }
+      ],
+      outputs: [
+        { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+        { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R", "Sub"] },
+        { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
+        { type: "Optical", ports: ["Optical-Out"] }
+      ]
+    }
+  };
+
+  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
     const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
-    if (!canvasProduct) return { x: 0, y: 0 };
-    return {
-      x: canvasProduct.position.x + 128, // half of width (256px / 2)
-      y: canvasProduct.position.y + 80   // approximate center height
-    };
+    if (!canvasProduct) return null;
+
+    const product = canvasProduct.product;
+    const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
+    const hasRealConnections = product.connections && 
+      ((product.connections.inputs && product.connections.inputs.length > 0) || 
+       (product.connections.outputs && product.connections.outputs.length > 0));
+    const connections = hasRealConnections ? product.connections : defaultConnections;
+
+    const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
+      ? { ...connections, outputs: [] }
+      : connections;
+
+    const cardWidth = 320;
+    const cardHeight = 280;
+    const gapSize = 8; // gap-2 = 8px
+    const circleSize = 12; // w-3 h-3 = 12px
+
+    // Build list of all connection points with their types
+    const direction = isOutput ? 'outputs' : 'inputs';
+    const allPoints = [];
+    (finalConnections[direction] || []).forEach(conn => {
+      (conn.ports || []).forEach(port => {
+        allPoints.push({ type: conn.type, port });
+      });
+    });
+
+    // Find the index of our specific connection
+    const pointIndex = allPoints.findIndex(p => p.type === connectionType && p.port === portName);
+    if (pointIndex === -1) return null;
+
+    const baseX = canvasProduct.position.x;
+    const baseY = canvasProduct.position.y;
+    const centerY = baseY + cardHeight / 2;
+
+    if (pointIndex < 6) {
+      // Left edge (inputs) or Right edge (outputs)
+      const verticalCount = Math.min(allPoints.length, 6);
+      const totalHeight = (verticalCount - 1) * (circleSize + gapSize);
+      const startY = centerY - totalHeight / 2;
+      const y = startY + pointIndex * (circleSize + gapSize);
+
+      if (isOutput) {
+        return { x: baseX + cardWidth, y };
+      } else {
+        return { x: baseX, y };
+      }
+    } else {
+      // Top edge (overflow)
+      const overflowIndex = pointIndex - 6;
+      const horizontalCount = Math.min(allPoints.length - 6, 8);
+      const totalWidth = (horizontalCount - 1) * (circleSize + gapSize);
+      const centerX = baseX + cardWidth / 2;
+      const startX = centerX - totalWidth / 2;
+      const x = startX + overflowIndex * (circleSize + gapSize);
+
+      return { x, y: baseY };
+    }
   };
 
   const getProductEdgePoint = (fromId, toId, connectionIndex) => {
+    const connection = connections[connectionIndex];
+    if (!connection) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
+
+    // Get exact connection point positions
+    const fromPoint = getConnectionPointPosition(fromId, connection.type, connection.fromPort, true);
+    const toPoint = getConnectionPointPosition(toId, connection.type, connection.toPort, false);
+
+    if (fromPoint && toPoint) {
+      return { from: fromPoint, to: toPoint };
+    }
+
+    // Fallback to old calculation if connection points not found
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
 
     if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
-    const cardWidth = 320; // w-80 = 20rem = 320px
-    const cardHeight = 280; // h-[280px]
+    const cardWidth = 320;
+    const cardHeight = 280;
 
     const fromCenter = {
       x: fromProduct.position.x + cardWidth / 2,
