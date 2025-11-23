@@ -359,12 +359,6 @@ export default function CanvasProduct({
                   onPortDragStart(instanceId, point.type, point.port, true, e.currentTarget);
                 }
               }}
-              onMouseUp={(e) => {
-                e.stopPropagation();
-                if (onPortDragEnd) {
-                  onPortDragEnd(instanceId, point.type, point.port, true);
-                }
-              }}
             />
           ))}
         </div>
@@ -392,12 +386,6 @@ export default function CanvasProduct({
                   onPortDragStart(instanceId, point.type, point.port, false, e.currentTarget);
                 }
               }}
-              onMouseUp={(e) => {
-                e.stopPropagation();
-                if (onPortDragEnd) {
-                  onPortDragEnd(instanceId, point.type, point.port, false);
-                }
-              }}
             />
           ))}
         </div>
@@ -423,12 +411,6 @@ export default function CanvasProduct({
                 e.stopPropagation();
                 if (onPortDragStart) {
                   onPortDragStart(instanceId, point.type, point.port, point.isInput, e.currentTarget);
-                }
-              }}
-              onMouseUp={(e) => {
-                e.stopPropagation();
-                if (onPortDragEnd) {
-                  onPortDragEnd(instanceId, point.type, point.port, point.isInput);
                 }
               }}
             />

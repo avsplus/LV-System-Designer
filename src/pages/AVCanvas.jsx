@@ -201,49 +201,98 @@ export default function AVCanvas() {
       fromType: connectionType,
       fromPort: portName,
       isFromInput: isInput,
-      startPos
+      startPos,
+      startTime: Date.now()
     });
   };
 
-  const handlePortDragEnd = (instanceId, connectionType, portName, isInput) => {
+  const handleGlobalMouseUp = (e) => {
     if (!draggingConnection) return;
 
-    // Check if dragging from input to output or vice versa
-    const validDirection = draggingConnection.isFromInput !== isInput;
-    const sameType = draggingConnection.fromType === connectionType;
+    // Check if this was a quick click (not a drag)
+    const timeDiff = Date.now() - (draggingConnection.startTime || 0);
+    if (timeDiff < 150) {
+      setDraggingConnection(null);
+      return;
+    }
 
-    if (validDirection && sameType && draggingConnection.fromInstanceId !== instanceId) {
-      // Create connection
-      const fromId = draggingConnection.isFromInput ? instanceId : draggingConnection.fromInstanceId;
-      const toId = draggingConnection.isFromInput ? draggingConnection.fromInstanceId : instanceId;
-      const fromPort = draggingConnection.isFromInput ? portName : draggingConnection.fromPort;
-      const toPort = draggingConnection.isFromInput ? draggingConnection.fromPort : portName;
-
-      // Categorize connection types
-      const connectionCategories = {
-        'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
-        'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
-        'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
-        'Ethernet': 'N', 'USB': 'N',
-        'RS232': 'C', 'Control': 'C'
-      };
+    // Find which port dot (if any) the mouse is over
+    const element = document.elementFromPoint(e.clientX, e.clientY);
+    const portDot = element?.closest('[data-port-type]');
+    
+    if (portDot) {
+      const instanceId = portDot.closest('[data-instance-id]')?.getAttribute('data-instance-id');
+      const portType = portDot.getAttribute('data-port-type');
+      const isInput = portType === 'input';
       
-      const prefix = connectionCategories[connectionType] || 'W';
-      const existingOfType = connections.filter(c => {
-        const cPrefix = connectionCategories[c.type] || 'W';
-        return cPrefix === prefix;
-      }).length;
-      
-      const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
+      // Get connection type and port name from the port dot
+      // We need to find this from the canvas products
+      const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
+      if (canvasProduct) {
+        const product = canvasProduct.product;
+        const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
+        const hasRealConnections = product.connections && 
+          ((product.connections.inputs && product.connections.inputs.length > 0) || 
+           (product.connections.outputs && product.connections.outputs.length > 0));
+        
+        let connections = hasRealConnections ? product.connections : defaultConnections;
+        const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
+          ? { ...connections, outputs: [] }
+          : connections;
 
-      setConnections([...connections, {
-        from: fromId,
-        to: toId,
-        type: connectionType,
-        fromPort,
-        toPort,
-        wireId
-      }]);
+        const direction = isInput ? 'inputs' : 'outputs';
+        const allPoints = [];
+        (finalConnections[direction] || []).forEach(conn => {
+          (conn.ports || []).forEach(port => {
+            allPoints.push({ type: conn.type, port });
+          });
+        });
+
+        const portIndex = parseInt(portDot.getAttribute('data-port-index'));
+        const point = allPoints[portIndex];
+
+        if (point) {
+          // Check if valid connection
+          const validDirection = draggingConnection.isFromInput !== isInput;
+          const sameType = draggingConnection.fromType === point.type;
+
+          if (validDirection && sameType && draggingConnection.fromInstanceId !== instanceId) {
+            // Create connection
+            const fromId = draggingConnection.isFromInput ? instanceId : draggingConnection.fromInstanceId;
+            const toId = draggingConnection.isFromInput ? draggingConnection.fromInstanceId : instanceId;
+            const fromPort = draggingConnection.isFromInput ? point.port : draggingConnection.fromPort;
+            const toPort = draggingConnection.isFromInput ? draggingConnection.fromPort : point.port;
+
+            // Categorize connection types
+            const connectionCategories = {
+              'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
+              'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
+              'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
+              'Ethernet': 'N', 'USB': 'N',
+              'RS232': 'C', 'Control': 'C'
+            };
+            
+            const prefix = connectionCategories[point.type] || 'W';
+            const existingOfType = canvasProducts.flatMap(cp => 
+              [...(cp.connections || [])]
+            ).filter(c => {
+              const cPrefix = connectionCategories[c.type] || 'W';
+              return cPrefix === prefix;
+            }).length;
+            
+            const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
+
+            setConnections([...connections, {
+              from: fromId,
+              to: toId,
+              type: point.type,
+              fromPort,
+              toPort,
+              wireId
+            }]);
+          }
+        }
+      }
     }
 
     setDraggingConnection(null);
@@ -349,10 +398,12 @@ export default function AVCanvas() {
     };
     
     window.addEventListener('mousemove', handleDragMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => {
       window.removeEventListener('mousemove', handleDragMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, []);
+  }, [draggingConnection, canvasProducts, connections]);
 
   const connectionsByCategory = {
     televisions: {
