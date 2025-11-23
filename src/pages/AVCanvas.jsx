@@ -202,9 +202,27 @@ export default function AVCanvas() {
       fromPort: portName,
       isFromInput: isInput,
       startPos,
+      currentPos: startPos,
       startTime: Date.now()
     });
   };
+
+  const handleGlobalMouseMove = React.useCallback((e) => {
+    if (!draggingConnection) return;
+
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+
+    const currentPos = {
+      x: (e.clientX - canvasRect.left - pan.x) / zoom,
+      y: (e.clientY - canvasRect.top - pan.y) / zoom
+    };
+
+    setDraggingConnection(prev => ({
+      ...prev,
+      currentPos
+    }));
+  }, [draggingConnection, zoom, pan]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
     if (!draggingConnection) return;
@@ -428,12 +446,14 @@ export default function AVCanvas() {
     };
     
     window.addEventListener('mousemove', handleDragMouseMove);
+    window.addEventListener('mousemove', handleGlobalMouseMove);
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => {
       window.removeEventListener('mousemove', handleDragMouseMove);
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [draggingConnection, canvasProducts, connections]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp]);
 
   const connectionsByCategory = {
     televisions: {
@@ -1029,18 +1049,6 @@ export default function AVCanvas() {
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ zIndex: 10 }}
-                  onMouseMove={(e) => {
-                    if (draggingConnection) {
-                      const canvasRect = canvasRef.current?.getBoundingClientRect();
-                      if (canvasRect) {
-                        const currentPos = {
-                          x: (e.clientX - canvasRect.left - pan.x) / zoom,
-                          y: (e.clientY - canvasRect.top - pan.y) / zoom
-                        };
-                        setDraggingConnection({ ...draggingConnection, currentPos });
-                      }
-                    }
-                  }}
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
@@ -1104,16 +1112,34 @@ export default function AVCanvas() {
 
                     {/* Dragging connection line */}
                     {draggingConnection && draggingConnection.currentPos && (
-                      <line
-                        x1={draggingConnection.startPos.x}
-                        y1={draggingConnection.startPos.y}
-                        x2={draggingConnection.currentPos.x}
-                        y2={draggingConnection.currentPos.y}
-                        stroke="#3b82f6"
-                        strokeWidth="3"
-                        strokeDasharray="5,5"
-                        className="pointer-events-none"
-                      />
+                      <g>
+                        <line
+                          x1={draggingConnection.startPos.x}
+                          y1={draggingConnection.startPos.y}
+                          x2={draggingConnection.currentPos.x}
+                          y2={draggingConnection.currentPos.y}
+                          stroke="#3b82f6"
+                          strokeWidth="4"
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                        <circle
+                          cx={draggingConnection.startPos.x}
+                          cy={draggingConnection.startPos.y}
+                          r="6"
+                          fill="#3b82f6"
+                          className="pointer-events-none"
+                        />
+                        <circle
+                          cx={draggingConnection.currentPos.x}
+                          cy={draggingConnection.currentPos.y}
+                          r="6"
+                          fill="#3b82f6"
+                          className="pointer-events-none"
+                          opacity="0.5"
+                        />
+                      </g>
                     )}
                   </g>
                 </svg>
