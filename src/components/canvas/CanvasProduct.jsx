@@ -337,7 +337,7 @@ export default function CanvasProduct({
           {inputPoints.slice(0, 6).map((point, i) => (
             <div 
               key={i} 
-              className="w-3 h-3 rounded-full border-2 border-gray-800" 
+              className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
               style={{ backgroundColor: point.color }}
               data-port-index={i}
               data-port-type="input"
@@ -352,7 +352,7 @@ export default function CanvasProduct({
           {outputPoints.slice(0, 6).map((point, i) => (
             <div 
               key={i} 
-              className="w-3 h-3 rounded-full border-2 border-gray-800" 
+              className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
               style={{ backgroundColor: point.color }}
               data-port-index={i}
               data-port-type="output"
@@ -367,7 +367,7 @@ export default function CanvasProduct({
           {[...inputPoints.slice(6), ...outputPoints.slice(6)].slice(0, 8).map((point, i) => (
             <div 
               key={i} 
-              className="w-3 h-3 rounded-full border-2 border-gray-800" 
+              className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
               style={{ backgroundColor: point.color }}
             />
           ))}

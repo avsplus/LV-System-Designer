@@ -483,7 +483,7 @@ export default function AVCanvas() {
     const cardWidth = 320;
     const cardHeight = 280;
     const gapSize = 8;
-    const circleSize = 12;
+    const circleSize = 16;
     const baseX = canvasProduct.position.x;
     const baseY = canvasProduct.position.y;
     const centerY = baseY + cardHeight / 2;
