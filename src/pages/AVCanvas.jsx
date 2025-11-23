@@ -301,7 +301,7 @@ export default function AVCanvas() {
     if (!canvasRect) return null;
     
     let closestPort = null;
-    let closestDistance = PORT_HIT_RADIUS * zoom; // Scale radius by zoom
+    let closestDistance = PORT_HIT_RADIUS * 2; // Increased hit radius for better detection
     
     for (const [portId, portData] of portRefs.current.entries()) {
       if (!portData.element) continue;
