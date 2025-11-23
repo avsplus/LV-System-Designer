@@ -157,17 +157,17 @@ export default function CanvasProduct({
         </p>
       )}
 
-      {['receivers', 'dacs', 'streamers', 'processors'].includes(product.category) && (
+      {['receivers', 'dacs', 'streamers', 'processors'].includes(product.category) && networkInfo && (
         <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
           <p className="text-xs text-gray-400">
-            <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
+            <span className="text-gray-500">MAC:</span> {networkInfo.mac || '00:00:00:00:00:00'}
           </p>
           <p className="text-xs text-gray-400">
-            <span className="text-gray-500">IP:</span> {networkInfo?.ip || '000.000.000.000'}
+            <span className="text-gray-500">IP:</span> {networkInfo.ip || '000.000.000.000'}
             <span className="mx-1">|</span>
-            <span className="text-gray-500">SW#:</span> {networkInfo?.sw || '00'} 
+            <span className="text-gray-500">SW#:</span> {networkInfo.sw || '00'} 
             <span className="mx-1">|</span>
-            <span className="text-gray-500">Port:</span> {networkInfo?.port || '00'}
+            <span className="text-gray-500">Port:</span> {networkInfo.port || '00'}
           </p>
         </div>
       )}
