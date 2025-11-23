@@ -754,7 +754,7 @@ export default function AVCanvas() {
     }
   };
 
-  const getConnectionPointPosition = React.useCallback((instanceId, connectionType, portName, isOutput) => {
+  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
     // Use registered port refs for accurate positioning
     const portId = getPortId(instanceId, connectionType, portName, !isOutput);
     const portData = portRefs.current.get(portId);
@@ -772,7 +772,7 @@ export default function AVCanvas() {
     }
 
     return null;
-  }, [zoom, pan]);
+  };
 
   // Calculate connection positions directly (not memoized to ensure port refs are available)
   const connectionPositions = connections.map((connection, index) => {
