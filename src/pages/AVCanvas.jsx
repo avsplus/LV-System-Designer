@@ -101,16 +101,7 @@ export default function AVCanvas() {
     if (connectingFrom === null) {
       setConnectingFrom(instanceId);
     } else if (connectingFrom !== instanceId) {
-      const existingConnection = connections.find(
-        c => (c.from === connectingFrom && c.to === instanceId) ||
-             (c.from === instanceId && c.to === connectingFrom)
-      );
-      
-      if (!existingConnection) {
-        setConnectingTo(instanceId);
-      } else {
-        setConnectingFrom(null);
-      }
+      setConnectingTo(instanceId);
     } else {
       setConnectingFrom(null);
     }
