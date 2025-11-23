@@ -164,7 +164,16 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
   
   const instanceId = product.instanceId;
   const productData = product.product || product;
-  const connections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
+  
+  // Use real connection data if available, otherwise fall back to category defaults
+  const defaultConnections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
+  const connections = productData.connections && (productData.connections.inputs || productData.connections.outputs) 
+    ? {
+        inputs: productData.connections.inputs || [],
+        outputs: productData.connections.outputs || [],
+        description: defaultConnections.description
+      }
+    : defaultConnections;
   
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(

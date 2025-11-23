@@ -447,6 +447,27 @@ export default function AVCanvas() {
                 <Plus className="w-4 h-4 mr-2" />
                 Import AV Products
               </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes. Continue?')) {
+                    return;
+                  }
+                  try {
+                    const { data } = await base44.functions.invoke('enrichProductConnections');
+                    alert(`Successfully enriched ${data.enriched} products with real connection data!`);
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Enrichment error:', error);
+                    const errorMsg = error.response?.data?.error || error.message;
+                    alert(`Failed to enrich products: ${errorMsg}`);
+                  }
+                }}
+                className="border-gray-700 text-gray-300 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500"
+              >
+                <Link2 className="w-4 h-4 mr-2" />
+                Enrich Connections
+              </Button>
               <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
                 <Button
                   size="icon"
