@@ -312,10 +312,13 @@ export default function CanvasProduct({
   const hasRealConnections = product.connections && 
     ((product.connections.inputs && product.connections.inputs.length > 0) || 
      (product.connections.outputs && product.connections.outputs.length > 0));
-  const connections = hasRealConnections ? product.connections : defaultConnections;
+  
+  // For endpoint devices, always use defaults to ensure correct port direction
+  const isEndpointDevice = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category);
+  const connections = (hasRealConnections && !isEndpointDevice) ? product.connections : defaultConnections;
 
   // Force empty outputs for endpoint devices
-  const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
+  const finalConnections = isEndpointDevice
     ? { ...connections, outputs: [] }
     : connections;
 
