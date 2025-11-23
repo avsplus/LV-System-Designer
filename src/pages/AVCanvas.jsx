@@ -429,19 +429,62 @@ export default function AVCanvas() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={async () => {
+              <input
+                type="file"
+                id="product-upload"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
                   try {
-                    const { data } = await base44.functions.invoke('scrapeSnapAV');
-                    alert(`Successfully imported ${data.productsFound} AV products from the web`);
-                    window.location.reload();
+                    // Upload file
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+                    // Extract data from file
+                    const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+                      file_url,
+                      json_schema: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            brand: { type: "string" },
+                            model: { type: "string" },
+                            category: { type: "string" },
+                            description: { type: "string" },
+                            price: { type: "number" },
+                            image_url: { type: "string" }
+                          },
+                          required: ["brand", "model", "category"]
+                        }
+                      }
+                    });
+
+                    if (result.status === 'error') {
+                      alert(`Failed to extract data: ${result.details}`);
+                      return;
+                    }
+
+                    // Import products to database
+                    if (result.output && result.output.length > 0) {
+                      await base44.entities.AVProduct.bulkCreate(result.output);
+                      alert(`Successfully imported ${result.output.length} products`);
+                      window.location.reload();
+                    } else {
+                      alert('No products found in file');
+                    }
                   } catch (error) {
                     console.error('Import error:', error);
-                    const errorMsg = error.response?.data?.error || error.message;
-                    alert(`Failed to import products: ${errorMsg}`);
+                    alert(`Failed to import products: ${error.message}`);
                   }
+                  e.target.value = '';
                 }}
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('product-upload').click()}
                 className="border-gray-700 text-gray-300 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
