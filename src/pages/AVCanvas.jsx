@@ -431,7 +431,7 @@ export default function AVCanvas() {
 
     const timeDiff = Date.now() - (currentState.startTime || 0);
     console.log('🔴 Mouse up - time:', timeDiff, 'hoveredPort:', currentState.hoveredPort);
-    
+
     // Quick click - show connection details using the originally clicked port
     if (timeDiff < 150) {
       handlePortClick(
@@ -445,18 +445,16 @@ export default function AVCanvas() {
       setHoveredPortId(null);
       return;
     }
-    
-    // Drag operation - create connection using hovered port if valid
+
+    // Drag operation - show connection dialog
     if (currentState.hoveredPort) {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
 
-      console.log('🟢 Creating connection:', { fromPort, toPort });
+      console.log('🟢 Opening connection dialog:', { fromPort, toPort });
 
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
-      const fromPortName = fromPort.isInput ? toPort.portName : fromPort.portName;
-      const toPortName = fromPort.isInput ? fromPort.portName : toPort.portName;
 
       // Check if target device is a speaker/subwoofer and already has a connection
       const targetDevice = canvasProducts.find(cp => cp.instanceId === toId);
@@ -473,36 +471,9 @@ export default function AVCanvas() {
         }
       }
 
-      const connectionCategories = {
-        'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
-        'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
-        'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
-        'Ethernet': 'N', 'USB': 'N',
-        'RS232': 'C', 'Control': 'C'
-      };
-
-      const prefix = connectionCategories[toPort.connectionType] || 'W';
-
-      setConnections(prevConnections => {
-        const existingOfType = prevConnections.filter(c => {
-          const cPrefix = connectionCategories[c.type] || 'W';
-          return cPrefix === prefix;
-        }).length;
-
-        const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
-
-        const newConnection = {
-          from: fromId,
-          to: toId,
-          type: toPort.connectionType,
-          fromPort: fromPortName,
-          toPort: toPortName,
-          wireId
-        };
-
-        console.log('✨ Connection created:', newConnection);
-        return [...prevConnections, newConnection];
-      });
+      // Set connecting states to trigger the dialog
+      setConnectingFrom(fromId);
+      setConnectingTo(toId);
     } else {
       console.log('❌ No hovered port - connection cancelled');
     }
@@ -510,7 +481,7 @@ export default function AVCanvas() {
     setConnectingState(null);
     connectingStateRef.current = null;
     setHoveredPortId(null);
-  }, [zoom, handlePortClick]);
+  }, [zoom, handlePortClick, canvasProducts, connections]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
