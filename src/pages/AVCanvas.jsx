@@ -984,6 +984,7 @@ export default function AVCanvas() {
                           setSelectedProduct(null);
                           setSelectedConnection(null);
                         }}
+                        onPortClick={handlePortClick}
                       />
                     );
                   })}
