@@ -17,6 +17,7 @@ export default function AVCanvas() {
   const [connections, setConnections] = useState([]);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [connectingTo, setConnectingTo] = useState(null);
+  const [pendingConnection, setPendingConnection] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
   const [selectedConnection, setSelectedConnection] = useState(null);
@@ -232,6 +233,7 @@ export default function AVCanvas() {
     }]);
     setConnectingFrom(null);
     setConnectingTo(null);
+    setPendingConnection(null);
   };
 
   const handleConnectionClick = (connection, index) => {
@@ -471,9 +473,14 @@ export default function AVCanvas() {
         }
       }
 
-      // Set connecting states to trigger the dialog
+      // Set connecting states to trigger the dialog with port information
       setConnectingFrom(fromId);
       setConnectingTo(toId);
+      setPendingConnection({
+        fromPort: fromPort.isInput ? toPort.portName : fromPort.portName,
+        toPort: fromPort.isInput ? fromPort.portName : toPort.portName,
+        connectionType: toPort.connectionType
+      });
     } else {
       console.log('❌ No hovered port - connection cancelled');
     }
@@ -1476,10 +1483,14 @@ export default function AVCanvas() {
             fromProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product, instanceId: connectingFrom }}
             toProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product, instanceId: connectingTo }}
             existingConnections={connections}
+            defaultFromPort={pendingConnection?.fromPort}
+            defaultToPort={pendingConnection?.toPort}
+            defaultConnectionType={pendingConnection?.connectionType}
             onSelect={handleConnectionTypeSelect}
             onCancel={() => {
               setConnectingFrom(null);
               setConnectingTo(null);
+              setPendingConnection(null);
             }}
           />
         )}
