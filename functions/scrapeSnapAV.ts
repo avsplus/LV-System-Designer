@@ -22,8 +22,14 @@ Deno.serve(async (req) => {
             body: JSON.stringify({ username, password }),
         });
 
+        const loginText = await loginResponse.text();
+
         if (!loginResponse.ok) {
-            return Response.json({ error: 'Failed to login to Portal.io' }, { status: 401 });
+            return Response.json({ 
+                error: 'Failed to login to Portal.io', 
+                status: loginResponse.status,
+                response: loginText 
+            }, { status: 401 });
         }
 
         // Extract cookies from login
