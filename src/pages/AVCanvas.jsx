@@ -427,6 +427,12 @@ export default function AVCanvas() {
       allPoints,
       finalConnections: finalConnections[direction]
     });
+    
+    // Log the actual structure of the connection data
+    if (finalConnections[direction] && finalConnections[direction].length > 0) {
+      console.log('First connection object:', finalConnections[direction][0]);
+      console.log('Ports in first connection:', finalConnections[direction][0].ports);
+    }
 
     // Find the index of our specific connection
     const pointIndex = allPoints.findIndex(p => p.type === connectionType && p.port === portName);
