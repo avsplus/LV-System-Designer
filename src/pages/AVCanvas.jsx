@@ -381,25 +381,21 @@ export default function AVCanvas() {
     // Validate if this is a valid target port
     let validHitPort = null;
     if (hitPort) {
+      console.log('🟡 Hit test RAW:', { 
+        fromPortInstance: currentState.fromPort.instanceId,
+        fromPortInstanceType: typeof currentState.fromPort.instanceId,
+        hitPortInstance: hitPort.instanceId,
+        hitPortInstanceType: typeof hitPort.instanceId,
+        areEqual: currentState.fromPort.instanceId === hitPort.instanceId,
+        fromIsInput: currentState.fromPort.isInput,
+        hitIsInput: hitPort.isInput,
+        fromType: currentState.fromPort.connectionType,
+        hitType: hitPort.connectionType
+      });
+      
       const validDirection = currentState.fromPort.isInput !== hitPort.isInput;
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
-      
-      console.log('🟡 Hit test:', { 
-        hitPort: hitPort.portId,
-        validDirection, 
-        sameType, 
-        differentDevice,
-        fromIsInput: currentState.fromPort.isInput,
-        hitIsInput: hitPort.isInput,
-        fromType: `"${currentState.fromPort.connectionType}"`,
-        hitType: `"${hitPort.connectionType}"`,
-        fromTypeLength: currentState.fromPort.connectionType?.length,
-        hitTypeLength: hitPort.connectionType?.length,
-        typesMatch: currentState.fromPort.connectionType === hitPort.connectionType,
-        fromInstance: currentState.fromPort.instanceId,
-        hitInstance: hitPort.instanceId
-      });
       
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
