@@ -227,6 +227,17 @@ export default function AVCanvas() {
     }
   }, [isPanning, panStart, pan]);
 
+  useEffect(() => {
+    const handleDragMouseMove = (e) => {
+      setDragMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    
+    window.addEventListener('mousemove', handleDragMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleDragMouseMove);
+    };
+  }, []);
+
   const getProductCenter = (instanceId) => {
     const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!canvasProduct) return { x: 0, y: 0 };
