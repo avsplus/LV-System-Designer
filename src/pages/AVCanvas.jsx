@@ -108,12 +108,16 @@ export default function AVCanvas() {
   };
 
   const handleConnectionTypeSelect = (connectionData) => {
+    // Generate unique wire ID
+    const wireId = `W${connections.length + 1}`;
+    
     setConnections([...connections, { 
       from: connectingFrom, 
       to: connectingTo,
       type: connectionData.type,
       fromPort: connectionData.fromPort,
-      toPort: connectionData.toPort
+      toPort: connectionData.toPort,
+      wireId: wireId
     }]);
     setConnectingFrom(null);
     setConnectingTo(null);
@@ -869,6 +873,7 @@ export default function AVCanvas() {
                             fromEdge={fromEdge}
                             toEdge={toEdge}
                           connectionType={connection.type}
+                          wireId={connection.wireId}
                           waypoints={connection.waypoints}
                           isHighlighted={isHighlighted}
                           offset={0}
