@@ -303,15 +303,39 @@ export default function CanvasProduct({
     return points;
   };
 
-  // Use real connection data if available, otherwise fall back to category defaults
+  // Merge enriched data with category defaults to ensure all connection types are shown
   const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
+  const isEndpointDevice = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category);
+  
+  // Merge function: use enriched data if available, otherwise use defaults
+  const mergeConnections = (enriched, defaults) => {
+    if (!enriched) return defaults;
+    
+    // Create a map of connection types from enriched data
+    const enrichedTypes = new Set();
+    enriched.forEach(conn => enrichedTypes.add(conn.type));
+    
+    // Add default connections for types not found in enriched data
+    const merged = [...enriched];
+    defaults.forEach(defaultConn => {
+      if (!enrichedTypes.has(defaultConn.type)) {
+        merged.push(defaultConn);
+      }
+    });
+    
+    return merged;
+  };
+  
   const hasRealConnections = product.connections && 
     ((product.connections.inputs && product.connections.inputs.length > 0) || 
      (product.connections.outputs && product.connections.outputs.length > 0));
   
-  // For endpoint devices, always use defaults to ensure correct port direction
-  const isEndpointDevice = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category);
-  const connections = (hasRealConnections && !isEndpointDevice) ? product.connections : defaultConnections;
+  const connections = hasRealConnections && !isEndpointDevice
+    ? {
+        inputs: mergeConnections(product.connections.inputs, defaultConnections.inputs),
+        outputs: mergeConnections(product.connections.outputs, defaultConnections.outputs)
+      }
+    : defaultConnections;
 
   // Force empty outputs for endpoint devices
   const finalConnections = isEndpointDevice
