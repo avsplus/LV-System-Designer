@@ -3,6 +3,164 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X, Link2 } from "lucide-react";
 
+const connectionsByCategory = {
+  televisions: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+      { type: "Component", ports: ["Component-1"] },
+      { type: "Composite", ports: ["Composite-1"] },
+      { type: "Optical", ports: ["Optical-In"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "Optical", ports: ["Optical-Out"] },
+      { type: "3.5mm Jack", ports: ["Headphone"] }
+    ]
+  },
+  projectors: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
+      { type: "VGA", ports: ["VGA"] },
+      { type: "Component", ports: ["Component-1"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "3.5mm Jack", ports: ["Audio-Out"] }
+    ]
+  },
+  projector_screens: {
+    inputs: [
+      { type: "Control", ports: ["Trigger-1", "Trigger-2"] },
+      { type: "RS232", ports: ["RS232"] }
+    ],
+    outputs: []
+  },
+  video_distribution: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6"] },
+      { type: "HDBaseT", ports: ["HDBaseT-1", "HDBaseT-2", "HDBaseT-3", "HDBaseT-4"] }
+    ]
+  },
+  matrix_switchers: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7", "HDMI-8"] },
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "RS232", ports: ["RS232"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6", "HDMI-Out-7", "HDMI-Out-8"] }
+    ]
+  },
+  audio_streamers: {
+    inputs: [
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "USB", ports: ["USB"] },
+      { type: "Optical", ports: ["Optical-In"] }
+    ],
+    outputs: [
+      { type: "RCA", ports: ["Out-L", "Out-R"] },
+      { type: "Optical", ports: ["Optical-Out"] },
+      { type: "Coaxial", ports: ["Coaxial-Out"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
+    ]
+  },
+  media_streamers: {
+    inputs: [
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "USB", ports: ["USB"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out"] },
+      { type: "Optical", ports: ["Optical-Out"] }
+    ]
+  },
+  speakers: {
+    inputs: [
+      { type: "Speaker Wire", ports: ["Left", "Right"] },
+      { type: "XLR", ports: ["Left", "Right"] }
+    ],
+    outputs: []
+  },
+  soundbars: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
+      { type: "Optical", ports: ["Optical-In"] },
+      { type: "RCA", ports: ["RCA-L", "RCA-R"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out"] },
+      { type: "Subwoofer", ports: ["Sub-Out"] }
+    ]
+  },
+  subwoofers: {
+    inputs: [
+      { type: "RCA", ports: ["LFE-L", "LFE-R"] },
+      { type: "Speaker Wire", ports: ["LFE"] },
+      { type: "XLR", ports: ["XLR"] },
+      { type: "Wireless", ports: ["Wireless"] }
+    ],
+    outputs: []
+  },
+  stereo_amps: {
+    inputs: [
+      { type: "RCA", ports: ["RCA-1", "RCA-2"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1"] },
+      { type: "Coaxial", ports: ["Coaxial"] }
+    ],
+    outputs: [
+      { type: "Speaker Wire", ports: ["Speaker-L", "Speaker-R"] },
+      { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] }
+    ]
+  },
+  multizone_amps: {
+    inputs: [
+      { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
+      { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "Speaker Wire", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] }
+    ]
+  },
+  surround_processors: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
+      { type: "RCA", ports: ["RCA-1", "RCA-2"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial-1"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "RCA", ports: ["FL", "FR", "C", "SL", "SR", "SBL", "SBR", "Sub"] },
+      { type: "XLR", ports: ["XLR-FL", "XLR-FR", "XLR-C", "XLR-SL", "XLR-SR", "XLR-Sub"] }
+    ]
+  },
+  av_receivers: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
+      { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "USB", ports: ["USB-A", "USB-B"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R", "Sub"] },
+      { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
+      { type: "Optical", ports: ["Optical-Out"] }
+    ]
+  }
+};
+
 const categoryColors = {
   televisions: "bg-blue-500/10 text-blue-400 border-blue-500/50",
   projectors: "bg-purple-500/10 text-purple-400 border-purple-500/50",
@@ -140,8 +298,19 @@ export default function CanvasProduct({
     return points;
   };
 
-  const inputPoints = getConnectionPoints(product.connections, 'inputs');
-  const outputPoints = getConnectionPoints(product.connections, 'outputs');
+  // Use real connection data if available, otherwise fall back to category defaults
+  const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
+  const connections = product.connections && (product.connections.inputs || product.connections.outputs) 
+    ? product.connections
+    : defaultConnections;
+
+  // Force empty outputs for endpoint devices
+  const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
+    ? { ...connections, outputs: [] }
+    : connections;
+
+  const inputPoints = getConnectionPoints(finalConnections, 'inputs');
+  const outputPoints = getConnectionPoints(finalConnections, 'outputs');
 
   return (
     <div
