@@ -210,7 +210,7 @@ const connectionsByCategory = {
 
 const normalizeType = (type) => type.toLowerCase().replace(/\//g, ' ').replace('toslink', '').trim();
 
-export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel, existingConnections }) {
+export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel, existingConnections, defaultFromPort, defaultToPort, defaultConnectionType }) {
   // Check if speaker already has a connection
   const isSpeaker = toProduct.category === 'speakers';
   const speakerHasConnection = isSpeaker && (existingConnections || []).some(
@@ -234,9 +234,15 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
     });
   });
 
-  const [selectedType, setSelectedType] = useState(compatibleTypes[0]?.type || "");
-  const [selectedFromPort, setSelectedFromPort] = useState("");
-  const [selectedToPort, setSelectedToPort] = useState("");
+  const [selectedType, setSelectedType] = useState(() => {
+    if (defaultConnectionType) {
+      const match = compatibleTypes.find(c => c.type === defaultConnectionType);
+      return match ? defaultConnectionType : (compatibleTypes[0]?.type || "");
+    }
+    return compatibleTypes[0]?.type || "";
+  });
+  const [selectedFromPort, setSelectedFromPort] = useState(defaultFromPort || "");
+  const [selectedToPort, setSelectedToPort] = useState(defaultToPort || "");
 
   // Get ports that are already used
   const getUsedPorts = (instanceId, connectionType, isInput) => {
@@ -263,13 +269,18 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
 
   // Auto-select first available port when type changes
   React.useEffect(() => {
+    // Only auto-select if no port is selected or if the current selection is not available
     if (availableFromPorts.length > 0) {
-      setSelectedFromPort(availableFromPorts[0]);
+      if (!selectedFromPort || !availableFromPorts.includes(selectedFromPort)) {
+        setSelectedFromPort(availableFromPorts[0]);
+      }
     } else {
       setSelectedFromPort("");
     }
     if (availableToPorts.length > 0) {
-      setSelectedToPort(availableToPorts[0]);
+      if (!selectedToPort || !availableToPorts.includes(selectedToPort)) {
+        setSelectedToPort(availableToPorts[0]);
+      }
     } else {
       setSelectedToPort("");
     }
