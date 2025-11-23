@@ -105,6 +105,15 @@ export default function CanvasProduct({
     }
   }, [isDragging, position]);
 
+  // Calculate connection points
+  const getTotalPorts = (connections, type) => {
+    if (!connections || !connections[type]) return 0;
+    return connections[type].reduce((sum, conn) => sum + (conn.ports?.length || 0), 0);
+  };
+
+  const inputCount = getTotalPorts(product.connections, 'inputs');
+  const outputCount = getTotalPorts(product.connections, 'outputs');
+
   return (
     <div
       onMouseDown={handleMouseDown}
@@ -122,6 +131,32 @@ export default function CanvasProduct({
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
       }`}
     >
+      {/* Left edge connection points (inputs) */}
+      {inputCount > 0 && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-2">
+          {[...Array(Math.min(inputCount, 6))].map((_, i) => (
+            <div key={i} className="w-3 h-3 rounded-full bg-green-500 border-2 border-gray-800" />
+          ))}
+        </div>
+      )}
+
+      {/* Right edge connection points (outputs) */}
+      {outputCount > 0 && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-2">
+          {[...Array(Math.min(outputCount, 6))].map((_, i) => (
+            <div key={i} className="w-3 h-3 rounded-full bg-blue-500 border-2 border-gray-800" />
+          ))}
+        </div>
+      )}
+
+      {/* Top edge connection points (for overflow) */}
+      {(inputCount > 6 || outputCount > 6) && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2">
+          {[...Array(Math.min(3, Math.max(inputCount - 6, outputCount - 6)))].map((_, i) => (
+            <div key={i} className="w-3 h-3 rounded-full bg-purple-500 border-2 border-gray-800" />
+          ))}
+        </div>
+      )}
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           {label && (
