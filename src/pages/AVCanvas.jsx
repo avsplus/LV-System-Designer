@@ -388,6 +388,10 @@ export default function AVCanvas() {
   };
 
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
+    // Try to find the actual DOM element for the port dot
+    const cardElement = document.querySelector(`[data-instance-id="${instanceId}"]`);
+    if (!cardElement) return null;
+
     const canvasProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!canvasProduct) return null;
 
@@ -397,14 +401,11 @@ export default function AVCanvas() {
       ((product.connections.inputs && product.connections.inputs.length > 0) || 
        (product.connections.outputs && product.connections.outputs.length > 0));
     
-    // First try with real connections if available
     let connections = hasRealConnections ? product.connections : defaultConnections;
     
-    // Check if the requested connection type exists in the connections
     const checkDirection = isOutput ? 'outputs' : 'inputs';
     const hasRequestedType = (connections[checkDirection] || []).some(conn => conn.type === connectionType);
     
-    // If the requested connection type doesn't exist, fall back to defaults
     if (!hasRequestedType) {
       connections = defaultConnections;
     }
@@ -412,11 +413,6 @@ export default function AVCanvas() {
     const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
       ? { ...connections, outputs: [] }
       : connections;
-
-    const cardWidth = 320;
-    const cardHeight = 280;
-    const gapSize = 8; // gap-2 = 8px
-    const circleSize = 12; // w-3 h-3 = 12px
 
     // Build list of all connection points with their types
     const direction = isOutput ? 'outputs' : 'inputs';
@@ -434,56 +430,52 @@ export default function AVCanvas() {
       return null;
     }
 
+    // Try to get actual DOM position
+    const portType = isOutput ? 'output' : 'input';
+    const portElement = cardElement.querySelector(`[data-port-type="${portType}"][data-port-index="${pointIndex < 6 ? pointIndex : pointIndex - 6}"]`);
+    
+    if (portElement) {
+      const portRect = portElement.getBoundingClientRect();
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      
+      if (canvasRect) {
+        // Get center of the port dot in canvas coordinates, accounting for zoom and pan
+        const x = (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom;
+        const y = (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom;
+        return { x, y };
+      }
+    }
+
+    // Fallback to calculated position if DOM element not found
+    const cardWidth = 320;
+    const cardHeight = 280;
+    const gapSize = 8;
+    const circleSize = 12;
     const baseX = canvasProduct.position.x;
     const baseY = canvasProduct.position.y;
     const centerY = baseY + cardHeight / 2;
     const halfCircle = circleSize / 2;
 
     if (pointIndex < 6) {
-      // Left edge (inputs) or Right edge (outputs)
       const verticalCount = Math.min(allPoints.length, 6);
-      
-      // Container positioning: flex column with gap-2
-      // Each dot: 12px height + 8px gap = 20px per item
       const totalContainerHeight = (verticalCount * circleSize) + ((verticalCount - 1) * gapSize);
-      
-      // Container is vertically centered (top-1/2 -translate-y-1/2)
       const containerTop = centerY - (totalContainerHeight / 2);
-      
-      // Position of this specific circle's center
       const y = containerTop + (pointIndex * (circleSize + gapSize)) + halfCircle;
 
       if (isOutput) {
-        // Right edge: right-0 translate-x-1/2
-        // Container's right edge aligns with card right (baseX + cardWidth)
-        // Then translates right by half its width (6px for 12px circle)
         const x = baseX + cardWidth + halfCircle;
         return { x, y };
       } else {
-        // Left edge: left-0 -translate-x-1/2
-        // Container's left edge aligns with card left (baseX)
-        // Then translates left by half its width (6px for 12px circle)
         const x = baseX - halfCircle;
         return { x, y };
       }
     } else {
-      // Top edge (overflow) - horizontal layout
       const overflowIndex = pointIndex - 6;
       const horizontalCount = Math.min(allPoints.length - 6, 8);
-      
-      // Container positioning: flex row with gap-2
       const totalContainerWidth = (horizontalCount * circleSize) + ((horizontalCount - 1) * gapSize);
-      
-      // Container is horizontally centered (left-1/2 -translate-x-1/2)
       const centerX = baseX + cardWidth / 2;
       const containerLeft = centerX - (totalContainerWidth / 2);
-      
-      // Position of this specific circle's center
       const x = containerLeft + (overflowIndex * (circleSize + gapSize)) + halfCircle;
-
-      // Top edge: top-0 -translate-y-1/2
-      // Container's top edge aligns with card top (baseY)
-      // Then translates up by half its height (6px for 12px circle)
       const y = baseY - halfCircle;
       return { x, y };
     }

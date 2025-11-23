@@ -315,6 +315,7 @@ export default function CanvasProduct({
 
   return (
     <div
+      data-instance-id={instanceId}
       onMouseDown={handleMouseDown}
       style={{
         position: 'absolute',
