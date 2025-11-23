@@ -756,8 +756,11 @@ export default function AVCanvas() {
 
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
     // Use registered port refs for accurate positioning
+    // isOutput means we're looking for an output port (should use isInput=false in portId)
     const portId = getPortId(instanceId, connectionType, portName, !isOutput);
     const portData = portRefs.current.get(portId);
+
+    console.log('🔍 Looking up port:', { instanceId, connectionType, portName, isOutput, portId, found: !!portData });
 
     if (portData && portData.element) {
       const portRect = portData.element.getBoundingClientRect();
@@ -767,10 +770,15 @@ export default function AVCanvas() {
         // Get center of the port dot in canvas coordinates, accounting for zoom and pan
         const x = (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom;
         const y = (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom;
+        console.log('✅ Port position found:', { x, y });
         return { x, y };
       }
     }
 
+    console.warn('❌ Port not found in refs!', { 
+      portId, 
+      availablePortIds: Array.from(portRefs.current.keys()).filter(id => id.includes(instanceId))
+    });
     return null;
   };
 
