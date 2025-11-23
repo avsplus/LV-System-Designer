@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2 } from "lucide-react";
 import ProductSidebar from "../components/canvas/ProductSidebar";
 import CanvasProduct from "../components/canvas/CanvasProduct";
 import ConnectionLine from "../components/canvas/ConnectionLine";
