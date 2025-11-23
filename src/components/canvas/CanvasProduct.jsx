@@ -99,13 +99,13 @@ export default function CanvasProduct({
         willChange: isDragging ? 'transform' : 'auto',
         transition: isDragging ? 'none' : 'border-color 0.15s ease'
       }}
-      className={`w-64 h-[230px] bg-gray-800 border-2 rounded-xl p-4 cursor-move overflow-hidden ${
+      className={`w-64 h-[230px] bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
       }`}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           {label && (
             <Badge className="bg-gray-700 text-white border-gray-600 font-mono font-bold">
