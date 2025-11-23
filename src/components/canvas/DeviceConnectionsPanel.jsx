@@ -242,7 +242,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
           <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
           <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
           <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">
-            {productData.category}
+            {productData.category.charAt(0).toUpperCase() + productData.category.slice(1)}
           </Badge>
         </div>
 
