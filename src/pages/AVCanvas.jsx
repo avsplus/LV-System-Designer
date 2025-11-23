@@ -467,10 +467,59 @@ export default function AVCanvas() {
                       return;
                     }
 
-                    // Import products to database
+                    // Enrich products with specific connection information
                     if (result.output && result.output.length > 0) {
-                      await base44.entities.AVProduct.bulkCreate(result.output);
-                      alert(`Successfully imported ${result.output.length} products`);
+                      const enrichedProducts = await Promise.all(
+                        result.output.map(async (product) => {
+                          try {
+                            const connectionInfo = await base44.integrations.Core.InvokeLLM({
+                              prompt: `For the ${product.brand} ${product.model} (category: ${product.category}), provide the exact input and output connections available on this specific device. Be accurate and specific to this model.
+
+                    Return the connection types and their specific port labels as they appear on the actual device.`,
+                              add_context_from_internet: true,
+                              response_json_schema: {
+                                type: "object",
+                                properties: {
+                                  inputs: {
+                                    type: "array",
+                                    items: {
+                                      type: "object",
+                                      properties: {
+                                        type: { type: "string" },
+                                        ports: { type: "array", items: { type: "string" } }
+                                      }
+                                    }
+                                  },
+                                  outputs: {
+                                    type: "array",
+                                    items: {
+                                      type: "object",
+                                      properties: {
+                                        type: { type: "string" },
+                                        ports: { type: "array", items: { type: "string" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            });
+
+                            return {
+                              ...product,
+                              specs: {
+                                ...product.specs,
+                                connections: connectionInfo
+                              }
+                            };
+                          } catch (error) {
+                            console.error(`Failed to enrich ${product.brand} ${product.model}:`, error);
+                            return product;
+                          }
+                        })
+                      );
+
+                      await base44.entities.AVProduct.bulkCreate(enrichedProducts);
+                      alert(`Successfully imported ${enrichedProducts.length} products with connection details`);
                       window.location.reload();
                     } else {
                       alert('No products found in file');
