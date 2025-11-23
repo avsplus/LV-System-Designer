@@ -80,25 +80,19 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       const toIsHorizontal = toEdge === 'left' || toEdge === 'right';
 
       if (fromIsHorizontal && toIsHorizontal) {
-        // Both horizontal edges
-        const midX = (fromStandoff.x + toStandoff.x) / 2;
-        const corner1 = { x: midX, y: fromStandoff.y };
-        const corner2 = { x: midX, y: toStandoff.y };
-        path = addRoundedCorner(path, fromStandoff, corner1, corner2, cornerRadius);
-        path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
+        // Both horizontal edges - vertical then horizontal routing
+        const corner1 = { x: fromStandoff.x, y: toStandoff.y };
+        path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       } else if (!fromIsHorizontal && !toIsHorizontal) {
-        // Both vertical edges
-        const midY = (fromStandoff.y + toStandoff.y) / 2;
-        const corner1 = { x: fromStandoff.x, y: midY };
-        const corner2 = { x: toStandoff.x, y: midY };
-        path = addRoundedCorner(path, fromStandoff, corner1, corner2, cornerRadius);
-        path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
+        // Both vertical edges - horizontal then vertical routing
+        const corner1 = { x: toStandoff.x, y: fromStandoff.y };
+        path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       } else if (fromIsHorizontal && !toIsHorizontal) {
-        // From horizontal to vertical: go horizontal first, then vertical
+        // From horizontal to vertical: go horizontal to align, then vertical
         const corner1 = { x: toStandoff.x, y: fromStandoff.y };
         path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       } else {
-        // From vertical to horizontal: go vertical first, then horizontal
+        // From vertical to horizontal: go vertical to align, then horizontal
         const corner1 = { x: fromStandoff.x, y: toStandoff.y };
         path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       }
