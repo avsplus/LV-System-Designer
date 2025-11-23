@@ -83,7 +83,9 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       )}
-                      <span className="text-xs text-gray-300 capitalize">{category.replace(/_/g, ' ')}</span>
+                      <div className={`${categorySolidColors[category]} px-2 py-1 rounded text-white text-xs font-medium capitalize`}>
+                        {category.replace(/_/g, ' ')}
+                      </div>
                       <span className="text-xs text-gray-500">({categoryProducts.length})</span>
                     </div>
                   </button>
