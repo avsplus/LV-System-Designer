@@ -142,26 +142,28 @@ export default function CanvasProduct({
         </div>
       </div>
       
-      <div className="flex-1 min-h-0">
-        <h3 className="font-semibold text-white text-base mb-1">
-          {product.brand}
-        </h3>
-        <p className="text-sm text-gray-300 mb-2">{product.model}</p>
-        
-        {product.description && (
-          <p className="text-xs text-gray-400 line-clamp-2 mb-2">
-            {product.description}
-          </p>
-        )}
-        
-        {product.price && (
-          <p className="text-sm font-medium text-blue-400 mb-2">
-            ${product.price.toLocaleString()}
-          </p>
-        )}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-shrink-0">
+          <h3 className="font-semibold text-white text-base mb-1">
+            {product.brand}
+          </h3>
+          <p className="text-sm text-gray-300 mb-2">{product.model}</p>
+          
+          {product.description && (
+            <p className="text-xs text-gray-400 line-clamp-2 mb-2">
+              {product.description}
+            </p>
+          )}
+          
+          {product.price && (
+            <p className="text-sm font-medium text-blue-400 mb-2">
+              ${product.price.toLocaleString()}
+            </p>
+          )}
+        </div>
 
         {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && (
-          <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
+          <div className="mt-auto pt-3 border-t border-gray-700 space-y-1 flex-shrink-0">
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
             </p>
