@@ -432,7 +432,7 @@ export default function AVCanvas() {
               <input
                 type="file"
                 id="product-upload"
-                accept=".xlsx,.xls,.csv"
+                accept=".csv"
                 className="hidden"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
