@@ -434,19 +434,18 @@ export default function AVCanvas() {
                 onClick={async () => {
                   try {
                     const { data } = await base44.functions.invoke('scrapeSnapAV');
-                    alert(`Successfully imported ${data.productsFound} products from Portal.io`);
+                    alert(`Successfully imported ${data.productsFound} AV products from the web`);
                     window.location.reload();
                   } catch (error) {
                     console.error('Import error:', error);
                     const errorMsg = error.response?.data?.error || error.message;
-                    const details = error.response?.data?.response || '';
-                    alert(`Failed to import products: ${errorMsg}\n${details}`);
+                    alert(`Failed to import products: ${errorMsg}`);
                   }
                 }}
                 className="border-gray-700 text-gray-300 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Import from Portal.io
+                Import AV Products
               </Button>
               <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
                 <Button
