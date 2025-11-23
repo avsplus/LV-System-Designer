@@ -160,7 +160,7 @@ export default function CanvasProduct({
           </p>
         )}
 
-        {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && (
+        {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && networkInfo && (
           <div className="mt-3 pt-3 border-t border-gray-700 space-y-1">
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
