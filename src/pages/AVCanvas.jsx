@@ -868,13 +868,13 @@ export default function AVCanvas() {
 
                         const isHighlighted = highlightedConnections.includes(index);
 
-                      return (
-                        <ConnectionLine
-                          key={index}
-                          from={from}
-                          to={to}
-                          fromEdge={fromEdge}
-                          toEdge={toEdge}
+                        return (
+                          <ConnectionLine
+                            key={index}
+                            from={fromPoint}
+                            to={toPoint}
+                            fromEdge={fromEdge}
+                            toEdge={toEdge}
                           connectionType={connection.type}
                           waypoints={connection.waypoints}
                           isHighlighted={isHighlighted}
