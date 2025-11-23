@@ -741,7 +741,7 @@ export default function AVCanvas() {
       ],
       outputs: [
         { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
-        { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R", "Sub"] },
+        { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R", "Sub-1", "Sub-2"] },
         { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
         { type: "Optical", ports: ["Optical-Out"] }
       ]
