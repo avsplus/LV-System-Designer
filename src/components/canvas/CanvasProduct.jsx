@@ -207,7 +207,9 @@ export default function CanvasProduct({
         onClick,
         label,
         networkInfo,
-        onPortClick
+        onPortClick,
+        onPortDragStart,
+        onPortDragEnd
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -351,6 +353,18 @@ export default function CanvasProduct({
                   onPortClick(instanceId, point.type, point.port, true);
                 }
               }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                if (onPortDragStart) {
+                  onPortDragStart(instanceId, point.type, point.port, true, e.currentTarget);
+                }
+              }}
+              onMouseUp={(e) => {
+                e.stopPropagation();
+                if (onPortDragEnd) {
+                  onPortDragEnd(instanceId, point.type, point.port, true);
+                }
+              }}
             />
           ))}
         </div>
@@ -372,6 +386,18 @@ export default function CanvasProduct({
                   onPortClick(instanceId, point.type, point.port, false);
                 }
               }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                if (onPortDragStart) {
+                  onPortDragStart(instanceId, point.type, point.port, false, e.currentTarget);
+                }
+              }}
+              onMouseUp={(e) => {
+                e.stopPropagation();
+                if (onPortDragEnd) {
+                  onPortDragEnd(instanceId, point.type, point.port, false);
+                }
+              }}
             />
           ))}
         </div>
@@ -391,6 +417,18 @@ export default function CanvasProduct({
                 e.stopPropagation();
                 if (onPortClick) {
                   onPortClick(instanceId, point.type, point.port, point.isInput);
+                }
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                if (onPortDragStart) {
+                  onPortDragStart(instanceId, point.type, point.port, point.isInput, e.currentTarget);
+                }
+              }}
+              onMouseUp={(e) => {
+                e.stopPropagation();
+                if (onPortDragEnd) {
+                  onPortDragEnd(instanceId, point.type, point.port, point.isInput);
                 }
               }}
             />

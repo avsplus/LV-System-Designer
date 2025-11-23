@@ -27,6 +27,7 @@ export default function AVCanvas() {
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [spacePressed, setSpacePressed] = useState(false);
   const [dragMousePosition, setDragMousePosition] = useState(null);
+  const [draggingConnection, setDraggingConnection] = useState(null);
   const canvasRef = useRef(null);
 
   const { data: products = [], isLoading } = useQuery({
@@ -183,6 +184,69 @@ export default function AVCanvas() {
       setSelectedProduct(null);
       setSelectedCanvasProduct(null);
     }
+  };
+
+  const handlePortDragStart = (instanceId, connectionType, portName, isInput, portElement) => {
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+
+    const portRect = portElement.getBoundingClientRect();
+    const startPos = {
+      x: (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom,
+      y: (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom
+    };
+
+    setDraggingConnection({
+      fromInstanceId: instanceId,
+      fromType: connectionType,
+      fromPort: portName,
+      isFromInput: isInput,
+      startPos
+    });
+  };
+
+  const handlePortDragEnd = (instanceId, connectionType, portName, isInput) => {
+    if (!draggingConnection) return;
+
+    // Check if dragging from input to output or vice versa
+    const validDirection = draggingConnection.isFromInput !== isInput;
+    const sameType = draggingConnection.fromType === connectionType;
+
+    if (validDirection && sameType && draggingConnection.fromInstanceId !== instanceId) {
+      // Create connection
+      const fromId = draggingConnection.isFromInput ? instanceId : draggingConnection.fromInstanceId;
+      const toId = draggingConnection.isFromInput ? draggingConnection.fromInstanceId : instanceId;
+      const fromPort = draggingConnection.isFromInput ? portName : draggingConnection.fromPort;
+      const toPort = draggingConnection.isFromInput ? draggingConnection.fromPort : portName;
+
+      // Categorize connection types
+      const connectionCategories = {
+        'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
+        'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
+        'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
+        'Ethernet': 'N', 'USB': 'N',
+        'RS232': 'C', 'Control': 'C'
+      };
+      
+      const prefix = connectionCategories[connectionType] || 'W';
+      const existingOfType = connections.filter(c => {
+        const cPrefix = connectionCategories[c.type] || 'W';
+        return cPrefix === prefix;
+      }).length;
+      
+      const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
+
+      setConnections([...connections, {
+        from: fromId,
+        to: toId,
+        type: connectionType,
+        fromPort,
+        toPort,
+        wireId
+      }]);
+    }
+
+    setDraggingConnection(null);
   };
 
   const handleDeleteConnection = () => {
@@ -884,6 +948,18 @@ export default function AVCanvas() {
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ zIndex: 10 }}
+                  onMouseMove={(e) => {
+                    if (draggingConnection) {
+                      const canvasRect = canvasRef.current?.getBoundingClientRect();
+                      if (canvasRect) {
+                        const currentPos = {
+                          x: (e.clientX - canvasRect.left - pan.x) / zoom,
+                          y: (e.clientY - canvasRect.top - pan.y) / zoom
+                        };
+                        setDraggingConnection({ ...draggingConnection, currentPos });
+                      }
+                    }
+                  }}
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
@@ -997,6 +1073,8 @@ export default function AVCanvas() {
                           setSelectedConnection(null);
                         }}
                         onPortClick={handlePortClick}
+                        onPortDragStart={handlePortDragStart}
+                        onPortDragEnd={handlePortDragEnd}
                       />
                     );
                   })}
