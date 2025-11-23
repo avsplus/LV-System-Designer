@@ -432,40 +432,14 @@ export default function AVCanvas() {
     const timeDiff = Date.now() - (currentState.startTime || 0);
     console.log('🔴 Mouse up - time:', timeDiff, 'hoveredPort:', currentState.hoveredPort);
     
-    // Quick click - show connection details
+    // Quick click - show connection details using the originally clicked port
     if (timeDiff < 150) {
-      const canvasRect = canvasRef.current?.getBoundingClientRect();
-      if (!canvasRect) {
-        setConnectingState(null);
-        connectingStateRef.current = null;
-        setHoveredPortId(null);
-        return;
-      }
-
-      let closestPort = null;
-      let closestDistance = PORT_HIT_RADIUS * zoom;
-      
-      for (const [portId, portData] of portRefs.current.entries()) {
-        if (!portData.element) continue;
-        
-        const portRect = portData.element.getBoundingClientRect();
-        const portCenterX = portRect.left + portRect.width / 2;
-        const portCenterY = portRect.top + portRect.height / 2;
-        
-        const distance = Math.sqrt(
-          Math.pow(e.clientX - portCenterX, 2) + 
-          Math.pow(e.clientY - portCenterY, 2)
-        );
-        
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestPort = portData;
-        }
-      }
-
-      if (closestPort) {
-        handlePortClick(closestPort.instanceId, closestPort.connectionType, closestPort.portName, closestPort.isInput);
-      }
+      handlePortClick(
+        currentState.fromPort.instanceId, 
+        currentState.fromPort.connectionType, 
+        currentState.fromPort.portName, 
+        currentState.fromPort.isInput
+      );
       setConnectingState(null);
       connectingStateRef.current = null;
       setHoveredPortId(null);
