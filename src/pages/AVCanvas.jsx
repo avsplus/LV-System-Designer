@@ -799,10 +799,10 @@ export default function AVCanvas() {
                       
                       if (!from || !to) return null;
                       
-                      // Determine actual edge based on connection point position relative to card
+                      // Determine edges based on relative card positions (not connection points)
                       const cardWidth = 320;
                       const cardHeight = 280;
-                      
+
                       const fromCardCenter = {
                         x: fromProduct.position.x + cardWidth / 2,
                         y: fromProduct.position.y + cardHeight / 2
@@ -811,28 +811,36 @@ export default function AVCanvas() {
                         x: toProduct.position.x + cardWidth / 2,
                         y: toProduct.position.y + cardHeight / 2
                       };
-                      
-                      // Detect edge based on connection point position
+
+                      // Calculate relative position between cards
+                      const dx = toCardCenter.x - fromCardCenter.x;
+                      const dy = toCardCenter.y - fromCardCenter.y;
+
                       let fromEdge, toEdge;
-                      
-                      // From edge detection
-                      const fromDx = Math.abs(from.x - fromCardCenter.x);
-                      const fromDy = Math.abs(from.y - fromCardCenter.y);
-                      
-                      if (fromDx > fromDy) {
-                        fromEdge = from.x > fromCardCenter.x ? 'right' : 'left';
+
+                      // Determine edges based on which direction has more separation
+                      if (Math.abs(dx) > Math.abs(dy)) {
+                        // Horizontal separation is greater
+                        if (dx > 0) {
+                          // toCard is to the right of fromCard
+                          fromEdge = 'right';
+                          toEdge = 'left';
+                        } else {
+                          // toCard is to the left of fromCard
+                          fromEdge = 'left';
+                          toEdge = 'right';
+                        }
                       } else {
-                        fromEdge = from.y > fromCardCenter.y ? 'bottom' : 'top';
-                      }
-                      
-                      // To edge detection
-                      const toDx = Math.abs(to.x - toCardCenter.x);
-                      const toDy = Math.abs(to.y - toCardCenter.y);
-                      
-                      if (toDx > toDy) {
-                        toEdge = to.x > toCardCenter.x ? 'right' : 'left';
-                      } else {
-                        toEdge = to.y > toCardCenter.y ? 'bottom' : 'top';
+                        // Vertical separation is greater
+                        if (dy > 0) {
+                          // toCard is below fromCard
+                          fromEdge = 'bottom';
+                          toEdge = 'top';
+                        } else {
+                          // toCard is above fromCard
+                          fromEdge = 'top';
+                          toEdge = 'bottom';
+                        }
                       }
                       const isHighlighted = highlightedConnections.includes(index);
 
