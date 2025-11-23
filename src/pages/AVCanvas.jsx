@@ -159,7 +159,10 @@ export default function AVCanvas() {
     setSelectedCanvasProduct(null);
   };
 
-  const handlePortClick = (instanceId, connectionType, portName, isInput) => {
+  const handlePortClick = (instanceId, connectionType, portName, isInput, wasDragging) => {
+    // Don't handle click if this was a drag operation
+    if (wasDragging) return;
+    
     // Find the connection that uses this port
     const connectionIndex = connections.findIndex(conn => {
       if (isInput) {
