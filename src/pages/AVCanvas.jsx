@@ -488,11 +488,61 @@ export default function AVCanvas() {
     }
   };
 
-  // Calculate connection positions on every render to ensure they update with card positions
+  // Calculate connection positions and edges on every render
   const connectionPositions = connections.map((connection, index) => {
+    const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+    const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+
+    if (!fromProduct || !toProduct) return { fromPoint: null, toPoint: null, fromEdge: null, toEdge: null };
+
     const fromPoint = getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
     const toPoint = getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
-    return { fromPoint, toPoint };
+
+    // Determine edge based on where the port actually is relative to the card
+    let fromEdge = null, toEdge = null;
+
+    if (fromPoint) {
+      const cardWidth = 320;
+      const cardHeight = 280;
+      const fromLeft = fromProduct.position.x;
+      const fromRight = fromProduct.position.x + cardWidth;
+      const fromTop = fromProduct.position.y;
+      const fromBottom = fromProduct.position.y + cardHeight;
+
+      // Check which edge the port is closest to
+      const distToLeft = Math.abs(fromPoint.x - fromLeft);
+      const distToRight = Math.abs(fromPoint.x - fromRight);
+      const distToTop = Math.abs(fromPoint.y - fromTop);
+      const distToBottom = Math.abs(fromPoint.y - fromBottom);
+
+      const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+      if (minDist === distToLeft) fromEdge = 'left';
+      else if (minDist === distToRight) fromEdge = 'right';
+      else if (minDist === distToTop) fromEdge = 'top';
+      else fromEdge = 'bottom';
+    }
+
+    if (toPoint) {
+      const cardWidth = 320;
+      const cardHeight = 280;
+      const toLeft = toProduct.position.x;
+      const toRight = toProduct.position.x + cardWidth;
+      const toTop = toProduct.position.y;
+      const toBottom = toProduct.position.y + cardHeight;
+
+      const distToLeft = Math.abs(toPoint.x - toLeft);
+      const distToRight = Math.abs(toPoint.x - toRight);
+      const distToTop = Math.abs(toPoint.y - toTop);
+      const distToBottom = Math.abs(toPoint.y - toBottom);
+
+      const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+      if (minDist === distToLeft) toEdge = 'left';
+      else if (minDist === distToRight) toEdge = 'right';
+      else if (minDist === distToTop) toEdge = 'top';
+      else toEdge = 'bottom';
+    }
+
+    return { fromPoint, toPoint, fromEdge, toEdge };
   });
 
   const getProductEdgePoint = (fromId, toId, connectionIndex) => {
@@ -783,58 +833,40 @@ export default function AVCanvas() {
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                     {connections.map((connection, index) => {
-                      const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
-                      const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
-                      
-                      if (!fromProduct || !toProduct) return null;
-                      
-                      // Use memoized connection positions with fallback
-                      const { fromPoint, toPoint } = connectionPositions[index] || {};
-                      
-                      // Fallback to edge points if port positions aren't found
-                      const { from: fallbackFrom, to: fallbackTo } = getProductEdgePoint(connection.from, connection.to, index);
-                      
-                      const from = fromPoint || fallbackFrom;
-                      const to = toPoint || fallbackTo;
-                      
-                      if (!from || !to) return null;
-                      
-                      // Determine actual edge based on connection point position relative to card
-                      const cardWidth = 320;
-                      const cardHeight = 280;
+                        const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+                        const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
 
-                      const fromCardCenter = {
-                        x: fromProduct.position.x + cardWidth / 2,
-                        y: fromProduct.position.y + cardHeight / 2
-                      };
-                      const toCardCenter = {
-                        x: toProduct.position.x + cardWidth / 2,
-                        y: toProduct.position.y + cardHeight / 2
-                      };
+                        if (!fromProduct || !toProduct) return null;
 
-                      // Detect edge based on connection point position
-                      let fromEdge, toEdge;
+                        // Use pre-calculated positions and edges
+                        let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
 
-                      // From edge detection
-                      const fromDx = Math.abs(from.x - fromCardCenter.x);
-                      const fromDy = Math.abs(from.y - fromCardCenter.y);
+                        // Fallback to edge points if port positions aren't found
+                        if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
+                          const fallback = getProductEdgePoint(connection.from, connection.to, index);
+                          fromPoint = fromPoint || fallback.from;
+                          toPoint = toPoint || fallback.to;
 
-                      if (fromDx > fromDy) {
-                        fromEdge = from.x > fromCardCenter.x ? 'right' : 'left';
-                      } else {
-                        fromEdge = from.y > fromCardCenter.y ? 'bottom' : 'top';
-                      }
+                          // For fallback, determine edge from card positions
+                          if (!fromEdge || !toEdge) {
+                            const cardWidth = 320;
+                            const cardHeight = 280;
+                            const dx = toProduct.position.x - fromProduct.position.x;
+                            const dy = toProduct.position.y - fromProduct.position.y;
 
-                      // To edge detection
-                      const toDx = Math.abs(to.x - toCardCenter.x);
-                      const toDy = Math.abs(to.y - toCardCenter.y);
+                            if (Math.abs(dx) > Math.abs(dy)) {
+                              fromEdge = dx > 0 ? 'right' : 'left';
+                              toEdge = dx > 0 ? 'left' : 'right';
+                            } else {
+                              fromEdge = dy > 0 ? 'bottom' : 'top';
+                              toEdge = dy > 0 ? 'top' : 'bottom';
+                            }
+                          }
+                        }
 
-                      if (toDx > toDy) {
-                        toEdge = to.x > toCardCenter.x ? 'right' : 'left';
-                      } else {
-                        toEdge = to.y > toCardCenter.y ? 'bottom' : 'top';
-                      }
-                      const isHighlighted = highlightedConnections.includes(index);
+                        if (!fromPoint || !toPoint) return null;
+
+                        const isHighlighted = highlightedConnections.includes(index);
 
                       return (
                         <ConnectionLine
