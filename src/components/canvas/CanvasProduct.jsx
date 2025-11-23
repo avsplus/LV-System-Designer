@@ -162,7 +162,9 @@ export default function CanvasProduct({
           )}
         </div>
 
-        {['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers'].includes(product.category) && (
+        {((product.connections?.inputs?.some(input => input.type === "Ethernet") || 
+           product.connections?.outputs?.some(output => output.type === "Ethernet")) ||
+          ['av_receivers', 'surround_processors', 'matrix_switchers', 'video_distribution', 'audio_streamers', 'media_streamers', 'televisions', 'projectors', 'soundbars'].includes(product.category)) && (
           <div className="mt-auto pt-3 border-t border-gray-700 space-y-1 flex-shrink-0">
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
