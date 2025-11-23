@@ -210,7 +210,7 @@ const connectionsByCategory = {
 
 const normalizeType = (type) => type.toLowerCase().replace(/\//g, ' ').replace('toslink', '').trim();
 
-export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel, existingConnections }) {
+export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect, onCancel, existingConnections, pendingConnection }) {
   // Check if speaker already has a connection
   const isSpeaker = toProduct.category === 'speakers';
   const speakerHasConnection = isSpeaker && (existingConnections || []).some(
@@ -234,9 +234,11 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
     });
   });
 
-  const [selectedType, setSelectedType] = useState(compatibleTypes[0]?.type || "");
-  const [selectedFromPort, setSelectedFromPort] = useState("");
-  const [selectedToPort, setSelectedToPort] = useState("");
+  // Use pendingConnection if available to pre-select the correct ports
+  const defaultType = pendingConnection?.connectionType || compatibleTypes[0]?.type || "";
+  const [selectedType, setSelectedType] = useState(defaultType);
+  const [selectedFromPort, setSelectedFromPort] = useState(pendingConnection?.fromPortName || "");
+  const [selectedToPort, setSelectedToPort] = useState(pendingConnection?.toPortName || "");
 
   // Get ports that are already used
   const getUsedPorts = (instanceId, connectionType, isInput) => {

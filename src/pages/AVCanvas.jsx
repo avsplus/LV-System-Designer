@@ -223,12 +223,16 @@ export default function AVCanvas() {
     
     const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
     
+    // Use the pre-determined port names from pendingConnection if available
+    const fromPort = pendingConnection?.fromPortName || connectionData.fromPort;
+    const toPort = pendingConnection?.toPortName || connectionData.toPort;
+    
     setConnections([...connections, { 
       from: connectingFrom, 
       to: connectingTo,
       type: connectionData.type,
-      fromPort: connectionData.fromPort,
-      toPort: connectionData.toPort,
+      fromPort: fromPort,
+      toPort: toPort,
       wireId: wireId
     }]);
     setConnectingFrom(null);
@@ -364,7 +368,7 @@ export default function AVCanvas() {
       mousePos: startPos,
       startTime: Date.now()
     };
-    console.log('🔵 Started connecting from:', { instanceId, connectionType, portName, isInput, startPos });
+
     setConnectingState(newState);
     connectingStateRef.current = newState;
   };
@@ -383,27 +387,12 @@ export default function AVCanvas() {
     // Validate if this is a valid target port
     let validHitPort = null;
     if (hitPort) {
-      console.log('🟡 Hit test RAW:', { 
-        fromPortInstance: currentState.fromPort.instanceId,
-        fromPortInstanceType: typeof currentState.fromPort.instanceId,
-        hitPortInstance: hitPort.instanceId,
-        hitPortInstanceType: typeof hitPort.instanceId,
-        areEqual: currentState.fromPort.instanceId === hitPort.instanceId,
-        fromIsInput: currentState.fromPort.isInput,
-        hitIsInput: hitPort.isInput,
-        fromType: currentState.fromPort.connectionType,
-        hitType: hitPort.connectionType
-      });
-      
       const validDirection = currentState.fromPort.isInput !== hitPort.isInput;
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
       
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
-        console.log('✅ Valid target found:', validHitPort.portId);
-      } else {
-        console.log('❌ Invalid:', { needValidDirection: !validDirection, needSameType: !sameType, needDifferentDevice: !differentDevice });
       }
     }
 
@@ -432,7 +421,6 @@ export default function AVCanvas() {
     if (!currentState) return;
 
     const timeDiff = Date.now() - (currentState.startTime || 0);
-    console.log('🔴 Mouse up - time:', timeDiff, 'hoveredPort:', currentState.hoveredPort);
 
     // Quick click - show connection details using the originally clicked port
     if (timeDiff < 150) {
@@ -453,10 +441,11 @@ export default function AVCanvas() {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
 
-      console.log('🟢 Opening connection dialog:', { fromPort, toPort });
-
+      // Determine correct from/to based on port directions
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
+      const fromPortName = fromPort.isInput ? toPort.portName : fromPort.portName;
+      const toPortName = fromPort.isInput ? fromPort.portName : toPort.portName;
 
       // Check if target device is a speaker/subwoofer and already has a connection
       const targetDevice = canvasProducts.find(cp => cp.instanceId === toId);
@@ -465,7 +454,6 @@ export default function AVCanvas() {
       if (isEndpointDevice) {
         const existingConnection = connections.find(c => c.to === toId);
         if (existingConnection) {
-          console.log('❌ Speaker/subwoofer already has a connection');
           setConnectingState(null);
           connectingStateRef.current = null;
           setHoveredPortId(null);
@@ -473,12 +461,18 @@ export default function AVCanvas() {
         }
       }
 
+      // Store pending connection info
+      setPendingConnection({
+        fromId,
+        toId,
+        fromPortName,
+        toPortName,
+        connectionType: fromPort.connectionType
+      });
+
       // Set connecting states to trigger the dialog
       setConnectingFrom(fromId);
       setConnectingTo(toId);
-      setPendingConnection(null);
-    } else {
-      console.log('❌ No hovered port - connection cancelled');
     }
 
     setConnectingState(null);
@@ -756,11 +750,8 @@ export default function AVCanvas() {
 
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
     // Use registered port refs for accurate positioning
-    // isOutput means we're looking for an output port (should use isInput=false in portId)
     const portId = getPortId(instanceId, connectionType, portName, !isOutput);
     const portData = portRefs.current.get(portId);
-
-    console.log('🔍 Looking up port:', { instanceId, connectionType, portName, isOutput, portId, found: !!portData });
 
     if (portData && portData.element) {
       const portRect = portData.element.getBoundingClientRect();
@@ -770,15 +761,10 @@ export default function AVCanvas() {
         // Get center of the port dot in canvas coordinates, accounting for zoom and pan
         const x = (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom;
         const y = (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom;
-        console.log('✅ Port position found:', { x, y });
         return { x, y };
       }
     }
 
-    console.warn('❌ Port not found in refs!', { 
-      portId, 
-      availablePortIds: Array.from(portRefs.current.keys()).filter(id => id.includes(instanceId))
-    });
     return null;
   };
 
@@ -1406,6 +1392,7 @@ export default function AVCanvas() {
             fromProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product, instanceId: connectingFrom }}
             toProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product, instanceId: connectingTo }}
             existingConnections={connections}
+            pendingConnection={pendingConnection}
             onSelect={handleConnectionTypeSelect}
             onCancel={() => {
               setConnectingFrom(null);
