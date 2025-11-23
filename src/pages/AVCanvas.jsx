@@ -556,6 +556,72 @@ export default function AVCanvas() {
                 <Plus className="w-4 h-4 mr-2" />
                 Import AV Products
               </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!confirm('This will update connection information for all products. Continue?')) return;
+
+                  try {
+                    const allProducts = await base44.entities.AVProduct.list();
+                    let updated = 0;
+
+                    for (const product of allProducts) {
+                      try {
+                        const connectionInfo = await base44.integrations.Core.InvokeLLM({
+                          prompt: `For the ${product.brand} ${product.model} (category: ${product.category}), provide the exact input and output connections available on this specific device. Be accurate and specific to this model.
+
+              Return the connection types and their specific port labels as they appear on the actual device.`,
+                          add_context_from_internet: true,
+                          response_json_schema: {
+                            type: "object",
+                            properties: {
+                              inputs: {
+                                type: "array",
+                                items: {
+                                  type: "object",
+                                  properties: {
+                                    type: { type: "string" },
+                                    ports: { type: "array", items: { type: "string" } }
+                                  }
+                                }
+                              },
+                              outputs: {
+                                type: "array",
+                                items: {
+                                  type: "object",
+                                  properties: {
+                                    type: { type: "string" },
+                                    ports: { type: "array", items: { type: "string" } }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        });
+
+                        await base44.entities.AVProduct.update(product.id, {
+                          specs: {
+                            ...product.specs,
+                            connections: connectionInfo
+                          }
+                        });
+                        updated++;
+                      } catch (error) {
+                        console.error(`Failed to update ${product.brand} ${product.model}:`, error);
+                      }
+                    }
+
+                    alert(`Updated connection information for ${updated} products`);
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Update error:', error);
+                    alert(`Failed to update connections: ${error.message}`);
+                  }
+                }}
+                className="border-gray-700 text-gray-300 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500"
+              >
+                Update Connections
+              </Button>
               <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
                 <Button
                   size="icon"
