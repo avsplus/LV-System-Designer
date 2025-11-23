@@ -290,17 +290,15 @@ export default function CanvasProduct({
     "Wireless": "#7c3aed"
   };
 
-  // Get connection points with their types and port names
-  const getConnectionPoints = (connections, type) => {
+  // Get connection types (one dot per type, not per port)
+  const getConnectionTypes = (connections, type) => {
     if (!connections || !connections[type]) return [];
-    const points = [];
+    const types = [];
     connections[type].forEach(conn => {
       const color = connectionTypeColors[conn.type] || "#6b7280";
-      conn.ports?.forEach((port) => {
-        points.push({ type: conn.type, color, port });
-      });
+      types.push({ type: conn.type, color, ports: conn.ports || [] });
     });
-    return points;
+    return types;
   };
 
   // Merge enriched data with category defaults to ensure all connection types are shown
@@ -342,8 +340,8 @@ export default function CanvasProduct({
     ? { ...connections, outputs: [] }
     : connections;
 
-  const inputPoints = getConnectionPoints(finalConnections, 'inputs');
-  const outputPoints = getConnectionPoints(finalConnections, 'outputs');
+  const inputTypes = getConnectionTypes(finalConnections, 'inputs');
+  const outputTypes = getConnectionTypes(finalConnections, 'outputs');
 
   return (
     <div
@@ -364,30 +362,31 @@ export default function CanvasProduct({
       }`}
     >
       {/* Left edge connection points (inputs) */}
-      {inputPoints.length > 0 && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-2">
-          {inputPoints.slice(0, 6).map((point, i) => {
-            const portId = getPortId(instanceId, point.type, point.port, true);
+      {inputTypes.length > 0 && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-3">
+          {inputTypes.slice(0, 6).map((connType, i) => {
+            const portId = getPortId(instanceId, connType.type, 'type', true);
             const isHovered = hoveredPortId === portId;
             const isConnecting = connectingFromPortId === portId;
             return (
               <div 
                 key={i}
-                ref={(el) => registerPort(portId, el, instanceId, point.type, point.port, true)}
-                className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-all ${
+                ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', true)}
+                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all ${
                   isConnecting ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125'
                 }`}
-                style={{ backgroundColor: point.color }}
+                style={{ backgroundColor: connType.color }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="input"
+                title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                   if (onPortMouseDown) {
-                    onPortMouseDown(instanceId, point.type, point.port, true, e.currentTarget);
+                    onPortMouseDown(instanceId, connType.type, 'type', true, e.currentTarget);
                   }
                 }}
               />
@@ -397,30 +396,31 @@ export default function CanvasProduct({
       )}
 
       {/* Right edge connection points (outputs) */}
-      {outputPoints.length > 0 && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-2">
-          {outputPoints.slice(0, 6).map((point, i) => {
-            const portId = getPortId(instanceId, point.type, point.port, false);
+      {outputTypes.length > 0 && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-3">
+          {outputTypes.slice(0, 6).map((connType, i) => {
+            const portId = getPortId(instanceId, connType.type, 'type', false);
             const isHovered = hoveredPortId === portId;
             const isConnecting = connectingFromPortId === portId;
             return (
               <div 
                 key={i}
-                ref={(el) => registerPort(portId, el, instanceId, point.type, point.port, false)}
-                className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-all ${
+                ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', false)}
+                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all ${
                   isConnecting ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125'
                 }`}
-                style={{ backgroundColor: point.color }}
+                style={{ backgroundColor: connType.color }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="output"
+                title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                   if (onPortMouseDown) {
-                    onPortMouseDown(instanceId, point.type, point.port, false, e.currentTarget);
+                    onPortMouseDown(instanceId, connType.type, 'type', false, e.currentTarget);
                   }
                 }}
               />
@@ -430,30 +430,31 @@ export default function CanvasProduct({
       )}
 
       {/* Top edge connection points (for overflow) */}
-      {(inputPoints.length > 6 || outputPoints.length > 6) && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2">
-          {[...inputPoints.slice(6).map(p => ({...p, isInput: true})), ...outputPoints.slice(6).map(p => ({...p, isInput: false}))].slice(0, 8).map((point, i) => {
-            const portId = getPortId(instanceId, point.type, point.port, point.isInput);
+      {(inputTypes.length > 6 || outputTypes.length > 6) && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-3">
+          {[...inputTypes.slice(6).map(t => ({...t, isInput: true})), ...outputTypes.slice(6).map(t => ({...t, isInput: false}))].slice(0, 8).map((connType, i) => {
+            const portId = getPortId(instanceId, connType.type, 'type', connType.isInput);
             const isHovered = hoveredPortId === portId;
             const isConnecting = connectingFromPortId === portId;
             return (
               <div 
                 key={i}
-                ref={(el) => registerPort(portId, el, instanceId, point.type, point.port, point.isInput)}
-                className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-all ${
+                ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', connType.isInput)}
+                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all ${
                   isConnecting ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125'
                 }`}
-                style={{ backgroundColor: point.color }}
+                style={{ backgroundColor: connType.color }}
                 data-port-id={portId}
                 data-port-index={i + 6}
-                data-port-type={point.isInput ? "input" : "output"}
+                data-port-type={connType.isInput ? "input" : "output"}
+                title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                   if (onPortMouseDown) {
-                    onPortMouseDown(instanceId, point.type, point.port, point.isInput, e.currentTarget);
+                    onPortMouseDown(instanceId, connType.type, 'type', connType.isInput, e.currentTarget);
                   }
                 }}
               />
