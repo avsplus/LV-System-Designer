@@ -13,91 +13,124 @@ Deno.serve(async (req) => {
         const username = Deno.env.get('PORTAL_IO_USERNAME');
         const password = Deno.env.get('PORTAL_IO_PASSWORD');
 
-        // Login to portal.io
-        const loginResponse = await fetch('https://portal.io/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        });
-
-        const loginText = await loginResponse.text();
-
-        if (!loginResponse.ok) {
+        // Authenticate and get user API key from Portal.io API
+        const apiAppId = Deno.env.get('PORTAL_IO_APP_ID');
+        const apiSecret = Deno.env.get('PORTAL_IO_API_SECRET');
+        
+        if (!apiAppId || !apiSecret) {
             return Response.json({ 
-                error: 'Failed to login to Portal.io', 
-                status: loginResponse.status,
-                response: loginText 
+                error: 'Missing Portal.io API credentials. Please set PORTAL_IO_APP_ID and PORTAL_IO_API_SECRET' 
             }, { status: 401 });
         }
 
-        // Extract cookies from login
-        const cookies = loginResponse.headers.get('set-cookie') || '';
+        // Create signature for authentication
+        const timestamp = new Date().toUTCString();
+        const signatureString = `GEThttps://sandbox.api.portal.io/authenticate/apikeyexchange${timestamp}`;
+        
+        const encoder = new TextEncoder();
+        const key = await crypto.subtle.importKey(
+            'raw',
+            encoder.encode(apiSecret),
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['sign']
+        );
+        const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(signatureString));
+        const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
 
-        // Fetch the products page with authentication
-        const response = await fetch('https://portal.io/products', {
+        // Get user API key
+        const authResponse = await fetch(
+            `https://sandbox.api.portal.io/authenticate/apikeyexchange?Username=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}`,
+            {
+                headers: {
+                    'X-MSS-API-APPID': apiAppId,
+                    'X-MSS-CUSTOM-DATE': timestamp,
+                    'X-MSS-SIGNATURE': signatureBase64,
+                },
+            }
+        );
+
+        if (!authResponse.ok) {
+            const errorText = await authResponse.text();
+            return Response.json({ 
+                error: 'Failed to authenticate with Portal.io API', 
+                status: authResponse.status,
+                response: errorText 
+            }, { status: 401 });
+        }
+
+        const authData = await authResponse.json();
+        const userApiKey = authData.UserKey;
+
+        // Get catalog items
+        const catalogTimestamp = new Date().toUTCString();
+        const catalogSignature = `GEThttps://sandbox.api.portal.io/catalog${catalogTimestamp}${userApiKey}`;
+        
+        const catalogKey = await crypto.subtle.importKey(
+            'raw',
+            encoder.encode(apiSecret),
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['sign']
+        );
+        const catalogSig = await crypto.subtle.sign('HMAC', catalogKey, encoder.encode(catalogSignature));
+        const catalogSigBase64 = btoa(String.fromCharCode(...new Uint8Array(catalogSig)));
+
+        const catalogResponse = await fetch('https://sandbox.api.portal.io/catalog', {
             headers: {
-                'Cookie': cookies,
+                'Accept': 'application/json',
+                'X-MSS-API-APPID': apiAppId,
+                'X-MSS-CUSTOM-DATE': catalogTimestamp,
+                'X-MSS-SIGNATURE': catalogSigBase64,
+                'X-MSS-API-USERKEY': userApiKey,
             },
         });
-        const html = await response.text();
-        const $ = cheerio.load(html);
+
+        if (!catalogResponse.ok) {
+            const errorText = await catalogResponse.text();
+            return Response.json({ 
+                error: 'Failed to fetch catalog from Portal.io', 
+                status: catalogResponse.status,
+                response: errorText 
+            }, { status: 500 });
+        }
+
+        const catalogData = await catalogResponse.json();
 
         const products = [];
 
-        // Parse product listings - this selector may need adjustment based on actual site structure
-        $('.product-item, .product-card, [data-product]').each((i, element) => {
-            const $elem = $(element);
-            
-            const brand = $elem.find('.brand, .product-brand').text().trim() || 'SnapAV';
-            const model = $elem.find('.model, .product-name, .product-title, h3, h4').first().text().trim();
-            const price = $elem.find('.price, .product-price').first().text().replace(/[^0-9.]/g, '');
-            const image = $elem.find('img').first().attr('src');
-            const description = $elem.find('.description, .product-description').first().text().trim();
-            
-            // Try to determine category from product name or class
-            let category = 'receivers';
-            const productText = (model + ' ' + description).toLowerCase();
-            if (productText.includes('speaker')) category = 'speakers';
-            else if (productText.includes('amplifier') || productText.includes('amp')) category = 'amplifiers';
-            else if (productText.includes('subwoofer') || productText.includes('sub')) category = 'subwoofers';
-            else if (productText.includes('dac')) category = 'dacs';
-            else if (productText.includes('streamer')) category = 'streamers';
-            else if (productText.includes('processor')) category = 'processors';
-            else if (productText.includes('cable')) category = 'cables';
-            else if (productText.includes('microphone') || productText.includes('mic')) category = 'microphones';
-            else if (productText.includes('mixer')) category = 'mixers';
+        // Parse catalog items from Portal.io API
+        if (catalogData.items && Array.isArray(catalogData.items)) {
+            catalogData.items.forEach(item => {
+                const brand = item.brand || item.manufacturer || 'Unknown';
+                const model = item.name || item.model || 'Unknown Model';
+                const description = item.description || '';
+                const price = item.retailPrice || item.price || null;
+                const imageUrl = item.imageUrl || item.image || null;
+                
+                // Determine category
+                let category = 'receivers';
+                const productText = (model + ' ' + description + ' ' + brand).toLowerCase();
+                if (productText.includes('speaker')) category = 'speakers';
+                else if (productText.includes('amplifier') || productText.includes('amp')) category = 'amplifiers';
+                else if (productText.includes('subwoofer') || productText.includes('sub')) category = 'subwoofers';
+                else if (productText.includes('dac')) category = 'dacs';
+                else if (productText.includes('streamer')) category = 'streamers';
+                else if (productText.includes('processor')) category = 'processors';
+                else if (productText.includes('cable') || productText.includes('wire')) category = 'cables';
+                else if (productText.includes('microphone') || productText.includes('mic')) category = 'microphones';
+                else if (productText.includes('mixer')) category = 'mixers';
+                else if (productText.includes('turntable')) category = 'turntables';
+                else if (productText.includes('headphone')) category = 'headphones';
 
-            if (model) {
                 products.push({
                     brand,
                     model,
                     category,
                     description,
                     price: price ? parseFloat(price) : null,
-                    image_url: image ? (image.startsWith('http') ? image : `https://www.snapav.com${image}`) : null
+                    image_url: imageUrl
                 });
-            }
-        });
-
-        // If no products found with above selectors, try alternative approach
-        if (products.length === 0) {
-            $('a[href*="/product/"], a[href*="/shop/"]').each((i, element) => {
-                const $elem = $(element);
-                const text = $elem.text().trim();
-                const href = $elem.attr('href');
-                
-                if (text && text.length > 3 && text.length < 200) {
-                    products.push({
-                        brand: 'SnapAV',
-                        model: text,
-                        category: 'receivers',
-                        description: `Product from ${href}`,
-                        price: null,
-                        image_url: null
-                    });
-                }
             });
         }
 
