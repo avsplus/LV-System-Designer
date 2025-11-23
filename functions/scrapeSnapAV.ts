@@ -10,8 +10,31 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Fetch the main products page
-        const response = await fetch('https://www.snapav.com/shop/en/snapav');
+        const username = Deno.env.get('PORTAL_IO_USERNAME');
+        const password = Deno.env.get('PORTAL_IO_PASSWORD');
+
+        // Login to portal.io
+        const loginResponse = await fetch('https://portal.io/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+
+        if (!loginResponse.ok) {
+            return Response.json({ error: 'Failed to login to Portal.io' }, { status: 401 });
+        }
+
+        // Extract cookies from login
+        const cookies = loginResponse.headers.get('set-cookie') || '';
+
+        // Fetch the products page with authentication
+        const response = await fetch('https://portal.io/products', {
+            headers: {
+                'Cookie': cookies,
+            },
+        });
         const html = await response.text();
         const $ = cheerio.load(html);
 
@@ -86,7 +109,7 @@ Deno.serve(async (req) => {
     } catch (error) {
         return Response.json({ 
             error: error.message,
-            details: 'Failed to scrape SnapAV website. The site structure may have changed.'
+            details: 'Failed to scrape Portal.io. Please check your credentials or the site structure may have changed.'
         }, { status: 500 });
     }
 });
