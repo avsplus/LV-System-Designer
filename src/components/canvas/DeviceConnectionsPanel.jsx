@@ -284,9 +284,27 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
         <div className="bg-gray-800 rounded-lg p-4">
           <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
           <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
-          <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">
-            {productData.category.charAt(0).toUpperCase() + productData.category.slice(1)}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <div className={`w-5 h-5 rounded ${
+              {
+                televisions: "bg-blue-500",
+                projectors: "bg-purple-500",
+                projector_screens: "bg-indigo-500",
+                video_distribution: "bg-cyan-500",
+                matrix_switchers: "bg-teal-500",
+                audio_streamers: "bg-pink-500",
+                media_streamers: "bg-rose-500",
+                speakers: "bg-green-500",
+                soundbars: "bg-lime-500",
+                subwoofers: "bg-red-500",
+                stereo_amps: "bg-orange-500",
+                multizone_amps: "bg-amber-500",
+                surround_processors: "bg-yellow-500",
+                av_receivers: "bg-emerald-500"
+              }[productData.category]
+            }`}></div>
+            <span className="text-sm text-gray-300 capitalize">{productData.category.replace(/_/g, ' ')}</span>
+          </div>
         </div>
 
         <div>
