@@ -83,18 +83,7 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
           <p className="text-sm text-gray-500 mb-2">Wire Label</p>
           <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
             <p className="text-lg font-mono font-bold text-white">
-              {(() => {
-                // Count connections between same two devices
-                const sameDeviceConnections = allConnections.filter(
-                  c => (c.from === connection.from && c.to === connection.to) ||
-                       (c.from === connection.to && c.to === connection.from)
-                );
-                const connectionNumber = sameDeviceConnections.findIndex(c => c === connection) + 1;
-                // Extract device numbers from labels (e.g., "Sony 1" -> "1")
-                const fromNum = fromLabel?.match(/\d+$/)?.[0] || '?';
-                const toNum = toLabel?.match(/\d+$/)?.[0] || '?';
-                return `${fromNum}-${toNum}-${connectionNumber}`;
-              })()}
+              {connection.wireId || `W${allConnections.indexOf(connection) + 1}`}
             </p>
             <p className="text-xs text-gray-500 mt-1">Wire identifier</p>
           </div>
