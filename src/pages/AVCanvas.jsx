@@ -362,6 +362,7 @@ export default function AVCanvas() {
       mousePos: startPos,
       startTime: Date.now()
     };
+    console.log('🔵 Started connecting from:', { instanceId, connectionType, portName, isInput, startPos });
     setConnectingState(newState);
     connectingStateRef.current = newState;
   };
@@ -384,8 +385,20 @@ export default function AVCanvas() {
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
       
+      console.log('🟡 Hit test:', { 
+        hitPort: hitPort.portId,
+        validDirection, 
+        sameType, 
+        differentDevice,
+        fromIsInput: currentState.fromPort.isInput,
+        hitIsInput: hitPort.isInput,
+        fromType: currentState.fromPort.connectionType,
+        hitType: hitPort.connectionType
+      });
+      
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
+        console.log('✅ Valid target found:', validHitPort.portId);
       }
     }
 
@@ -414,6 +427,7 @@ export default function AVCanvas() {
     if (!currentState) return;
 
     const timeDiff = Date.now() - (currentState.startTime || 0);
+    console.log('🔴 Mouse up - time:', timeDiff, 'hoveredPort:', currentState.hoveredPort);
     
     // Quick click - show connection details
     if (timeDiff < 150) {
@@ -460,6 +474,8 @@ export default function AVCanvas() {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
       
+      console.log('🟢 Creating connection:', { fromPort, toPort });
+      
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
       const fromPortName = fromPort.isInput ? toPort.portName : fromPort.portName;
@@ -483,15 +499,20 @@ export default function AVCanvas() {
         
         const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
 
-        return [...prevConnections, {
+        const newConnection = {
           from: fromId,
           to: toId,
           type: toPort.connectionType,
           fromPort: fromPortName,
           toPort: toPortName,
           wireId
-        }];
+        };
+        
+        console.log('✨ Connection created:', newConnection);
+        return [...prevConnections, newConnection];
       });
+    } else {
+      console.log('❌ No hovered port - connection cancelled');
     }
 
     setConnectingState(null);
