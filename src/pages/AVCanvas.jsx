@@ -392,13 +392,20 @@ export default function AVCanvas() {
         differentDevice,
         fromIsInput: currentState.fromPort.isInput,
         hitIsInput: hitPort.isInput,
-        fromType: currentState.fromPort.connectionType,
-        hitType: hitPort.connectionType
+        fromType: `"${currentState.fromPort.connectionType}"`,
+        hitType: `"${hitPort.connectionType}"`,
+        fromTypeLength: currentState.fromPort.connectionType?.length,
+        hitTypeLength: hitPort.connectionType?.length,
+        typesMatch: currentState.fromPort.connectionType === hitPort.connectionType,
+        fromInstance: currentState.fromPort.instanceId,
+        hitInstance: hitPort.instanceId
       });
       
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
         console.log('✅ Valid target found:', validHitPort.portId);
+      } else {
+        console.log('❌ Invalid:', { needValidDirection: !validDirection, needSameType: !sameType, needDifferentDevice: !differentDevice });
       }
     }
 
