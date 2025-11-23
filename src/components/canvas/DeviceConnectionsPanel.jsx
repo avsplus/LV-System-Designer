@@ -254,11 +254,18 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
       const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
       if (!isCorrectDirection || conn.type !== connectionType) return;
 
-      const port = isInput ? conn.toPort : conn.fromPort;
-      console.log('Checking port:', port, 'in', ports, 'includes:', ports.includes(port));
-      if (port && ports.includes(port)) used.add(port);
+      const connPort = isInput ? conn.toPort : conn.fromPort;
+      if (!connPort) return;
+      
+      // Find matching port - exact match or fuzzy match (e.g., "Front-L" matches "Speaker-Front-Left")
+      const matchingPort = ports.find(p => {
+        const pNorm = p.toLowerCase().replace(/[-_]/g, '');
+        const cNorm = connPort.toLowerCase().replace(/[-_]/g, '');
+        return p === connPort || pNorm.includes(cNorm) || cNorm.includes(pNorm);
+      });
+      
+      if (matchingPort) used.add(matchingPort);
     });
-    console.log(`Used ports for ${connectionType} (${isInput ? 'input' : 'output'}):`, used);
     return used;
   };
   
