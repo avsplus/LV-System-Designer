@@ -82,7 +82,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       )}
                       <Badge className={`${categoryColors[category]} border text-xs`}>
-                        {category}
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
                       </Badge>
                       <span className="text-xs text-gray-500">({categoryProducts.length})</span>
                     </div>
