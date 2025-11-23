@@ -429,198 +429,23 @@ export default function AVCanvas() {
               </p>
             </div>
             <div className="flex gap-2">
-              <input
-                type="file"
-                id="product-upload"
-                accept=".csv"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-
-                  try {
-                    // Upload file
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
-                    // Extract data from file
-                    const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-                      file_url,
-                      json_schema: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            brand: { type: "string" },
-                            model: { type: "string" },
-                            category: { type: "string" },
-                            description: { type: "string" },
-                            price: { type: "number" },
-                            image_url: { type: "string" }
-                          },
-                          required: ["brand", "model", "category"]
-                        }
-                      }
-                    });
-
-                    if (result.status === 'error') {
-                      alert(`Failed to extract data: ${result.details}`);
-                      return;
-                    }
-
-                    // Delete existing duplicates and import new products
-                    if (result.output && result.output.length > 0) {
-                      // Get all model numbers from the upload
-                      const modelNumbers = result.output.map(p => p.model).filter(Boolean);
-
-                      // Delete any existing products with these model numbers
-                      const existingProducts = await base44.entities.AVProduct.list();
-                      const duplicates = existingProducts.filter(p => modelNumbers.includes(p.model));
-
-                      if (duplicates.length > 0) {
-                        for (const duplicate of duplicates) {
-                          await base44.entities.AVProduct.delete(duplicate.id);
-                        }
-                      }
-
-                      // Enrich products with specific connection information
-                      const enrichedProducts = await Promise.all(
-                        result.output.map(async (product) => {
-                          try {
-                            const connectionInfo = await base44.integrations.Core.InvokeLLM({
-                              prompt: `For the ${product.brand} ${product.model} (category: ${product.category}), provide the exact input and output connections available on this specific device. Be accurate and specific to this model.
-
-                    Return the connection types and their specific port labels as they appear on the actual device.`,
-                              add_context_from_internet: true,
-                              response_json_schema: {
-                                type: "object",
-                                properties: {
-                                  inputs: {
-                                    type: "array",
-                                    items: {
-                                      type: "object",
-                                      properties: {
-                                        type: { type: "string" },
-                                        ports: { type: "array", items: { type: "string" } }
-                                      }
-                                    }
-                                  },
-                                  outputs: {
-                                    type: "array",
-                                    items: {
-                                      type: "object",
-                                      properties: {
-                                        type: { type: "string" },
-                                        ports: { type: "array", items: { type: "string" } }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            });
-
-                            return {
-                              ...product,
-                              specs: {
-                                ...product.specs,
-                                connections: connectionInfo
-                              }
-                            };
-                          } catch (error) {
-                            console.error(`Failed to enrich ${product.brand} ${product.model}:`, error);
-                            return product;
-                          }
-                        })
-                      );
-
-                      await base44.entities.AVProduct.bulkCreate(enrichedProducts);
-                      const msg = duplicates.length > 0 
-                        ? `Replaced ${duplicates.length} duplicate(s) and imported ${enrichedProducts.length} products`
-                        : `Successfully imported ${enrichedProducts.length} products`;
-                      alert(msg);
-                      window.location.reload();
-                    } else {
-                      alert('No products found in file');
-                    }
-                  } catch (error) {
-                    console.error('Import error:', error);
-                    alert(`Failed to import products: ${error.message}`);
-                  }
-                  e.target.value = '';
-                }}
-              />
               <Button
                 variant="outline"
-                onClick={() => document.getElementById('product-upload').click()}
+                onClick={async () => {
+                  try {
+                    const { data } = await base44.functions.invoke('scrapeSnapAV');
+                    alert(`Successfully imported ${data.productsFound} AV products from the web`);
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Import error:', error);
+                    const errorMsg = error.response?.data?.error || error.message;
+                    alert(`Failed to import products: ${errorMsg}`);
+                  }
+                }}
                 className="border-gray-700 text-gray-300 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Import AV Products
-              </Button>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  if (!confirm('This will update connection information for all products. Continue?')) return;
-
-                  try {
-                    const allProducts = await base44.entities.AVProduct.list();
-                    let updated = 0;
-
-                    for (const product of allProducts) {
-                      try {
-                        const connectionInfo = await base44.integrations.Core.InvokeLLM({
-                          prompt: `For the ${product.brand} ${product.model} (category: ${product.category}), provide the exact input and output connections available on this specific device. Be accurate and specific to this model.
-
-              Return the connection types and their specific port labels as they appear on the actual device.`,
-                          add_context_from_internet: true,
-                          response_json_schema: {
-                            type: "object",
-                            properties: {
-                              inputs: {
-                                type: "array",
-                                items: {
-                                  type: "object",
-                                  properties: {
-                                    type: { type: "string" },
-                                    ports: { type: "array", items: { type: "string" } }
-                                  }
-                                }
-                              },
-                              outputs: {
-                                type: "array",
-                                items: {
-                                  type: "object",
-                                  properties: {
-                                    type: { type: "string" },
-                                    ports: { type: "array", items: { type: "string" } }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        });
-
-                        await base44.entities.AVProduct.update(product.id, {
-                          specs: {
-                            ...product.specs,
-                            connections: connectionInfo
-                          }
-                        });
-                        updated++;
-                      } catch (error) {
-                        console.error(`Failed to update ${product.brand} ${product.model}:`, error);
-                      }
-                    }
-
-                    alert(`Updated connection information for ${updated} products`);
-                    window.location.reload();
-                  } catch (error) {
-                    console.error('Update error:', error);
-                    alert(`Failed to update connections: ${error.message}`);
-                  }
-                }}
-                className="border-gray-700 text-gray-300 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500"
-              >
-                Update Connections
               </Button>
               <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
                 <Button

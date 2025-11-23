@@ -164,11 +164,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
   
   const instanceId = product.instanceId;
   const productData = product.product || product;
-  
-  // Use device-specific connections if available, otherwise fall back to category defaults
-  const connections = productData.specs?.connections || 
-    connectionsByCategory[productData.category] || 
-    { inputs: [], outputs: [], description: "" };
+  const connections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
   
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(
