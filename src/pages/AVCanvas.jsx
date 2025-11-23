@@ -300,9 +300,11 @@ export default function AVCanvas() {
     if (!canvasRect) return null;
     
     let closestPort = null;
-    let closestDistance = PORT_HIT_RADIUS;
+    let closestDistance = PORT_HIT_RADIUS * zoom; // Scale radius by zoom
     
     for (const [portId, portData] of portRefs.current.entries()) {
+      if (!portData.element) continue;
+      
       const portRect = portData.element.getBoundingClientRect();
       const portCenterX = portRect.left + portRect.width / 2;
       const portCenterY = portRect.top + portRect.height / 2;
