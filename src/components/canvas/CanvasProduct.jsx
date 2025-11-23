@@ -97,7 +97,7 @@ export default function CanvasProduct({
         willChange: isDragging ? 'transform' : 'auto',
         transition: isDragging ? 'none' : 'border-color 0.15s ease'
       }}
-      className={`w-64 bg-gray-800 border-2 rounded-xl p-4 cursor-move ${
+      className={`w-64 h-[200px] bg-gray-800 border-2 rounded-xl p-4 cursor-move overflow-hidden ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
