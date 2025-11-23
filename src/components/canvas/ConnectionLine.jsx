@@ -95,11 +95,11 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
       } else if (fromIsHorizontal && !toIsHorizontal) {
         // From horizontal to vertical: go horizontal first, then vertical
-        const corner1 = { x: fromStandoff.x, y: toStandoff.y };
+        const corner1 = { x: toStandoff.x, y: fromStandoff.y };
         path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       } else {
         // From vertical to horizontal: go vertical first, then horizontal
-        const corner1 = { x: toStandoff.x, y: fromStandoff.y };
+        const corner1 = { x: fromStandoff.x, y: toStandoff.y };
         path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
       }
 
