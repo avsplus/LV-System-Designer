@@ -406,7 +406,6 @@ export default function AVCanvas() {
     
     // If the requested connection type doesn't exist, fall back to defaults
     if (!hasRequestedType) {
-      console.log(`Connection type "${connectionType}" not found in enriched data, falling back to category defaults`);
       connections = defaultConnections;
     }
 
@@ -431,15 +430,9 @@ export default function AVCanvas() {
     // Find the index of our specific connection
     const pointIndex = allPoints.findIndex(p => p.type === connectionType && p.port === portName);
     
-    console.log(`Looking for ${isOutput ? 'output' : 'input'} "${connectionType}" port "${portName}" on ${product.brand}`);
-    console.log('All available points:', allPoints);
-    console.log('Match found:', pointIndex !== -1);
-    
     if (pointIndex === -1) {
-      console.log('❌ Point not found!');
       return null;
     }
-    console.log('✅ Point found at index:', pointIndex);
 
     const baseX = canvasProduct.position.x;
     const baseY = canvasProduct.position.y;
@@ -502,9 +495,6 @@ export default function AVCanvas() {
     // Get exact connection point positions
     const fromPoint = getConnectionPointPosition(fromId, connection.type, connection.fromPort, true);
     const toPoint = getConnectionPointPosition(toId, connection.type, connection.toPort, false);
-
-    console.log('Connection:', connection);
-    console.log('From point:', fromPoint, 'To point:', toPoint);
 
     if (fromPoint && toPoint) {
       return { from: fromPoint, to: toPoint };
