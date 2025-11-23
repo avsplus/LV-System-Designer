@@ -790,27 +790,43 @@ export default function AVCanvas() {
                       
                       if (!fromProduct || !toProduct) return null;
                       
-                      const fromCenter = {
-                        x: fromProduct.position.x + 128,
-                        y: fromProduct.position.y + 80
-                      };
-                      const toCenter = {
-                        x: toProduct.position.x + 128,
-                        y: toProduct.position.y + 80
-                      };
-                      const dx = toCenter.x - fromCenter.x;
-                      const dy = toCenter.y - fromCenter.y;
+                      const { from, to } = getProductEdgePoint(connection.from, connection.to, index);
                       
+                      // Determine actual edge based on connection point position relative to card
+                      const cardWidth = 320;
+                      const cardHeight = 280;
+                      
+                      const fromCardCenter = {
+                        x: fromProduct.position.x + cardWidth / 2,
+                        y: fromProduct.position.y + cardHeight / 2
+                      };
+                      const toCardCenter = {
+                        x: toProduct.position.x + cardWidth / 2,
+                        y: toProduct.position.y + cardHeight / 2
+                      };
+                      
+                      // Detect edge based on connection point position
                       let fromEdge, toEdge;
-                      if (Math.abs(dx) > Math.abs(dy)) {
-                        fromEdge = dx > 0 ? 'right' : 'left';
-                        toEdge = dx > 0 ? 'left' : 'right';
+                      
+                      // From edge detection
+                      const fromDx = Math.abs(from.x - fromCardCenter.x);
+                      const fromDy = Math.abs(from.y - fromCardCenter.y);
+                      
+                      if (fromDx > fromDy) {
+                        fromEdge = from.x > fromCardCenter.x ? 'right' : 'left';
                       } else {
-                        fromEdge = dy > 0 ? 'bottom' : 'top';
-                        toEdge = dy > 0 ? 'top' : 'bottom';
+                        fromEdge = from.y > fromCardCenter.y ? 'bottom' : 'top';
                       }
                       
-                      const { from, to } = getProductEdgePoint(connection.from, connection.to, index);
+                      // To edge detection
+                      const toDx = Math.abs(to.x - toCardCenter.x);
+                      const toDy = Math.abs(to.y - toCardCenter.y);
+                      
+                      if (toDx > toDy) {
+                        toEdge = to.x > toCardCenter.x ? 'right' : 'left';
+                      } else {
+                        toEdge = to.y > toCardCenter.y ? 'bottom' : 'top';
+                      }
                       const isHighlighted = highlightedConnections.includes(index);
 
                       return (
