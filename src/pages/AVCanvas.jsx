@@ -26,6 +26,7 @@ export default function AVCanvas() {
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [spacePressed, setSpacePressed] = useState(false);
+  const [dragMousePosition, setDragMousePosition] = useState(null);
   const canvasRef = useRef(null);
 
   const { data: products = [], isLoading } = useQuery({
