@@ -359,7 +359,7 @@ export default function AVCanvas() {
 
         fromEdge = {
           x: fromCenter.x + fromOffset,
-          y: fromProduct.position.y + cardHeight
+          y: fromProduct.position.y + fromCardHeight
         };
         toEdge = {
           x: toCenter.x + toOffset,
