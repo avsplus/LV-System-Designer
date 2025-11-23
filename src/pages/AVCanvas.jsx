@@ -21,6 +21,7 @@ export default function AVCanvas() {
   const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [highlightedConnections, setHighlightedConnections] = useState([]);
+  const [hoveredConnectionIndex, setHoveredConnectionIndex] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -236,6 +237,14 @@ export default function AVCanvas() {
     setSelectedConnection({ ...connection, index });
     setSelectedProduct(null);
     setSelectedCanvasProduct(null);
+  };
+
+  const handleConnectionHover = (index) => {
+    setHoveredConnectionIndex(index);
+  };
+
+  const handleConnectionLeave = () => {
+    setHoveredConnectionIndex(null);
   };
 
   const handlePortClick = (instanceId, connectionType, portName, isInput) => {
@@ -1153,10 +1162,12 @@ export default function AVCanvas() {
               >
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ zIndex: 10 }}
+                  style={{ zIndex: 1 }}
                 >
                   <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+                    {/* Render non-hovered connections first */}
                     {connections.map((connection, index) => {
+                        if (index === hoveredConnectionIndex) return null;
                         const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
                         const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
 
@@ -1199,6 +1210,67 @@ export default function AVCanvas() {
                             to={toPoint}
                             fromEdge={fromEdge}
                             toEdge={toEdge}
+                            connectionType={connection.type}
+                            wireId={connection.wireId}
+                            waypoints={connection.waypoints}
+                            isHighlighted={isHighlighted}
+                            offset={0}
+                            onRemove={() => handleRemoveConnection(index)}
+                            onClick={() => handleConnectionClick(connection, index)}
+                            onHover={() => handleConnectionHover(index)}
+                            onLeave={handleConnectionLeave}
+                            onWaypointsChange={(newWaypoints) => {
+                              const newConnections = [...connections];
+                              newConnections[index].waypoints = newWaypoints;
+                              setConnections(newConnections);
+                            }}
+                          />
+                        );
+                        })}
+
+                        {/* Render hovered connection last (on top) */}
+                        {hoveredConnectionIndex !== null && (() => {
+                        const index = hoveredConnectionIndex;
+                        const connection = connections[index];
+                        const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+                        const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+
+                        if (!fromProduct || !toProduct) return null;
+
+                        let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
+
+                        if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
+                        const fallback = getProductEdgePoint(connection.from, connection.to, index);
+                        fromPoint = fromPoint || fallback.from;
+                        toPoint = toPoint || fallback.to;
+
+                        if (!fromEdge || !toEdge) {
+                          const cardWidth = 320;
+                          const cardHeight = 280;
+                          const dx = toProduct.position.x - fromProduct.position.x;
+                          const dy = toProduct.position.y - fromProduct.position.y;
+
+                          if (Math.abs(dx) > Math.abs(dy)) {
+                            fromEdge = dx > 0 ? 'right' : 'left';
+                            toEdge = dx > 0 ? 'left' : 'right';
+                          } else {
+                            fromEdge = dy > 0 ? 'bottom' : 'top';
+                            toEdge = dy > 0 ? 'top' : 'bottom';
+                          }
+                        }
+                        }
+
+                        if (!fromPoint || !toPoint) return null;
+
+                        const isHighlighted = highlightedConnections.includes(index);
+
+                        return (
+                        <ConnectionLine
+                          key={`hovered-${index}`}
+                          from={fromPoint}
+                          to={toPoint}
+                          fromEdge={fromEdge}
+                          toEdge={toEdge}
                           connectionType={connection.type}
                           wireId={connection.wireId}
                           waypoints={connection.waypoints}
@@ -1206,14 +1278,16 @@ export default function AVCanvas() {
                           offset={0}
                           onRemove={() => handleRemoveConnection(index)}
                           onClick={() => handleConnectionClick(connection, index)}
+                          onHover={() => handleConnectionHover(index)}
+                          onLeave={handleConnectionLeave}
                           onWaypointsChange={(newWaypoints) => {
                             const newConnections = [...connections];
                             newConnections[index].waypoints = newWaypoints;
                             setConnections(newConnections);
                           }}
                         />
-                      );
-                    })}
+                        );
+                        })()}
 
                     {/* Rubber-band connection line while dragging */}
                     {connectingState && connectingState.mousePos && (() => {

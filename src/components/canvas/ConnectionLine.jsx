@@ -12,7 +12,7 @@ const connectionTypeColors = {
   "Coaxial": "#eab308"
 };
 
-export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onWaypointsChange }) {
+export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
