@@ -33,6 +33,81 @@ export default function AVCanvas() {
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   
   const PORT_HIT_RADIUS = 20; // Pixels for hit testing
+  const PORT_OFFSET = 20; // Offset distance from port for clean routing
+  
+  // Generate orthogonal path for connection routing
+  const generateOrthogonalPath = (fromPos, toPos, fromIsInput, toIsInput) => {
+    // Determine exit and entry directions based on port type
+    // Inputs are on left (enter from left), outputs are on right (exit to right)
+    const fromDirection = fromIsInput ? 'left' : 'right';
+    const toDirection = toIsInput ? 'left' : 'right';
+    
+    // Calculate offset points
+    const fromOffset = {
+      x: fromPos.x + (fromDirection === 'right' ? PORT_OFFSET : -PORT_OFFSET),
+      y: fromPos.y
+    };
+    
+    const toOffset = {
+      x: toPos.x + (toDirection === 'right' ? PORT_OFFSET : -PORT_OFFSET),
+      y: toPos.y
+    };
+    
+    // Build path points: start -> fromOffset -> routing -> toOffset -> end
+    const points = [fromPos, fromOffset];
+    
+    // Middle routing depends on relative positions
+    const dx = toOffset.x - fromOffset.x;
+    const dy = toOffset.y - fromOffset.y;
+    
+    if (fromDirection === 'right' && toDirection === 'left') {
+      // Standard left-to-right flow
+      if (dx > 0) {
+        // Simple L-shape
+        const midX = fromOffset.x + dx / 2;
+        points.push({ x: midX, y: fromOffset.y });
+        points.push({ x: midX, y: toOffset.y });
+      } else {
+        // Z-shape for backwards connection
+        const midX = fromOffset.x + Math.max(20, -dx / 2);
+        const midY = fromOffset.y + dy / 2;
+        points.push({ x: midX, y: fromOffset.y });
+        points.push({ x: midX, y: midY });
+        points.push({ x: toOffset.x - 20, y: midY });
+        points.push({ x: toOffset.x - 20, y: toOffset.y });
+      }
+    } else if (fromDirection === 'left' && toDirection === 'right') {
+      // Right-to-left flow (backwards)
+      const midX = fromOffset.x + dx / 2;
+      const midY = fromOffset.y + dy / 2;
+      points.push({ x: fromOffset.x - 20, y: fromOffset.y });
+      points.push({ x: fromOffset.x - 20, y: midY });
+      points.push({ x: toOffset.x + 20, y: midY });
+      points.push({ x: toOffset.x + 20, y: toOffset.y });
+    } else {
+      // Same side (both inputs or both outputs) - rare case
+      const midX = Math.min(fromOffset.x, toOffset.x) - 40;
+      const midY = fromOffset.y + dy / 2;
+      points.push({ x: midX, y: fromOffset.y });
+      points.push({ x: midX, y: midY });
+      points.push({ x: midX, y: toOffset.y });
+    }
+    
+    points.push(toOffset);
+    points.push(toPos);
+    
+    return points;
+  };
+  
+  // Convert points array to SVG path
+  const pointsToPathData = (points) => {
+    if (points.length < 2) return '';
+    let path = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      path += ` L ${points[i].x} ${points[i].y}`;
+    }
+    return path;
+  };
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['avProducts'],
@@ -1141,36 +1216,50 @@ export default function AVCanvas() {
                     })}
 
                     {/* Rubber-band connection line while dragging */}
-                    {connectingState && connectingState.mousePos && (
-                      <g>
-                        <line
-                          x1={connectingState.startPos.x}
-                          y1={connectingState.startPos.y}
-                          x2={connectingState.mousePos.x}
-                          y2={connectingState.mousePos.y}
-                          stroke="#3b82f6"
-                          strokeWidth="4"
-                          strokeDasharray="8,4"
-                          className="pointer-events-none"
-                          opacity="0.8"
-                        />
-                        <circle
-                          cx={connectingState.startPos.x}
-                          cy={connectingState.startPos.y}
-                          r="6"
-                          fill="#3b82f6"
-                          className="pointer-events-none"
-                        />
-                        <circle
-                          cx={connectingState.mousePos.x}
-                          cy={connectingState.mousePos.y}
-                          r="6"
-                          fill="#3b82f6"
-                          className="pointer-events-none"
-                          opacity="0.5"
-                        />
-                      </g>
-                    )}
+                    {connectingState && connectingState.mousePos && (() => {
+                      const toIsInput = connectingState.hoveredPort ? 
+                        connectingState.hoveredPort.isInput : 
+                        !connectingState.fromPort.isInput;
+
+                      const routePoints = generateOrthogonalPath(
+                        connectingState.startPos,
+                        connectingState.mousePos,
+                        connectingState.fromPort.isInput,
+                        toIsInput
+                      );
+
+                      const pathData = pointsToPathData(routePoints);
+                      const isValidTarget = !!connectingState.hoveredPort;
+
+                      return (
+                        <g>
+                          <path
+                            d={pathData}
+                            stroke={isValidTarget ? "#22c55e" : "#3b82f6"}
+                            strokeWidth="4"
+                            strokeDasharray="8,4"
+                            fill="none"
+                            className="pointer-events-none"
+                            opacity="0.8"
+                          />
+                          <circle
+                            cx={connectingState.startPos.x}
+                            cy={connectingState.startPos.y}
+                            r="6"
+                            fill={isValidTarget ? "#22c55e" : "#3b82f6"}
+                            className="pointer-events-none"
+                          />
+                          <circle
+                            cx={connectingState.mousePos.x}
+                            cy={connectingState.mousePos.y}
+                            r="6"
+                            fill={isValidTarget ? "#22c55e" : "#3b82f6"}
+                            className="pointer-events-none"
+                            opacity={isValidTarget ? "1" : "0.5"}
+                          />
+                        </g>
+                      );
+                    })()}
                   </g>
                 </svg>
 
