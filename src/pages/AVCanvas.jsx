@@ -482,6 +482,9 @@ export default function AVCanvas() {
     const fromPoint = getConnectionPointPosition(fromId, connection.type, connection.fromPort, true);
     const toPoint = getConnectionPointPosition(toId, connection.type, connection.toPort, false);
 
+    console.log('Connection:', connection);
+    console.log('From point:', fromPoint, 'To point:', toPoint);
+
     if (fromPoint && toPoint) {
       return { from: fromPoint, to: toPoint };
     }
