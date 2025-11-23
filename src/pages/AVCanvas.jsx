@@ -271,15 +271,19 @@ export default function AVCanvas() {
         const otherProduct = canvasProducts.find(cp => cp.instanceId === otherId);
         if (!otherProduct) return;
 
+        const deviceProduct = canvasProducts.find(cp => cp.instanceId === deviceId);
+        
+        const otherHeight = hasNetworkInfo(otherProduct) ? 230 : 200;
+        const deviceHeight = hasNetworkInfo(deviceProduct) ? 230 : 200;
+
         const otherCenter = {
           x: otherProduct.position.x + cardWidth / 2,
-          y: otherProduct.position.y + cardHeight / 2
+          y: otherProduct.position.y + otherHeight / 2
         };
 
-        const deviceProduct = canvasProducts.find(cp => cp.instanceId === deviceId);
         const deviceCenter = {
           x: deviceProduct.position.x + cardWidth / 2,
-          y: deviceProduct.position.y + cardHeight / 2
+          y: deviceProduct.position.y + deviceHeight / 2
         };
 
         const cdx = otherCenter.x - deviceCenter.x;
