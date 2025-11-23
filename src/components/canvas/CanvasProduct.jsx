@@ -380,11 +380,19 @@ export default function CanvasProduct({
       {/* Top edge connection points (for overflow) */}
       {(inputPoints.length > 6 || outputPoints.length > 6) && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2">
-          {[...inputPoints.slice(6), ...outputPoints.slice(6)].slice(0, 8).map((point, i) => (
+          {[...inputPoints.slice(6).map(p => ({...p, isInput: true})), ...outputPoints.slice(6).map(p => ({...p, isInput: false}))].slice(0, 8).map((point, i) => (
             <div 
               key={i} 
               className="w-4 h-4 rounded-full border-2 border-gray-800 cursor-pointer hover:scale-125 transition-transform" 
               style={{ backgroundColor: point.color }}
+              data-port-index={i + 6}
+              data-port-type={point.isInput ? "input" : "output"}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPortClick) {
+                  onPortClick(instanceId, point.type, point.port, point.isInput);
+                }
+              }}
             />
           ))}
         </div>
