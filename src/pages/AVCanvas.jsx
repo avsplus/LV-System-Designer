@@ -790,13 +790,16 @@ export default function AVCanvas() {
                       
                       if (!fromProduct || !toProduct) return null;
                       
-                      // Use memoized connection positions
+                      // Use memoized connection positions with fallback
                       const { fromPoint, toPoint } = connectionPositions[index] || {};
                       
-                      if (!fromPoint || !toPoint) return null;
+                      // Fallback to edge points if port positions aren't found
+                      const { from: fallbackFrom, to: fallbackTo } = getProductEdgePoint(connection.from, connection.to, index);
                       
-                      const from = fromPoint;
-                      const to = toPoint;
+                      const from = fromPoint || fallbackFrom;
+                      const to = toPoint || fallbackTo;
+                      
+                      if (!from || !to) return null;
                       
                       // Determine actual edge based on connection point position relative to card
                       const cardWidth = 320;
