@@ -233,8 +233,14 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         className="cursor-pointer"
         onClick={onClick}
         onDoubleClick={handlePathDoubleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (onHover) onHover();
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          if (onLeave) onLeave();
+        }}
       />
       
       {/* Draggable waypoints */}
@@ -290,8 +296,14 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
           e.stopPropagation();
           onRemove();
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (onHover) onHover();
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          if (onLeave) onLeave();
+        }}
       />
       {isHovered && (
         <>
