@@ -38,7 +38,7 @@ export default function ProductDetailsPanel({ product, onClose }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div>
           <Badge className={`${categoryColors[product.category]} border mb-3`}>
-            {product.category}
+            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
           </Badge>
           <h3 className="text-xl font-bold text-white mb-1">{product.brand}</h3>
           <p className="text-base text-gray-300">{product.model}</p>
