@@ -215,6 +215,14 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
     conn => conn.from === instanceId || conn.to === instanceId
   );
   
+  // DEBUG: Log connection data
+  console.log('=== DeviceConnectionsPanel Debug ===');
+  console.log('Instance ID:', instanceId);
+  console.log('Product:', productData.brand, productData.model);
+  console.log('All connections:', activeConnections);
+  console.log('Device connections:', deviceConnections);
+  console.log('Connection definitions:', connections);
+  
   // Get used ports for a connection type
   const getUsedPorts = (connectionType, ports, isInput) => {
     const used = new Set();
@@ -223,8 +231,10 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
       if (!isCorrectDirection || conn.type !== connectionType) return;
 
       const port = isInput ? conn.toPort : conn.fromPort;
+      console.log('Checking port:', port, 'in', ports, 'includes:', ports.includes(port));
       if (port && ports.includes(port)) used.add(port);
     });
+    console.log(`Used ports for ${connectionType} (${isInput ? 'input' : 'output'}):`, used);
     return used;
   };
   
