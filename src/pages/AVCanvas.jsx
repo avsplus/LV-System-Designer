@@ -170,6 +170,18 @@ export default function AVCanvas() {
 
     if (connectionIndex !== -1) {
       handleConnectionClick(connections[connectionIndex], connectionIndex);
+    } else {
+      // No connection on this port - show empty connection details
+      const device = canvasProducts.find(cp => cp.instanceId === instanceId);
+      const emptyConnection = {
+        type: connectionType,
+        [isInput ? 'to' : 'from']: instanceId,
+        [isInput ? 'toPort' : 'fromPort']: portName,
+        isEmpty: true
+      };
+      setSelectedConnection({ ...emptyConnection, index: -1 });
+      setSelectedProduct(null);
+      setSelectedCanvasProduct(null);
     }
   };
 
