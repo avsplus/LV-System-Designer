@@ -428,21 +428,13 @@ export default function AVCanvas() {
       });
     });
 
-    console.log(`Looking for ${isOutput ? 'output' : 'input'} on ${product.brand}:`, {
-      connectionType,
-      portName,
-      allPoints,
-      finalConnections: finalConnections[direction]
-    });
-    
-    // Log the actual structure of the connection data
-    if (finalConnections[direction] && finalConnections[direction].length > 0) {
-      console.log('First connection object:', finalConnections[direction][0]);
-      console.log('Ports in first connection:', finalConnections[direction][0].ports);
-    }
-
     // Find the index of our specific connection
     const pointIndex = allPoints.findIndex(p => p.type === connectionType && p.port === portName);
+    
+    console.log(`Looking for ${isOutput ? 'output' : 'input'} "${connectionType}" port "${portName}" on ${product.brand}`);
+    console.log('All available points:', allPoints);
+    console.log('Match found:', pointIndex !== -1);
+    
     if (pointIndex === -1) {
       console.log('❌ Point not found!');
       return null;
