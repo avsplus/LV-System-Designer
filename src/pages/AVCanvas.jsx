@@ -443,48 +443,49 @@ export default function AVCanvas() {
       // Left edge (inputs) or Right edge (outputs)
       const verticalCount = Math.min(allPoints.length, 6);
       
-      // Flex column with gap-2: spacing between circle tops is 20px (12px circle + 8px gap)
+      // Container positioning: flex column with gap-2
+      // Each dot: 12px height + 8px gap = 20px per item
       const totalContainerHeight = (verticalCount * circleSize) + ((verticalCount - 1) * gapSize);
       
-      // Container is positioned with: top-1/2 -translate-y-1/2 (centers it vertically)
-      // First circle top edge is at: centerY - totalHeight/2
-      // First circle center is at: centerY - totalHeight/2 + halfCircle
-      const firstCircleCenterY = centerY - (totalContainerHeight / 2) + halfCircle;
+      // Container is vertically centered (top-1/2 -translate-y-1/2)
+      const containerTop = centerY - (totalContainerHeight / 2);
       
-      // Each subsequent circle is 20px down
-      const y = firstCircleCenterY + (pointIndex * (circleSize + gapSize));
+      // Position of this specific circle's center
+      const y = containerTop + (pointIndex * (circleSize + gapSize)) + halfCircle;
 
       if (isOutput) {
         // Right edge: right-0 translate-x-1/2
-        // Circle container right edge is at cardWidth
-        // With translate-x-1/2 it shifts right by half container width
-        // Container width = circleSize = 12px, so shift is 6px
-        // Circle center is at: cardWidth + 6px
-        return { x: baseX + cardWidth + halfCircle, y };
+        // Container's right edge aligns with card right (baseX + cardWidth)
+        // Then translates right by half its width (6px for 12px circle)
+        const x = baseX + cardWidth + halfCircle;
+        return { x, y };
       } else {
         // Left edge: left-0 -translate-x-1/2
-        // Circle container left edge is at 0
-        // With -translate-x-1/2 it shifts left by 6px
-        // Circle center is at: -6px
-        return { x: baseX - halfCircle, y };
+        // Container's left edge aligns with card left (baseX)
+        // Then translates left by half its width (6px for 12px circle)
+        const x = baseX - halfCircle;
+        return { x, y };
       }
     } else {
       // Top edge (overflow) - horizontal layout
       const overflowIndex = pointIndex - 6;
       const horizontalCount = Math.min(allPoints.length - 6, 8);
       
-      // Flex row with gap-2
+      // Container positioning: flex row with gap-2
       const totalContainerWidth = (horizontalCount * circleSize) + ((horizontalCount - 1) * gapSize);
       
-      // Container: left-1/2 -translate-x-1/2 (centers it horizontally)
+      // Container is horizontally centered (left-1/2 -translate-x-1/2)
       const centerX = baseX + cardWidth / 2;
-      const firstCircleCenterX = centerX - (totalContainerWidth / 2) + halfCircle;
+      const containerLeft = centerX - (totalContainerWidth / 2);
       
-      const x = firstCircleCenterX + (overflowIndex * (circleSize + gapSize));
+      // Position of this specific circle's center
+      const x = containerLeft + (overflowIndex * (circleSize + gapSize)) + halfCircle;
 
       // Top edge: top-0 -translate-y-1/2
-      // Circle center is at: -6px
-      return { x, y: baseY - halfCircle };
+      // Container's top edge aligns with card top (baseY)
+      // Then translates up by half its height (6px for 12px circle)
+      const y = baseY - halfCircle;
+      return { x, y };
     }
   };
 
