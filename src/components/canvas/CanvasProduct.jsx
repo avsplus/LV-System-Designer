@@ -300,9 +300,10 @@ export default function CanvasProduct({
 
   // Use real connection data if available, otherwise fall back to category defaults
   const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
-  const connections = product.connections && (product.connections.inputs || product.connections.outputs) 
-    ? product.connections
-    : defaultConnections;
+  const hasRealConnections = product.connections && 
+    ((product.connections.inputs && product.connections.inputs.length > 0) || 
+     (product.connections.outputs && product.connections.outputs.length > 0));
+  const connections = hasRealConnections ? product.connections : defaultConnections;
 
   // Force empty outputs for endpoint devices
   const finalConnections = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category)
