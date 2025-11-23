@@ -5,81 +5,67 @@ import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 
 const connectionsByCategory = {
-  speakers: {
+  televisions: {
     inputs: [
-      { type: "Speaker Wire", ports: ["Left", "Right"] },
-      { type: "XLR", ports: ["Left", "Right"] }
-    ],
-    outputs: [],
-    description: "Audio output device"
-  },
-  amplifiers: {
-    inputs: [
-      { type: "RCA", ports: ["RCA-1", "RCA-2", "RCA-3", "RCA-4"] },
-      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
-      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
-      { type: "Coaxial", ports: ["Coaxial"] },
-      { type: "USB", ports: ["USB"] }
-    ],
-    outputs: [
-      { type: "Speaker Wire", ports: ["Speaker-A", "Speaker-B", "Speaker-C", "Speaker-D"] },
-      { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] },
-      { type: "XLR", ports: ["XLR-Out-L", "XLR-Out-R"] }
-    ],
-    description: "Power amplification for speakers"
-  },
-  receivers: {
-    inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6"] },
-      { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
-      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
-      { type: "Coaxial", ports: ["Coaxial"] },
-      { type: "USB", ports: ["USB-A", "USB-B"] },
-      { type: "Ethernet", ports: ["LAN"] },
-      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R"] }
-    ],
-    outputs: [
-      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
-      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R"] },
-      { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
-      { type: "Optical", ports: ["Optical-Out"] }
-    ],
-    description: "Central hub for audio/video"
-  },
-  subwoofers: {
-    inputs: [
-      { type: "RCA", ports: ["LFE-L", "LFE-R"] },
-      { type: "Speaker Wire", ports: ["LFE"] },
-      { type: "XLR", ports: ["XLR"] }
-    ],
-    outputs: [],
-    description: "Low-frequency audio output"
-  },
-  turntables: {
-    inputs: [],
-    outputs: [
-      { type: "RCA", ports: ["Phono-Out"] },
-      { type: "USB", ports: ["USB-Out"] }
-    ],
-    description: "Analog audio source"
-  },
-  dacs: {
-    inputs: [
-      { type: "USB", ports: ["USB-A", "USB-B"] },
-      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
-      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+      { type: "Component", ports: ["Component-1"] },
+      { type: "Composite", ports: ["Composite-1"] },
+      { type: "Optical", ports: ["Optical-In"] },
       { type: "Ethernet", ports: ["LAN"] }
     ],
     outputs: [
-      { type: "RCA", ports: ["Out-L", "Out-R"] },
-      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
+      { type: "Optical", ports: ["Optical-Out"] },
+      { type: "3.5mm Jack", ports: ["Headphone"] }
     ],
-    description: "Digital to analog conversion"
+    description: "Video display device"
   },
-  streamers: {
+  projectors: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
+      { type: "VGA", ports: ["VGA"] },
+      { type: "Component", ports: ["Component-1"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "3.5mm Jack", ports: ["Audio-Out"] }
+    ],
+    description: "Video projection device"
+  },
+  projector_screens: {
+    inputs: [
+      { type: "Control", ports: ["Trigger-1", "Trigger-2"] },
+      { type: "RS232", ports: ["RS232"] }
+    ],
+    outputs: [],
+    description: "Motorized projection screen"
+  },
+  video_distribution: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6"] },
+      { type: "HDBaseT", ports: ["HDBaseT-1", "HDBaseT-2", "HDBaseT-3", "HDBaseT-4"] }
+    ],
+    description: "Video signal distribution"
+  },
+  matrix_switchers: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7", "HDMI-8"] },
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "RS232", ports: ["RS232"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6", "HDMI-Out-7", "HDMI-Out-8"] }
+    ],
+    description: "Video matrix switching"
+  },
+  audio_streamers: {
     inputs: [
       { type: "Ethernet", ports: ["LAN"] },
-      { type: "USB", ports: ["USB"] }
+      { type: "USB", ports: ["USB"] },
+      { type: "Optical", ports: ["Optical-In"] }
     ],
     outputs: [
       { type: "RCA", ports: ["Out-L", "Out-R"] },
@@ -89,56 +75,104 @@ const connectionsByCategory = {
     ],
     description: "Network audio streaming"
   },
-  headphones: {
+  media_streamers: {
     inputs: [
-      { type: "3.5mm Jack", ports: ["Input"] },
-      { type: "XLR", ports: ["XLR"] },
+      { type: "Ethernet", ports: ["LAN"] },
       { type: "USB", ports: ["USB"] }
     ],
-    outputs: [],
-    description: "Personal audio output"
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out"] },
+      { type: "Optical", ports: ["Optical-Out"] }
+    ],
+    description: "Media streaming device"
   },
-  processors: {
+  speakers: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
-      { type: "RCA", ports: ["RCA-1", "RCA-2", "RCA-3", "RCA-4"] },
+      { type: "Speaker Wire", ports: ["Left", "Right"] },
+      { type: "XLR", ports: ["Left", "Right"] }
+    ],
+    outputs: [],
+    description: "Audio output device"
+  },
+  soundbars: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
+      { type: "Optical", ports: ["Optical-In"] },
+      { type: "RCA", ports: ["RCA-L", "RCA-R"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out"] },
+      { type: "Subwoofer", ports: ["Sub-Out"] }
+    ],
+    description: "All-in-one speaker system"
+  },
+  subwoofers: {
+    inputs: [
+      { type: "RCA", ports: ["LFE-L", "LFE-R"] },
+      { type: "Speaker Wire", ports: ["LFE"] },
+      { type: "XLR", ports: ["XLR"] },
+      { type: "Wireless", ports: ["Wireless"] }
+    ],
+    outputs: [],
+    description: "Low-frequency audio output"
+  },
+  stereo_amps: {
+    inputs: [
+      { type: "RCA", ports: ["RCA-1", "RCA-2"] },
+      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
+      { type: "Optical", ports: ["Optical-1"] },
+      { type: "Coaxial", ports: ["Coaxial"] }
+    ],
+    outputs: [
+      { type: "Speaker Wire", ports: ["Speaker-L", "Speaker-R"] },
+      { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] }
+    ],
+    description: "Stereo amplification"
+  },
+  multizone_amps: {
+    inputs: [
+      { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
+      { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "Speaker Wire", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] }
+    ],
+    description: "Multi-zone power amplification"
+  },
+  surround_processors: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
+      { type: "RCA", ports: ["RCA-1", "RCA-2"] },
       { type: "XLR", ports: ["XLR-L", "XLR-R"] },
       { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial-1"] },
       { type: "Ethernet", ports: ["LAN"] }
     ],
     outputs: [
       { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
-      { type: "RCA", ports: ["Out-1", "Out-2", "Out-3", "Out-4"] },
-      { type: "XLR", ports: ["XLR-Out-L", "XLR-Out-R"] },
+      { type: "RCA", ports: ["FL", "FR", "C", "SL", "SR", "SBL", "SBR", "Sub"] },
+      { type: "XLR", ports: ["XLR-FL", "XLR-FR", "XLR-C", "XLR-SL", "XLR-SR", "XLR-Sub"] }
+    ],
+    description: "Surround sound processing"
+  },
+  av_receivers: {
+    inputs: [
+      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
+      { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
+      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "USB", ports: ["USB-A", "USB-B"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
+      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R", "Sub"] },
+      { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
       { type: "Optical", ports: ["Optical-Out"] }
     ],
-    description: "Audio/video signal processing"
-  },
-  cables: {
-    inputs: [{ type: "Various", ports: ["In"] }],
-    outputs: [{ type: "Various", ports: ["Out"] }],
-    description: "Signal transmission"
-  },
-  microphones: {
-    inputs: [],
-    outputs: [
-      { type: "XLR", ports: ["XLR-Out"] },
-      { type: "USB", ports: ["USB-Out"] }
-    ],
-    description: "Audio input device"
-  },
-  mixers: {
-    inputs: [
-      { type: "XLR", ports: ["Ch-1", "Ch-2", "Ch-3", "Ch-4", "Ch-5", "Ch-6", "Ch-7", "Ch-8"] },
-      { type: "RCA", ports: ["Stereo-1", "Stereo-2", "Stereo-3", "Stereo-4"] },
-      { type: "USB", ports: ["USB"] }
-    ],
-    outputs: [
-      { type: "XLR", ports: ["Main-L", "Main-R"] },
-      { type: "RCA", ports: ["Rec-L", "Rec-R"] },
-      { type: "USB", ports: ["USB-Out"] }
-    ],
-    description: "Multi-channel audio mixing"
+    description: "Central hub for audio/video"
   }
 };
 
