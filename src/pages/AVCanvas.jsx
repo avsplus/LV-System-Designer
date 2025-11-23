@@ -743,7 +743,8 @@ export default function AVCanvas() {
 
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
     // Use registered port refs for accurate positioning
-    const portId = getPortId(instanceId, connectionType, portName, !isOutput);
+    // Now we look up by connection type, not individual port name
+    const portId = getPortId(instanceId, connectionType, 'type', !isOutput);
     const portData = portRefs.current.get(portId);
 
     if (portData && portData.element) {
