@@ -276,7 +276,12 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
       if (!isCorrectDirection || c.type !== connectionType) return false;
 
       const checkPort = isInput ? c.toPort : c.fromPort;
-      return checkPort === port;
+      if (!checkPort) return false;
+      
+      // Fuzzy match for port names
+      const pNorm = port.toLowerCase().replace(/[-_]/g, '');
+      const cNorm = checkPort.toLowerCase().replace(/[-_]/g, '');
+      return checkPort === port || pNorm.includes(cNorm) || cNorm.includes(pNorm);
     });
 
     if (!conn) return null;
