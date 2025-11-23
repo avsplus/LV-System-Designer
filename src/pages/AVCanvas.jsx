@@ -223,16 +223,13 @@ export default function AVCanvas() {
     
     const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
     
-    // Use the pre-determined port names from pendingConnection if available
-    const fromPort = pendingConnection?.fromPortName || connectionData.fromPort;
-    const toPort = pendingConnection?.toPortName || connectionData.toPort;
-    
+    // Always use the dialog-selected ports
     setConnections([...connections, { 
       from: connectingFrom, 
       to: connectingTo,
       type: connectionData.type,
-      fromPort: fromPort,
-      toPort: toPort,
+      fromPort: connectionData.fromPort,
+      toPort: connectionData.toPort,
       wireId: wireId
     }]);
     setConnectingFrom(null);
@@ -444,8 +441,6 @@ export default function AVCanvas() {
       // Determine correct from/to based on port directions
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
-      const fromPortName = fromPort.isInput ? toPort.portName : fromPort.portName;
-      const toPortName = fromPort.isInput ? fromPort.portName : toPort.portName;
 
       // Check if target device is a speaker/subwoofer and already has a connection
       const targetDevice = canvasProducts.find(cp => cp.instanceId === toId);
@@ -461,12 +456,10 @@ export default function AVCanvas() {
         }
       }
 
-      // Store pending connection info
+      // Store pending connection info (only IDs and type, not port names)
       setPendingConnection({
         fromId,
         toId,
-        fromPortName,
-        toPortName,
         connectionType: fromPort.connectionType
       });
 
