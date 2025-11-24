@@ -535,6 +535,46 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
           </div>
         )}
 
+        {productData.control && (productData.control.ip || productData.control.rs232 || productData.control.ir || productData.control.trigger || (productData.control.protocols && productData.control.protocols.length > 0)) && (
+          <div className="border-t border-gray-800 pt-4">
+            <h4 className="text-sm font-semibold text-white mb-3">Control Capabilities</h4>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {productData.control.ip && (
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                  IP Control
+                </Badge>
+              )}
+              {productData.control.rs232 && (
+                <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-xs">
+                  RS232
+                </Badge>
+              )}
+              {productData.control.ir && (
+                <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-xs">
+                  IR
+                </Badge>
+              )}
+              {productData.control.trigger && (
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                  12V Trigger
+                </Badge>
+              )}
+            </div>
+            {productData.control.protocols && productData.control.protocols.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 mb-2">Protocols:</p>
+                <div className="flex flex-wrap gap-1">
+                  {productData.control.protocols.map((protocol, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {protocol}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {productData.specs && Object.keys(productData.specs).length > 0 && (
           <div className="border-t border-gray-800 pt-4">
             <h4 className="text-sm font-semibold text-white mb-3">Technical Specifications</h4>
@@ -554,7 +594,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
+        </div>
+        </div>
+        );
+        }
