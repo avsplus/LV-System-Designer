@@ -196,15 +196,19 @@ export default function AVCanvas() {
   const validateConnection = (fromId, toId, connectionType) => {
     const errors = [];
     const warnings = [];
-    
+
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
-    
+
     if (!fromProduct || !toProduct) {
       errors.push("Invalid device selection");
       return { valid: false, errors, warnings };
     }
-    
+
+    // Ensure networkInfo exists with defaults
+    const fromNetworkInfo = fromProduct.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
+    const toNetworkInfo = toProduct.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
+
     // Check network info for Ethernet connections
     if (connectionType === 'Ethernet') {
       const fromNeedsNetwork = ['televisions', 'projectors', 'video_distribution', 'matrix_switchers', 
@@ -214,8 +218,8 @@ export default function AVCanvas() {
                               'audio_streamers', 'media_streamers', 'soundbars', 'multizone_amps', 
                               'surround_processors', 'av_receivers'].includes(toProduct.product.category);
 
-      const fromIp = fromProduct?.networkInfo?.ip;
-      const toIp = toProduct?.networkInfo?.ip;
+      const fromIp = fromNetworkInfo.ip;
+      const toIp = toNetworkInfo.ip;
 
       if (fromNeedsNetwork && (!fromIp || fromIp === '000.000.000.000' || fromIp === '')) {
         warnings.push(`${fromProduct.label || fromProduct.product.brand} requires network configuration (IP address)`);
