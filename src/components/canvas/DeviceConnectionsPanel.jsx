@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 const connectionsByCategory = {
   televisions: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
       { type: "Component", ports: ["Component-1"] },
       { type: "Composite", ports: ["Composite-1"] },
@@ -22,6 +23,7 @@ const connectionsByCategory = {
   },
   projectors: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
       { type: "VGA", ports: ["VGA"] },
       { type: "Component", ports: ["Component-1"] },
@@ -36,6 +38,7 @@ const connectionsByCategory = {
   },
   projector_screens: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Control", ports: ["Trigger-1", "Trigger-2"] },
       { type: "RS232", ports: ["RS232"] }
     ],
@@ -44,6 +47,7 @@ const connectionsByCategory = {
   },
   video_distribution: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "IR", ports: ["IR-In"] },
@@ -57,6 +61,7 @@ const connectionsByCategory = {
   },
   matrix_switchers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7", "HDMI-8"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "RS232", ports: ["RS232"] }
@@ -68,6 +73,7 @@ const connectionsByCategory = {
   },
   audio_streamers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "USB", ports: ["USB"] },
       { type: "Optical", ports: ["Optical-In"] },
@@ -83,6 +89,7 @@ const connectionsByCategory = {
   },
   media_streamers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "USB", ports: ["USB"] }
     ],
@@ -93,6 +100,7 @@ const connectionsByCategory = {
   },
   speakers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Speaker Wire", ports: ["Input"] }
     ],
     outputs: [],
@@ -100,6 +108,7 @@ const connectionsByCategory = {
   },
   soundbars: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
       { type: "Optical", ports: ["Optical-In"] },
       { type: "RCA", ports: ["RCA-L", "RCA-R"] },
@@ -114,6 +123,7 @@ const connectionsByCategory = {
   },
   subwoofers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Subwoofer", ports: ["Input"] }
     ],
     outputs: [],
@@ -121,6 +131,7 @@ const connectionsByCategory = {
   },
   stereo_amps: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "RCA", ports: ["RCA-1", "RCA-2"] },
       { type: "XLR", ports: ["XLR-L", "XLR-R"] },
       { type: "Optical", ports: ["Optical-1"] },
@@ -136,6 +147,7 @@ const connectionsByCategory = {
   },
   multizone_amps: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
       { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
       { type: "Ethernet", ports: ["LAN"] },
@@ -149,6 +161,7 @@ const connectionsByCategory = {
   },
   surround_processors: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
       { type: "RCA", ports: ["RCA-1", "RCA-2"] },
       { type: "XLR", ports: ["XLR-L", "XLR-R"] },
@@ -165,6 +178,7 @@ const connectionsByCategory = {
   },
   av_receivers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
       { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
       { type: "Optical", ports: ["Optical-1", "Optical-2"] },
@@ -201,6 +215,7 @@ const connectionTypeInfo = {
   "Subwoofer": { color: "bg-[#8E5C2C]/10 text-[#8E5C2C] border-[#8E5C2C]/20", signals: "Low Frequency Audio", highlight: { bg: "bg-[#8E5C2C]/20", border: "border-[#8E5C2C]/40", hover: "hover:border-[#8E5C2C]", text: "text-[#8E5C2C]" } },
   "IR": { color: "bg-[#7F8C8D]/10 text-[#7F8C8D] border-[#7F8C8D]/20", signals: "Infrared Control", highlight: { bg: "bg-[#7F8C8D]/20", border: "border-[#7F8C8D]/40", hover: "hover:border-[#7F8C8D]", text: "text-[#7F8C8D]" } },
   "Wireless": { color: "bg-[#27AE60]/10 text-[#27AE60] border-[#27AE60]/20", signals: "Wireless Network", highlight: { bg: "bg-[#27AE60]/20", border: "border-[#27AE60]/40", hover: "hover:border-[#27AE60]", text: "text-[#27AE60]" } },
+  "Power": { color: "bg-[#FFA500]/10 text-[#FFA500] border-[#FFA500]/20", signals: "AC Power", highlight: { bg: "bg-[#FFA500]/20", border: "border-[#FFA500]/40", hover: "hover:border-[#FFA500]", text: "text-[#FFA500]" } },
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types", highlight: { bg: "bg-gray-500/20", border: "border-gray-500/40", hover: "hover:border-gray-500", text: "text-gray-300" } }
 };
 

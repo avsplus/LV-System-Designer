@@ -6,6 +6,7 @@ import { X, Link2 } from "lucide-react";
 const connectionsByCategory = {
   televisions: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
       { type: "Component", ports: ["Component-1"] },
       { type: "Composite", ports: ["Composite-1"] },
@@ -20,6 +21,7 @@ const connectionsByCategory = {
   },
   projectors: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
       { type: "VGA", ports: ["VGA"] },
       { type: "Component", ports: ["Component-1"] },
@@ -33,6 +35,7 @@ const connectionsByCategory = {
   },
   projector_screens: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Control", ports: ["Trigger-1", "Trigger-2"] },
       { type: "RS232", ports: ["RS232"] }
     ],
@@ -40,6 +43,7 @@ const connectionsByCategory = {
   },
   video_distribution: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "IR", ports: ["IR-In"] },
@@ -52,6 +56,7 @@ const connectionsByCategory = {
   },
   matrix_switchers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7", "HDMI-8"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "RS232", ports: ["RS232"] }
@@ -62,6 +67,7 @@ const connectionsByCategory = {
   },
   audio_streamers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "USB", ports: ["USB"] },
       { type: "Optical", ports: ["Optical-In"] },
@@ -76,6 +82,7 @@ const connectionsByCategory = {
   },
   media_streamers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Ethernet", ports: ["LAN"] },
       { type: "USB", ports: ["USB"] }
     ],
@@ -85,12 +92,14 @@ const connectionsByCategory = {
   },
   speakers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Speaker Wire", ports: ["Input"] }
     ],
     outputs: []
   },
   soundbars: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
       { type: "Optical", ports: ["Optical-In"] },
       { type: "RCA", ports: ["RCA-L", "RCA-R"] },
@@ -104,12 +113,14 @@ const connectionsByCategory = {
   },
   subwoofers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "Subwoofer", ports: ["Input"] }
     ],
     outputs: []
   },
   stereo_amps: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "RCA", ports: ["RCA-1", "RCA-2"] },
       { type: "XLR", ports: ["XLR-L", "XLR-R"] },
       { type: "Optical", ports: ["Optical-1"] },
@@ -124,6 +135,7 @@ const connectionsByCategory = {
   },
   multizone_amps: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
       { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
       { type: "Ethernet", ports: ["LAN"] },
@@ -136,6 +148,7 @@ const connectionsByCategory = {
   },
   surround_processors: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
       { type: "RCA", ports: ["RCA-1", "RCA-2"] },
       { type: "XLR", ports: ["XLR-L", "XLR-R"] },
@@ -151,6 +164,7 @@ const connectionsByCategory = {
   },
   av_receivers: {
     inputs: [
+      { type: "Power", ports: ["AC"] },
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
       { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
       { type: "Optical", ports: ["Optical-1", "Optical-2"] },
@@ -298,7 +312,8 @@ export default function CanvasProduct({
     "Control": "#7F8C8D",
     "Subwoofer": "#8E5C2C",
     "Wireless": "#27AE60",
-    "IR": "#7F8C8D"
+    "IR": "#7F8C8D",
+    "Power": "#FFA500"
   };
 
   // Get connection types (one dot per type, not per port)
