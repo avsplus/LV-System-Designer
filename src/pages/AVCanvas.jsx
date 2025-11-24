@@ -252,12 +252,28 @@ export default function AVCanvas() {
   };
 
   const handlePortClick = (instanceId, connectionType, portName, isInput) => {
-    // Find the connection that uses this port
+    // Find the connection that uses this port - use fuzzy matching for port names
     const connectionIndex = connections.findIndex(conn => {
+      if (conn.type !== connectionType) return false;
+      
       if (isInput) {
-        return conn.to === instanceId && conn.type === connectionType && conn.toPort === portName;
+        if (conn.to !== instanceId) return false;
+        const connPort = conn.toPort;
+        if (!connPort) return false;
+        
+        // Fuzzy match for port names
+        const pNorm = portName.toLowerCase().replace(/[-_]/g, '');
+        const cNorm = connPort.toLowerCase().replace(/[-_]/g, '');
+        return connPort === portName || pNorm.includes(cNorm) || cNorm.includes(pNorm);
       } else {
-        return conn.from === instanceId && conn.type === connectionType && conn.fromPort === portName;
+        if (conn.from !== instanceId) return false;
+        const connPort = conn.fromPort;
+        if (!connPort) return false;
+        
+        // Fuzzy match for port names
+        const pNorm = portName.toLowerCase().replace(/[-_]/g, '');
+        const cNorm = connPort.toLowerCase().replace(/[-_]/g, '');
+        return connPort === portName || pNorm.includes(cNorm) || cNorm.includes(pNorm);
       }
     });
 
