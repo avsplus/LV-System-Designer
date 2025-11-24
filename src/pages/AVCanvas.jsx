@@ -32,7 +32,9 @@ export default function AVCanvas() {
   const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, startPos: {...}, mousePos: {...}, hoveredPort: {...} }
   const [hoveredPortId, setHoveredPortId] = useState(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState(null);
+  const [customLogo, setCustomLogo] = useState(null);
   const canvasRef = useRef(null);
+  const logoInputRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
   
@@ -117,6 +119,28 @@ export default function AVCanvas() {
     queryKey: ['avProducts'],
     queryFn: () => base44.entities.AVProduct.list(),
   });
+
+  // Load custom logo from localStorage
+  useEffect(() => {
+    const savedLogo = localStorage.getItem('av_canvas_logo');
+    if (savedLogo) {
+      setCustomLogo(savedLogo);
+    }
+  }, []);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const { data } = await base44.integrations.Core.UploadFile({ file });
+      setCustomLogo(data.file_url);
+      localStorage.setItem('av_canvas_logo', data.file_url);
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      alert('Failed to upload logo');
+    }
+  };
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -1032,10 +1056,29 @@ export default function AVCanvas() {
         <div className="flex-1 flex flex-col">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-lg">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+              <div className="relative group">
+                <div 
+                  className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-lg overflow-hidden cursor-pointer"
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {customLogo ? (
+                    <img src={customLogo} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  )}
+                </div>
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg cursor-pointer" onClick={() => logoInputRef.current?.click()}>
+                  <span className="text-xs text-white font-medium">Change</span>
+                </div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">AV System Designer</h1>
