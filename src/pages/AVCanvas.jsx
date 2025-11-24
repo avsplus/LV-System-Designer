@@ -1031,11 +1031,18 @@ export default function AVCanvas() {
 
         <div className="flex-1 flex flex-col">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">AV System Designer</h1>
-              <p className="text-sm text-gray-400 mt-0.5">
-                Drag products to canvas and create connections
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">AV System Designer</h1>
+                <p className="text-sm text-gray-400 mt-0.5">
+                  Drag products to canvas and create connections
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button
