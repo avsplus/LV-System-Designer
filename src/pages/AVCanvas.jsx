@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1338,6 +1338,38 @@ export default function AVCanvas() {
                   >
                     <Link2 className="w-4 h-4 mr-2" />
                     {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={async () => {
+                      if (canvasProducts.length === 0) {
+                        alert('Canvas is empty. Add some devices first.');
+                        return;
+                      }
+                      try {
+                        const response = await base44.functions.invoke('exportCanvasToPDF', {
+                          canvasProducts,
+                          connections,
+                          projectName: currentProject?.name || 'AV-System-Design'
+                        });
+
+                        const blob = new Blob([response.data], { type: 'application/pdf' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${currentProject?.name || 'AV-System-Design'}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        a.remove();
+                      } catch (error) {
+                        console.error('Export error:', error);
+                        alert('Failed to export PDF');
+                      }
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export to PDF
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
