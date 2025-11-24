@@ -84,12 +84,10 @@ const connectionsByCategory = {
   media_streamers: {
     inputs: [
       { type: "Ethernet", ports: ["LAN"] },
-      { type: "USB", ports: ["USB"] },
-      { type: "IR", ports: ["IR-In"] }
+      { type: "USB", ports: ["USB"] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out"] },
-      { type: "Optical", ports: ["Optical-Out"] }
+      { type: "HDMI", ports: ["HDMI-Out"] }
     ],
     description: "Media streaming device"
   },
