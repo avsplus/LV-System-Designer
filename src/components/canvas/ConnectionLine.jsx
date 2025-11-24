@@ -1,15 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const connectionTypeColors = {
-  "HDMI": "#a855f7",
-  "Optical": "#06b6d4",
-  "Optical/TOSLINK": "#06b6d4",
-  "RCA": "#ef4444",
-  "XLR": "#22c55e",
-  "Speaker Wire": "#f97316",
-  "Ethernet": "#3b82f6",
-  "USB": "#6366f1",
-  "Coaxial": "#eab308"
+  "HDMI": "#E74C3C",
+  "Optical": "#2A7FDB",
+  "Optical/TOSLINK": "#2A7FDB",
+  "RCA": "#F6A623",
+  "XLR": "#1ABC9C",
+  "Speaker Wire": "#D35400",
+  "Ethernet": "#27AE60",
+  "USB": "#2A7FDB",
+  "Coaxial": "#2A7FDB",
+  "3.5mm Jack": "#F6A623",
+  "Component": "#E74C3C",
+  "Composite": "#E74C3C",
+  "VGA": "#E74C3C",
+  "RS232": "#7F8C8D",
+  "HDBaseT": "#E91E63",
+  "Control": "#7F8C8D",
+  "Subwoofer": "#D35400",
+  "Wireless": "#27AE60",
+  "IR": "#7F8C8D"
 };
 
 export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange }) {
