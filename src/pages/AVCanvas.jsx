@@ -15,8 +15,14 @@ import ConnectionTypeDialog from "../components/canvas/ConnectionTypeDialog";
 import DeviceConnectionsPanel from "../components/canvas/DeviceConnectionsPanel";
 
 export default function AVCanvas() {
-  const [canvasProducts, setCanvasProducts] = useState([]);
-  const [connections, setConnections] = useState([]);
+  const [canvasProducts, setCanvasProducts] = useState(() => {
+    const saved = localStorage.getItem('avCanvasProducts');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [connections, setConnections] = useState(() => {
+    const saved = localStorage.getItem('avCanvasConnections');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Helper to ensure networkInfo is always defined
   const ensureNetworkInfo = (product) => ({
@@ -125,6 +131,15 @@ export default function AVCanvas() {
     queryKey: ['avProducts'],
     queryFn: () => base44.entities.AVProduct.list(),
   });
+
+  // Save canvas state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('avCanvasProducts', JSON.stringify(canvasProducts));
+  }, [canvasProducts]);
+
+  useEffect(() => {
+    localStorage.setItem('avCanvasConnections', JSON.stringify(connections));
+  }, [connections]);
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -653,6 +668,8 @@ export default function AVCanvas() {
     setConnections([]);
     setSelectedProduct(null);
     setSelectedConnection(null);
+    localStorage.removeItem('avCanvasProducts');
+    localStorage.removeItem('avCanvasConnections');
   };
 
   const handleZoomIn = () => {
