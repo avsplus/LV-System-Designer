@@ -329,55 +329,14 @@ export default function CanvasProduct({
     return types;
   };
 
-  // Merge enriched data with category defaults to ensure all connection types are shown
-  const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
-  const isEndpointDevice = ['speakers', 'subwoofers', 'projector_screens'].includes(product.category);
-  
-  // Merge function: use enriched data if available, otherwise use defaults
-  const mergeConnections = (enriched, defaults) => {
-    if (!enriched) return defaults;
-    
-    // Create a map of connection types from enriched data
-    const enrichedTypes = new Set();
-    enriched.forEach(conn => enrichedTypes.add(conn.type));
-    
-    // Add default connections for types not found in enriched data
-    const merged = [...enriched];
-    defaults.forEach(defaultConn => {
-      if (!enrichedTypes.has(defaultConn.type)) {
-        merged.push(defaultConn);
-      }
-    });
-    
-    return merged;
+  // Only use database connections, no defaults
+  const connections = {
+    inputs: product.input_connections || [],
+    outputs: product.output_connections || []
   };
-  
-  const hasRealConnections = product.connections && 
-    ((product.connections.inputs && product.connections.inputs.length > 0) || 
-     (product.connections.outputs && product.connections.outputs.length > 0));
-  
-  const connections = hasRealConnections && !isEndpointDevice
-    ? {
-        inputs: mergeConnections(product.connections.inputs, defaultConnections.inputs),
-        outputs: mergeConnections(product.connections.outputs, defaultConnections.outputs)
-      }
-    : defaultConnections;
 
-  // Force empty outputs for endpoint devices
-  let finalConnections = isEndpointDevice
-    ? { ...connections, outputs: [] }
-    : connections;
-  
-  // Media streamers should never have HDMI inputs
-  if (product.category === 'media_streamers') {
-    finalConnections = {
-      inputs: finalConnections.inputs.filter(input => input.type !== 'HDMI'),
-      outputs: finalConnections.outputs.filter(output => output.type === 'HDMI')
-    };
-  }
-
-  const inputTypes = getConnectionTypes(finalConnections, 'inputs');
-  const outputTypes = getConnectionTypes(finalConnections, 'outputs');
+  const inputTypes = getConnectionTypes(connections, 'inputs');
+  const outputTypes = getConnectionTypes(connections, 'outputs');
 
   return (
     <div
@@ -553,26 +512,8 @@ export default function CanvasProduct({
           )}
         </div>
 
-        {(() => {
-          const categoryDefaults = {
-            televisions: { hasEthernet: true },
-            projectors: { hasEthernet: true },
-            video_distribution: { hasEthernet: true },
-            matrix_switchers: { hasEthernet: true },
-            audio_streamers: { hasEthernet: true },
-            media_streamers: { hasEthernet: true },
-            soundbars: { hasEthernet: true },
-            multizone_amps: { hasEthernet: true },
-            surround_processors: { hasEthernet: true },
-            av_receivers: { hasEthernet: true }
-          };
-          
-          const hasEthernetConnection = product.input_connections?.some(input => input.type === "Ethernet") || 
-                                        product.output_connections?.some(output => output.type === "Ethernet");
-          const categoryHasEthernet = categoryDefaults[product.category]?.hasEthernet;
-          
-          return hasEthernetConnection || categoryHasEthernet;
-        })() && (
+        {(product.input_connections?.some(input => input.type === "Ethernet") || 
+          product.output_connections?.some(output => output.type === "Ethernet")) && (
           <div className="mt-auto pt-3 border-t border-gray-700 space-y-1 flex-shrink-0">
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {safeNetworkInfo.mac || '00:00:00:00:00:00'}

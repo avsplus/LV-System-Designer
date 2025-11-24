@@ -228,49 +228,14 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   const instanceId = product.instanceId;
   const productData = product.product || product;
   
-  // Use real connection data if available, otherwise fall back to category defaults
+  // Only use database connections
   const defaultConnections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
 
-  // ALWAYS use the exact same connection data that CanvasProduct uses (merged with defaults)
-  const mergeConnections = (enriched, defaults) => {
-    if (!enriched) return defaults;
-
-    // Create a map of connection types from enriched data
-    const enrichedTypes = new Set();
-    enriched.forEach(conn => enrichedTypes.add(conn.type));
-
-    // Add default connections for types not found in enriched data
-    const merged = [...enriched];
-    defaults.forEach(defaultConn => {
-      if (!enrichedTypes.has(defaultConn.type)) {
-        merged.push(defaultConn);
-      }
-    });
-
-    return merged;
+  const connections = {
+    inputs: productData.input_connections || [],
+    outputs: productData.output_connections || [],
+    description: defaultConnections.description
   };
-
-  const hasRealConnections = (productData.input_connections && productData.input_connections.length > 0) || 
-                             (productData.output_connections && productData.output_connections.length > 0);
-
-  const connections = hasRealConnections
-    ? {
-        inputs: mergeConnections(productData.input_connections, defaultConnections.inputs),
-        outputs: mergeConnections(productData.output_connections, defaultConnections.outputs),
-        description: defaultConnections.description
-      }
-    : defaultConnections;
-  
-  // Force empty outputs for endpoint devices
-  if (['speakers', 'subwoofers', 'projector_screens'].includes(productData.category)) {
-    connections.outputs = [];
-  }
-  
-  // Media streamers (Apple TV, etc.) should never have HDMI inputs
-  if (productData.category === 'media_streamers') {
-    connections.inputs = connections.inputs.filter(input => input.type !== 'HDMI');
-    connections.outputs = connections.outputs.filter(output => output.type === 'HDMI');
-  }
   
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(

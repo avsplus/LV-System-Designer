@@ -216,38 +216,20 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
     conn => conn.to === toProduct.instanceId
   );
 
-  const fromCategory = connectionsByCategory[fromProduct.category] || { inputs: [], outputs: [] };
-  const toCategory = connectionsByCategory[toProduct.category] || { inputs: [], outputs: [] };
-  
+  // Only use database connections
+  const fromOutputs = fromProduct.output_connections || [];
+  const toInputs = toProduct.input_connections || [];
+
   // Find compatible connection types
   const compatibleTypes = [];
-  fromCategory.outputs.forEach(output => {
-    toCategory.inputs.forEach(input => {
+  fromOutputs.forEach(output => {
+    toInputs.forEach(input => {
       if (normalizeType(output.type) === normalizeType(input.type)) {
         compatibleTypes.push({
           type: output.type,
           fromPorts: output.ports,
           toPorts: input.ports
         });
-      }
-    });
-  });
-  
-  // Also check enriched product data
-  const fromOutputs = fromProduct.output_connections || [];
-  const toInputs = toProduct.input_connections || [];
-  
-  fromOutputs.forEach(output => {
-    toInputs.forEach(input => {
-      if (normalizeType(output.type) === normalizeType(input.type)) {
-        // Check if not already added
-        if (!compatibleTypes.find(ct => ct.type === output.type)) {
-          compatibleTypes.push({
-            type: output.type,
-            fromPorts: output.ports,
-            toPorts: input.ports
-          });
-        }
       }
     });
   });
