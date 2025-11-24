@@ -31,6 +31,7 @@ export default function AVCanvas() {
   const [dragMousePosition, setDragMousePosition] = useState(null);
   const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, startPos: {...}, mousePos: {...}, hoveredPort: {...} }
   const [hoveredPortId, setHoveredPortId] = useState(null);
+  const [enrichmentProgress, setEnrichmentProgress] = useState(null);
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
@@ -1055,27 +1056,76 @@ export default function AVCanvas() {
                 <Plus className="w-4 h-4 mr-2" />
                 Import AV Products
               </Button>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  if (!confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes. Continue?')) {
-                    return;
-                  }
-                  try {
-                    const { data } = await base44.functions.invoke('enrichProductConnections');
-                    alert(`Successfully enriched ${data.enriched} products with real connection data!`);
-                    window.location.reload();
-                  } catch (error) {
-                    console.error('Enrichment error:', error);
-                    const errorMsg = error.response?.data?.error || error.message;
-                    alert(`Failed to enrich products: ${errorMsg}`);
-                  }
-                }}
-                className="border-gray-700 text-gray-300 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500"
-              >
-                <Link2 className="w-4 h-4 mr-2" />
-                Enrich Connections
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    if (!confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes. Continue?')) {
+                      return;
+                    }
+                    try {
+                      setEnrichmentProgress({ status: 'running', enriched: 0, total: products.length });
+                      const { data } = await base44.functions.invoke('enrichProductConnections');
+                      setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
+                      setTimeout(() => {
+                        alert(`Successfully enriched ${data.enriched} products with real connection data!`);
+                        window.location.reload();
+                      }, 500);
+                    } catch (error) {
+                      console.error('Enrichment error:', error);
+                      const errorMsg = error.response?.data?.error || error.message;
+                      setEnrichmentProgress({ status: 'error', message: errorMsg });
+                      setTimeout(() => setEnrichmentProgress(null), 5000);
+                    }
+                  }}
+                  disabled={enrichmentProgress?.status === 'running'}
+                  className="border-gray-700 text-gray-300 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500 disabled:opacity-50"
+                >
+                  <Link2 className="w-4 h-4 mr-2" />
+                  {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
+                </Button>
+
+                {enrichmentProgress && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 min-w-[300px] z-10">
+                    {enrichmentProgress.status === 'running' && (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-300">Enriching products...</span>
+                          <span className="text-xs text-gray-400">{enrichmentProgress.total} products</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse" style={{ width: '100%' }}></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">Cross-referencing specifications from multiple sources...</p>
+                      </>
+                    )}
+
+                    {enrichmentProgress.status === 'complete' && (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-green-400 font-medium">✓ Enrichment Complete</span>
+                          <span className="text-xs text-gray-400">{enrichmentProgress.enriched}/{enrichmentProgress.total}</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                          <div className="h-full bg-green-500" style={{ width: `${(enrichmentProgress.enriched / enrichmentProgress.total) * 100}%` }}></div>
+                        </div>
+                        {enrichmentProgress.failed > 0 && (
+                          <p className="text-xs text-amber-400 mt-2">{enrichmentProgress.failed} products failed to enrich</p>
+                        )}
+                      </>
+                    )}
+
+                    {enrichmentProgress.status === 'error' && (
+                      <>
+                        <div className="flex items-center mb-2">
+                          <span className="text-xs text-red-400 font-medium">✗ Enrichment Failed</span>
+                        </div>
+                        <p className="text-xs text-gray-400">{enrichmentProgress.message}</p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
                 <Button
                   size="icon"
