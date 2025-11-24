@@ -29,25 +29,43 @@ const commonConnectionTypes = [
 ];
 
 export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
-  const [formData, setFormData] = useState(device || {
-    brand: '',
-    model: '',
-    category: 'televisions',
-    description: '',
-    price: '',
-    image_url: '',
-    connections: {
-      inputs: [],
-      outputs: []
-    },
-    control: {
-      ip: false,
-      rs232: false,
-      ir: false,
-      trigger: false,
-      protocols: []
-    },
-    specs: {}
+  const [formData, setFormData] = useState(() => {
+    const defaults = {
+      brand: '',
+      model: '',
+      category: 'televisions',
+      description: '',
+      price: '',
+      image_url: '',
+      connections: {
+        inputs: [],
+        outputs: []
+      },
+      control: {
+        ip: false,
+        rs232: false,
+        ir: false,
+        trigger: false,
+        protocols: []
+      },
+      specs: {}
+    };
+    
+    if (!device) return defaults;
+    
+    return {
+      ...defaults,
+      ...device,
+      control: {
+        ...defaults.control,
+        ...(device.control || {})
+      },
+      connections: {
+        ...defaults.connections,
+        ...(device.connections || {})
+      },
+      specs: device.specs || {}
+    };
   });
 
   const [newInputType, setNewInputType] = useState('');
