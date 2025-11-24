@@ -40,64 +40,140 @@ Deno.serve(async (req) => {
     doc.text(`Total Connections: ${connections.length}`, 20, yPos);
     yPos += 15;
 
-    // Device List
-    doc.setFontSize(16);
-    doc.text('Device List', 20, yPos);
-    yPos += 10;
-
-    canvasProducts.forEach((cp, index) => {
-      if (yPos > 270) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      const product = cp.product;
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text(`${index + 1}. ${cp.label || product.brand}`, 20, yPos);
-      yPos += 6;
-      
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(10);
-      doc.text(`Brand: ${product.brand}`, 25, yPos);
-      yPos += 5;
-      doc.text(`Model: ${product.model}`, 25, yPos);
-      yPos += 5;
-      doc.text(`Category: ${product.category.replace(/_/g, ' ')}`, 25, yPos);
-      yPos += 5;
-
-      if (product.price) {
-        doc.text(`Price: $${product.price.toLocaleString()}`, 25, yPos);
-        yPos += 5;
-      }
-
-      if (cp.networkInfo && cp.networkInfo.ip && cp.networkInfo.ip !== '000.000.000.000') {
-        doc.text(`Network: IP ${cp.networkInfo.ip} | SW# ${cp.networkInfo.sw || 'N/A'} | Port ${cp.networkInfo.port || 'N/A'}`, 25, yPos);
-        yPos += 5;
-      }
-
-      // Device connections
-      const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
-      if (deviceConnections.length > 0) {
-        doc.text(`Connections: ${deviceConnections.length}`, 25, yPos);
-        yPos += 5;
-      }
-
-      yPos += 5;
-    });
-
-    // Connection Details
+    // Detailed Device Documentation
     doc.addPage();
     yPos = 20;
     doc.setFontSize(16);
-    doc.text('Connection Details', 20, yPos);
+    doc.text('Device Documentation', 20, yPos);
     yPos += 10;
 
-    connections.forEach((conn, index) => {
-      if (yPos > 260) {
+    canvasProducts.forEach((cp) => {
+      const product = cp.product;
+      
+      // Check if we need a new page
+      const inputs = product.input_connections || [];
+      const outputs = product.output_connections || [];
+      const totalPorts = inputs.reduce((sum, i) => sum + i.ports.length, 0) + 
+                        outputs.reduce((sum, o) => sum + o.ports.length, 0);
+      const estimatedHeight = 40 + (totalPorts * 5);
+      
+      if (yPos + estimatedHeight > 270) {
         doc.addPage();
         yPos = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Device: ${cp.label || product.brand}`, 20, yPos);
+      yPos += 6;
+      
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.text(`Type: ${product.category.replace(/_/g, ' ')}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Model: ${product.model}`, 20, yPos);
+      yPos += 5;
+      
+      if (product.description) {
+        doc.text(`Description: ${product.description}`, 20, yPos);
+        yPos += 5;
+      }
+
+      if (cp.networkInfo) {
+        doc.text(`MAC: ${cp.networkInfo.mac || '00:00:00:00:00:00'}`, 20, yPos);
+        yPos += 5;
+        doc.text(`IP Address: ${cp.networkInfo.ip || '000.000.000.000'}`, 20, yPos);
+        yPos += 5;
+        doc.text(`Firmware: SW#: ${cp.networkInfo.sw || 'N/A'}`, 20, yPos);
+        yPos += 5;
+      }
+
+      doc.text(`Ports: ${totalPorts} total`, 20, yPos);
+      yPos += 8;
+
+      doc.setFont(undefined, 'bold');
+      doc.text('Ports:', 20, yPos);
+      yPos += 5;
+      doc.setFont(undefined, 'normal');
+
+      // List all input ports
+      inputs.forEach(input => {
+        input.ports.forEach(port => {
+          doc.text(`  ${port} (${input.type} Input)`, 25, yPos);
+          yPos += 4;
+        });
+      });
+
+      // List all output ports
+      outputs.forEach(output => {
+        output.ports.forEach(port => {
+          doc.text(`  ${port} (${output.type} Output)`, 25, yPos);
+          yPos += 4;
+        });
+      });
+
+      yPos += 8;
+    });
+
+    // As-Built Table
+    doc.addPage();
+    yPos = 20;
+    doc.setFontSize(16);
+    doc.text('As-Built Table', 20, yPos);
+    yPos += 10;
+
+    // Connection type to color mapping
+    const colorCodes = {
+      'HDMI': 'Black',
+      'Optical': 'Blue',
+      'RCA': 'Red/White',
+      'XLR': 'Black',
+      'Speaker Wire': 'Red/Black',
+      'Ethernet': 'Blue',
+      'USB': 'Gray',
+      'Coaxial': 'Orange',
+      'HDBaseT': 'Purple',
+      'Component': 'Red/Green/Blue',
+      'Composite': 'Yellow',
+      'VGA': 'Blue',
+      'RS232': 'Gray',
+      'Subwoofer': 'Purple'
+    };
+
+    // Table headers
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'bold');
+    const colWidths = [15, 40, 30, 40, 30, 25, 25];
+    const headers = ['Cable ID', 'From Device', 'From Port', 'To Device', 'To Port', 'Signal Type', 'Color Code'];
+    let xPos = 10;
+    
+    headers.forEach((header, i) => {
+      doc.text(header, xPos, yPos);
+      xPos += colWidths[i];
+    });
+    
+    yPos += 2;
+    doc.line(10, yPos, 200, yPos);
+    yPos += 5;
+
+    // Table rows
+    doc.setFont(undefined, 'normal');
+    connections.forEach((conn) => {
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+        
+        // Redraw headers on new page
+        doc.setFont(undefined, 'bold');
+        xPos = 10;
+        headers.forEach((header, i) => {
+          doc.text(header, xPos, yPos);
+          xPos += colWidths[i];
+        });
+        yPos += 2;
+        doc.line(10, yPos, 200, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
       }
 
       const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
@@ -105,64 +181,28 @@ Deno.serve(async (req) => {
 
       if (!fromDevice || !toDevice) return;
 
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
-      doc.text(`${conn.wireId || `C${index + 1}`}: ${conn.type}`, 20, yPos);
-      yPos += 6;
+      xPos = 10;
+      const rowData = [
+        conn.wireId || `C${connections.indexOf(conn) + 1}`,
+        fromDevice.label || fromDevice.product.brand,
+        conn.fromPort || 'N/A',
+        toDevice.label || toDevice.product.brand,
+        conn.toPort || 'N/A',
+        conn.type,
+        colorCodes[conn.type] || 'Various'
+      ];
 
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      doc.text(`From: ${fromDevice.label || fromDevice.product.brand} (${conn.fromPort || 'N/A'})`, 25, yPos);
-      yPos += 5;
-      doc.text(`To: ${toDevice.label || toDevice.product.brand} (${conn.toPort || 'N/A'})`, 25, yPos);
-      yPos += 8;
+      rowData.forEach((data, i) => {
+        const maxWidth = colWidths[i] - 2;
+        const text = doc.splitTextToSize(data.toString(), maxWidth);
+        doc.text(text, xPos, yPos);
+        xPos += colWidths[i];
+      });
+
+      yPos += 6;
     });
 
-    // Input/Output Summary per Device
-    doc.addPage();
-    yPos = 20;
-    doc.setFontSize(16);
-    doc.text('Device Port Summary', 20, yPos);
-    yPos += 10;
 
-    canvasProducts.forEach((cp) => {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      const product = cp.product;
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text(`${cp.label || product.brand}`, 20, yPos);
-      yPos += 6;
-
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-
-      // Inputs
-      if (product.input_connections && product.input_connections.length > 0) {
-        doc.text('Inputs:', 25, yPos);
-        yPos += 5;
-        product.input_connections.forEach(input => {
-          doc.text(`  • ${input.type}: ${input.ports.length} port(s)`, 30, yPos);
-          yPos += 4;
-        });
-        yPos += 2;
-      }
-
-      // Outputs
-      if (product.output_connections && product.output_connections.length > 0) {
-        doc.text('Outputs:', 25, yPos);
-        yPos += 5;
-        product.output_connections.forEach(output => {
-          doc.text(`  • ${output.type}: ${output.ports.length} port(s)`, 30, yPos);
-          yPos += 4;
-        });
-      }
-
-      yPos += 8;
-    });
 
     const pdfBytes = doc.output('arraybuffer');
 
