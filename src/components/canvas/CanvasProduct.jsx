@@ -282,24 +282,25 @@ export default function CanvasProduct({
 
   // Connection type colors mapping
   const connectionTypeColors = {
-    "HDMI": "#a855f7",
-    "Optical": "#06b6d4",
-    "TOSLINK": "#06b6d4",
-    "RCA": "#ef4444",
-    "XLR": "#22c55e",
-    "Speaker Wire": "#f97316",
-    "Ethernet": "#3b82f6",
-    "USB": "#6366f1",
-    "Coaxial": "#eab308",
-    "3.5mm Jack": "#9ca3af",
-    "Component": "#ec4899",
-    "Composite": "#8b5cf6",
-    "VGA": "#14b8a6",
-    "RS232": "#f59e0b",
-    "HDBaseT": "#10b981",
-    "Control": "#64748b",
-    "Subwoofer": "#dc2626",
-    "Wireless": "#7c3aed"
+    "HDMI": "#E74C3C",
+    "Optical": "#2A7FDB",
+    "TOSLINK": "#2A7FDB",
+    "RCA": "#F6A623",
+    "XLR": "#1ABC9C",
+    "Speaker Wire": "#D35400",
+    "Ethernet": "#27AE60",
+    "USB": "#2A7FDB",
+    "Coaxial": "#2A7FDB",
+    "3.5mm Jack": "#F6A623",
+    "Component": "#E74C3C",
+    "Composite": "#E74C3C",
+    "VGA": "#E74C3C",
+    "RS232": "#7F8C8D",
+    "HDBaseT": "#E91E63",
+    "Control": "#7F8C8D",
+    "Subwoofer": "#D35400",
+    "Wireless": "#27AE60",
+    "IR": "#7F8C8D"
   };
 
   // Get connection types (one dot per type, not per port)
