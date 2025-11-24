@@ -232,6 +232,25 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
       }
     });
   });
+  
+  // Also check enriched product data
+  const fromOutputs = fromProduct.output_connections || [];
+  const toInputs = toProduct.input_connections || [];
+  
+  fromOutputs.forEach(output => {
+    toInputs.forEach(input => {
+      if (normalizeType(output.type) === normalizeType(input.type)) {
+        // Check if not already added
+        if (!compatibleTypes.find(ct => ct.type === output.type)) {
+          compatibleTypes.push({
+            type: output.type,
+            fromPorts: output.ports,
+            toPorts: input.ports
+          });
+        }
+      }
+    });
+  });
 
   // Use pendingConnection if available to pre-select the correct ports
   const defaultType = pendingConnection?.connectionType || compatibleTypes[0]?.type || "";
