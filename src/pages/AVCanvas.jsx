@@ -1527,7 +1527,7 @@ export default function AVCanvas() {
           <DeviceConnectionsPanel
             product={selectedCanvasProduct}
             label={selectedCanvasProduct.label}
-            networkInfo={selectedCanvasProduct.networkInfo}
+            networkInfo={selectedCanvasProduct.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }}
             activeConnections={connections}
             allProducts={canvasProducts}
             onClose={() => setSelectedCanvasProduct(null)}
