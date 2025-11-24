@@ -215,13 +215,13 @@ export default function DeviceManager() {
                 )}
 
                 <div className="border-t border-gray-800 pt-3 space-y-2">
-                  {product.connections && (
+                  {(product.input_connections || product.output_connections) && (
                     <>
-                      {product.connections.inputs && product.connections.inputs.length > 0 && (
+                      {product.input_connections && product.input_connections.length > 0 && (
                         <div>
                           <p className="text-xs text-gray-500 mb-1">Inputs:</p>
                           <div className="flex flex-wrap gap-1">
-                            {product.connections.inputs.map((input, idx) => (
+                            {product.input_connections.map((input, idx) => (
                               <Badge key={idx} variant="outline" className="text-xs border-gray-700">
                                 {input.type} ({input.ports.length})
                               </Badge>
@@ -229,11 +229,11 @@ export default function DeviceManager() {
                           </div>
                         </div>
                       )}
-                      {product.connections.outputs && product.connections.outputs.length > 0 && (
+                      {product.output_connections && product.output_connections.length > 0 && (
                         <div>
                           <p className="text-xs text-gray-500 mb-1">Outputs:</p>
                           <div className="flex flex-wrap gap-1">
-                            {product.connections.outputs.map((output, idx) => (
+                            {product.output_connections.map((output, idx) => (
                               <Badge key={idx} variant="outline" className="text-xs border-gray-700">
                                 {output.type} ({output.ports.length})
                               </Badge>
