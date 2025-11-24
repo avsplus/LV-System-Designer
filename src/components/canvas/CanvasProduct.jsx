@@ -235,6 +235,9 @@ export default function CanvasProduct({
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+  
+  // Ensure networkInfo is always defined
+  const safeNetworkInfo = networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
 
   const handleMouseDown = (e) => {
     if (e.target.closest('button') || e.target.hasAttribute('data-port-type')) return;
