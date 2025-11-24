@@ -404,6 +404,17 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
           </>
         )}
 
+        {validationWarnings.length > 0 && canCreate && (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-6">
+            <p className="text-xs font-medium text-amber-400 mb-2">⚠️ Warnings:</p>
+            <ul className="text-xs text-amber-300 space-y-1">
+              {validationWarnings.map((warning, idx) => (
+                <li key={idx}>• {warning}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={onCancel} className="border-gray-700 text-gray-300">
             Cancel
