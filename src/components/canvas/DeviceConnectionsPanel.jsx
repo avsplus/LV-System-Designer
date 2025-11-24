@@ -230,15 +230,15 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   
   // Use real connection data if available, otherwise fall back to category defaults
   const defaultConnections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
-  
+
   // ALWAYS use the exact same connection data that CanvasProduct uses (merged with defaults)
   const mergeConnections = (enriched, defaults) => {
     if (!enriched) return defaults;
-    
+
     // Create a map of connection types from enriched data
     const enrichedTypes = new Set();
     enriched.forEach(conn => enrichedTypes.add(conn.type));
-    
+
     // Add default connections for types not found in enriched data
     const merged = [...enriched];
     defaults.forEach(defaultConn => {
@@ -246,18 +246,17 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
         merged.push(defaultConn);
       }
     });
-    
+
     return merged;
   };
-  
-  const hasRealConnections = productData.connections && 
-    ((productData.connections.inputs && productData.connections.inputs.length > 0) || 
-     (productData.connections.outputs && productData.connections.outputs.length > 0));
-  
+
+  const hasRealConnections = (productData.input_connections && productData.input_connections.length > 0) || 
+                             (productData.output_connections && productData.output_connections.length > 0);
+
   const connections = hasRealConnections
     ? {
-        inputs: mergeConnections(productData.connections.inputs, defaultConnections.inputs),
-        outputs: mergeConnections(productData.connections.outputs, defaultConnections.outputs),
+        inputs: mergeConnections(productData.input_connections, defaultConnections.inputs),
+        outputs: mergeConnections(productData.output_connections, defaultConnections.outputs),
         description: defaultConnections.description
       }
     : defaultConnections;
