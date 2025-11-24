@@ -273,7 +273,7 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
                     type="button"
                     size="icon"
                     variant="ghost"
-                    onClick={() => removeConnection('inputs', idx)}
+                    onClick={() => removeConnection('input_connections', idx)}
                     className="text-red-400 hover:text-red-300"
                   >
                     <Trash2 className="w-4 h-4" />
