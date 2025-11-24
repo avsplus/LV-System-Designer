@@ -684,7 +684,6 @@ export default function AVCanvas() {
     },
     media_streamers: {
       inputs: [
-        { type: "HDMI", ports: ["HDMI-In"] },
         { type: "Ethernet", ports: ["LAN"] },
         { type: "USB", ports: ["USB"] }
       ],
