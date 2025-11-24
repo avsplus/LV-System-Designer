@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import ProductSidebar from "../components/canvas/ProductSidebar";
@@ -13,16 +13,13 @@ import ProductDetailsPanel from "../components/canvas/ProductDetailsPanel";
 import ConnectionDetailsPanel from "../components/canvas/ConnectionDetailsPanel";
 import ConnectionTypeDialog from "../components/canvas/ConnectionTypeDialog";
 import DeviceConnectionsPanel from "../components/canvas/DeviceConnectionsPanel";
+import ProjectManager from "../components/canvas/ProjectManager";
 
 export default function AVCanvas() {
-  const [canvasProducts, setCanvasProducts] = useState(() => {
-    const saved = localStorage.getItem('avCanvasProducts');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [connections, setConnections] = useState(() => {
-    const saved = localStorage.getItem('avCanvasConnections');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [currentProject, setCurrentProject] = useState(null);
+  const [showProjectManager, setShowProjectManager] = useState(false);
+  const [canvasProducts, setCanvasProducts] = useState([]);
+  const [connections, setConnections] = useState([]);
 
   // Helper to ensure networkInfo is always defined
   const ensureNetworkInfo = (product) => ({
@@ -132,14 +129,19 @@ export default function AVCanvas() {
     queryFn: () => base44.entities.AVProduct.list(),
   });
 
-  // Save canvas state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('avCanvasProducts', JSON.stringify(canvasProducts));
-  }, [canvasProducts]);
-
-  useEffect(() => {
-    localStorage.setItem('avCanvasConnections', JSON.stringify(connections));
-  }, [connections]);
+  const handleProjectLoad = (project) => {
+    setCurrentProject(project);
+    if (project) {
+      setCanvasProducts(project.canvas_products || []);
+      setConnections(project.connections || []);
+    } else {
+      setCanvasProducts([]);
+      setConnections([]);
+    }
+    setSelectedProduct(null);
+    setSelectedConnection(null);
+    setSelectedCanvasProduct(null);
+  };
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -664,12 +666,13 @@ export default function AVCanvas() {
   };
 
   const clearCanvas = () => {
-    setCanvasProducts([]);
-    setConnections([]);
-    setSelectedProduct(null);
-    setSelectedConnection(null);
-    localStorage.removeItem('avCanvasProducts');
-    localStorage.removeItem('avCanvasConnections');
+    if (confirm('This will clear the canvas. Any unsaved changes will be lost. Continue?')) {
+      setCanvasProducts([]);
+      setConnections([]);
+      setSelectedProduct(null);
+      setSelectedConnection(null);
+      setCurrentProject(null);
+    }
   };
 
   const handleZoomIn = () => {
@@ -1197,10 +1200,22 @@ export default function AVCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-white">AV System Designer</h1>
               <p className="text-sm text-gray-400 mt-0.5">
-                Drag products to canvas and create connections
+                {currentProject ? (
+                  <>Project: <span className="text-blue-400 font-medium">{currentProject.name}</span></>
+                ) : (
+                  'Drag products to canvas and create connections'
+                )}
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowProjectManager(true)}
+                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
+              >
+                <FolderOpen className="w-4 h-4 mr-2" />
+                Projects
+              </Button>
               <Link to={createPageUrl("DeviceManager")}>
                 <Button
                   variant="outline"
@@ -1658,6 +1673,16 @@ export default function AVCanvas() {
               setConnectingTo(null);
               setPendingConnection(null);
             }}
+          />
+        )}
+
+        {showProjectManager && (
+          <ProjectManager
+            currentProject={currentProject}
+            canvasProducts={canvasProducts}
+            connections={connections}
+            onProjectLoad={handleProjectLoad}
+            onClose={() => setShowProjectManager(false)}
           />
         )}
       </div>
