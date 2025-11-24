@@ -185,15 +185,24 @@ const connectionsByCategory = {
 };
 
 const connectionTypeInfo = {
-  "HDMI": { color: "bg-purple-500/10 text-purple-400 border-purple-500/20", signals: "Video, Audio, Control", highlight: { bg: "bg-purple-500/20", border: "border-purple-500/40", hover: "hover:border-purple-500", text: "text-purple-300" } },
-  "Optical": { color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20", signals: "Digital Audio", highlight: { bg: "bg-cyan-500/20", border: "border-cyan-500/40", hover: "hover:border-cyan-500", text: "text-cyan-300" } },
-  "RCA": { color: "bg-red-500/10 text-red-400 border-red-500/20", signals: "Analog Audio/Video", highlight: { bg: "bg-red-500/20", border: "border-red-500/40", hover: "hover:border-red-500", text: "text-red-300" } },
-  "XLR": { color: "bg-green-500/10 text-green-400 border-green-500/20", signals: "Balanced Audio", highlight: { bg: "bg-green-500/20", border: "border-green-500/40", hover: "hover:border-green-500", text: "text-green-300" } },
-  "Speaker Wire": { color: "bg-orange-500/10 text-orange-400 border-orange-500/20", signals: "Speaker Audio", highlight: { bg: "bg-orange-500/20", border: "border-orange-500/40", hover: "hover:border-orange-500", text: "text-orange-300" } },
-  "Ethernet": { color: "bg-blue-500/10 text-blue-400 border-blue-500/20", signals: "Network Data", highlight: { bg: "bg-blue-500/20", border: "border-blue-500/40", hover: "hover:border-blue-500", text: "text-blue-300" } },
-  "USB": { color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20", signals: "Digital Data/Audio", highlight: { bg: "bg-indigo-500/20", border: "border-indigo-500/40", hover: "hover:border-indigo-500", text: "text-indigo-300" } },
-  "Coaxial": { color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20", signals: "Digital Audio", highlight: { bg: "bg-yellow-500/20", border: "border-yellow-500/40", hover: "hover:border-yellow-500", text: "text-yellow-300" } },
-  "3.5mm Jack": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Analog Audio", highlight: { bg: "bg-gray-500/20", border: "border-gray-500/40", hover: "hover:border-gray-500", text: "text-gray-300" } },
+  "HDMI": { color: "bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20", signals: "Video, Audio, Control", highlight: { bg: "bg-[#E74C3C]/20", border: "border-[#E74C3C]/40", hover: "hover:border-[#E74C3C]", text: "text-[#E74C3C]" } },
+  "Optical": { color: "bg-[#2A7FDB]/10 text-[#2A7FDB] border-[#2A7FDB]/20", signals: "Digital Audio", highlight: { bg: "bg-[#2A7FDB]/20", border: "border-[#2A7FDB]/40", hover: "hover:border-[#2A7FDB]", text: "text-[#2A7FDB]" } },
+  "RCA": { color: "bg-[#F6A623]/10 text-[#F6A623] border-[#F6A623]/20", signals: "Analog Audio/Video", highlight: { bg: "bg-[#F6A623]/20", border: "border-[#F6A623]/40", hover: "hover:border-[#F6A623]", text: "text-[#F6A623]" } },
+  "XLR": { color: "bg-[#1ABC9C]/10 text-[#1ABC9C] border-[#1ABC9C]/20", signals: "Balanced Audio", highlight: { bg: "bg-[#1ABC9C]/20", border: "border-[#1ABC9C]/40", hover: "hover:border-[#1ABC9C]", text: "text-[#1ABC9C]" } },
+  "Speaker Wire": { color: "bg-[#D35400]/10 text-[#D35400] border-[#D35400]/20", signals: "Speaker Audio", highlight: { bg: "bg-[#D35400]/20", border: "border-[#D35400]/40", hover: "hover:border-[#D35400]", text: "text-[#D35400]" } },
+  "Ethernet": { color: "bg-[#27AE60]/10 text-[#27AE60] border-[#27AE60]/20", signals: "Network Data", highlight: { bg: "bg-[#27AE60]/20", border: "border-[#27AE60]/40", hover: "hover:border-[#27AE60]", text: "text-[#27AE60]" } },
+  "USB": { color: "bg-[#2A7FDB]/10 text-[#2A7FDB] border-[#2A7FDB]/20", signals: "Digital Data/Audio", highlight: { bg: "bg-[#2A7FDB]/20", border: "border-[#2A7FDB]/40", hover: "hover:border-[#2A7FDB]", text: "text-[#2A7FDB]" } },
+  "Coaxial": { color: "bg-[#2A7FDB]/10 text-[#2A7FDB] border-[#2A7FDB]/20", signals: "Digital Audio", highlight: { bg: "bg-[#2A7FDB]/20", border: "border-[#2A7FDB]/40", hover: "hover:border-[#2A7FDB]", text: "text-[#2A7FDB]" } },
+  "3.5mm Jack": { color: "bg-[#F6A623]/10 text-[#F6A623] border-[#F6A623]/20", signals: "Analog Audio", highlight: { bg: "bg-[#F6A623]/20", border: "border-[#F6A623]/40", hover: "hover:border-[#F6A623]", text: "text-[#F6A623]" } },
+  "Component": { color: "bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20", signals: "Analog Video", highlight: { bg: "bg-[#E74C3C]/20", border: "border-[#E74C3C]/40", hover: "hover:border-[#E74C3C]", text: "text-[#E74C3C]" } },
+  "Composite": { color: "bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20", signals: "Analog Video", highlight: { bg: "bg-[#E74C3C]/20", border: "border-[#E74C3C]/40", hover: "hover:border-[#E74C3C]", text: "text-[#E74C3C]" } },
+  "VGA": { color: "bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20", signals: "Analog Video", highlight: { bg: "bg-[#E74C3C]/20", border: "border-[#E74C3C]/40", hover: "hover:border-[#E74C3C]", text: "text-[#E74C3C]" } },
+  "RS232": { color: "bg-[#7F8C8D]/10 text-[#7F8C8D] border-[#7F8C8D]/20", signals: "Serial Control", highlight: { bg: "bg-[#7F8C8D]/20", border: "border-[#7F8C8D]/40", hover: "hover:border-[#7F8C8D]", text: "text-[#7F8C8D]" } },
+  "HDBaseT": { color: "bg-[#E91E63]/10 text-[#E91E63] border-[#E91E63]/20", signals: "Video over Network", highlight: { bg: "bg-[#E91E63]/20", border: "border-[#E91E63]/40", hover: "hover:border-[#E91E63]", text: "text-[#E91E63]" } },
+  "Control": { color: "bg-[#7F8C8D]/10 text-[#7F8C8D] border-[#7F8C8D]/20", signals: "Device Control", highlight: { bg: "bg-[#7F8C8D]/20", border: "border-[#7F8C8D]/40", hover: "hover:border-[#7F8C8D]", text: "text-[#7F8C8D]" } },
+  "Subwoofer": { color: "bg-[#D35400]/10 text-[#D35400] border-[#D35400]/20", signals: "Low Frequency Audio", highlight: { bg: "bg-[#D35400]/20", border: "border-[#D35400]/40", hover: "hover:border-[#D35400]", text: "text-[#D35400]" } },
+  "IR": { color: "bg-[#7F8C8D]/10 text-[#7F8C8D] border-[#7F8C8D]/20", signals: "Infrared Control", highlight: { bg: "bg-[#7F8C8D]/20", border: "border-[#7F8C8D]/40", hover: "hover:border-[#7F8C8D]", text: "text-[#7F8C8D]" } },
+  "Wireless": { color: "bg-[#27AE60]/10 text-[#27AE60] border-[#27AE60]/20", signals: "Wireless Network", highlight: { bg: "bg-[#27AE60]/20", border: "border-[#27AE60]/40", hover: "hover:border-[#27AE60]", text: "text-[#27AE60]" } },
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types", highlight: { bg: "bg-gray-500/20", border: "border-gray-500/40", hover: "hover:border-gray-500", text: "text-gray-300" } }
 };
 
