@@ -176,8 +176,8 @@ export default function AVCanvas() {
   const handleNetworkInfoChange = (instanceId, networkInfo) => {
     setCanvasProducts(canvasProducts.map(cp => 
       cp.instanceId === instanceId 
-        ? { ...cp, networkInfo: networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' } }
-        : cp
+        ? ensureNetworkInfo({ ...cp, networkInfo: networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' } })
+        : ensureNetworkInfo(cp)
     ));
   };
 
