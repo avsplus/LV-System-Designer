@@ -35,7 +35,29 @@ Return a diverse mix across all categories.`,
                                 },
                                 description: { type: "string" },
                                 price: { type: "number" },
-                                image_url: { type: "string" }
+                                image_url: { type: "string" },
+                                input_connections: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            type: { type: "string" },
+                                            ports: { type: "array", items: { type: "string" } }
+                                        },
+                                        required: ["type", "ports"]
+                                    }
+                                },
+                                output_connections: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            type: { type: "string" },
+                                            ports: { type: "array", items: { type: "string" } }
+                                        },
+                                        required: ["type", "ports"]
+                                    }
+                                }
                             },
                             required: ["brand", "model", "category"]
                         }
