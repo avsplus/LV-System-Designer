@@ -381,6 +381,12 @@ export default function CanvasProduct({
                 data-port-index={i}
                 data-port-type="input"
                 title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onPortClick) {
+                    onPortClick(instanceId, connType.type, 'type', true);
+                  }
+                }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -415,6 +421,12 @@ export default function CanvasProduct({
                 data-port-index={i}
                 data-port-type="output"
                 title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onPortClick) {
+                    onPortClick(instanceId, connType.type, 'type', false);
+                  }
+                }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -449,6 +461,12 @@ export default function CanvasProduct({
                 data-port-index={i + 6}
                 data-port-type={connType.isInput ? "input" : "output"}
                 title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onPortClick) {
+                    onPortClick(instanceId, connType.type, 'type', connType.isInput);
+                  }
+                }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();

@@ -481,19 +481,10 @@ export default function AVCanvas() {
 
   // Start connecting from a port
   const handlePortMouseDown = (instanceId, connectionType, portName, isInput, portElement) => {
-    console.log('=== Port Mouse Down ===');
-    console.log('Instance:', instanceId);
-    console.log('Type:', connectionType);
-    console.log('Port:', portName);
-    console.log('Is Input:', isInput);
-    
     const startPos = getPortPosition(portElement);
     if (!startPos) {
-      console.log('ERROR: Could not get port position');
       return;
     }
-
-    console.log('Start position:', startPos);
 
     const newState = {
       mode: 'connecting',
@@ -505,7 +496,9 @@ export default function AVCanvas() {
       },
       startPos,
       mousePos: startPos,
-      startTime: Date.now()
+      startTime: Date.now(),
+      clickX: window.event?.clientX,
+      clickY: window.event?.clientY
     };
 
     setConnectingState(newState);
@@ -577,22 +570,17 @@ export default function AVCanvas() {
   const handleGlobalMouseUp = React.useCallback((e) => {
     const currentState = connectingStateRef.current;
     if (!currentState) {
-      console.log('No connecting state');
       return;
     }
 
     const timeDiff = Date.now() - (currentState.startTime || 0);
-    console.log('Mouse up - time diff:', timeDiff, 'ms');
+    const mouseMoveDist = Math.sqrt(
+      Math.pow(e.clientX - (currentState.clickX || e.clientX), 2) +
+      Math.pow(e.clientY - (currentState.clickY || e.clientY), 2)
+    );
 
-    // Quick click - show connection details using the originally clicked port
-    if (timeDiff < 150) {
-      console.log('Quick click detected');
-      handlePortClick(
-        currentState.fromPort.instanceId, 
-        currentState.fromPort.connectionType, 
-        currentState.fromPort.portName, 
-        currentState.fromPort.isInput
-      );
+    // Quick click with minimal movement - this was just a click, not a drag
+    if (timeDiff < 200 && mouseMoveDist < 10) {
       setConnectingState(null);
       connectingStateRef.current = null;
       setHoveredPortId(null);
