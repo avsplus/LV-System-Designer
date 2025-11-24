@@ -37,10 +37,8 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
       description: '',
       price: '',
       image_url: '',
-      connections: {
-        inputs: [],
-        outputs: []
-      },
+      input_connections: [],
+      output_connections: [],
       control: {
         ip: false,
         rs232: false,
@@ -60,10 +58,8 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
         ...defaults.control,
         ...(device.control || {})
       },
-      connections: {
-        ...defaults.connections,
-        ...(device.connections || {})
-      },
+      input_connections: device.input_connections || [],
+      output_connections: device.output_connections || [],
       specs: device.specs || {}
     };
   });
