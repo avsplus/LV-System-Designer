@@ -191,7 +191,69 @@ export default function AVCanvas() {
     }
   };
 
+  const validateConnection = (fromId, toId, connectionType) => {
+    const errors = [];
+    const warnings = [];
+    
+    const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
+    const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
+    
+    if (!fromProduct || !toProduct) {
+      errors.push("Invalid device selection");
+      return { valid: false, errors, warnings };
+    }
+    
+    // Check network info for Ethernet connections
+    if (connectionType === 'Ethernet') {
+      const fromNeedsNetwork = ['televisions', 'projectors', 'video_distribution', 'matrix_switchers', 
+                                'audio_streamers', 'media_streamers', 'soundbars', 'multizone_amps', 
+                                'surround_processors', 'av_receivers'].includes(fromProduct.product.category);
+      const toNeedsNetwork = ['televisions', 'projectors', 'video_distribution', 'matrix_switchers', 
+                              'audio_streamers', 'media_streamers', 'soundbars', 'multizone_amps', 
+                              'surround_processors', 'av_receivers'].includes(toProduct.product.category);
+      
+      if (fromNeedsNetwork && (!fromProduct.networkInfo?.ip || fromProduct.networkInfo.ip === '000.000.000.000')) {
+        warnings.push(`${fromProduct.label || fromProduct.product.brand} requires network configuration (IP address)`);
+      }
+      if (toNeedsNetwork && (!toProduct.networkInfo?.ip || toProduct.networkInfo.ip === '000.000.000.000')) {
+        warnings.push(`${toProduct.label || toProduct.product.brand} requires network configuration (IP address)`);
+      }
+    }
+    
+    // Check for duplicate connections on the same ports
+    const duplicateConnection = connections.find(c => 
+      c.from === fromId && c.to === toId && c.type === connectionType
+    );
+    if (duplicateConnection) {
+      warnings.push("A connection of this type already exists between these devices");
+    }
+    
+    return { valid: errors.length === 0, errors, warnings };
+  };
+
   const handleConnectionTypeSelect = (connectionData) => {
+    // Validate connection
+    const validation = validateConnection(connectingFrom, connectingTo, connectionData.type);
+    
+    if (!validation.valid) {
+      alert(`Cannot create connection:\n${validation.errors.join('\n')}`);
+      setConnectingFrom(null);
+      setConnectingTo(null);
+      setPendingConnection(null);
+      return;
+    }
+    
+    // Show warnings if any
+    if (validation.warnings.length > 0) {
+      const proceed = confirm(`Connection can be created but has warnings:\n\n${validation.warnings.join('\n')}\n\nContinue anyway?`);
+      if (!proceed) {
+        setConnectingFrom(null);
+        setConnectingTo(null);
+        setPendingConnection(null);
+        return;
+      }
+    }
+    
     // Categorize connection types
     const connectionCategories = {
       'HDMI': 'V',
@@ -211,7 +273,8 @@ export default function AVCanvas() {
       'Ethernet': 'N',
       'USB': 'N',
       'RS232': 'C',
-      'Control': 'C'
+      'Control': 'C',
+      'Power': 'P'
     };
     
     const prefix = connectionCategories[connectionData.type] || 'W';

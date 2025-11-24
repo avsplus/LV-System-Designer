@@ -276,7 +276,21 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
     }
   }, [selectedType]);
 
+  // Validation checks
   const canCreate = selectedType && selectedFromPort && selectedToPort;
+  
+  const validationWarnings = [];
+  if (selectedType === 'HDMI' && availableFromPorts.length === 0 && availableToPorts.length === 0) {
+    validationWarnings.push("All HDMI ports are in use on both devices");
+  }
+  if (selectedType === 'Ethernet') {
+    if (!fromProduct.networkInfo?.ip || fromProduct.networkInfo.ip === '000.000.000.000') {
+      validationWarnings.push(`${fromProduct.brand} needs network configuration`);
+    }
+    if (!toProduct.networkInfo?.ip || toProduct.networkInfo.ip === '000.000.000.000') {
+      validationWarnings.push(`${toProduct.brand} needs network configuration`);
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onCancel}>
