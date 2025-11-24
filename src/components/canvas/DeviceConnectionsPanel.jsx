@@ -100,7 +100,6 @@ const connectionsByCategory = {
   },
   speakers: {
     inputs: [
-      { type: "Power", ports: ["AC"] },
       { type: "Speaker Wire", ports: ["Input"] }
     ],
     outputs: [],
