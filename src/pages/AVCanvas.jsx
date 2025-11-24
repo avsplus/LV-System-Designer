@@ -5,7 +5,7 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "./utils";
+import { createPageUrl } from "../utils";
 import ProductSidebar from "../components/canvas/ProductSidebar";
 import CanvasProduct from "../components/canvas/CanvasProduct";
 import ConnectionLine from "../components/canvas/ConnectionLine";
