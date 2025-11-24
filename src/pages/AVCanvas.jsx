@@ -507,8 +507,23 @@ export default function AVCanvas() {
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
       
+      console.log('Validating port:', {
+        fromInput: currentState.fromPort.isInput,
+        toInput: hitPort.isInput,
+        validDirection,
+        fromType: currentState.fromPort.connectionType,
+        toType: hitPort.connectionType,
+        sameType,
+        fromDevice: currentState.fromPort.instanceId,
+        toDevice: hitPort.instanceId,
+        differentDevice
+      });
+      
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
+        console.log('✓ Valid target port found!');
+      } else {
+        console.log('✗ Port validation failed');
       }
     }
 
