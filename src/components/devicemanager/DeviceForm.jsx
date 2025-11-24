@@ -100,13 +100,10 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
     
     setFormData(prev => ({
       ...prev,
-      connections: {
-        ...prev.connections,
-        [type === 'input' ? 'inputs' : 'outputs']: [
-          ...(prev.connections[type === 'input' ? 'inputs' : 'outputs'] || []),
-          newConnection
-        ]
-      }
+      [type === 'input' ? 'input_connections' : 'output_connections']: [
+        ...(prev[type === 'input' ? 'input_connections' : 'output_connections'] || []),
+        newConnection
+      ]
     }));
     
     if (type === 'input') {
