@@ -1554,12 +1554,12 @@ export default function AVCanvas() {
             fromProduct={{
               ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product,
               instanceId: connectingFrom,
-              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingFrom)?.networkInfo
+              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingFrom)?.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
             }}
             toProduct={{
               ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product,
               instanceId: connectingTo,
-              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingTo)?.networkInfo
+              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingTo)?.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
             }}
             existingConnections={connections}
             pendingConnection={pendingConnection}
