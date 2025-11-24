@@ -122,30 +122,52 @@ Only include verified information. If you cannot verify a specification from mul
                         }
                     });
 
-                    // Update product with enriched connection info, control capabilities, and specs
-                    const updateData = {
-                        connections: {
-                            inputs: response.inputs || [],
-                            outputs: response.outputs || []
-                        }
-                    };
+                    // Build update object safely, matching AVProduct schema
+                    const updateData = {};
 
-                    // Add control capabilities if provided
-                    if (response.control) {
-                        updateData.control = response.control;
-                    }
-
-                    // Add specs if provided (merge with existing)
-                    if (response.specs) {
-                        updateData.specs = {
-                            ...(product.specs || {}),
-                            ...response.specs
+                    // Always update connections if we got valid data
+                    if (response.inputs || response.outputs) {
+                        updateData.connections = {
+                            inputs: Array.isArray(response.inputs) ? response.inputs : [],
+                            outputs: Array.isArray(response.outputs) ? response.outputs : []
                         };
                     }
 
-                    await base44.asServiceRole.entities.AVProduct.update(product.id, updateData);
+                    // Add control capabilities if provided and valid
+                    if (response.control && typeof response.control === 'object') {
+                        updateData.control = {
+                            ip: Boolean(response.control.ip),
+                            rs232: Boolean(response.control.rs232),
+                            ir: Boolean(response.control.ir),
+                            trigger: Boolean(response.control.trigger),
+                            protocols: Array.isArray(response.control.protocols) ? response.control.protocols : []
+                        };
+                    }
 
-                    enriched++;
+                    // Add specs if provided (merge with existing, only update non-empty values)
+                    if (response.specs && typeof response.specs === 'object') {
+                        const existingSpecs = product.specs || {};
+                        const newSpecs = {};
+                        
+                        // Only include non-empty spec values
+                        for (const [key, value] of Object.entries(response.specs)) {
+                            if (value && typeof value === 'string' && value.trim()) {
+                                newSpecs[key] = value.trim();
+                            }
+                        }
+                        
+                        // Merge with existing specs
+                        if (Object.keys(newSpecs).length > 0) {
+                            updateData.specs = { ...existingSpecs, ...newSpecs };
+                        }
+                    }
+
+                    // Only update if we have data to update
+                    if (Object.keys(updateData).length > 0) {
+                        await base44.asServiceRole.entities.AVProduct.update(product.id, updateData);
+                        enriched++;
+                    }
+
                 } catch (error) {
                     console.error(`Failed to enrich ${product.brand} ${product.model}:`, error);
                     failed++;
