@@ -523,7 +523,11 @@ export default function AVCanvas() {
         validHitPort = hitPort;
         console.log('✓ Valid target port found!');
       } else {
-        console.log('✗ Port validation failed');
+        console.log('✗ Port validation failed:', {
+          reason: !validDirection ? 'Cannot connect two inputs or two outputs together' :
+                  !sameType ? 'Connection types must match' :
+                  !differentDevice ? 'Cannot connect device to itself' : 'Unknown'
+        });
       }
     }
 
@@ -578,6 +582,19 @@ export default function AVCanvas() {
     if (currentState.hoveredPort) {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
+      
+      // Validate connection is possible
+      const validDirection = fromPort.isInput !== toPort.isInput;
+      const sameType = fromPort.connectionType === toPort.connectionType;
+      const differentDevice = fromPort.instanceId !== toPort.instanceId;
+      
+      if (!validDirection || !sameType || !differentDevice) {
+        console.log('Cannot create connection - invalid port combination');
+        setConnectingState(null);
+        connectingStateRef.current = null;
+        setHoveredPortId(null);
+        return;
+      }
 
       // Determine correct from/to based on port directions
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
