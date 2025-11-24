@@ -172,6 +172,23 @@ const connectionsByCategory = {
   }
 };
 
+const categoryHighlightColors = {
+  televisions: { bg: "bg-blue-500/20", border: "border-blue-500/40", hover: "hover:border-blue-500", text: "text-blue-300" },
+  projectors: { bg: "bg-purple-500/20", border: "border-purple-500/40", hover: "hover:border-purple-500", text: "text-purple-300" },
+  projector_screens: { bg: "bg-fuchsia-500/20", border: "border-fuchsia-500/40", hover: "hover:border-fuchsia-500", text: "text-fuchsia-300" },
+  video_distribution: { bg: "bg-cyan-500/20", border: "border-cyan-500/40", hover: "hover:border-cyan-500", text: "text-cyan-300" },
+  matrix_switchers: { bg: "bg-teal-500/20", border: "border-teal-500/40", hover: "hover:border-teal-500", text: "text-teal-300" },
+  audio_streamers: { bg: "bg-pink-500/20", border: "border-pink-500/40", hover: "hover:border-pink-500", text: "text-pink-300" },
+  media_streamers: { bg: "bg-rose-500/20", border: "border-rose-500/40", hover: "hover:border-rose-500", text: "text-rose-300" },
+  speakers: { bg: "bg-green-500/20", border: "border-green-500/40", hover: "hover:border-green-500", text: "text-green-300" },
+  soundbars: { bg: "bg-lime-500/20", border: "border-lime-500/40", hover: "hover:border-lime-500", text: "text-lime-300" },
+  subwoofers: { bg: "bg-red-500/20", border: "border-red-500/40", hover: "hover:border-red-500", text: "text-red-300" },
+  stereo_amps: { bg: "bg-orange-500/20", border: "border-orange-500/40", hover: "hover:border-orange-500", text: "text-orange-300" },
+  multizone_amps: { bg: "bg-amber-500/20", border: "border-amber-500/40", hover: "hover:border-amber-500", text: "text-amber-300" },
+  surround_processors: { bg: "bg-yellow-500/20", border: "border-yellow-500/40", hover: "hover:border-yellow-500", text: "text-yellow-300" },
+  av_receivers: { bg: "bg-emerald-500/20", border: "border-emerald-500/40", hover: "hover:border-emerald-500", text: "text-emerald-300" }
+};
+
 const connectionTypeInfo = {
   "HDMI": { color: "bg-purple-500/10 text-purple-400 border-purple-500/20", signals: "Video, Audio, Control" },
   "Optical": { color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20", signals: "Digital Audio" },
@@ -194,6 +211,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
   
   const instanceId = product.instanceId;
   const productData = product.product || product;
+  const categoryColor = categoryHighlightColors[productData.category] || categoryHighlightColors.speakers;
   
   // Use real connection data if available, otherwise fall back to category defaults
   const defaultConnections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
@@ -449,13 +467,13 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                             key={port}
                             className={`flex items-center justify-between p-2 rounded text-xs transition-all ${
                               isUsed 
-                                ? 'bg-blue-500/10 border border-blue-500/30 hover:border-blue-500 cursor-pointer' 
+                                ? `${categoryColor.bg} border ${categoryColor.border} ${categoryColor.hover} cursor-pointer` 
                                 : 'bg-gray-900/50'
                             }`}
                             onMouseEnter={() => isUsed && connectionIdx !== -1 && onHighlightConnections && onHighlightConnections([connectionIdx])}
                             onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
                           >
-                            <span className={isUsed ? 'text-blue-300 font-medium' : 'text-gray-500'}>{port}</span>
+                            <span className={isUsed ? `${categoryColor.text} font-medium` : 'text-gray-500'}>{port}</span>
                             {isUsed && connectedInfo?.device && (
                               <span className="text-gray-400 text-[10px] truncate ml-2">
                                 ← {connectedInfo.device.label || connectedInfo.device.brand} ({connectedInfo.port})
@@ -509,13 +527,13 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
                             key={port}
                             className={`flex items-center justify-between p-2 rounded text-xs transition-all ${
                               isUsed 
-                                ? 'bg-purple-500/10 border border-purple-500/30 hover:border-purple-500 cursor-pointer' 
+                                ? `${categoryColor.bg} border ${categoryColor.border} ${categoryColor.hover} cursor-pointer` 
                                 : 'bg-gray-900/50'
                             }`}
                             onMouseEnter={() => isUsed && connectionIdx !== -1 && onHighlightConnections && onHighlightConnections([connectionIdx])}
                             onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
                           >
-                            <span className={isUsed ? 'text-purple-300 font-medium' : 'text-gray-500'}>{port}</span>
+                            <span className={isUsed ? `${categoryColor.text} font-medium` : 'text-gray-500'}>{port}</span>
                             {isUsed && connectedInfo?.device && (
                               <span className="text-gray-400 text-[10px] truncate ml-2">
                                 → {connectedInfo.device.label || connectedInfo.device.brand} ({connectedInfo.port})
