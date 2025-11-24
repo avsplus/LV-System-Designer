@@ -567,6 +567,12 @@ export default function AVCanvas() {
         connectionType: fromPort.connectionType
       });
 
+      console.log('=== Connection Attempt ===');
+      console.log('From:', fromId, 'To:', toId);
+      console.log('Connection Type:', fromPort.connectionType);
+      console.log('From Product:', canvasProducts.find(cp => cp.instanceId === fromId));
+      console.log('To Product:', canvasProducts.find(cp => cp.instanceId === toId));
+
       // Set connecting states to trigger the dialog
       setConnectingFrom(fromId);
       setConnectingTo(toId);
