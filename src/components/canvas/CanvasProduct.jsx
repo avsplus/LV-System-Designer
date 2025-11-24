@@ -347,9 +347,17 @@ export default function CanvasProduct({
     : defaultConnections;
 
   // Force empty outputs for endpoint devices
-  const finalConnections = isEndpointDevice
+  let finalConnections = isEndpointDevice
     ? { ...connections, outputs: [] }
     : connections;
+  
+  // Media streamers should never have HDMI inputs
+  if (product.category === 'media_streamers') {
+    finalConnections = {
+      inputs: finalConnections.inputs.filter(input => input.type !== 'HDMI'),
+      outputs: finalConnections.outputs.filter(output => output.type === 'HDMI')
+    };
+  }
 
   const inputTypes = getConnectionTypes(finalConnections, 'inputs');
   const outputTypes = getConnectionTypes(finalConnections, 'outputs');
