@@ -17,6 +17,12 @@ import DeviceConnectionsPanel from "../components/canvas/DeviceConnectionsPanel"
 export default function AVCanvas() {
   const [canvasProducts, setCanvasProducts] = useState([]);
   const [connections, setConnections] = useState([]);
+
+  // Helper to ensure networkInfo is always defined
+  const ensureNetworkInfo = (product) => ({
+    ...product,
+    networkInfo: product.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
+  });
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [connectingTo, setConnectingTo] = useState(null);
   const [pendingConnection, setPendingConnection] = useState(null);
