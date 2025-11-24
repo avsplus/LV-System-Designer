@@ -100,6 +100,15 @@ export default function DeviceManager() {
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
+            <Link to={createPageUrl("AVCanvas")}>
+              <Button
+                variant="ghost"
+                className="text-gray-400 hover:text-white mb-3 -ml-2"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Canvas
+              </Button>
+            </Link>
             <h1 className="text-3xl font-bold text-white mb-2">Device Manager</h1>
             <p className="text-sm text-gray-400">Manage your AV product library</p>
           </div>
