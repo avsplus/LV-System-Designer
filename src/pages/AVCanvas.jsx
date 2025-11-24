@@ -168,8 +168,8 @@ export default function AVCanvas() {
   const handlePositionChange = (instanceId, newPosition) => {
     setCanvasProducts(canvasProducts.map(cp => 
       cp.instanceId === instanceId 
-        ? { ...cp, position: newPosition }
-        : cp
+        ? ensureNetworkInfo({ ...cp, position: newPosition })
+        : ensureNetworkInfo(cp)
     ));
   };
 
