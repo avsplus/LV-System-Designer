@@ -27,18 +27,40 @@ Deno.serve(async (req) => {
                     }
 
                     const response = await base44.integrations.Core.InvokeLLM({
-                        prompt: `Find the exact connection ports and specifications for this specific AV product:
+                        prompt: `You are an expert AV systems integrator. Find the EXACT connection ports, technical specifications, and control capabilities for this specific AV product by cross-referencing multiple authoritative sources:
+
 Brand: ${product.brand}
 Model: ${product.model}
 Category: ${product.category}
 
-Search the web for the official specifications and provide:
-1. All INPUT connection types and their specific port labels (e.g., "HDMI-1", "HDMI-2", "RCA-L", "RCA-R")
-2. All OUTPUT connection types and their specific port labels
+CRITICAL INSTRUCTIONS:
+1. Search for the official manufacturer's specification sheet, user manual, and datasheet
+2. Cross-reference with at least 2-3 authoritative sources (manufacturer site, professional AV retailers like Crutchfield, authorized dealer specs)
+3. Verify information consistency across sources before reporting
+4. If sources conflict, use the manufacturer's official documentation
 
-Be specific about port counts and labels. If it's a receiver with 6 HDMI inputs, list them as HDMI-1 through HDMI-6.
+Provide COMPLETE and ACCURATE information:
 
-Connection types can include: HDMI, Optical, RCA, XLR, Speaker Wire, Ethernet, USB, Coaxial, 3.5mm Jack, and others.`,
+CONNECTION PORTS:
+- List ALL physical input/output ports with their EXACT labels as shown on the device
+- Include all connection types: HDMI, Optical/TOSLINK, RCA, XLR, Speaker Wire, Ethernet, USB, Coaxial, 3.5mm Jack, Component, Composite, VGA, RS232, HDBaseT, IR, etc.
+- Be precise: "HDMI 1 (ARC)", "Optical In 1", "USB-A Front Panel", etc.
+
+CONTROL CAPABILITIES:
+- IP Control (network controllable via Ethernet)
+- RS232 Control
+- IR Control
+- 12V Trigger ports
+- List specific control protocols if mentioned (e.g., "Control4 certified", "Crestron compatible", "IP control via telnet port 23")
+
+TECHNICAL SPECS:
+- Power consumption
+- Impedance (for audio equipment)
+- Frequency response
+- Dimensions and weight
+- Any other relevant technical specifications
+
+Only include verified information. If you cannot verify a specification from multiple sources, omit it.`,
                         add_context_from_internet: true,
                         response_json_schema: {
                             type: "object",
@@ -70,19 +92,58 @@ Connection types can include: HDMI, Optical, RCA, XLR, Speaker Wire, Ethernet, U
                                         },
                                         required: ["type", "ports"]
                                     }
+                                },
+                                control: {
+                                    type: "object",
+                                    properties: {
+                                        ip: { type: "boolean" },
+                                        rs232: { type: "boolean" },
+                                        ir: { type: "boolean" },
+                                        trigger: { type: "boolean" },
+                                        protocols: {
+                                            type: "array",
+                                            items: { type: "string" }
+                                        }
+                                    }
+                                },
+                                specs: {
+                                    type: "object",
+                                    properties: {
+                                        power: { type: "string" },
+                                        impedance: { type: "string" },
+                                        frequency_response: { type: "string" },
+                                        connectivity: { type: "string" },
+                                        dimensions: { type: "string" },
+                                        weight: { type: "string" }
+                                    }
                                 }
                             },
                             required: ["inputs", "outputs"]
                         }
                     });
 
-                    // Update product with connection info
-                    await base44.asServiceRole.entities.AVProduct.update(product.id, {
+                    // Update product with enriched connection info, control capabilities, and specs
+                    const updateData = {
                         connections: {
                             inputs: response.inputs || [],
                             outputs: response.outputs || []
                         }
-                    });
+                    };
+
+                    // Add control capabilities if provided
+                    if (response.control) {
+                        updateData.control = response.control;
+                    }
+
+                    // Add specs if provided (merge with existing)
+                    if (response.specs) {
+                        updateData.specs = {
+                            ...(product.specs || {}),
+                            ...response.specs
+                        };
+                    }
+
+                    await base44.asServiceRole.entities.AVProduct.update(product.id, updateData);
 
                     enriched++;
                 } catch (error) {
