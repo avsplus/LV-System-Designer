@@ -567,8 +567,8 @@ export default function CanvasProduct({
             av_receivers: { hasEthernet: true }
           };
           
-          const hasEthernetConnection = product.connections?.inputs?.some(input => input.type === "Ethernet") || 
-                                        product.connections?.outputs?.some(output => output.type === "Ethernet");
+          const hasEthernetConnection = product.input_connections?.some(input => input.type === "Ethernet") || 
+                                        product.output_connections?.some(output => output.type === "Ethernet");
           const categoryHasEthernet = categoryDefaults[product.category]?.hasEthernet;
           
           return hasEthernetConnection || categoryHasEthernet;
