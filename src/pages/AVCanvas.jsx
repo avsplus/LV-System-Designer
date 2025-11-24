@@ -1501,9 +1501,9 @@ export default function AVCanvas() {
                         isConnecting={connectingFrom === cp.instanceId}
                         isHighlighted={isHighlighted}
                         label={cp.label}
-                        networkInfo={cp.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }}
+                        networkInfo={ensureNetworkInfo(cp).networkInfo}
                         onClick={() => {
-                          setSelectedCanvasProduct(cp);
+                          setSelectedCanvasProduct(ensureNetworkInfo(cp));
                           setSelectedProduct(null);
                           setSelectedConnection(null);
                         }}
@@ -1537,11 +1537,11 @@ export default function AVCanvas() {
 
         {selectedCanvasProduct && !selectedConnection && (
           <DeviceConnectionsPanel
-            product={selectedCanvasProduct}
+            product={ensureNetworkInfo(selectedCanvasProduct)}
             label={selectedCanvasProduct.label}
-            networkInfo={selectedCanvasProduct.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }}
+            networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
             activeConnections={connections}
-            allProducts={canvasProducts}
+            allProducts={canvasProducts.map(ensureNetworkInfo)}
             onClose={() => setSelectedCanvasProduct(null)}
             onHighlightConnections={setHighlightedConnections}
             onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
@@ -1564,14 +1564,14 @@ export default function AVCanvas() {
         {connectingFrom !== null && connectingTo !== null && (
           <ConnectionTypeDialog
             fromProduct={{
-              ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product,
+              ...ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingFrom)).product,
               instanceId: connectingFrom,
-              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingFrom)?.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
+              networkInfo: ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingFrom)).networkInfo
             }}
             toProduct={{
-              ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product,
+              ...ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingTo)).product,
               instanceId: connectingTo,
-              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingTo)?.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
+              networkInfo: ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingTo)).networkInfo
             }}
             existingConnections={connections}
             pendingConnection={pendingConnection}
