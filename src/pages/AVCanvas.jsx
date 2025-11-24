@@ -1489,7 +1489,7 @@ export default function AVCanvas() {
                         isConnecting={connectingFrom === cp.instanceId}
                         isHighlighted={isHighlighted}
                         label={cp.label}
-                        networkInfo={cp.networkInfo}
+                        networkInfo={cp.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }}
                         onClick={() => {
                           setSelectedCanvasProduct(cp);
                           setSelectedProduct(null);
