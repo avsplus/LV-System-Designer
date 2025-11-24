@@ -284,13 +284,13 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
     validationWarnings.push("All HDMI ports are in use on both devices");
   }
   if (selectedType === 'Ethernet') {
-    const fromIp = fromProduct.networkInfo?.ip;
-    const toIp = toProduct.networkInfo?.ip;
+    const fromIp = fromProduct?.networkInfo?.ip;
+    const toIp = toProduct?.networkInfo?.ip;
     
-    if (!fromIp || fromIp === '000.000.000.000') {
+    if (!fromIp || fromIp === '000.000.000.000' || fromIp === '') {
       validationWarnings.push(`${fromProduct.brand} needs network configuration`);
     }
-    if (!toIp || toIp === '000.000.000.000') {
+    if (!toIp || toIp === '000.000.000.000' || toIp === '') {
       validationWarnings.push(`${toProduct.brand} needs network configuration`);
     }
   }
