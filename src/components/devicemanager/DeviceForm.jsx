@@ -376,10 +376,10 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
               <label className="flex items-center gap-2 text-sm text-gray-300">
                 <input
                   type="checkbox"
-                  checked={formData.control.ip}
+                  checked={formData.control?.ip || false}
                   onChange={(e) => setFormData({
                     ...formData,
-                    control: { ...formData.control, ip: e.target.checked }
+                    control: { ...(formData.control || {}), ip: e.target.checked }
                   })}
                   className="rounded"
                 />
@@ -388,10 +388,10 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
               <label className="flex items-center gap-2 text-sm text-gray-300">
                 <input
                   type="checkbox"
-                  checked={formData.control.rs232}
+                  checked={formData.control?.rs232 || false}
                   onChange={(e) => setFormData({
                     ...formData,
-                    control: { ...formData.control, rs232: e.target.checked }
+                    control: { ...(formData.control || {}), rs232: e.target.checked }
                   })}
                   className="rounded"
                 />
@@ -400,10 +400,10 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
               <label className="flex items-center gap-2 text-sm text-gray-300">
                 <input
                   type="checkbox"
-                  checked={formData.control.ir}
+                  checked={formData.control?.ir || false}
                   onChange={(e) => setFormData({
                     ...formData,
-                    control: { ...formData.control, ir: e.target.checked }
+                    control: { ...(formData.control || {}), ir: e.target.checked }
                   })}
                   className="rounded"
                 />
@@ -412,10 +412,10 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
               <label className="flex items-center gap-2 text-sm text-gray-300">
                 <input
                   type="checkbox"
-                  checked={formData.control.trigger}
+                  checked={formData.control?.trigger || false}
                   onChange={(e) => setFormData({
                     ...formData,
-                    control: { ...formData.control, trigger: e.target.checked }
+                    control: { ...(formData.control || {}), trigger: e.target.checked }
                   })}
                   className="rounded"
                 />
