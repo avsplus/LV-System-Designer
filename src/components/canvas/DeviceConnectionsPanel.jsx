@@ -253,6 +253,12 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo, ac
     connections.outputs = [];
   }
   
+  // Media streamers (Apple TV, etc.) should never have HDMI inputs
+  if (productData.category === 'media_streamers') {
+    connections.inputs = connections.inputs.filter(input => input.type !== 'HDMI');
+    connections.outputs = connections.outputs.filter(output => output.type === 'HDMI');
+  }
+  
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(
     conn => conn.from === instanceId || conn.to === instanceId

@@ -611,6 +611,14 @@ export default function AVCanvas() {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
 
+  // Helper to filter media streamer connections
+  const filterMediaStreamerConnections = (connections) => {
+    return {
+      inputs: connections.inputs.filter(input => input.type !== 'HDMI'),
+      outputs: connections.outputs.filter(output => output.type === 'HDMI')
+    };
+  };
+
   const connectionsByCategory = {
     televisions: {
       inputs: [
