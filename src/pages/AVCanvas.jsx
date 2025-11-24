@@ -213,14 +213,14 @@ export default function AVCanvas() {
       const toNeedsNetwork = ['televisions', 'projectors', 'video_distribution', 'matrix_switchers', 
                               'audio_streamers', 'media_streamers', 'soundbars', 'multizone_amps', 
                               'surround_processors', 'av_receivers'].includes(toProduct.product.category);
-      
-      const fromIp = fromProduct.networkInfo?.ip;
-      const toIp = toProduct.networkInfo?.ip;
-      
-      if (fromNeedsNetwork && (!fromIp || fromIp === '000.000.000.000')) {
+
+      const fromIp = fromProduct?.networkInfo?.ip;
+      const toIp = toProduct?.networkInfo?.ip;
+
+      if (fromNeedsNetwork && (!fromIp || fromIp === '000.000.000.000' || fromIp === '')) {
         warnings.push(`${fromProduct.label || fromProduct.product.brand} requires network configuration (IP address)`);
       }
-      if (toNeedsNetwork && (!toIp || toIp === '000.000.000.000')) {
+      if (toNeedsNetwork && (!toIp || toIp === '000.000.000.000' || toIp === '')) {
         warnings.push(`${toProduct.label || toProduct.product.brand} requires network configuration (IP address)`);
       }
     }
