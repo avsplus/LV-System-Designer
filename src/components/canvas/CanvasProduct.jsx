@@ -225,7 +225,7 @@ export default function CanvasProduct({
         isHighlighted,
         onClick,
         label,
-        networkInfo,
+        networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' },
         onPortClick,
         onPortMouseDown,
         registerPort,
