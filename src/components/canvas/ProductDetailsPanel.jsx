@@ -65,6 +65,39 @@ export default function ProductDetailsPanel({ product, onClose }) {
           </div>
         )}
 
+        {product.control && (product.control.ip || product.control.rs232 || product.control.ir || product.control.trigger || (product.control.protocols && product.control.protocols.length > 0)) && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Control Capabilities</p>
+            <div className="flex flex-wrap gap-2">
+              {product.control.ip && (
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                  IP Control
+                </Badge>
+              )}
+              {product.control.rs232 && (
+                <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-xs">
+                  RS232
+                </Badge>
+              )}
+              {product.control.ir && (
+                <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-xs">
+                  IR
+                </Badge>
+              )}
+              {product.control.trigger && (
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                  12V Trigger
+                </Badge>
+              )}
+              {product.control.protocols && product.control.protocols.map((protocol, idx) => (
+                <Badge key={idx} variant="outline" className="text-xs border-gray-600">
+                  {protocol}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
         {product.specs && Object.keys(product.specs).length > 0 && (
           <div>
             <p className="text-sm text-gray-500 mb-3">Specifications</p>
