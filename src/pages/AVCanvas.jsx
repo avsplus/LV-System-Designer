@@ -3,7 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import ProductSidebar from "../components/canvas/ProductSidebar";
@@ -1208,111 +1214,186 @@ export default function AVCanvas() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowProjectManager(true)}
-                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
-              >
-                <FolderOpen className="w-4 h-4 mr-2" />
-                Projects
-              </Button>
-              <Link to={createPageUrl("DeviceManager")}>
-                <Button
-                  variant="outline"
-                  className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Manage Devices
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  try {
-                    const { data } = await base44.functions.invoke('scrapeSnapAV');
-                    alert(`Successfully imported ${data.productsFound} AV products from the web`);
-                    window.location.reload();
-                  } catch (error) {
-                    console.error('Import error:', error);
-                    const errorMsg = error.response?.data?.error || error.message;
-                    alert(`Failed to import products: ${errorMsg}`);
-                  }
-                }}
-                className="border-gray-700 text-gray-300 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Import AV Products
-              </Button>
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    if (!confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes. Continue?')) {
-                      return;
-                    }
-                    try {
-                      setEnrichmentProgress({ status: 'running', enriched: 0, total: products.length });
-                      const { data } = await base44.functions.invoke('enrichProductConnections');
-                      setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
-                      setTimeout(() => {
-                        alert(`Successfully enriched ${data.enriched} products with real connection data!`);
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
+                  >
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Project
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-gray-800 border-gray-700">
+                  <DropdownMenuItem 
+                    onClick={() => setShowProjectManager(true)}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Projects
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      if (canvasProducts.length === 0 && connections.length === 0) {
+                        alert('Canvas is empty. Add some devices first.');
+                        return;
+                      }
+                      setShowProjectManager(true);
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Canvas As...
+                  </DropdownMenuItem>
+                  {currentProject && (
+                    <DropdownMenuItem 
+                      onClick={async () => {
+                        try {
+                          await base44.entities.AVProject.update(currentProject.id, {
+                            canvas_products: canvasProducts,
+                            connections: connections
+                          });
+                          alert('Project saved successfully!');
+                        } catch (error) {
+                          alert('Failed to save project');
+                        }
+                      }}
+                      className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Progress
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={() => setShowProjectManager(true)}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Load Project
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      if (canvasProducts.length > 0 || connections.length > 0) {
+                        if (!confirm('Creating a new project will clear your current canvas. Continue?')) {
+                          return;
+                        }
+                      }
+                      handleProjectLoad(null);
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Project
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Tools
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-gray-800 border-gray-700">
+                  <DropdownMenuItem 
+                    onClick={() => window.location.href = createPageUrl("DeviceManager")}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Manage Devices
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={async () => {
+                      try {
+                        const { data } = await base44.functions.invoke('scrapeSnapAV');
+                        alert(`Successfully imported ${data.productsFound} AV products from the web`);
                         window.location.reload();
-                      }, 500);
-                    } catch (error) {
-                      console.error('Enrichment error:', error);
-                      const errorMsg = error.response?.data?.error || error.message;
-                      setEnrichmentProgress({ status: 'error', message: errorMsg });
-                      setTimeout(() => setEnrichmentProgress(null), 5000);
-                    }
-                  }}
-                  disabled={enrichmentProgress?.status === 'running'}
-                  className="border-gray-700 text-gray-300 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500 disabled:opacity-50"
-                >
-                  <Link2 className="w-4 h-4 mr-2" />
-                  {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
-                </Button>
+                      } catch (error) {
+                        console.error('Import error:', error);
+                        const errorMsg = error.response?.data?.error || error.message;
+                        alert(`Failed to import products: ${errorMsg}`);
+                      }
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Import AV Products
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={async () => {
+                      if (!confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes. Continue?')) {
+                        return;
+                      }
+                      try {
+                        setEnrichmentProgress({ status: 'running', enriched: 0, total: products.length });
+                        const { data } = await base44.functions.invoke('enrichProductConnections');
+                        setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
+                        setTimeout(() => {
+                          alert(`Successfully enriched ${data.enriched} products with real connection data!`);
+                          window.location.reload();
+                        }, 500);
+                      } catch (error) {
+                        console.error('Enrichment error:', error);
+                        const errorMsg = error.response?.data?.error || error.message;
+                        setEnrichmentProgress({ status: 'error', message: errorMsg });
+                        setTimeout(() => setEnrichmentProgress(null), 5000);
+                      }
+                    }}
+                    disabled={enrichmentProgress?.status === 'running'}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <Link2 className="w-4 h-4 mr-2" />
+                    {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                {enrichmentProgress && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 min-w-[300px] z-10">
-                    {enrichmentProgress.status === 'running' && (
-                      <>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-gray-300">Enriching products...</span>
-                          <span className="text-xs text-gray-400">{enrichmentProgress.total} products</span>
-                        </div>
-                        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse" style={{ width: '100%' }}></div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">Cross-referencing specifications from multiple sources...</p>
-                      </>
-                    )}
+              {enrichmentProgress && (
+                <div className="absolute top-full right-6 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 min-w-[300px] z-10">
+                  {enrichmentProgress.status === 'running' && (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-300">Enriching products...</span>
+                        <span className="text-xs text-gray-400">{enrichmentProgress.total} products</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse" style={{ width: '100%' }}></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Cross-referencing specifications from multiple sources...</p>
+                    </>
+                  )}
 
-                    {enrichmentProgress.status === 'complete' && (
-                      <>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-green-400 font-medium">✓ Enrichment Complete</span>
-                          <span className="text-xs text-gray-400">{enrichmentProgress.enriched}/{enrichmentProgress.total}</span>
-                        </div>
-                        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                          <div className="h-full bg-green-500" style={{ width: `${(enrichmentProgress.enriched / enrichmentProgress.total) * 100}%` }}></div>
-                        </div>
-                        {enrichmentProgress.failed > 0 && (
-                          <p className="text-xs text-amber-400 mt-2">{enrichmentProgress.failed} products failed to enrich</p>
-                        )}
-                      </>
-                    )}
+                  {enrichmentProgress.status === 'complete' && (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-green-400 font-medium">✓ Enrichment Complete</span>
+                        <span className="text-xs text-gray-400">{enrichmentProgress.enriched}/{enrichmentProgress.total}</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-green-500" style={{ width: `${(enrichmentProgress.enriched / enrichmentProgress.total) * 100}%` }}></div>
+                      </div>
+                      {enrichmentProgress.failed > 0 && (
+                        <p className="text-xs text-amber-400 mt-2">{enrichmentProgress.failed} products failed to enrich</p>
+                      )}
+                    </>
+                  )}
 
-                    {enrichmentProgress.status === 'error' && (
-                      <>
-                        <div className="flex items-center mb-2">
-                          <span className="text-xs text-red-400 font-medium">✗ Enrichment Failed</span>
-                        </div>
-                        <p className="text-xs text-gray-400">{enrichmentProgress.message}</p>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+                  {enrichmentProgress.status === 'error' && (
+                    <>
+                      <div className="flex items-center mb-2">
+                        <span className="text-xs text-red-400 font-medium">✗ Enrichment Failed</span>
+                      </div>
+                      <p className="text-xs text-gray-400">{enrichmentProgress.message}</p>
+                    </>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
                 <Button
                   size="icon"
