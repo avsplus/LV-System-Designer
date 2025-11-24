@@ -575,14 +575,14 @@ export default function CanvasProduct({
         })() && (
           <div className="mt-auto pt-3 border-t border-gray-700 space-y-1 flex-shrink-0">
             <p className="text-xs text-gray-400">
-              <span className="text-gray-500">MAC:</span> {networkInfo?.mac || '00:00:00:00:00:00'}
+              <span className="text-gray-500">MAC:</span> {safeNetworkInfo.mac || '00:00:00:00:00:00'}
             </p>
             <p className="text-xs text-gray-400">
-              <span className="text-gray-500">IP:</span> {networkInfo?.ip || '000.000.000.000'}
+              <span className="text-gray-500">IP:</span> {safeNetworkInfo.ip || '000.000.000.000'}
               <span className="mx-1">|</span>
-              <span className="text-gray-500">SW#:</span> {networkInfo?.sw || '00'} 
+              <span className="text-gray-500">SW#:</span> {safeNetworkInfo.sw || '00'} 
               <span className="mx-1">|</span>
-              <span className="text-gray-500">Port:</span> {networkInfo?.port || '00'}
+              <span className="text-gray-500">Port:</span> {safeNetworkInfo.port || '00'}
             </p>
           </div>
         )}
