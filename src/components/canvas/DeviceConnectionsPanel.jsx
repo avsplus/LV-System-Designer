@@ -220,9 +220,9 @@ const connectionTypeInfo = {
 
 export default function DeviceConnectionsPanel({ product, label, networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
   const [localNetworkInfo, setLocalNetworkInfo] = React.useState(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
-  
+
   React.useEffect(() => {
-    setLocalNetworkInfo(networkInfo || { sw: '', port: '', ip: '', mac: '' });
+    setLocalNetworkInfo(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
   }, [product.instanceId, networkInfo]);
   
   const instanceId = product.instanceId;
