@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
             await Promise.all(batch.map(async (product) => {
                 try {
                     // Skip if already has connections
-                    if (product.connections && product.connections.inputs) {
+                    if (product.input_connections && product.input_connections.length > 0) {
                         return;
                     }
 
