@@ -203,17 +203,19 @@ export default function AVCanvas() {
     const errors = [];
     const warnings = [];
 
-    const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
-    const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
+    const rawFromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
+    const rawToProduct = canvasProducts.find(cp => cp.instanceId === toId);
 
-    if (!fromProduct || !toProduct) {
+    if (!rawFromProduct || !rawToProduct) {
       errors.push("Invalid device selection");
       return { valid: false, errors, warnings };
     }
 
     // Ensure networkInfo exists with defaults
-    const fromNetworkInfo = fromProduct.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
-    const toNetworkInfo = toProduct.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
+    const fromProduct = ensureNetworkInfo(rawFromProduct);
+    const toProduct = ensureNetworkInfo(rawToProduct);
+    const fromNetworkInfo = fromProduct.networkInfo;
+    const toNetworkInfo = toProduct.networkInfo;
 
     // Check network info for Ethernet connections
     if (connectionType === 'Ethernet') {
