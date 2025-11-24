@@ -313,7 +313,7 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
           <div>
             <h3 className="text-lg font-medium text-white mb-4">Output Connections</h3>
             <div className="space-y-2 mb-3">
-              {(formData.connections.outputs || []).map((output, idx) => (
+              {(formData.output_connections || []).map((output, idx) => (
                 <div key={idx} className="bg-gray-800 p-3 rounded-lg flex items-center justify-between">
                   <div>
                     <Badge className="mb-1">{output.type}</Badge>
