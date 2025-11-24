@@ -127,10 +127,8 @@ Only include verified information. If you cannot verify a specification from mul
 
                     // Always update connections if we got valid data
                     if (response.inputs || response.outputs) {
-                        updateData.connections = {
-                            inputs: Array.isArray(response.inputs) ? response.inputs : [],
-                            outputs: Array.isArray(response.outputs) ? response.outputs : []
-                        };
+                        updateData.input_connections = Array.isArray(response.inputs) ? response.inputs : [];
+                        updateData.output_connections = Array.isArray(response.outputs) ? response.outputs : [];
                     }
 
                     // Add control capabilities if provided and valid
