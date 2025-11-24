@@ -3,7 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2 } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "./utils";
 import ProductSidebar from "../components/canvas/ProductSidebar";
 import CanvasProduct from "../components/canvas/CanvasProduct";
 import ConnectionLine from "../components/canvas/ConnectionLine";
@@ -1107,6 +1109,15 @@ export default function AVCanvas() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Link to={createPageUrl("DeviceManager")}>
+                <Button
+                  variant="outline"
+                  className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Devices
+                </Button>
+              </Link>
               <Button
                 variant="outline"
                 onClick={async () => {
