@@ -44,7 +44,7 @@ export default function AVCanvas() {
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
   
-  const PORT_HIT_RADIUS = 20; // Pixels for hit testing
+  const PORT_HIT_RADIUS = 50; // Pixels for hit testing (increased for easier targeting)
   const PORT_OFFSET = 20; // Offset distance from port for clean routing
   
   // Generate orthogonal path for connection routing
@@ -408,7 +408,9 @@ export default function AVCanvas() {
     if (!canvasRect) return null;
     
     let closestPort = null;
-    let closestDistance = PORT_HIT_RADIUS * 2; // Increased hit radius for better detection
+    let closestDistance = PORT_HIT_RADIUS;
+    
+    console.log('Hit testing at:', mouseX, mouseY, 'Port count:', portRefs.current.size);
     
     for (const [portId, portData] of portRefs.current.entries()) {
       if (!portData.element) continue;
@@ -434,9 +436,11 @@ export default function AVCanvas() {
           position,
           distance 
         };
+        console.log('Found close port:', portId, 'distance:', distance);
       }
     }
     
+    console.log('Closest port:', closestPort);
     return closestPort;
   };
 
