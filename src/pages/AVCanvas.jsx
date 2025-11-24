@@ -214,10 +214,13 @@ export default function AVCanvas() {
                               'audio_streamers', 'media_streamers', 'soundbars', 'multizone_amps', 
                               'surround_processors', 'av_receivers'].includes(toProduct.product.category);
       
-      if (fromNeedsNetwork && (!fromProduct.networkInfo?.ip || fromProduct.networkInfo.ip === '000.000.000.000')) {
+      const fromIp = fromProduct.networkInfo?.ip;
+      const toIp = toProduct.networkInfo?.ip;
+      
+      if (fromNeedsNetwork && (!fromIp || fromIp === '000.000.000.000')) {
         warnings.push(`${fromProduct.label || fromProduct.product.brand} requires network configuration (IP address)`);
       }
-      if (toNeedsNetwork && (!toProduct.networkInfo?.ip || toProduct.networkInfo.ip === '000.000.000.000')) {
+      if (toNeedsNetwork && (!toIp || toIp === '000.000.000.000')) {
         warnings.push(`${toProduct.label || toProduct.product.brand} requires network configuration (IP address)`);
       }
     }
@@ -1548,8 +1551,16 @@ export default function AVCanvas() {
 
         {connectingFrom !== null && connectingTo !== null && (
           <ConnectionTypeDialog
-            fromProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product, instanceId: connectingFrom }}
-            toProduct={{ ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product, instanceId: connectingTo }}
+            fromProduct={{
+              ...canvasProducts.find(cp => cp.instanceId === connectingFrom)?.product,
+              instanceId: connectingFrom,
+              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingFrom)?.networkInfo
+            }}
+            toProduct={{
+              ...canvasProducts.find(cp => cp.instanceId === connectingTo)?.product,
+              instanceId: connectingTo,
+              networkInfo: canvasProducts.find(cp => cp.instanceId === connectingTo)?.networkInfo
+            }}
             existingConnections={connections}
             pendingConnection={pendingConnection}
             onSelect={handleConnectionTypeSelect}
