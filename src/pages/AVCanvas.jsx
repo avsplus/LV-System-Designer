@@ -252,12 +252,16 @@ export default function AVCanvas() {
   };
 
   const handlePortClick = (instanceId, connectionType, portName, isInput) => {
-    // Find the connection that uses this port - use fuzzy matching for port names
+    // When clicking on a type-level port (portName === 'type'), find ANY connection of that type
+    // Otherwise, use fuzzy matching for specific port names
     const connectionIndex = connections.findIndex(conn => {
       if (conn.type !== connectionType) return false;
       
       if (isInput) {
         if (conn.to !== instanceId) return false;
+        // If portName is 'type', match any port of this connection type
+        if (portName === 'type') return true;
+        
         const connPort = conn.toPort;
         if (!connPort) return false;
         
@@ -267,6 +271,9 @@ export default function AVCanvas() {
         return connPort === portName || pNorm.includes(cNorm) || cNorm.includes(pNorm);
       } else {
         if (conn.from !== instanceId) return false;
+        // If portName is 'type', match any port of this connection type
+        if (portName === 'type') return true;
+        
         const connPort = conn.fromPort;
         if (!connPort) return false;
         
@@ -285,7 +292,7 @@ export default function AVCanvas() {
       const emptyConnection = {
         type: connectionType,
         [isInput ? 'to' : 'from']: instanceId,
-        [isInput ? 'toPort' : 'fromPort']: portName,
+        [isInput ? 'toPort' : 'fromPort']: portName === 'type' ? connectionType : portName,
         isEmpty: true
       };
       setSelectedConnection({ ...emptyConnection, index: -1 });
