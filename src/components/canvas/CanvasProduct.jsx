@@ -329,11 +329,15 @@ export default function CanvasProduct({
     return types;
   };
 
-  // Only use database connections, no defaults
-  const connections = {
+  // Use database connections if available, otherwise use category defaults
+  const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
+  const hasDbConnections = (product.input_connections && product.input_connections.length > 0) || 
+                            (product.output_connections && product.output_connections.length > 0);
+
+  const connections = hasDbConnections ? {
     inputs: product.input_connections || [],
     outputs: product.output_connections || []
-  };
+  } : defaultConnections;
 
   const inputTypes = getConnectionTypes(connections, 'inputs');
   const outputTypes = getConnectionTypes(connections, 'outputs');
@@ -512,8 +516,8 @@ export default function CanvasProduct({
           )}
         </div>
 
-        {(product.input_connections?.some(input => input.type === "Ethernet") || 
-          product.output_connections?.some(output => output.type === "Ethernet")) && (
+        {(connections.inputs?.some(input => input.type === "Ethernet") || 
+          connections.outputs?.some(output => output.type === "Ethernet")) && (
           <div className="mt-auto pt-3 border-t border-gray-700 space-y-1 flex-shrink-0">
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {safeNetworkInfo.mac || '00:00:00:00:00:00'}

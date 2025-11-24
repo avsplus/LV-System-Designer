@@ -228,14 +228,16 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   const instanceId = product.instanceId;
   const productData = product.product || product;
   
-  // Only use database connections
+  // Use database connections if available, otherwise use category defaults
   const defaultConnections = connectionsByCategory[productData.category] || { inputs: [], outputs: [], description: "" };
+  const hasDbConnections = (productData.input_connections && productData.input_connections.length > 0) || 
+                            (productData.output_connections && productData.output_connections.length > 0);
 
-  const connections = {
+  const connections = hasDbConnections ? {
     inputs: productData.input_connections || [],
     outputs: productData.output_connections || [],
     description: defaultConnections.description
-  };
+  } : defaultConnections;
   
   // Get connections for this device instance
   const deviceConnections = activeConnections.filter(

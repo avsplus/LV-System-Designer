@@ -216,9 +216,15 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
     conn => conn.to === toProduct.instanceId
   );
 
-  // Only use database connections
-  const fromOutputs = fromProduct.output_connections || [];
-  const toInputs = toProduct.input_connections || [];
+  // Use database connections if available, otherwise use category defaults
+  const fromDefaults = connectionsByCategory[fromProduct.category] || { inputs: [], outputs: [] };
+  const toDefaults = connectionsByCategory[toProduct.category] || { inputs: [], outputs: [] };
+
+  const fromHasDb = fromProduct.output_connections && fromProduct.output_connections.length > 0;
+  const toHasDb = toProduct.input_connections && toProduct.input_connections.length > 0;
+
+  const fromOutputs = fromHasDb ? fromProduct.output_connections : fromDefaults.outputs;
+  const toInputs = toHasDb ? toProduct.input_connections : toDefaults.inputs;
 
   // Find compatible connection types
   const compatibleTypes = [];
