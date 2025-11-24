@@ -454,8 +454,19 @@ export default function AVCanvas() {
 
   // Start connecting from a port
   const handlePortMouseDown = (instanceId, connectionType, portName, isInput, portElement) => {
+    console.log('=== Port Mouse Down ===');
+    console.log('Instance:', instanceId);
+    console.log('Type:', connectionType);
+    console.log('Port:', portName);
+    console.log('Is Input:', isInput);
+    
     const startPos = getPortPosition(portElement);
-    if (!startPos) return;
+    if (!startPos) {
+      console.log('ERROR: Could not get port position');
+      return;
+    }
+
+    console.log('Start position:', startPos);
 
     const newState = {
       mode: 'connecting',
@@ -519,12 +530,17 @@ export default function AVCanvas() {
 
   const handleGlobalMouseUp = React.useCallback((e) => {
     const currentState = connectingStateRef.current;
-    if (!currentState) return;
+    if (!currentState) {
+      console.log('No connecting state');
+      return;
+    }
 
     const timeDiff = Date.now() - (currentState.startTime || 0);
+    console.log('Mouse up - time diff:', timeDiff, 'ms');
 
     // Quick click - show connection details using the originally clicked port
     if (timeDiff < 150) {
+      console.log('Quick click detected');
       handlePortClick(
         currentState.fromPort.instanceId, 
         currentState.fromPort.connectionType, 
@@ -536,6 +552,8 @@ export default function AVCanvas() {
       setHoveredPortId(null);
       return;
     }
+
+    console.log('Drag detected - hovered port:', currentState.hoveredPort);
 
     // Drag operation - show connection dialog
     if (currentState.hoveredPort) {
