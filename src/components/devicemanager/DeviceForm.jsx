@@ -118,10 +118,7 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
   const removeConnection = (type, index) => {
     setFormData(prev => ({
       ...prev,
-      connections: {
-        ...prev.connections,
-        [type]: prev.connections[type].filter((_, i) => i !== index)
-      }
+      [type]: prev[type].filter((_, i) => i !== index)
     }));
   };
 
