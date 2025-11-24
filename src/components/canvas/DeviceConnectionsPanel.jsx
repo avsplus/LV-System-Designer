@@ -218,8 +218,8 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types", highlight: { bg: "bg-gray-500/20", border: "border-gray-500/40", hover: "hover:border-gray-500", text: "text-gray-300" } }
 };
 
-export default function DeviceConnectionsPanel({ product, label, networkInfo, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
-  const [localNetworkInfo, setLocalNetworkInfo] = React.useState(networkInfo || { sw: '', port: '', ip: '', mac: '' });
+export default function DeviceConnectionsPanel({ product, label, networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
+  const [localNetworkInfo, setLocalNetworkInfo] = React.useState(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
   
   React.useEffect(() => {
     setLocalNetworkInfo(networkInfo || { sw: '', port: '', ip: '', mac: '' });
