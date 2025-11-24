@@ -137,11 +137,11 @@ export default function AVCanvas() {
         // Count how many of this brand already exist
         const brandCount = canvasProducts.filter(cp => cp.product.brand === product.brand).length + 1;
         const deviceLabel = `${product.brand} ${brandCount}`;
-        
+
         // Calculate position relative to canvas, accounting for zoom and pan
         const x = (dragMousePosition.x - canvasRect.left - pan.x) / zoom - 128; // center the card
         const y = (dragMousePosition.y - canvasRect.top - pan.y) / zoom - 100;
-        
+
         setCanvasProducts([...canvasProducts, {
           instanceId,
           product,
@@ -150,8 +150,8 @@ export default function AVCanvas() {
           networkInfo: {
             sw: '',
             port: '',
-            ip: '',
-            mac: ''
+            ip: '000.000.000.000',
+            mac: '00:00:00:00:00:00'
           }
         }]);
       }
