@@ -11,7 +11,8 @@ const connectionsByCategory = {
       { type: "Component", ports: ["Component-1"] },
       { type: "Composite", ports: ["Composite-1"] },
       { type: "Optical", ports: ["Optical-In"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "IR", ports: ["IR-In"] }
     ],
     outputs: [
       { type: "Optical", ports: ["Optical-Out"] },
@@ -24,7 +25,9 @@ const connectionsByCategory = {
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
       { type: "VGA", ports: ["VGA"] },
       { type: "Component", ports: ["Component-1"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "IR", ports: ["IR-In"] },
+      { type: "RS232", ports: ["RS232"] }
     ],
     outputs: [
       { type: "3.5mm Jack", ports: ["Audio-Out"] }
@@ -42,7 +45,9 @@ const connectionsByCategory = {
   video_distribution: {
     inputs: [
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "IR", ports: ["IR-In"] },
+      { type: "RS232", ports: ["RS232"] }
     ],
     outputs: [
       { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6"] },
@@ -65,7 +70,8 @@ const connectionsByCategory = {
     inputs: [
       { type: "Ethernet", ports: ["LAN"] },
       { type: "USB", ports: ["USB"] },
-      { type: "Optical", ports: ["Optical-In"] }
+      { type: "Optical", ports: ["Optical-In"] },
+      { type: "IR", ports: ["IR-In"] }
     ],
     outputs: [
       { type: "RCA", ports: ["Out-L", "Out-R"] },
@@ -78,7 +84,8 @@ const connectionsByCategory = {
   media_streamers: {
     inputs: [
       { type: "Ethernet", ports: ["LAN"] },
-      { type: "USB", ports: ["USB"] }
+      { type: "USB", ports: ["USB"] },
+      { type: "IR", ports: ["IR-In"] }
     ],
     outputs: [
       { type: "HDMI", ports: ["HDMI-Out"] },
@@ -98,7 +105,8 @@ const connectionsByCategory = {
       { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
       { type: "Optical", ports: ["Optical-In"] },
       { type: "RCA", ports: ["RCA-L", "RCA-R"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "IR", ports: ["IR-In"] }
     ],
     outputs: [
       { type: "HDMI", ports: ["HDMI-Out"] },
@@ -118,7 +126,9 @@ const connectionsByCategory = {
       { type: "RCA", ports: ["RCA-1", "RCA-2"] },
       { type: "XLR", ports: ["XLR-L", "XLR-R"] },
       { type: "Optical", ports: ["Optical-1"] },
-      { type: "Coaxial", ports: ["Coaxial"] }
+      { type: "Coaxial", ports: ["Coaxial"] },
+      { type: "IR", ports: ["IR-In"] },
+      { type: "RS232", ports: ["RS232"] }
     ],
     outputs: [
       { type: "Speaker Wire", ports: ["Speaker-L", "Speaker-R"] },
@@ -130,7 +140,9 @@ const connectionsByCategory = {
     inputs: [
       { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
       { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "IR", ports: ["IR-In"] },
+      { type: "RS232", ports: ["RS232"] }
     ],
     outputs: [
       { type: "Speaker Wire", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] }
