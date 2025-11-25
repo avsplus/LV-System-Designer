@@ -279,6 +279,7 @@ export default function CanvasProduct({
         zoom = 1
       }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [tooltipInfo, setTooltipInfo] = useState(null);
   const dragOffset = useRef({ x: 0, y: 0 });
   
   // Ensure networkInfo is always defined
