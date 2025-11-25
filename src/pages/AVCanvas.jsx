@@ -1882,17 +1882,30 @@ export default function AVCanvas() {
                     )}
 
         {selectedCanvasProduct && !selectedConnection && (
-          <DeviceConnectionsPanel
-            product={ensureNetworkInfo(selectedCanvasProduct)}
-            label={selectedCanvasProduct.label}
-            networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
-            activeConnections={connections}
-            allProducts={canvasProducts.map(ensureNetworkInfo)}
-            onClose={() => setSelectedCanvasProduct(null)}
-            onHighlightConnections={setHighlightedConnections}
-            onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
-          />
-        )}
+                      <DeviceConnectionsPanel
+                        product={ensureNetworkInfo(selectedCanvasProduct)}
+                        label={selectedCanvasProduct.label}
+                        networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
+                        activeConnections={connections}
+                        allProducts={canvasProducts.map(ensureNetworkInfo)}
+                        onClose={() => setSelectedCanvasProduct(null)}
+                        onHighlightConnections={setHighlightedConnections}
+                        onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
+                        onDeviceUpdate={(updatedProduct) => {
+                          // Update the canvas product with new product data
+                          setCanvasProducts(prev => prev.map(cp => 
+                            cp.instanceId === selectedCanvasProduct.instanceId
+                              ? { ...cp, product: { ...cp.product, ...updatedProduct } }
+                              : cp
+                          ));
+                          // Update selected canvas product to reflect changes
+                          setSelectedCanvasProduct(prev => ({
+                            ...prev,
+                            product: { ...prev.product, ...updatedProduct }
+                          }));
+                        }}
+                      />
+                    )}
 
         {selectedConnection && (
           <ConnectionDetailsPanel
