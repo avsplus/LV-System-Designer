@@ -1070,24 +1070,23 @@ export default function AVCanvas() {
   };
 
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
-    // Use registered port refs for accurate positioning
-    // Now we look up by connection type, not individual port name
-    const portId = getPortId(instanceId, connectionType, 'type', !isOutput);
-    const portData = portRefs.current.get(portId);
+    // Calculate position based on product position directly (no DOM dependency)
+    // This ensures stable positioning during zoom/pan
+    const product = canvasProducts.find(cp => cp.instanceId === instanceId);
+    if (!product) return null;
 
-    if (portData && portData.element) {
-      const portRect = portData.element.getBoundingClientRect();
-      const canvasRect = canvasRef.current?.getBoundingClientRect();
+    const cardWidth = 320;
+    const cardHeight = 280;
+    
+    // Outputs are on the right side, inputs on the left
+    const x = isOutput 
+      ? product.position.x + cardWidth 
+      : product.position.x;
+    
+    // Center vertically with slight offset based on connection type
+    const y = product.position.y + cardHeight / 2;
 
-      if (canvasRect) {
-        // Get center of the port dot in canvas coordinates, accounting for zoom and pan
-        const x = (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom;
-        const y = (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom;
-        return { x, y };
-      }
-    }
-
-    return null;
+    return { x, y };
   };
 
   // Calculate connection positions directly (not memoized to ensure port refs are available)
