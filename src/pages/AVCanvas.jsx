@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import ProductSidebar from "../components/canvas/ProductSidebar";
-import CanvasProduct from "../components/canvas/CanvasProduct";
+import CanvasProduct from "../components/canvas/CanvasProduct.jsx";
 import ConnectionLine from "../components/canvas/ConnectionLine";
 import ProductDetailsPanel from "../components/canvas/ProductDetailsPanel";
 import ConnectionDetailsPanel from "../components/canvas/ConnectionDetailsPanel";
