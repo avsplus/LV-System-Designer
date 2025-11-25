@@ -276,8 +276,14 @@ export default function CanvasProduct({
     if (!isDragging) return;
     e.preventDefault();
     
-    const newX = e.clientX - dragOffset.current.x;
-    const newY = e.clientY - dragOffset.current.y;
+    const deltaX = (e.clientX - dragOffset.current.lastX) / zoom;
+    const deltaY = (e.clientY - dragOffset.current.lastY) / zoom;
+    
+    dragOffset.current.lastX = e.clientX;
+    dragOffset.current.lastY = e.clientY;
+    
+    const newX = position.x + deltaX;
+    const newY = position.y + deltaY;
     
     requestAnimationFrame(() => {
       onPositionChange(instanceId, { x: newX, y: newY });
