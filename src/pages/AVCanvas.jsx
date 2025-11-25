@@ -1874,12 +1874,12 @@ export default function AVCanvas() {
           </Droppable>
         </div>
 
-        {selectedProduct && !selectedConnection && !selectedCanvasProduct && (
-          <ProductDetailsPanel
-            product={selectedProduct}
-            onClose={() => setSelectedProduct(null)}
-          />
-        )}
+        {selectedProduct && !selectedConnection && (
+                      <ProductDetailsPanel
+                        product={selectedProduct}
+                        onClose={() => setSelectedProduct(null)}
+                      />
+                    )}
 
         {selectedCanvasProduct && !selectedConnection && (
           <DeviceConnectionsPanel
