@@ -464,14 +464,14 @@ export default function CanvasProduct({
                   }
                 }}
               >
-                <ChevronRight className="w-3 h-3 text-white/80" />
+                <ChevronRight className="w-3 h-3 text-black/70" />
               </div>
-            );
-          })}
-        </div>
-      )}
+              );
+              })}
+              </div>
+              )}
 
-      {/* Right edge connection points (outputs) */}
+              {/* Right edge connection points (outputs) */}
       {outputTypes.length > 0 && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-3">
           {outputTypes.slice(0, 6).map((connType, i) => {
@@ -506,14 +506,14 @@ export default function CanvasProduct({
                   }
                 }}
               >
-                <ChevronRight className="w-3 h-3 text-white/80" />
+                <ChevronRight className="w-3 h-3 text-black/70" />
               </div>
-            );
-          })}
-        </div>
-      )}
+              );
+              })}
+              </div>
+              )}
 
-      {/* Top edge connection points (for overflow) */}
+              {/* Top edge connection points (for overflow) */}
       {(inputTypes.length > 6 || outputTypes.length > 6) && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-3">
           {[...inputTypes.slice(6).map(t => ({...t, isInput: true})), ...outputTypes.slice(6).map(t => ({...t, isInput: false}))].slice(0, 8).map((connType, i) => {
@@ -549,9 +549,9 @@ export default function CanvasProduct({
                 }}
               >
                 {connType.isInput ? (
-                  <ChevronDown className="w-3 h-3 text-white/80" />
+                  <ChevronDown className="w-3 h-3 text-black/70" />
                 ) : (
-                  <ChevronUp className="w-3 h-3 text-white/80" />
+                  <ChevronUp className="w-3 h-3 text-black/70" />
                 )}
               </div>
             );
