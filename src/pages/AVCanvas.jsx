@@ -306,16 +306,8 @@ export default function AVCanvas() {
         const x = (dragMousePosition.x - canvasRect.left - pan.x) / zoom - 128;
         const y = (dragMousePosition.y - canvasRect.top - pan.y) / zoom - 100;
 
-        if (rooms.length === 0) {
-          // No rooms - show dialog
-          setPendingProductDrop({ product, position: { x, y } });
-        } else if (rooms.length === 1) {
-          // Only one room - auto-assign
-          addProductToCanvas(product, { x, y }, rooms[0]);
-        } else {
-          // Multiple rooms - show selection dialog
-          setPendingProductDrop({ product, position: { x, y } });
-        }
+        // Always show room selection dialog
+        setPendingProductDrop({ product, position: { x, y } });
       }
     }
     setDragMousePosition(null);
