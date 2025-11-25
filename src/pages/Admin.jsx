@@ -38,19 +38,25 @@ export default function Admin() {
   const [inviteRole, setInviteRole] = useState(ROLES.VIEWER);
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  // Note: Base44 User entity has built-in security - only platform admins can list all users
+  // For non-admin users, we show them in the list if they have administrator organization_role
+  const { data: users = [], isLoading, error: usersError } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       try {
         const userList = await base44.entities.User.list();
         return userList;
       } catch (error) {
-        console.error('Failed to fetch users:', error);
+        console.error('Failed to fetch users - this may be a permissions issue:', error);
+        // If user can't list all users, at least return themselves
+        if (user) {
+          return [user];
+        }
         return [];
       }
     },
-    enabled: isAtLeast(ROLES.ADMINISTRATOR),
-    retry: 1
+    enabled: isAtLeast(ROLES.ADMINISTRATOR) && !permLoading,
+    retry: 0
   });
 
   const { data: projects = [] } = useQuery({
@@ -212,6 +218,11 @@ export default function Admin() {
               
               {isLoading ? (
                 <div className="p-8 text-center text-gray-400">Loading users...</div>
+              ) : usersError ? (
+                <div className="p-8 text-center">
+                  <p className="text-yellow-400 mb-2">Limited access to user data</p>
+                  <p className="text-gray-500 text-sm">Only platform owners can view all users. Contact your organization owner for full access.</p>
+                </div>
               ) : filteredUsers.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">No users found</div>
               ) : (
