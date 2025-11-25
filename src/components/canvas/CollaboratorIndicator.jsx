@@ -6,9 +6,27 @@ import { Users } from "lucide-react";
 export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
   const [collaborators, setCollaborators] = useState([]);
   const presenceIdRef = useRef(null);
+  const previousProjectIdRef = useRef(null);
 
   useEffect(() => {
-    if (!projectId || !currentUserEmail) return;
+    // Clean up presence from previous project when switching projects
+    const cleanupPreviousPresence = async () => {
+      if (presenceIdRef.current && previousProjectIdRef.current !== projectId) {
+        try {
+          await base44.entities.ProjectPresence.delete(presenceIdRef.current);
+        } catch (e) {}
+        presenceIdRef.current = null;
+      }
+    };
+    
+    cleanupPreviousPresence();
+    previousProjectIdRef.current = projectId;
+    
+    // If no project selected, clear collaborators and don't track presence
+    if (!projectId || !currentUserEmail) {
+      setCollaborators([]);
+      return;
+    }
 
     let interval;
 
@@ -63,6 +81,7 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
       // Clean up presence on unmount
       if (presenceIdRef.current) {
         base44.entities.ProjectPresence.delete(presenceIdRef.current).catch(() => {});
+        presenceIdRef.current = null;
       }
     };
   }, [projectId, currentUserEmail]);
