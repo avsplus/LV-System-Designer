@@ -556,7 +556,6 @@ export default function CanvasProduct({
                 data-port-id={portId}
                 data-port-index={i + 6}
                 data-port-type={connType.isInput ? "input" : "output"}
-                title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onPortClick) {
@@ -570,6 +569,18 @@ export default function CanvasProduct({
                     onPortMouseDown(instanceId, connType.type, 'type', connType.isInput, e.currentTarget);
                   }
                 }}
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setTooltipInfo({
+                    type: connType.type,
+                    portCount: connType.ports.length,
+                    color: connType.color,
+                    isInput: connType.isInput,
+                    x: rect.left + rect.width / 2,
+                    y: rect.top
+                  });
+                }}
+                onMouseLeave={() => setTooltipInfo(null)}
               >
                 {connType.isInput ? (
                   <ChevronDown className="w-3 h-3 text-black/70" />
@@ -581,6 +592,39 @@ export default function CanvasProduct({
           })}
         </div>
       )}
+
+      {/* Custom Tooltip */}
+      {tooltipInfo && (
+        <div 
+          className="fixed z-[9999] pointer-events-none px-3 py-2 rounded-lg shadow-lg border-2 text-xs font-medium whitespace-nowrap"
+          style={{
+            left: tooltipInfo.x,
+            top: tooltipInfo.y,
+            backgroundColor: tooltipInfo.color,
+            borderColor: tooltipInfo.color,
+            color: '#000',
+            transform: 'translate(-50%, -120%)',
+            boxShadow: `0 4px 12px ${tooltipInfo.color}40`
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">{tooltipInfo.type}</span>
+            <span className="opacity-50">•</span>
+            <span className="opacity-80">{tooltipInfo.isInput ? 'Input' : 'Output'}</span>
+            <span className="opacity-50">•</span>
+            <span className="opacity-80">{tooltipInfo.portCount} port{tooltipInfo.portCount > 1 ? 's' : ''}</span>
+          </div>
+          <div 
+            className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0"
+            style={{
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: `6px solid ${tooltipInfo.color}`
+            }}
+          />
+        </div>
+      )}
+
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
             {label && (
