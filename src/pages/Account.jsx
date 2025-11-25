@@ -11,8 +11,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
+import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
 
-export default function Account() {
+function AccountContent() {
+  const confirmDialog = useConfirm();
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -57,8 +59,14 @@ export default function Account() {
     setIsSaving(false);
   };
 
-  const handleLogout = () => {
-    if (confirm('Are you sure you want to sign out?')) {
+  const handleLogout = async () => {
+    const proceed = await confirmDialog('Are you sure you want to sign out?', {
+      title: 'Sign Out',
+      type: 'warning',
+      confirmText: 'Sign Out',
+      cancelText: 'Cancel'
+    });
+    if (proceed) {
       base44.auth.logout();
     }
   };
