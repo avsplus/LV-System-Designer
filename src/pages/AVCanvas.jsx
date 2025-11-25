@@ -418,7 +418,7 @@ function AVCanvasContent() {
     return { valid: errors.length === 0, errors, warnings };
   };
 
-  const handleConnectionTypeSelect = (connectionData) => {
+  const handleConnectionTypeSelect = async (connectionData) => {
     // Validate connection
     const validation = validateConnection(connectingFrom, connectingTo, connectionData.type);
     
