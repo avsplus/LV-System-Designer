@@ -136,9 +136,22 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
   return (
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
+      {/* Logo */}
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <Layers className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-white">AV Designer</h1>
+            <p className="text-xs text-gray-500">System Design Tool</p>
+          </div>
+        </div>
+      </div>
+
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-white">AV Products</h2>
+          <h2 className="text-sm font-medium text-gray-400">Product Library</h2>
           <Button
             size="sm"
             variant="ghost"
