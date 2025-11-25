@@ -464,14 +464,12 @@ export default function CanvasProduct({
                   }
                 }}
                 onMouseEnter={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
                   setTooltipInfo({
                     type: connType.type,
                     portCount: connType.ports.length,
                     color: connType.color,
                     isInput: true,
-                    x: rect.left + rect.width / 2,
-                    y: rect.top
+                    element: e.currentTarget
                   });
                 }}
                 onMouseLeave={() => setTooltipInfo(null)}
@@ -517,14 +515,12 @@ export default function CanvasProduct({
                   }
                 }}
                 onMouseEnter={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
                   setTooltipInfo({
                     type: connType.type,
                     portCount: connType.ports.length,
                     color: connType.color,
                     isInput: false,
-                    x: rect.left + rect.width / 2,
-                    y: rect.top
+                    element: e.currentTarget
                   });
                 }}
                 onMouseLeave={() => setTooltipInfo(null)}
@@ -570,14 +566,12 @@ export default function CanvasProduct({
                   }
                 }}
                 onMouseEnter={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
                   setTooltipInfo({
                     type: connType.type,
                     portCount: connType.ports.length,
                     color: connType.color,
                     isInput: connType.isInput,
-                    x: rect.left + rect.width / 2,
-                    y: rect.top
+                    element: e.currentTarget
                   });
                 }}
                 onMouseLeave={() => setTooltipInfo(null)}
