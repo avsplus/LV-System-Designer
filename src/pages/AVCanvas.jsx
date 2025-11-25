@@ -811,8 +811,14 @@ function AVCanvasContent() {
     setConnections(connections.filter((_, i) => i !== index));
   };
 
-  const clearCanvas = () => {
-    if (confirm('This will clear the canvas. Any unsaved changes will be lost. Continue?')) {
+  const clearCanvas = async () => {
+    const proceed = await confirm('This will clear the canvas. Any unsaved changes will be lost.', {
+      title: 'Clear Canvas',
+      type: 'danger',
+      confirmText: 'Clear Canvas',
+      cancelText: 'Cancel'
+    });
+    if (proceed) {
       setCanvasProducts([]);
       setConnections([]);
       setRooms([]);
@@ -824,6 +830,7 @@ function AVCanvasContent() {
       localStorage.removeItem('av_canvas_temp_connections');
       localStorage.removeItem('av_canvas_temp_rooms');
       localStorage.removeItem('av_canvas_temp_project_id');
+      toast.success('Canvas cleared');
     }
   };
 
