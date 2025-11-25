@@ -15,15 +15,15 @@ Deno.serve(async (req) => {
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find 30 popular professional AV (audio/visual) products across these categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
+            prompt: `Find at least 150 popular professional AV (audio/visual) products with at least 10 products per category across these categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
 
-Include products from brands like: Sony, Samsung, LG, Epson, JVC, Crestron, Control4, Savant, RTI, Sonos, Denon, Marantz, Yamaha, KEF, Bowers & Wilkins, Klipsch, SVS, Cisco, Netgear, Ubiquiti, TP-Link, and other popular AV brands.
+Include products from brands like: Sony, Samsung, LG, Epson, JVC, Crestron, Control4, Savant, RTI, Sonos, Denon, Marantz, Yamaha, KEF, Bowers & Wilkins, Klipsch, SVS, Cisco, Netgear, Ubiquiti, TP-Link, Araknis, Luxul, Pakedge, and other popular AV brands.
 
-For network_switches, include managed switches suitable for AV installations with PoE support.
+For network_switches, include managed switches suitable for AV installations with PoE support (at least 10 products).
 
 For each product, provide accurate current information including brand, model number, category, description, approximate price in USD, and any available product image URLs.
 
-IMPORTANT: The category field MUST be one of these exact values (use underscores, not spaces):
+CRITICAL: The category field MUST be one of these EXACT values (use underscores, lowercase only):
 - televisions
 - projectors
 - projector_screens
@@ -40,7 +40,7 @@ IMPORTANT: The category field MUST be one of these exact values (use underscores
 - av_receivers
 - network_switches
 
-Return a diverse mix across all categories including at least 2-3 network switches.`,
+Return at least 10 products per category.`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",
@@ -92,8 +92,45 @@ Return a diverse mix across all categories including at least 2-3 network switch
 
         const products = response.products || [];
 
-        // Filter out duplicates based on brand + model
-        const newProducts = products.filter(p => {
+        // Normalize category names and filter out duplicates
+        const validCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"];
+        
+        const categoryMapping = {
+            "av receivers": "av_receivers",
+            "av_receivers": "av_receivers",
+            "matrix switchers": "matrix_switchers",
+            "matrix switches": "matrix_switchers",
+            "matrix_switchers": "matrix_switchers",
+            "media streamers": "media_streamers",
+            "media_streamers": "media_streamers",
+            "multi-zone amps": "multizone_amps",
+            "multi zone amps": "multizone_amps",
+            "multizone amps": "multizone_amps",
+            "multizone_amps": "multizone_amps",
+            "network switches": "network_switches",
+            "network_switches": "network_switches",
+            "projector screens": "projector_screens",
+            "projector_screens": "projector_screens",
+            "video distribution": "video_distribution",
+            "video_distribution": "video_distribution",
+            "audio streamers": "audio_streamers",
+            "audio_streamers": "audio_streamers",
+            "stereo amps": "stereo_amps",
+            "stereo_amps": "stereo_amps",
+            "surround processors": "surround_processors",
+            "surround_processors": "surround_processors"
+        };
+
+        const normalizedProducts = products.map(p => {
+            let category = p.category.toLowerCase().trim();
+            category = categoryMapping[category] || category;
+            if (!validCategories.includes(category)) {
+                category = "av_receivers"; // fallback
+            }
+            return { ...p, category };
+        });
+
+        const newProducts = normalizedProducts.filter(p => {
             const key = `${p.brand.toLowerCase()}-${p.model.toLowerCase()}`;
             return !existingKeys.has(key);
         });
