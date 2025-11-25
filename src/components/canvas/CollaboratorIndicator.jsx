@@ -74,15 +74,15 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
           presenceIdRef.current = created.id;
         }
 
-        // Fetch all active users on this project (active in last 30 seconds)
+        // Fetch all active users on this project (active in last 10 seconds)
         const allPresence = await base44.entities.ProjectPresence.filter({
           project_id: projectId
         });
 
-        const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
+        const tenSecondsAgo = new Date(Date.now() - 10000).toISOString();
         const activeCollaborators = allPresence.filter(p => 
           p.user_email !== currentUserEmail && 
-          p.last_seen > thirtySecondsAgo
+          p.last_seen > tenSecondsAgo
         );
 
         setCollaborators(activeCollaborators);
