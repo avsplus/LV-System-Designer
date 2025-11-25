@@ -257,19 +257,39 @@ export default function CanvasProduct({
   // Ensure networkInfo is always defined
   const safeNetworkInfo = networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
 
+  // Convert screen coordinates to world coordinates
+  const screenToWorld = (screenX, screenY, canvasRect, panX, panY, zoomLevel) => ({
+    x: (screenX - canvasRect.left - panX) / zoomLevel,
+    y: (screenY - canvasRect.top - panY) / zoomLevel
+  });
+
   const handleMouseDown = (e) => {
     if (e.target.closest('button') || e.target.hasAttribute('data-port-type')) return;
     
     const clickTime = Date.now();
     const clickPos = { x: e.clientX, y: e.clientY };
     
+    // Get canvas element and its transform values
+    const canvas = e.currentTarget.parentElement;
+    const canvasRect = canvas.parentElement.getBoundingClientRect();
+    const transform = canvas.style.transform;
+    const translateMatch = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+    const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+    const panX = translateMatch ? parseFloat(translateMatch[1]) : 0;
+    const panY = translateMatch ? parseFloat(translateMatch[2]) : 0;
+    const zoomLevel = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+    
+    // Convert mouse to world coords and store offset from node position
+    const mouseWorld = screenToWorld(e.clientX, e.clientY, canvasRect, panX, panY, zoomLevel);
+    
     setIsDragging(true);
     dragOffset.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      startPosX: position.x,
-      startPosY: position.y,
-      zoom,
+      offsetX: mouseWorld.x - position.x,
+      offsetY: mouseWorld.y - position.y,
+      canvasRect,
+      panX,
+      panY,
+      zoomLevel,
       clickTime,
       clickPos
     };
@@ -279,13 +299,13 @@ export default function CanvasProduct({
     if (!isDragging) return;
     e.preventDefault();
     
-    const deltaX = e.clientX - dragOffset.current.startX;
-    const deltaY = e.clientY - dragOffset.current.startY;
+    const { canvasRect, panX, panY, zoomLevel, offsetX, offsetY } = dragOffset.current;
+    const mouseWorld = screenToWorld(e.clientX, e.clientY, canvasRect, panX, panY, zoomLevel);
     
-    const newX = dragOffset.current.startPosX + deltaX / dragOffset.current.zoom;
-    const newY = dragOffset.current.startPosY + deltaY / dragOffset.current.zoom;
-    
-    onPositionChange(instanceId, { x: newX, y: newY });
+    onPositionChange(instanceId, { 
+      x: mouseWorld.x - offsetX, 
+      y: mouseWorld.y - offsetY 
+    });
   }, [isDragging, instanceId, onPositionChange]);
 
   const handleMouseUp = (e) => {
