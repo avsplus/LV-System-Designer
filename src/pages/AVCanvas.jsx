@@ -20,6 +20,8 @@ import ConnectionDetailsPanel from "../components/canvas/ConnectionDetailsPanel"
 import ConnectionTypeDialog from "../components/canvas/ConnectionTypeDialog";
 import DeviceConnectionsPanel from "../components/canvas/DeviceConnectionsPanel";
 import ProjectManager from "../components/canvas/ProjectManager";
+import CollaboratorIndicator from "../components/canvas/CollaboratorIndicator";
+import useProjectSync from "../components/canvas/useProjectSync";
 
 export default function AVCanvas() {
   const [currentProject, setCurrentProject] = useState(null);
@@ -55,6 +57,7 @@ export default function AVCanvas() {
   const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, startPos: {...}, mousePos: {...}, hoveredPort: {...} }
   const [hoveredPortId, setHoveredPortId] = useState(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
@@ -139,6 +142,24 @@ export default function AVCanvas() {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['avProducts'],
     queryFn: () => base44.entities.AVProduct.list(),
+  });
+
+  // Get current user
+  useEffect(() => {
+    base44.auth.me().then(user => setCurrentUserEmail(user.email)).catch(() => {});
+  }, []);
+
+  // Real-time project sync for collaboration
+  const handleProjectUpdatedFromSync = React.useCallback((updatedProject) => {
+    setCurrentProject(updatedProject);
+    setCanvasProducts(updatedProject.canvas_products || []);
+    setConnections(updatedProject.connections || []);
+  }, []);
+
+  const { markLocalChange } = useProjectSync({
+    currentProject,
+    currentUserEmail,
+    onProjectUpdated: handleProjectUpdatedFromSync
   });
 
   // Auto-save to localStorage whenever canvas changes
@@ -1225,13 +1246,19 @@ export default function AVCanvas() {
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">AV System Designer</h1>
-              <p className="text-sm text-gray-400 mt-0.5">
-                {currentProject ? (
-                  <>Project: <span className="text-blue-400 font-medium">{currentProject.name}</span></>
-                ) : (
-                  'Drag products to canvas and create connections'
-                )}
-              </p>
+              <div className="flex items-center gap-3 mt-0.5">
+                <p className="text-sm text-gray-400">
+                  {currentProject ? (
+                    <>Project: <span className="text-blue-400 font-medium">{currentProject.name}</span></>
+                  ) : (
+                    'Drag products to canvas and create connections'
+                  )}
+                </p>
+                <CollaboratorIndicator 
+                  projectId={currentProject?.id} 
+                  currentUserEmail={currentUserEmail}
+                />
+              </div>
             </div>
             <div className="flex gap-2">
               <DropdownMenu>
@@ -1270,6 +1297,7 @@ export default function AVCanvas() {
                     <DropdownMenuItem 
                       onClick={async () => {
                         try {
+                          markLocalChange();
                           await base44.entities.AVProject.update(currentProject.id, {
                             canvas_products: canvasProducts,
                             connections: connections
