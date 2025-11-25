@@ -89,10 +89,10 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
           project_id: projectId
         });
 
-        const fifteenSecondsAgo = new Date(Date.now() - 15000).toISOString();
+        const sixtySecondsAgo = new Date(Date.now() - 60000).toISOString();
         const activeCollaborators = allPresence.filter(p => 
           p.user_email !== currentUserEmail && 
-          p.last_seen > fifteenSecondsAgo
+          p.last_seen > sixtySecondsAgo
         );
 
         setCollaborators(activeCollaborators);
