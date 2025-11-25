@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +22,19 @@ import DeviceConnectionsPanel from "../components/canvas/DeviceConnectionsPanel"
 import ProjectManager from "../components/canvas/ProjectManager";
 import CollaboratorIndicator from "../components/canvas/CollaboratorIndicator";
 import useProjectSync from "../components/canvas/useProjectSync";
+import RoomManager from "../components/canvas/RoomManager";
+import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 
 export default function AVCanvas() {
   const [currentProject, setCurrentProject] = useState(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
+  const [showRoomManager, setShowRoomManager] = useState(false);
+  const [rooms, setRooms] = useState(() => {
+    const saved = localStorage.getItem('av_canvas_temp_rooms');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [pendingProductDrop, setPendingProductDrop] = useState(null);
   const [canvasProducts, setCanvasProducts] = useState(() => {
     const saved = localStorage.getItem('av_canvas_temp_products');
     return saved ? JSON.parse(saved) : [];
@@ -171,6 +180,10 @@ export default function AVCanvas() {
     localStorage.setItem('av_canvas_temp_connections', JSON.stringify(connections));
   }, [connections]);
 
+  useEffect(() => {
+    localStorage.setItem('av_canvas_temp_rooms', JSON.stringify(rooms));
+  }, [rooms]);
+
   // Auto-save to database instantly when project exists (for owner or collaborator)
   const lastSavedRef = useRef({ products: null, connections: null });
   const isSavingRef = useRef(false);
@@ -232,15 +245,57 @@ export default function AVCanvas() {
     if (project) {
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
+      setRooms(project.rooms || []);
       localStorage.setItem('av_canvas_temp_project_id', project.id);
     } else {
       setCanvasProducts([]);
       setConnections([]);
+      setRooms([]);
       localStorage.removeItem('av_canvas_temp_project_id');
     }
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
+    setSelectedRoom(null);
+  };
+
+  const handleAddRoom = (roomName) => {
+    setRooms(prev => [...prev, roomName]);
+  };
+
+  const handleDeleteRoom = (roomName) => {
+    setRooms(prev => prev.filter(r => r !== roomName));
+    setCanvasProducts(prev => prev.filter(cp => cp.room !== roomName));
+    setConnections(prev => prev.filter(conn => {
+      const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+      const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+      return fromDevice?.room !== roomName && toDevice?.room !== roomName;
+    }));
+    if (selectedRoom === roomName) {
+      setSelectedRoom(null);
+    }
+  };
+
+  const addProductToCanvas = (product, position, room) => {
+    const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
+    // Count how many of this brand already exist in this room
+    const roomDevices = canvasProducts.filter(cp => cp.room === room);
+    const brandCount = roomDevices.filter(cp => cp.product.brand === product.brand).length + 1;
+    const deviceLabel = `${product.brand} ${brandCount}`;
+
+    setCanvasProducts(prev => [...prev, {
+      instanceId,
+      product,
+      position,
+      label: deviceLabel,
+      room: room,
+      networkInfo: {
+        sw: '',
+        port: '',
+        ip: '000.000.000.000',
+        mac: '00:00:00:00:00:00'
+      }
+    }]);
   };
 
   const onDragEnd = (result) => {
@@ -256,27 +311,21 @@ export default function AVCanvas() {
       const product = products.find(p => p.id === draggableId);
       if (product && dragMousePosition) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
-        const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
-        // Count how many of this brand already exist
-        const brandCount = canvasProducts.filter(cp => cp.product.brand === product.brand).length + 1;
-        const deviceLabel = `${product.brand} ${brandCount}`;
-
+        
         // Calculate position relative to canvas, accounting for zoom and pan
-        const x = (dragMousePosition.x - canvasRect.left - pan.x) / zoom - 128; // center the card
+        const x = (dragMousePosition.x - canvasRect.left - pan.x) / zoom - 128;
         const y = (dragMousePosition.y - canvasRect.top - pan.y) / zoom - 100;
 
-        setCanvasProducts([...canvasProducts, {
-          instanceId,
-          product,
-          position: { x, y },
-          label: deviceLabel,
-          networkInfo: {
-            sw: '',
-            port: '',
-            ip: '000.000.000.000',
-            mac: '00:00:00:00:00:00'
-          }
-        }]);
+        if (rooms.length === 0) {
+          // No rooms - show dialog
+          setPendingProductDrop({ product, position: { x, y } });
+        } else if (rooms.length === 1) {
+          // Only one room - auto-assign
+          addProductToCanvas(product, { x, y }, rooms[0]);
+        } else {
+          // Multiple rooms - show selection dialog
+          setPendingProductDrop({ product, position: { x, y } });
+        }
       }
     }
     setDragMousePosition(null);
@@ -757,11 +806,14 @@ export default function AVCanvas() {
     if (confirm('This will clear the canvas. Any unsaved changes will be lost. Continue?')) {
       setCanvasProducts([]);
       setConnections([]);
+      setRooms([]);
       setSelectedProduct(null);
       setSelectedConnection(null);
+      setSelectedRoom(null);
       setCurrentProject(null);
       localStorage.removeItem('av_canvas_temp_products');
       localStorage.removeItem('av_canvas_temp_connections');
+      localStorage.removeItem('av_canvas_temp_rooms');
       localStorage.removeItem('av_canvas_temp_project_id');
     }
   };
