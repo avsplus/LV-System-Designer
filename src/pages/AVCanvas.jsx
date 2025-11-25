@@ -27,7 +27,9 @@ import useProjectSync from "../components/canvas/useProjectSync";
 import RoomManager from "../components/canvas/RoomManager";
 import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 
-export default function AVCanvas() {
+function AVCanvasContent() {
+  const toast = useToast();
+  const confirm = useConfirm();
   const [currentProject, setCurrentProject] = useState(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);
