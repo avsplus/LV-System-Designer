@@ -77,7 +77,18 @@ function ActivityItem({ activity }) {
           <span className="text-xs text-gray-500">•</span>
           <span className="text-xs text-gray-500 flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            {formatDistanceToNow(new Date(activity.created_date), { addSuffix: true })}
+            {(() => {
+              // Ensure the date is parsed as UTC
+              let dateStr = activity.created_date;
+              if (dateStr && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                dateStr = dateStr + 'Z';
+              }
+              const date = new Date(dateStr);
+              // Prevent future dates from showing "in X hours"
+              const now = new Date();
+              const safeDate = date > now ? now : date;
+              return formatDistanceToNow(safeDate, { addSuffix: true });
+            })()}
           </span>
         </div>
       </div>
