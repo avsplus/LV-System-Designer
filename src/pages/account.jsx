@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   User, Mail, Calendar, LogOut, FolderOpen, Users, 
-  Share2, ArrowLeft, Save, Crown, Clock
+  Share2, ArrowLeft, Save, Crown, Clock, Activity
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
+import ActivityFeed from "../components/activity/ActivityFeed";
 
 function AccountContent() {
   const confirmDialog = useConfirm();
@@ -294,6 +295,19 @@ function AccountContent() {
               </CardContent>
             </Card>
           )}
+
+          {/* Activity Feed */}
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-400" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ActivityFeed userEmail={user.email} limit={15} />
+            </CardContent>
+          </Card>
 
           {/* Sign Out */}
           <Card className="bg-gray-900 border-gray-800">

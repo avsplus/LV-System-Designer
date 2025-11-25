@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { trackActivity, ActivityActions } from "../activity/activityTracker";
 
 export default function ProjectManager({ 
   currentProject, 
@@ -50,28 +51,42 @@ export default function ProjectManager({
   const isLoading = loadingOwn || loadingShared;
 
   const saveMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       if (currentProject && currentProject.id) {
-        return base44.entities.AVProject.update(currentProject.id, data);
+        const updated = await base44.entities.AVProject.update(currentProject.id, data);
+        await trackActivity(ActivityActions.UPDATED_PROJECT, currentProject.id, data.name);
+        return updated;
       }
-      return base44.entities.AVProject.create({
+      const created = await base44.entities.AVProject.create({
         ...data,
         owner_email: currentUser?.email,
         shared_with: []
       });
+      await trackActivity(ActivityActions.CREATED_PROJECT, created.id, data.name);
+      return created;
     },
     onSuccess: (savedProject) => {
       queryClient.invalidateQueries({ queryKey: ['avProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
       setShowSaveForm(false);
       onProjectLoad(savedProject);
     },
   });
 
   const shareMutation = useMutation({
-    mutationFn: ({ projectId, sharedWith }) => 
-      base44.entities.AVProject.update(projectId, { shared_with: sharedWith }),
+    mutationFn: async ({ projectId, sharedWith, addedEmail, removedEmail, projectName }) => {
+      const result = await base44.entities.AVProject.update(projectId, { shared_with: sharedWith });
+      if (addedEmail) {
+        await trackActivity(ActivityActions.SHARED_PROJECT, projectId, projectName, { shared_with: addedEmail });
+      }
+      if (removedEmail) {
+        await trackActivity(ActivityActions.UNSHARED_PROJECT, projectId, projectName, { shared_with: removedEmail });
+      }
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
       setShowShareForm(null);
       setShareEmail('');
     },
@@ -147,7 +162,9 @@ export default function ProjectManager({
     
     shareMutation.mutate({
       projectId: showShareForm.id,
-      sharedWith: [...currentShared, email]
+      sharedWith: [...currentShared, email],
+      addedEmail: email,
+      projectName: showShareForm.name
     });
   };
 
@@ -156,7 +173,9 @@ export default function ProjectManager({
     const currentShared = showShareForm.shared_with || [];
     shareMutation.mutate({
       projectId: showShareForm.id,
-      sharedWith: currentShared.filter(e => e !== email)
+      sharedWith: currentShared.filter(e => e !== email),
+      removedEmail: email,
+      projectName: showShareForm.name
     });
   };
 
