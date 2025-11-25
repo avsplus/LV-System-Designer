@@ -432,7 +432,7 @@ function AVCanvasContent() {
     
     // Show warnings if any
     if (validation.warnings.length > 0) {
-      const proceed = await confirm(validation.warnings.join('\n\n'), {
+      const proceed = await confirmDialog(validation.warnings.join('\n\n'), {
         title: 'Connection Warning',
         type: 'warning',
         confirmText: 'Continue Anyway',
@@ -816,7 +816,7 @@ function AVCanvasContent() {
   };
 
   const clearCanvas = async () => {
-    const proceed = await confirm('This will clear the canvas. Any unsaved changes will be lost.', {
+    const proceed = await confirmDialog('This will clear the canvas. Any unsaved changes will be lost.', {
       title: 'Clear Canvas',
       type: 'danger',
       confirmText: 'Clear Canvas',
@@ -1514,7 +1514,7 @@ function AVCanvasContent() {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={async () => {
-                      const proceed = await confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes.', {
+                      const proceed = await confirmDialog('This will search the web for actual connection ports for each product in your database. This may take a few minutes.', {
                         title: 'Enrich Connections',
                         type: 'info',
                         confirmText: 'Start Enrichment',
