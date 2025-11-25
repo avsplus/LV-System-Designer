@@ -313,3 +313,11 @@ function AccountContent() {
     </div>
   );
 }
+
+export default function Account() {
+  return (
+    <ConfirmProvider>
+      <AccountContent />
+    </ConfirmProvider>
+  );
+}
