@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2 } from "lucide-react";
 import { Draggable, Droppable } from '@hello-pangea/dnd';
+import { useSettings } from "../settings/SettingsContext";
 
 const categorySolidColors = {
   televisions: "bg-blue-600",
@@ -44,6 +45,7 @@ const categoryIcons = {
 };
 
 export default function ProductSidebar({ products, onProductSelect }) {
+  const { settings } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
   const [showFilters, setShowFilters] = useState(false);
@@ -142,11 +144,19 @@ export default function ProductSidebar({ products, onProductSelect }) {
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
       {/* Logo */}
       <div className="p-4 border-b border-gray-800 flex justify-center">
-        <img 
-          src="https://fusionlvs.com/wp-content/uploads/2024/08/Official-Fusion-Logo-scaled.png" 
-          alt="Fusion Logo" 
-          className="h-14 w-auto"
-        />
+        {settings?.logo_url ? (
+          <img 
+            src={settings.logo_url} 
+            alt={settings.organization_name || 'Logo'} 
+            className="h-14 w-auto object-contain"
+          />
+        ) : (
+          <div className="h-14 flex items-center">
+            <span className="text-xl font-bold text-white">
+              {settings?.organization_name || 'AV Design'}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="p-4 border-b border-gray-800">
