@@ -1651,24 +1651,24 @@ export default function AVCanvas() {
           </div>
 
           <Droppable droppableId="canvas">
-            {(provided, snapshot) => (
-              <div
-                ref={(el) => {
-                  provided.innerRef(el);
-                  canvasRef.current = el;
-                }}
-                {...provided.droppableProps}
-                onWheel={handleWheel}
-                onMouseDown={handleMouseDown}
-                className={`flex-1 relative overflow-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
-                  snapshot.isDraggingOver ? 'bg-blue-950/20' : ''
-                } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
-                style={{
-                  backgroundImage: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)',
-                  backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
-                  backgroundPosition: `${pan.x}px ${pan.y}px`
-                }}
-              >
+          {(provided, snapshot) => (
+          <div
+            ref={(el) => {
+              provided.innerRef(el);
+              canvasRef.current = el;
+            }}
+            {...provided.droppableProps}
+            onWheel={currentProject ? handleWheel : undefined}
+            onMouseDown={currentProject ? handleMouseDown : undefined}
+            className={`flex-1 relative overflow-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
+              snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
+            } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)',
+              backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
+              backgroundPosition: `${pan.x}px ${pan.y}px`
+            }}
+          >
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   style={{ zIndex: 1 }}
@@ -1846,7 +1846,30 @@ export default function AVCanvas() {
                   </g>
                 </svg>
 
-                {canvasProducts.length === 0 && !snapshot.isDraggingOver && (
+                {!currentProject && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+                    <div className="text-center bg-gray-900/95 border border-gray-700 rounded-xl p-8 pointer-events-auto">
+                      <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                        <FolderOpen className="w-8 h-8 text-blue-400" />
+                      </div>
+                      <p className="text-white text-lg font-medium mb-2">
+                        No Project Loaded
+                      </p>
+                      <p className="text-gray-400 text-sm mb-6">
+                        Create a new project or load an existing one to start designing
+                      </p>
+                      <Button
+                        onClick={() => setShowProjectManager(true)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <FolderOpen className="w-4 h-4 mr-2" />
+                        Open Project Manager
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {currentProject && canvasProducts.length === 0 && !snapshot.isDraggingOver && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">

@@ -47,10 +47,11 @@ export default function Account() {
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
-      await base44.auth.updateMe({ full_name: fullName });
+      await base44.entities.User.update(user.id, { full_name: fullName });
       setUser({ ...user, full_name: fullName });
       setIsEditing(false);
     } catch (error) {
+      console.error('Profile update error:', error);
       alert('Failed to update profile');
     }
     setIsSaving(false);
