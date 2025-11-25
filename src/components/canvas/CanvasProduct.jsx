@@ -4,6 +4,20 @@ import { Button } from "@/components/ui/button";
 import { X, Link2 } from "lucide-react";
 
 const connectionsByCategory = {
+  control_processors: {
+    inputs: [
+      { type: "Power", ports: ["AC"] },
+      { type: "Ethernet", ports: ["LAN-1", "LAN-2"] },
+      { type: "RS232", ports: ["COM-1", "COM-2", "COM-3", "COM-4"] },
+      { type: "IR", ports: ["IR-1", "IR-2", "IR-3", "IR-4"] },
+      { type: "USB", ports: ["USB-A", "USB-B"] }
+    ],
+    outputs: [
+      { type: "RS232", ports: ["COM-1", "COM-2", "COM-3", "COM-4"] },
+      { type: "IR", ports: ["IR-1", "IR-2", "IR-3", "IR-4"] },
+      { type: "Control", ports: ["Relay-1", "Relay-2", "Relay-3", "Relay-4"] }
+    ]
+  },
   televisions: {
     inputs: [
       { type: "Power", ports: ["AC"] },
@@ -221,7 +235,8 @@ const categorySolidColors = {
   multizone_amps: "bg-amber-600",
   surround_processors: "bg-yellow-400",
   av_receivers: "bg-emerald-600",
-  network_switches: "bg-slate-600"
+  network_switches: "bg-slate-600",
+  control_processors: "bg-violet-600"
 };
 
 const categoryTextColors = {
@@ -239,7 +254,8 @@ const categoryTextColors = {
   multizone_amps: "text-amber-400",
   surround_processors: "text-yellow-400",
   av_receivers: "text-emerald-400",
-  network_switches: "text-slate-400"
+  network_switches: "text-slate-400",
+  control_processors: "text-violet-400"
 };
 
 export default function CanvasProduct({ 
