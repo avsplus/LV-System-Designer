@@ -1447,14 +1447,7 @@ export default function AVCanvas() {
                     Load Project
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => {
-                      if (canvasProducts.length > 0 || connections.length > 0) {
-                        if (!confirm('Creating a new project will clear your current canvas. Continue?')) {
-                          return;
-                        }
-                      }
-                      handleProjectLoad(null);
-                    }}
+                    onClick={() => setShowProjectManager(true)}
                     className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
                   >
                     <Plus className="w-4 h-4 mr-2" />
