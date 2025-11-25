@@ -26,6 +26,7 @@ import CollaboratorIndicator from "../components/canvas/CollaboratorIndicator";
 import useProjectSync from "../components/canvas/useProjectSync";
 import RoomManager from "../components/canvas/RoomManager";
 import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
+import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 
 function AVCanvasContent() {
   const toast = useToast();
@@ -268,6 +269,13 @@ function AVCanvasContent() {
 
   const handleAddRoom = (roomName) => {
     setRooms(prev => [...prev, roomName]);
+
+    // Track activity
+    if (currentProject?.id) {
+      trackActivity(ActivityActions.ADDED_ROOM, currentProject.id, currentProject.name, {
+        room_name: roomName
+      });
+    }
   };
 
   const handleDeleteRoom = (roomName) => {
@@ -280,6 +288,13 @@ function AVCanvasContent() {
     }));
     if (selectedRoom === roomName) {
       setSelectedRoom(null);
+    }
+
+    // Track activity
+    if (currentProject?.id) {
+      trackActivity(ActivityActions.REMOVED_ROOM, currentProject.id, currentProject.name, {
+        room_name: roomName
+      });
     }
   };
 
@@ -303,6 +318,13 @@ function AVCanvasContent() {
         mac: '00:00:00:00:00:00'
       }
     }]);
+
+    // Track activity
+    if (currentProject?.id) {
+      trackActivity(ActivityActions.ADDED_DEVICE, currentProject.id, currentProject.name, {
+        device_name: `${product.brand} ${product.model}`
+      });
+    }
   };
 
   const onDragEnd = (result) => {
@@ -353,10 +375,18 @@ function AVCanvasContent() {
   };
 
   const handleRemoveProduct = (instanceId) => {
+    const removedProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
     setCanvasProducts(canvasProducts.filter(cp => cp.instanceId !== instanceId));
     setConnections(connections.filter(c => c.from !== instanceId && c.to !== instanceId));
     if (selectedCanvasProduct?.instanceId === instanceId) {
       setSelectedCanvasProduct(null);
+    }
+
+    // Track activity
+    if (currentProject?.id && removedProduct) {
+      trackActivity(ActivityActions.REMOVED_DEVICE, currentProject.id, currentProject.name, {
+        device_name: `${removedProduct.product.brand} ${removedProduct.product.model}`
+      });
     }
   };
 
@@ -493,10 +523,18 @@ function AVCanvasContent() {
       toPort: connectionData.toPort,
       wireId: wireId
     }]);
+
+    // Track activity
+    if (currentProject?.id) {
+      trackActivity(ActivityActions.ADDED_CONNECTION, currentProject.id, currentProject.name, {
+        connection_type: connectionData.type
+      });
+    }
+
     setConnectingFrom(null);
     setConnectingTo(null);
     setPendingConnection(null);
-  };
+    };
 
   const handleConnectionClick = (connection, index) => {
     setSelectedConnection({ ...connection, index });
@@ -813,7 +851,15 @@ function AVCanvasContent() {
   };
 
   const handleRemoveConnection = (index) => {
+    const removedConnection = connections[index];
     setConnections(connections.filter((_, i) => i !== index));
+
+    // Track activity
+    if (currentProject?.id && removedConnection) {
+      trackActivity(ActivityActions.REMOVED_CONNECTION, currentProject.id, currentProject.name, {
+        connection_type: removedConnection.type
+      });
+    }
   };
 
   const clearCanvas = async () => {
