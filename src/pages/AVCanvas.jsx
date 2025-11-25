@@ -423,7 +423,7 @@ function AVCanvasContent() {
     const validation = validateConnection(connectingFrom, connectingTo, connectionData.type);
     
     if (!validation.valid) {
-      alert(`Cannot create connection:\n${validation.errors.join('\n')}`);
+      toast.error(`Cannot create connection: ${validation.errors.join(', ')}`);
       setConnectingFrom(null);
       setConnectingTo(null);
       setPendingConnection(null);
@@ -432,7 +432,12 @@ function AVCanvasContent() {
     
     // Show warnings if any
     if (validation.warnings.length > 0) {
-      const proceed = confirm(`Connection can be created but has warnings:\n\n${validation.warnings.join('\n')}\n\nContinue anyway?`);
+      const proceed = await confirm(validation.warnings.join('\n\n'), {
+        title: 'Connection Warning',
+        type: 'warning',
+        confirmText: 'Continue Anyway',
+        cancelText: 'Cancel'
+      });
       if (!proceed) {
         setConnectingFrom(null);
         setConnectingTo(null);
