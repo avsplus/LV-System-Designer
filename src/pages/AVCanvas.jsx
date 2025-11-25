@@ -2099,3 +2099,13 @@ function AVCanvasContent() {
         </DragDropContext>
         );
         }
+
+        export default function AVCanvas() {
+        return (
+        <ToastProvider>
+        <ConfirmProvider>
+        <AVCanvasContent />
+        </ConfirmProvider>
+        </ToastProvider>
+        );
+        }
