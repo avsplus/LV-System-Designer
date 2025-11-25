@@ -171,8 +171,10 @@ export default function AVCanvas() {
     localStorage.setItem('av_canvas_temp_connections', JSON.stringify(connections));
   }, [connections]);
 
-  // Auto-save to database if project exists (for owner or collaborator)
-  const autoSaveTimeoutRef = useRef(null);
+  // Auto-save to database instantly when project exists (for owner or collaborator)
+  const lastSavedRef = useRef({ products: null, connections: null });
+  const isSavingRef = useRef(false);
+  
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
     
@@ -181,29 +183,36 @@ export default function AVCanvas() {
     const isCollaborator = currentProject.shared_with?.includes(currentUserEmail);
     if (!isOwner && !isCollaborator) return;
     
-    // Debounce auto-save to avoid too many API calls
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
+    // Check if data actually changed to avoid unnecessary saves
+    const productsJson = JSON.stringify(canvasProducts);
+    const connectionsJson = JSON.stringify(connections);
+    
+    if (lastSavedRef.current.products === productsJson && 
+        lastSavedRef.current.connections === connectionsJson) {
+      return;
     }
     
-    autoSaveTimeoutRef.current = setTimeout(async () => {
+    // Prevent concurrent saves
+    if (isSavingRef.current) return;
+    
+    const saveProject = async () => {
+      isSavingRef.current = true;
       try {
         markLocalChange();
         await base44.entities.AVProject.update(currentProject.id, {
           canvas_products: canvasProducts,
           connections: connections
         });
-        console.log('Auto-saved project');
+        lastSavedRef.current = { products: productsJson, connections: connectionsJson };
+        console.log('Instant-saved project');
       } catch (error) {
         console.error('Auto-save failed:', error);
-      }
-    }, 1500); // Save 1.5 seconds after last change
-    
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
+      } finally {
+        isSavingRef.current = false;
       }
     };
+    
+    saveProject();
   }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // Load temp project info on mount

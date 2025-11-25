@@ -15,7 +15,7 @@ export default function useProjectSync({
     isLocalChange.current = true;
     setTimeout(() => {
       isLocalChange.current = false;
-    }, 2000);
+    }, 3000); // Longer window to prevent sync overwriting local changes
   }, []);
 
   useEffect(() => {
