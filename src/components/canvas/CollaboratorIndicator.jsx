@@ -8,22 +8,25 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
   const presenceIdRef = useRef(null);
   const previousProjectIdRef = useRef(null);
 
-  // Clean up old presence records for this user once on mount
+  // Clean up stale presence records (older than 2 minutes) on mount
   useEffect(() => {
     if (!currentUserEmail) return;
     
-    const cleanupOldPresence = async () => {
+    const cleanupStalePresence = async () => {
       try {
         const allMyPresence = await base44.entities.ProjectPresence.filter({
           user_email: currentUserEmail
         });
+        const twoMinutesAgo = new Date(Date.now() - 120000).toISOString();
         for (const p of allMyPresence) {
-          await base44.entities.ProjectPresence.delete(p.id);
+          if (p.last_seen < twoMinutesAgo) {
+            await base44.entities.ProjectPresence.delete(p.id);
+          }
         }
       } catch (e) {}
     };
     
-    cleanupOldPresence();
+    cleanupStalePresence();
   }, [currentUserEmail]);
 
   useEffect(() => {
