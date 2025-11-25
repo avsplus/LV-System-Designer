@@ -1707,14 +1707,22 @@ function AVCanvasContent() {
                                     <Home className="w-4 h-4 mr-2" />
                                     Rooms ({rooms.length})
                                   </Button>
+              <Link to={createPageUrl("Admin")}>
+                <Button
+                  variant="outline"
+                  className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </Link>
               <Link to={createPageUrl("account")}>
-                                    <Button
-                                      variant="outline"
-                                      className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                                    >
-                                      <User className="w-4 h-4" />
-                                    </Button>
-                                  </Link>
+                <Button
+                  variant="outline"
+                  className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                >
+                  <User className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
           </div>
 
