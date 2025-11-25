@@ -2002,6 +2002,7 @@ function AVCanvasContent() {
                           connectingState.fromPort.portName,
                           connectingState.fromPort.isInput
                         ) : null}
+                        onTooltipChange={setPortTooltip}
                       />
                     );
                   })}
