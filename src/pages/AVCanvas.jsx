@@ -1874,7 +1874,7 @@ export default function AVCanvas() {
           </Droppable>
         </div>
 
-        {selectedProduct && !selectedConnection && (
+        {selectedProduct && !selectedConnection && !selectedCanvasProduct && (
                       <ProductDetailsPanel
                         product={selectedProduct}
                         onClose={() => setSelectedProduct(null)}
@@ -1954,22 +1954,22 @@ export default function AVCanvas() {
           />
         )}
 
-        {showRoomManager && (
-          <RoomManager
-            rooms={rooms}
-            onAddRoom={handleAddRoom}
-            onDeleteRoom={handleDeleteRoom}
-            canvasProducts={canvasProducts}
-            onClose={() => setShowRoomManager(false)}
-            onDeviceClick={(device) => {
-              setSelectedCanvasProduct(ensureNetworkInfo(device));
-              setSelectedProduct(null);
-              setSelectedConnection(null);
-            }}
-            selectedRoom={selectedRoom}
-            onSelectRoom={setSelectedRoom}
-          />
-        )}
+        {showRoomManager && !selectedCanvasProduct && !selectedConnection && (
+                      <RoomManager
+                        rooms={rooms}
+                        onAddRoom={handleAddRoom}
+                        onDeleteRoom={handleDeleteRoom}
+                        canvasProducts={canvasProducts}
+                        onClose={() => setShowRoomManager(false)}
+                        onDeviceClick={(device) => {
+                          setSelectedCanvasProduct(ensureNetworkInfo(device));
+                          setSelectedProduct(null);
+                          setSelectedConnection(null);
+                        }}
+                        selectedRoom={selectedRoom}
+                        onSelectRoom={setSelectedRoom}
+                      />
+                    )}
 
         {pendingProductDrop && (
           <RoomSelectDialog
