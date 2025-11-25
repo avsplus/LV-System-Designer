@@ -308,6 +308,12 @@ export default function AVCanvas() {
       return;
     }
 
+    // Block canvas operations if no project loaded
+    if (!currentProject) {
+      setDragMousePosition(null);
+      return;
+    }
+
     // Dragging from sidebar to canvas
     if (source.droppableId === 'sidebar' && destination.droppableId === 'canvas') {
       const product = products.find(p => p.id === draggableId);
