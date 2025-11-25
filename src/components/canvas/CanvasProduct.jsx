@@ -314,7 +314,7 @@ export default function CanvasProduct({
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, position]);
+  }, [isDragging, handleMouseMove]);
 
   // Connection type colors mapping
   const connectionTypeColors = {
