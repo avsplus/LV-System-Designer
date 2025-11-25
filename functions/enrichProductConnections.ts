@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
 
 DATABASE CONTEXT:
 - Entity: AVProduct
-- Valid categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches
+- Valid categories: televisions,control_processors, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches
 
 PRODUCT TO ENRICH:
 Brand: ${product.brand}
