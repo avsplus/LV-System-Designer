@@ -52,7 +52,7 @@ export default function useProjectSync({
       }
     };
 
-    const interval = setInterval(checkForUpdates, 5000); // Check every 5 seconds
+    const interval = setInterval(checkForUpdates, 15000); // Check every 15 seconds
 
     return () => clearInterval(interval);
   }, [currentProject?.id, currentUserEmail, onProjectUpdated]);
