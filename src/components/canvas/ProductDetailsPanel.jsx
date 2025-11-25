@@ -118,16 +118,20 @@ export default function ProductDetailsPanel({ product, onClose }) {
           </div>
         )}
 
-        {product.image_url && (
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Image</p>
+        <div>
+          <p className="text-sm text-gray-500 mb-2">Image</p>
+          {product.image_url ? (
             <img 
               src={product.image_url} 
               alt={`${product.brand} ${product.model}`}
               className="w-full rounded-lg border border-gray-700"
             />
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-40 rounded-lg border border-gray-700 bg-gray-800 flex items-center justify-center">
+              <span className="text-gray-500 text-sm">No image available</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
