@@ -139,13 +139,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
       {/* Logo */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Layers className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-white">AV Designer</h1>
-            <p className="text-xs text-gray-500">System Design Tool</p>
-          </div>
+          <img src="/logo" alt="Logo" className="h-10 w-auto" />
         </div>
       </div>
 
