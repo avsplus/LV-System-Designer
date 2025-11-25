@@ -24,8 +24,14 @@ import ProjectManager from "../components/canvas/ProjectManager";
 export default function AVCanvas() {
   const [currentProject, setCurrentProject] = useState(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
-  const [canvasProducts, setCanvasProducts] = useState([]);
-  const [connections, setConnections] = useState([]);
+  const [canvasProducts, setCanvasProducts] = useState(() => {
+    const saved = localStorage.getItem('av_canvas_temp_products');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [connections, setConnections] = useState(() => {
+    const saved = localStorage.getItem('av_canvas_temp_connections');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Helper to ensure networkInfo is always defined
   const ensureNetworkInfo = (product) => ({
@@ -135,14 +141,37 @@ export default function AVCanvas() {
     queryFn: () => base44.entities.AVProduct.list(),
   });
 
+  // Auto-save to localStorage whenever canvas changes
+  useEffect(() => {
+    localStorage.setItem('av_canvas_temp_products', JSON.stringify(canvasProducts));
+  }, [canvasProducts]);
+
+  useEffect(() => {
+    localStorage.setItem('av_canvas_temp_connections', JSON.stringify(connections));
+  }, [connections]);
+
+  // Load temp project info on mount
+  useEffect(() => {
+    const tempProjectId = localStorage.getItem('av_canvas_temp_project_id');
+    if (tempProjectId) {
+      base44.entities.AVProject.filter({ id: tempProjectId }).then(projects => {
+        if (projects.length > 0) {
+          setCurrentProject(projects[0]);
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
     if (project) {
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
+      localStorage.setItem('av_canvas_temp_project_id', project.id);
     } else {
       setCanvasProducts([]);
       setConnections([]);
+      localStorage.removeItem('av_canvas_temp_project_id');
     }
     setSelectedProduct(null);
     setSelectedConnection(null);
@@ -666,6 +695,9 @@ export default function AVCanvas() {
       setSelectedProduct(null);
       setSelectedConnection(null);
       setCurrentProject(null);
+      localStorage.removeItem('av_canvas_temp_products');
+      localStorage.removeItem('av_canvas_temp_connections');
+      localStorage.removeItem('av_canvas_temp_project_id');
     }
   };
 
