@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Home, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const categoryTextColors = {
@@ -30,11 +30,14 @@ export default function RoomManager({
   onDeviceClick,
   selectedRoom,
   onSelectRoom,
+  onDeviceRoomChange,
   keepOpen = false
 }) {
   const [newRoomName, setNewRoomName] = useState('');
   const [expandedRooms, setExpandedRooms] = useState({});
   const [error, setError] = useState('');
+  const [draggedDevice, setDraggedDevice] = useState(null);
+  const [dragOverRoom, setDragOverRoom] = useState(null);
 
   const handleAddRoom = () => {
     const trimmedName = newRoomName.trim();
@@ -122,11 +125,28 @@ export default function RoomManager({
               <div key={room} className="space-y-1">
                 <div
                   className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                    isSelected 
-                      ? 'bg-blue-600/20 border border-blue-500/50' 
-                      : 'bg-gray-800/50 hover:bg-gray-800 border border-transparent'
+                    dragOverRoom === room 
+                      ? 'bg-green-600/30 border border-green-500/50' 
+                      : isSelected 
+                        ? 'bg-blue-600/20 border border-blue-500/50' 
+                        : 'bg-gray-800/50 hover:bg-gray-800 border border-transparent'
                   }`}
                   onClick={() => onSelectRoom(isSelected ? null : room)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (draggedDevice && draggedDevice.room !== room) {
+                      setDragOverRoom(room);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverRoom(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggedDevice && draggedDevice.room !== room && onDeviceRoomChange) {
+                      onDeviceRoomChange(draggedDevice.instanceId, room);
+                    }
+                    setDraggedDevice(null);
+                    setDragOverRoom(null);
+                  }}
                 >
                   <div className="flex items-center gap-2 flex-1" onClick={(e) => { e.stopPropagation(); toggleRoom(room); }}>
                     {isExpanded ? (
@@ -164,20 +184,34 @@ export default function RoomManager({
                     {devices.map((device) => (
                       <div
                         key={device.instanceId}
+                        draggable
+                        onDragStart={(e) => {
+                          setDraggedDevice(device);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragEnd={() => {
+                          setDraggedDevice(null);
+                          setDragOverRoom(null);
+                        }}
                         onClick={() => onDeviceClick(device)}
-                        className="px-3 py-2 bg-gray-800/30 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors"
+                        className={`px-3 py-2 bg-gray-800/30 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors flex items-start gap-2 ${
+                          draggedDevice?.instanceId === device.instanceId ? 'opacity-50' : ''
+                        }`}
                       >
-                        <p className={`text-xs capitalize ${categoryTextColors[device.product.category] || 'text-gray-400'}`}>
-                          {device.product.category?.replace(/_/g, ' ')}
-                        </p>
-                        <p className="text-sm font-medium text-white">
-                          {device.label} <span className="text-gray-400 font-normal">— {device.product.model}</span>
-                        </p>
-                        {device.product.description && (
-                          <p className="text-xs text-gray-500 truncate mt-0.5">
-                            {device.product.description}
+                        <GripVertical className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0 cursor-grab" />
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs capitalize ${categoryTextColors[device.product.category] || 'text-gray-400'}`}>
+                            {device.product.category?.replace(/_/g, ' ')}
                           </p>
-                        )}
+                          <p className="text-sm font-medium text-white">
+                            {device.label} <span className="text-gray-400 font-normal">— {device.product.model}</span>
+                          </p>
+                          {device.product.description && (
+                            <p className="text-xs text-gray-500 truncate mt-0.5">
+                              {device.product.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

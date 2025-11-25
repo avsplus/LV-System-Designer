@@ -55,6 +55,7 @@ export default function AVCanvas() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
   const [selectedConnection, setSelectedConnection] = useState(null);
+  const [panelHistory, setPanelHistory] = useState([]);
   const [highlightedConnections, setHighlightedConnections] = useState([]);
   const [hoveredConnectionIndex, setHoveredConnectionIndex] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -1874,38 +1875,56 @@ export default function AVCanvas() {
           </Droppable>
         </div>
 
-        {selectedProduct && !selectedConnection && !selectedCanvasProduct && (
-                      <ProductDetailsPanel
-                        product={selectedProduct}
-                        onClose={() => setSelectedProduct(null)}
-                      />
-                    )}
+        {(() => {
+                      // Determine which panels to show based on history
+                      const showProductDetails = selectedProduct && !selectedConnection;
+                      const showDeviceConnections = selectedCanvasProduct && !selectedConnection;
 
-        {selectedCanvasProduct && !selectedConnection && (
-                      <DeviceConnectionsPanel
-                        product={ensureNetworkInfo(selectedCanvasProduct)}
-                        label={selectedCanvasProduct.label}
-                        networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
-                        activeConnections={connections}
-                        allProducts={canvasProducts.map(ensureNetworkInfo)}
-                        onClose={() => setSelectedCanvasProduct(null)}
-                        onHighlightConnections={setHighlightedConnections}
-                        onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
-                        onDeviceUpdate={(updatedProduct) => {
-                          // Update the canvas product with new product data
-                          setCanvasProducts(prev => prev.map(cp => 
-                            cp.instanceId === selectedCanvasProduct.instanceId
-                              ? { ...cp, product: { ...cp.product, ...updatedProduct } }
-                              : cp
-                          ));
-                          // Update selected canvas product to reflect changes
-                          setSelectedCanvasProduct(prev => ({
-                            ...prev,
-                            product: { ...prev.product, ...updatedProduct }
-                          }));
-                        }}
-                      />
-                    )}
+                      // Get last two panels from history for toggle behavior
+                      const lastTwo = panelHistory.slice(-2);
+                      const shouldShowRoomsWithOther = lastTwo.includes('rooms') && showRoomManager;
+
+                      return (
+                        <>
+                          {showProductDetails && (!showDeviceConnections || lastTwo.includes('productDetails')) && (
+                            <ProductDetailsPanel
+                              product={selectedProduct}
+                              onClose={() => {
+                                setSelectedProduct(null);
+                                setPanelHistory(prev => prev.filter(p => p !== 'productDetails'));
+                              }}
+                            />
+                          )}
+
+                          {showDeviceConnections && (
+                            <DeviceConnectionsPanel
+                              product={ensureNetworkInfo(selectedCanvasProduct)}
+                              label={selectedCanvasProduct.label}
+                              networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
+                              activeConnections={connections}
+                              allProducts={canvasProducts.map(ensureNetworkInfo)}
+                              onClose={() => {
+                                setSelectedCanvasProduct(null);
+                                setPanelHistory(prev => prev.filter(p => p !== 'deviceConnections'));
+                              }}
+                              onHighlightConnections={setHighlightedConnections}
+                              onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
+                              onDeviceUpdate={(updatedProduct) => {
+                                setCanvasProducts(prev => prev.map(cp => 
+                                  cp.instanceId === selectedCanvasProduct.instanceId
+                                    ? { ...cp, product: { ...cp.product, ...updatedProduct } }
+                                    : cp
+                                ));
+                                setSelectedCanvasProduct(prev => ({
+                                  ...prev,
+                                  product: { ...prev.product, ...updatedProduct }
+                                }));
+                              }}
+                            />
+                          )}
+                        </>
+                      );
+                    })()}
 
         {selectedConnection && (
           <ConnectionDetailsPanel
@@ -1954,7 +1973,7 @@ export default function AVCanvas() {
           />
         )}
 
-        {showRoomManager && !selectedCanvasProduct && !selectedConnection && (
+        {showRoomManager && (
                       <RoomManager
                         rooms={rooms}
                         onAddRoom={handleAddRoom}
@@ -1965,9 +1984,15 @@ export default function AVCanvas() {
                           setSelectedCanvasProduct(ensureNetworkInfo(device));
                           setSelectedProduct(null);
                           setSelectedConnection(null);
+                          setPanelHistory(['rooms', 'deviceConnections']);
                         }}
                         selectedRoom={selectedRoom}
                         onSelectRoom={setSelectedRoom}
+                        onDeviceRoomChange={(instanceId, newRoom) => {
+                          setCanvasProducts(prev => prev.map(cp => 
+                            cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
+                          ));
+                        }}
                       />
                     )}
 
