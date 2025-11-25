@@ -87,9 +87,9 @@ export default function Settings() {
         return base44.entities.OrganizationSettings.create(data);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
-      refreshSettings(); // Update global settings context
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
+      await refreshSettings(); // Update global settings context immediately
       setSaved(true);
       toast.success('Settings saved - changes applied immediately');
       setTimeout(() => setSaved(false), 2000);

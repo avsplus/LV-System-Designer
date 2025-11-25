@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -7,22 +7,38 @@ const SettingsContext = createContext(null);
 export function SettingsProvider({ children }) {
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ['orgSettings'],
     queryFn: async () => {
       const list = await base44.entities.OrganizationSettings.list();
       return list[0] || getDefaultSettings();
     },
-    staleTime: 0, // Always refetch to get latest
-    refetchOnWindowFocus: true
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
-  const refreshSettings = () => {
-    queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
+  const currentSettings = settings || getDefaultSettings();
+
+  // Apply CSS variables for brand colors whenever settings change
+  useEffect(() => {
+    if (currentSettings) {
+      document.documentElement.style.setProperty('--primary-color', currentSettings.primary_color);
+      document.documentElement.style.setProperty('--secondary-color', currentSettings.secondary_color);
+      
+      // Apply theme class to body
+      document.body.classList.remove('theme-dark', 'theme-light', 'theme-grid');
+      document.body.classList.add(`theme-${currentSettings.canvas_theme || 'dark'}`);
+    }
+  }, [currentSettings.primary_color, currentSettings.secondary_color, currentSettings.canvas_theme]);
+
+  const refreshSettings = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
+    await refetch();
   };
 
   const value = {
-    settings: settings || getDefaultSettings(),
+    settings: currentSettings,
     isLoading,
     refreshSettings
   };
