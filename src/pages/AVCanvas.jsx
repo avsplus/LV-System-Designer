@@ -29,7 +29,7 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 
 function AVCanvasContent() {
   const toast = useToast();
-  const confirm = useConfirm();
+  const confirmDialog = useConfirm();
   const [currentProject, setCurrentProject] = useState(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);
@@ -445,6 +445,10 @@ function AVCanvasContent() {
         return;
       }
     }
+    
+    // Store connection data for use after async operations
+    const fromId = connectingFrom;
+    const toId = connectingTo;
     
     // Categorize connection types
     const connectionCategories = {
