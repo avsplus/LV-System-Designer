@@ -15,14 +15,11 @@ Deno.serve(async (req) => {
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find 45 popular professional AV (audio/visual) products with 3 products per category across these 16 categories: televisions,control_processors, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
+            prompt: `Find 30 popular professional AV products (2 per category) across: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, control_processors.
 
-Include products from brands like: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, and other popular AV brands.
+Brands: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul.
 
-For each product provide: brand, model number, category, brief description, approximate price in USD.
-
-CRITICAL: The category field MUST be one of these EXACT values (lowercase with underscores):
-televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches`,
+For each: brand, model, category, description (short), price in USD.`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",
@@ -34,35 +31,9 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
                             properties: {
                                 brand: { type: "string" },
                                 model: { type: "string" },
-                                category: { 
-                                    type: "string",
-                                    enum: ["televisions","control_processors", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"]
-                                },
+                                category: { type: "string" },
                                 description: { type: "string" },
-                                price: { type: "number" },
-                                image_url: { type: "string" },
-                                input_connections: {
-                                    type: "array",
-                                    items: {
-                                        type: "object",
-                                        properties: {
-                                            type: { type: "string" },
-                                            ports: { type: "array", items: { type: "string" } }
-                                        },
-                                        required: ["type", "ports"]
-                                    }
-                                },
-                                output_connections: {
-                                    type: "array",
-                                    items: {
-                                        type: "object",
-                                        properties: {
-                                            type: { type: "string" },
-                                            ports: { type: "array", items: { type: "string" } }
-                                        },
-                                        required: ["type", "ports"]
-                                    }
-                                }
+                                price: { type: "number" }
                             },
                             required: ["brand", "model", "category"]
                         }
@@ -80,12 +51,10 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
         // Normalize any category format to snake_case
         const normalizeCategory = (cat) => {
             if (!cat) return null;
-            // Convert to lowercase, replace spaces/hyphens with underscores, remove extra chars
             let normalized = cat.toLowerCase().trim()
-                .replace(/[\s-]+/g, '_')  // spaces and hyphens to underscores
-                .replace(/[^a-z_]/g, ''); // remove non-alpha chars except underscore
+                .replace(/[\s-]+/g, '_')
+                .replace(/[^a-z_]/g, '');
             
-            // Handle specific mappings
             const categoryMapping = {
                 "av_receivers": "av_receivers",
                 "avreceivers": "av_receivers",
@@ -121,7 +90,7 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
             let category = normalizeCategory(p.category);
             if (!validCategories.includes(category)) {
                 console.log(`Invalid category "${p.category}" -> "${category}", skipping product`);
-                return null; // Skip products with invalid categories instead of defaulting
+                return null;
             }
             return { ...p, category };
         }).filter(p => p !== null);
@@ -148,7 +117,7 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
         return Response.json({ 
             error: error.message,
             stack: error.stack,
-            details: 'Failed to scrape Portal.io. Please check your credentials or the site structure may have changed.'
+            details: 'Failed to import products.'
         }, { status: 500 });
     }
 });
