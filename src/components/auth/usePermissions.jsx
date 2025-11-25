@@ -19,9 +19,11 @@ export function usePermissions(project = null) {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        // Default to OWNER if no role set (first user / app owner)
-        // You can change this after setting up roles properly
-        setUserRole(currentUser.organization_role || ROLES.OWNER);
+        // Use assigned role, default to VIEWER for security
+        // The built-in 'admin' role from Base44 auth gets OWNER privileges
+        const role = currentUser.organization_role || 
+          (currentUser.role === 'admin' ? ROLES.OWNER : ROLES.VIEWER);
+        setUserRole(role);
       } catch (error) {
         console.error('Failed to fetch user:', error);
       } finally {
