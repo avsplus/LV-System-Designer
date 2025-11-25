@@ -1495,12 +1495,12 @@ function AVCanvasContent() {
                     onClick={async () => {
                       try {
                         const { data } = await base44.functions.invoke('scrapeSnapAV');
-                        alert(`Successfully imported ${data.productsFound} AV products from the web`);
+                        toast.success(`Successfully imported ${data.productsFound} AV products`);
                         window.location.reload();
                       } catch (error) {
                         console.error('Import error:', error);
                         const errorMsg = error.response?.data?.error || error.message;
-                        alert(`Failed to import products: ${errorMsg}`);
+                        toast.error(`Failed to import products: ${errorMsg}`);
                       }
                     }}
                     className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
