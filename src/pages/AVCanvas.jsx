@@ -1510,21 +1510,26 @@ function AVCanvasContent() {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={async () => {
-                      if (!confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes. Continue?')) {
-                        return;
-                      }
+                      const proceed = await confirm('This will search the web for actual connection ports for each product in your database. This may take a few minutes.', {
+                        title: 'Enrich Connections',
+                        type: 'info',
+                        confirmText: 'Start Enrichment',
+                        cancelText: 'Cancel'
+                      });
+                      if (!proceed) return;
                       try {
                         setEnrichmentProgress({ status: 'running', enriched: 0, total: products.length });
                         const { data } = await base44.functions.invoke('enrichProductConnections');
                         setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
                         setTimeout(() => {
-                          alert(`Successfully enriched ${data.enriched} products with real connection data!`);
+                          toast.success(`Successfully enriched ${data.enriched} products with real connection data!`);
                           window.location.reload();
                         }, 500);
                       } catch (error) {
                         console.error('Enrichment error:', error);
                         const errorMsg = error.response?.data?.error || error.message;
                         setEnrichmentProgress({ status: 'error', message: errorMsg });
+                        toast.error(`Enrichment failed: ${errorMsg}`);
                         setTimeout(() => setEnrichmentProgress(null), 5000);
                       }
                     }}
