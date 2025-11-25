@@ -16,13 +16,14 @@ import {
 } from "@/components/ui/select";
 import { 
   ChevronLeft, Building2, Palette, Globe, Layout, 
-  Database, FileText, Upload, Save, Plus, X, Loader2
+  Database, FileText, Upload, Save, Plus, X, Loader2, Check
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
 import { toast } from "sonner";
+import { useSettings } from "../components/settings/SettingsContext";
 
 const TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -33,15 +34,17 @@ const TIMEZONES = [
 export default function Settings() {
   const { isAtLeast, userRole, loading: permLoading } = usePermissions();
   const queryClient = useQueryClient();
-  const [logoFile, setLogoFile] = useState(null);
+  const { refreshSettings } = useSettings();
   const [uploading, setUploading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['orgSettings'],
     queryFn: async () => {
       const list = await base44.entities.OrganizationSettings.list();
       return list[0] || null;
-    }
+    },
+    staleTime: 0
   });
 
   const [form, setForm] = useState({
@@ -86,7 +89,10 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
-      toast.success('Settings saved successfully');
+      refreshSettings(); // Update global settings context
+      setSaved(true);
+      toast.success('Settings saved - changes applied immediately');
+      setTimeout(() => setSaved(false), 2000);
     },
     onError: () => {
       toast.error('Failed to save settings');
@@ -163,10 +169,16 @@ export default function Settings() {
             <Button 
               onClick={() => saveMutation.mutate(form)}
               disabled={saveMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className={saved ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
             >
-              {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              Save Changes
+              {saveMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : saved ? (
+                <Check className="w-4 h-4 mr-2" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {saved ? 'Saved!' : 'Save Changes'}
             </Button>
           )}
         </div>

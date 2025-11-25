@@ -29,11 +29,13 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
+import { useSettings } from "../components/settings/SettingsContext";
 
 function AVCanvasContent() {
     const toast = useToast();
     const confirmDialog = useConfirm();
     const { isAtLeast, loading: permLoading } = usePermissions();
+    const { settings: orgSettings } = useSettings();
   const [currentProject, setCurrentProject] = useState(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);
@@ -66,7 +68,7 @@ function AVCanvasContent() {
   const [panelHistory, setPanelHistory] = useState([]);
   const [highlightedConnections, setHighlightedConnections] = useState([]);
   const [hoveredConnectionIndex, setHoveredConnectionIndex] = useState(null);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(orgSettings?.default_zoom || 1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
@@ -1753,9 +1755,12 @@ function AVCanvasContent() {
               snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
             } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
             style={{
-              backgroundImage: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)',
-              backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
-              backgroundPosition: `${pan.x}px ${pan.y}px`
+              backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
+                ? 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)' 
+                : 'none',
+              backgroundSize: `${(orgSettings?.grid_size || 30) * zoom}px ${(orgSettings?.grid_size || 30) * zoom}px`,
+              backgroundPosition: `${pan.x}px ${pan.y}px`,
+              backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined
             }}
           >
                 <svg
