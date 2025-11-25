@@ -170,6 +170,13 @@ function AVCanvasContent() {
     setCurrentProject(updatedProject);
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
+    setRooms(updatedProject.rooms || []);
+    // Update lastSavedRef to prevent re-save after sync
+    lastSavedRef.current = {
+      products: JSON.stringify(updatedProject.canvas_products || []),
+      connections: JSON.stringify(updatedProject.connections || []),
+      rooms: JSON.stringify(updatedProject.rooms || [])
+    };
   }, []);
 
   const { markLocalChange } = useProjectSync({
@@ -192,38 +199,41 @@ function AVCanvasContent() {
   }, [rooms]);
 
   // Auto-save to database instantly when project exists (for owner or collaborator)
-  const lastSavedRef = useRef({ products: null, connections: null });
+  const lastSavedRef = useRef({ products: null, connections: null, rooms: null });
   const isSavingRef = useRef(false);
-  
+
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
-    
+
     // Allow save if user is owner OR has access (shared_with)
     const isOwner = currentProject.owner_email === currentUserEmail;
     const isCollaborator = currentProject.shared_with?.includes(currentUserEmail);
     if (!isOwner && !isCollaborator) return;
-    
+
     // Check if data actually changed to avoid unnecessary saves
     const productsJson = JSON.stringify(canvasProducts);
     const connectionsJson = JSON.stringify(connections);
-    
+    const roomsJson = JSON.stringify(rooms);
+
     if (lastSavedRef.current.products === productsJson && 
-        lastSavedRef.current.connections === connectionsJson) {
+        lastSavedRef.current.connections === connectionsJson &&
+        lastSavedRef.current.rooms === roomsJson) {
       return;
     }
-    
+
     // Prevent concurrent saves
     if (isSavingRef.current) return;
-    
+
     const saveProject = async () => {
       isSavingRef.current = true;
       try {
         markLocalChange();
         await base44.entities.AVProject.update(currentProject.id, {
           canvas_products: canvasProducts,
-          connections: connections
+          connections: connections,
+          rooms: rooms
         });
-        lastSavedRef.current = { products: productsJson, connections: connectionsJson };
+        lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson };
         console.log('Instant-saved project');
       } catch (error) {
         console.error('Auto-save failed:', error);
@@ -231,9 +241,9 @@ function AVCanvasContent() {
         isSavingRef.current = false;
       }
     };
-    
+
     saveProject();
-  }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
+  }, [canvasProducts, connections, rooms, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // No project loads by default - user must explicitly load a project
   // Clear ALL cached state on mount to ensure clean workspace
@@ -255,11 +265,18 @@ function AVCanvasContent() {
       setConnections(project.connections || []);
       setRooms(project.rooms || []);
       localStorage.setItem('av_canvas_temp_project_id', project.id);
+      // Reset the lastSavedRef to prevent immediate re-save on load
+      lastSavedRef.current = {
+        products: JSON.stringify(project.canvas_products || []),
+        connections: JSON.stringify(project.connections || []),
+        rooms: JSON.stringify(project.rooms || [])
+      };
     } else {
       setCanvasProducts([]);
       setConnections([]);
       setRooms([]);
       localStorage.removeItem('av_canvas_temp_project_id');
+      lastSavedRef.current = { products: null, connections: null, rooms: null };
     }
     setSelectedProduct(null);
     setSelectedConnection(null);
