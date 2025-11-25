@@ -15,13 +15,13 @@ import { createPageUrl } from "../utils";
 export default function Account() {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then((userData) => {
       setUser(userData);
-      setFullName(userData.full_name || '');
+      setDisplayName(userData.display_name || userData.full_name || '');
     }).catch(() => {
       base44.auth.redirectToLogin();
     });
@@ -47,8 +47,8 @@ export default function Account() {
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
-      await base44.auth.updateMe({ full_name: fullName });
-      setUser({ ...user, full_name: fullName });
+      await base44.auth.updateMe({ display_name: displayName });
+      setUser({ ...user, display_name: displayName });
       setIsEditing(false);
     } catch (error) {
       console.error('Profile update error:', error);
@@ -98,16 +98,16 @@ export default function Account() {
             <CardContent>
               <div className="flex items-start gap-6">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                  {(user.full_name || user.email || '?')[0].toUpperCase()}
+                  {(user.display_name || user.full_name || user.email || '?')[0].toUpperCase()}
                 </div>
                 <div className="flex-1 space-y-4">
                   {isEditing ? (
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm text-gray-400 mb-1 block">Full Name</label>
+                        <label className="text-sm text-gray-400 mb-1 block">Display Name</label>
                         <Input
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
                           className="bg-gray-800 border-gray-700 text-white max-w-sm"
                         />
                       </div>
@@ -124,7 +124,7 @@ export default function Account() {
                           variant="outline"
                           onClick={() => {
                             setIsEditing(false);
-                            setFullName(user.full_name || '');
+                            setDisplayName(user.display_name || user.full_name || '');
                           }}
                           className="border-gray-700 text-gray-300"
                         >
@@ -136,7 +136,7 @@ export default function Account() {
                     <>
                       <div>
                         <h2 className="text-2xl font-bold text-white">
-                          {user.full_name || 'No name set'}
+                          {user.display_name || user.full_name || 'No name set'}
                         </h2>
                         <div className="flex items-center gap-2 text-gray-400 mt-1">
                           <Mail className="w-4 h-4" />
