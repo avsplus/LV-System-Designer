@@ -71,6 +71,7 @@ function AVCanvasContent() {
   const [dragMousePosition, setDragMousePosition] = useState(null);
   const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, startPos: {...}, mousePos: {...}, hoveredPort: {...} }
   const [hoveredPortId, setHoveredPortId] = useState(null);
+  const [portTooltip, setPortTooltip] = useState(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState(null);
         const [importProgress, setImportProgress] = useState(null);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
