@@ -31,8 +31,25 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     
     setUploadingImage(true);
     try {
+      // Upload the original file first
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, image_url: file_url });
+      
+      // Use LLM to generate a background-removed version
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Remove the background from this product image and return ONLY a direct URL to a version with transparent/white background. If you cannot process the image, return the original URL: ${file_url}`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            processed_url: { type: "string", description: "URL of the processed image or original if processing failed" },
+            success: { type: "boolean", description: "Whether background removal was successful" }
+          }
+        }
+      });
+      
+      // Use processed URL if successful, otherwise use original
+      const finalUrl = result.success && result.processed_url ? result.processed_url : file_url;
+      setFormData({ ...formData, image_url: finalUrl });
     } catch (error) {
       console.error('Failed to upload image:', error);
       alert('Failed to upload image');
@@ -43,6 +60,8 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
 
   const handleAddConnection = (direction) => {
     const key = direction === 'input' ? 'input_connections' : 'output_connections';
+    const newIndex = formData[key].length;
+    setPortInputValues(prev => ({ ...prev, [`${direction}_${newIndex}`]: 'Port-1' }));
     setFormData({
       ...formData,
       [key]: [...formData[key], { type: 'HDMI', ports: ['Port-1'] }]
@@ -64,10 +83,25 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     setFormData({ ...formData, [key]: updated });
   };
 
+  const [portInputValues, setPortInputValues] = useState(() => {
+    const initial = {};
+    (product.input_connections || []).forEach((conn, idx) => {
+      initial[`input_${idx}`] = conn.ports?.join(', ') || '';
+    });
+    (product.output_connections || []).forEach((conn, idx) => {
+      initial[`output_${idx}`] = conn.ports?.join(', ') || '';
+    });
+    return initial;
+  });
+
   const handlePortsChange = (direction, index, portsString) => {
+    const inputKey = `${direction}_${index}`;
+    setPortInputValues(prev => ({ ...prev, [inputKey]: portsString }));
+    
     const key = direction === 'input' ? 'input_connections' : 'output_connections';
     const updated = [...formData[key]];
-    updated[index] = { ...updated[index], ports: portsString.split(',').map(p => p.trim()).filter(p => p) };
+    const ports = portsString.split(',').map(p => p.trim()).filter(p => p);
+    updated[index] = { ...updated[index], ports: ports.length > 0 ? ports : [] };
     setFormData({ ...formData, [key]: updated });
   };
 
@@ -125,7 +159,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
               <label className="text-xs text-gray-500 mb-1 block">Ports (comma-separated)</label>
               <input
                 type="text"
-                value={conn.ports?.join(', ') || ''}
+                value={portInputValues[`${direction}_${idx}`] ?? conn.ports?.join(', ') ?? ''}
                 onChange={(e) => handlePortsChange(direction, idx, e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
                 placeholder="Port-1, Port-2"
