@@ -102,7 +102,7 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
     };
 
     updatePresence();
-    interval = setInterval(updatePresence, 10000); // Update every 10 seconds instead of 2
+    interval = setInterval(updatePresence, 30000); // Update every 30 seconds
 
     return () => {
       clearInterval(interval);
