@@ -2,6 +2,7 @@ import AVCanvas from './pages/AVCanvas';
 import DeviceManager from './pages/DeviceManager';
 import account from './pages/account';
 import Admin from './pages/Admin';
+import Settings from './pages/Settings';
 
 
 export const PAGES = {
@@ -9,6 +10,7 @@ export const PAGES = {
     "DeviceManager": DeviceManager,
     "account": account,
     "Admin": Admin,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {

@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users } from "lucide-react";
 import { ToastProvider, useToast } from "../components/ui/Toast";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
 import {
@@ -1710,13 +1710,21 @@ function AVCanvasContent() {
                                     <Home className="w-4 h-4 mr-2" />
                                     Rooms ({rooms.length})
                                   </Button>
+              <Link to={createPageUrl("Settings")}>
+                <Button
+                  variant="outline"
+                  className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </Link>
               {isAtLeast(ROLES.ADMINISTRATOR) && (
                 <Link to={createPageUrl("Admin")}>
                   <Button
                     variant="outline"
                     className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Users className="w-4 h-4" />
                   </Button>
                 </Link>
               )}

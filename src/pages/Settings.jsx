@@ -1,0 +1,616 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  ChevronLeft, Building2, Palette, Globe, Layout, 
+  Database, FileText, Upload, Save, Plus, X, Loader2
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../utils";
+import { usePermissions } from "../components/auth/usePermissions";
+import { ROLES } from "../components/auth/permissions";
+import { toast } from "sonner";
+
+const TIMEZONES = [
+  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+  "America/Toronto", "Europe/London", "Europe/Paris", "Europe/Berlin",
+  "Asia/Tokyo", "Asia/Shanghai", "Asia/Dubai", "Australia/Sydney"
+];
+
+export default function Settings() {
+  const { isAtLeast, userRole, loading: permLoading } = usePermissions();
+  const queryClient = useQueryClient();
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['orgSettings'],
+    queryFn: async () => {
+      const list = await base44.entities.OrganizationSettings.list();
+      return list[0] || null;
+    }
+  });
+
+  const [form, setForm] = useState({
+    organization_name: '',
+    logo_url: '',
+    primary_color: '#3b82f6',
+    secondary_color: '#1e40af',
+    timezone: 'America/New_York',
+    canvas_theme: 'dark',
+    snap_to_grid: true,
+    grid_size: 20,
+    default_zoom: 1,
+    auto_save: true,
+    device_custom_fields: [],
+    project_metadata_fields: [],
+    export_template: {
+      include_logo: true,
+      include_pricing: false,
+      include_network_info: true,
+      header_text: '',
+      footer_text: ''
+    }
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setForm({
+        ...form,
+        ...settings,
+        export_template: { ...form.export_template, ...settings.export_template }
+      });
+    }
+  }, [settings]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (data) => {
+      if (settings?.id) {
+        return base44.entities.OrganizationSettings.update(settings.id, data);
+      } else {
+        return base44.entities.OrganizationSettings.create(data);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
+      toast.success('Settings saved successfully');
+    },
+    onError: () => {
+      toast.error('Failed to save settings');
+    }
+  });
+
+  const handleLogoUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm(prev => ({ ...prev, logo_url: file_url }));
+      toast.success('Logo uploaded');
+    } catch (error) {
+      toast.error('Failed to upload logo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const addCustomField = (type) => {
+    const fieldKey = type === 'device' ? 'device_custom_fields' : 'project_metadata_fields';
+    setForm(prev => ({
+      ...prev,
+      [fieldKey]: [...prev[fieldKey], { name: '', type: 'text', options: [], required: false }]
+    }));
+  };
+
+  const removeCustomField = (type, index) => {
+    const fieldKey = type === 'device' ? 'device_custom_fields' : 'project_metadata_fields';
+    setForm(prev => ({
+      ...prev,
+      [fieldKey]: prev[fieldKey].filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateCustomField = (type, index, updates) => {
+    const fieldKey = type === 'device' ? 'device_custom_fields' : 'project_metadata_fields';
+    setForm(prev => ({
+      ...prev,
+      [fieldKey]: prev[fieldKey].map((field, i) => i === index ? { ...field, ...updates } : field)
+    }));
+  };
+
+  if (permLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  // Minimum role: Designer can view, Admin+ can edit
+  const canEdit = isAtLeast(ROLES.ADMINISTRATOR);
+  const canViewAdvanced = isAtLeast(ROLES.ADMINISTRATOR);
+  const canEditBranding = isAtLeast(ROLES.OWNER);
+
+  return (
+    <div className="min-h-screen bg-gray-950">
+      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl("AVCanvas")}>
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Settings</h1>
+              <p className="text-sm text-gray-400">Configure your organization and canvas preferences</p>
+            </div>
+          </div>
+          {canEdit && (
+            <Button 
+              onClick={() => saveMutation.mutate(form)}
+              disabled={saveMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save Changes
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto p-6">
+        <Tabs defaultValue="organization" className="space-y-6">
+          <TabsList className="bg-gray-800 border border-gray-700">
+            <TabsTrigger value="organization" className="data-[state=active]:bg-gray-700">
+              <Building2 className="w-4 h-4 mr-2" />
+              Organization
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="data-[state=active]:bg-gray-700">
+              <Palette className="w-4 h-4 mr-2" />
+              Appearance
+            </TabsTrigger>
+            <TabsTrigger value="canvas" className="data-[state=active]:bg-gray-700">
+              <Layout className="w-4 h-4 mr-2" />
+              Canvas
+            </TabsTrigger>
+            {canViewAdvanced && (
+              <>
+                <TabsTrigger value="fields" className="data-[state=active]:bg-gray-700">
+                  <Database className="w-4 h-4 mr-2" />
+                  Custom Fields
+                </TabsTrigger>
+                <TabsTrigger value="export" className="data-[state=active]:bg-gray-700">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export
+                </TabsTrigger>
+              </>
+            )}
+          </TabsList>
+
+          {/* Organization Tab */}
+          <TabsContent value="organization" className="space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+              <h3 className="text-lg font-semibold text-white">Organization Details</h3>
+              
+              <div className="grid gap-6">
+                <div>
+                  <Label className="text-gray-300">Organization Name</Label>
+                  <Input
+                    value={form.organization_name}
+                    onChange={(e) => setForm({ ...form, organization_name: e.target.value })}
+                    disabled={!canEditBranding}
+                    className="mt-2 bg-gray-800 border-gray-700 text-white"
+                    placeholder="Your Company Name"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-300">Logo</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    {form.logo_url ? (
+                      <div className="relative">
+                        <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-lg border border-gray-700" />
+                        {canEditBranding && (
+                          <button
+                            onClick={() => setForm({ ...form, logo_url: '' })}
+                            className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full text-white"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="h-16 w-32 rounded-lg border-2 border-dashed border-gray-700 flex items-center justify-center text-gray-500">
+                        No logo
+                      </div>
+                    )}
+                    {canEditBranding && (
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleLogoUpload(e.target.files[0])}
+                        />
+                        <Button variant="outline" className="border-gray-700 text-gray-300" disabled={uploading} asChild>
+                          <span>
+                            {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                            Upload Logo
+                          </span>
+                        </Button>
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-300">Timezone</Label>
+                  <Select
+                    value={form.timezone}
+                    onValueChange={(value) => setForm({ ...form, timezone: value })}
+                    disabled={!canEdit}
+                  >
+                    <SelectTrigger className="mt-2 bg-gray-800 border-gray-700 text-white">
+                      <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      {TIMEZONES.map(tz => (
+                        <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Appearance Tab */}
+          <TabsContent value="appearance" className="space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+              <h3 className="text-lg font-semibold text-white">Brand Colors</h3>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-gray-300">Primary Color</Label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={form.primary_color}
+                      onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                      disabled={!canEditBranding}
+                      className="w-12 h-10 rounded border-0 cursor-pointer"
+                    />
+                    <Input
+                      value={form.primary_color}
+                      onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                      disabled={!canEditBranding}
+                      className="bg-gray-800 border-gray-700 text-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-300">Secondary Color</Label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={form.secondary_color}
+                      onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                      disabled={!canEditBranding}
+                      className="w-12 h-10 rounded border-0 cursor-pointer"
+                    />
+                    <Input
+                      value={form.secondary_color}
+                      onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                      disabled={!canEditBranding}
+                      className="bg-gray-800 border-gray-700 text-white font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-800">
+                <Label className="text-gray-300">Preview</Label>
+                <div className="mt-3 p-4 bg-gray-800 rounded-lg flex items-center gap-4">
+                  <div className="px-4 py-2 rounded-lg text-white font-medium" style={{ backgroundColor: form.primary_color }}>
+                    Primary Button
+                  </div>
+                  <div className="px-4 py-2 rounded-lg text-white font-medium" style={{ backgroundColor: form.secondary_color }}>
+                    Secondary Button
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Canvas Tab */}
+          <TabsContent value="canvas" className="space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+              <h3 className="text-lg font-semibold text-white">Canvas Preferences</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-gray-300">Default Theme</Label>
+                  <Select
+                    value={form.canvas_theme}
+                    onValueChange={(value) => setForm({ ...form, canvas_theme: value })}
+                    disabled={!canEdit}
+                  >
+                    <SelectTrigger className="mt-2 w-48 bg-gray-800 border-gray-700 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="grid">Grid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-gray-300">Snap to Grid</Label>
+                    <p className="text-sm text-gray-500">Align devices to grid when moving</p>
+                  </div>
+                  <Switch
+                    checked={form.snap_to_grid}
+                    onCheckedChange={(checked) => setForm({ ...form, snap_to_grid: checked })}
+                    disabled={!canEdit}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-300">Grid Size: {form.grid_size}px</Label>
+                  <Slider
+                    value={[form.grid_size]}
+                    onValueChange={([value]) => setForm({ ...form, grid_size: value })}
+                    min={10}
+                    max={50}
+                    step={5}
+                    disabled={!canEdit}
+                    className="mt-3"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-300">Default Zoom: {Math.round(form.default_zoom * 100)}%</Label>
+                  <Slider
+                    value={[form.default_zoom]}
+                    onValueChange={([value]) => setForm({ ...form, default_zoom: value })}
+                    min={0.5}
+                    max={2}
+                    step={0.1}
+                    disabled={!canEdit}
+                    className="mt-3"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-gray-300">Auto-save Projects</Label>
+                    <p className="text-sm text-gray-500">Automatically save changes as you work</p>
+                  </div>
+                  <Switch
+                    checked={form.auto_save}
+                    onCheckedChange={(checked) => setForm({ ...form, auto_save: checked })}
+                    disabled={!canEdit}
+                  />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Custom Fields Tab */}
+          {canViewAdvanced && (
+            <TabsContent value="fields" className="space-y-6">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Device Custom Fields</h3>
+                  {canEdit && (
+                    <Button size="sm" onClick={() => addCustomField('device')} className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-1" /> Add Field
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="space-y-3">
+                  {form.device_custom_fields.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No custom fields defined</p>
+                  ) : (
+                    form.device_custom_fields.map((field, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg">
+                        <Input
+                          value={field.name}
+                          onChange={(e) => updateCustomField('device', i, { name: e.target.value })}
+                          placeholder="Field name"
+                          disabled={!canEdit}
+                          className="flex-1 bg-gray-700 border-gray-600 text-white"
+                        />
+                        <Select
+                          value={field.type}
+                          onValueChange={(value) => updateCustomField('device', i, { type: value })}
+                          disabled={!canEdit}
+                        >
+                          <SelectTrigger className="w-32 bg-gray-700 border-gray-600 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-gray-700">
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="boolean">Yes/No</SelectItem>
+                            <SelectItem value="select">Dropdown</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {canEdit && (
+                          <Button size="icon" variant="ghost" onClick={() => removeCustomField('device', i)} className="text-red-400 hover:text-red-300">
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Project Metadata Fields</h3>
+                  {canEdit && (
+                    <Button size="sm" onClick={() => addCustomField('project')} className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-1" /> Add Field
+                    </Button>
+                  )}
+                </div>
+                <p className="text-sm text-gray-400">Add custom fields like client name, address, project manager, etc.</p>
+                
+                <div className="space-y-3">
+                  {form.project_metadata_fields.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No custom fields defined</p>
+                  ) : (
+                    form.project_metadata_fields.map((field, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg">
+                        <Input
+                          value={field.name}
+                          onChange={(e) => updateCustomField('project', i, { name: e.target.value })}
+                          placeholder="Field name"
+                          disabled={!canEdit}
+                          className="flex-1 bg-gray-700 border-gray-600 text-white"
+                        />
+                        <Select
+                          value={field.type}
+                          onValueChange={(value) => updateCustomField('project', i, { type: value })}
+                          disabled={!canEdit}
+                        >
+                          <SelectTrigger className="w-32 bg-gray-700 border-gray-600 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-gray-700">
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="date">Date</SelectItem>
+                            <SelectItem value="select">Dropdown</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-gray-400">Required</Label>
+                          <Switch
+                            checked={field.required}
+                            onCheckedChange={(checked) => updateCustomField('project', i, { required: checked })}
+                            disabled={!canEdit}
+                          />
+                        </div>
+                        {canEdit && (
+                          <Button size="icon" variant="ghost" onClick={() => removeCustomField('project', i)} className="text-red-400 hover:text-red-300">
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Export Tab */}
+          {canViewAdvanced && (
+            <TabsContent value="export" className="space-y-6">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+                <h3 className="text-lg font-semibold text-white">PDF Export Template</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300">Include Logo</Label>
+                      <p className="text-sm text-gray-500">Show organization logo on exports</p>
+                    </div>
+                    <Switch
+                      checked={form.export_template.include_logo}
+                      onCheckedChange={(checked) => setForm({
+                        ...form,
+                        export_template: { ...form.export_template, include_logo: checked }
+                      })}
+                      disabled={!canEdit}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300">Include Pricing</Label>
+                      <p className="text-sm text-gray-500">Show device prices in documentation</p>
+                    </div>
+                    <Switch
+                      checked={form.export_template.include_pricing}
+                      onCheckedChange={(checked) => setForm({
+                        ...form,
+                        export_template: { ...form.export_template, include_pricing: checked }
+                      })}
+                      disabled={!canEdit}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300">Include Network Info</Label>
+                      <p className="text-sm text-gray-500">Show IP/MAC addresses in exports</p>
+                    </div>
+                    <Switch
+                      checked={form.export_template.include_network_info}
+                      onCheckedChange={(checked) => setForm({
+                        ...form,
+                        export_template: { ...form.export_template, include_network_info: checked }
+                      })}
+                      disabled={!canEdit}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300">Header Text</Label>
+                    <Input
+                      value={form.export_template.header_text}
+                      onChange={(e) => setForm({
+                        ...form,
+                        export_template: { ...form.export_template, header_text: e.target.value }
+                      })}
+                      disabled={!canEdit}
+                      placeholder="Custom header text for exports"
+                      className="mt-2 bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300">Footer Text</Label>
+                    <Input
+                      value={form.export_template.footer_text}
+                      onChange={(e) => setForm({
+                        ...form,
+                        export_template: { ...form.export_template, footer_text: e.target.value }
+                      })}
+                      disabled={!canEdit}
+                      placeholder="Custom footer text for exports"
+                      className="mt-2 bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
+    </div>
+  );
+}
