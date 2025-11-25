@@ -503,7 +503,6 @@ export default function CanvasProduct({
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="output"
-                title={`${connType.type} (${connType.ports.length} port${connType.ports.length > 1 ? 's' : ''})`}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onPortClick) {
@@ -517,15 +516,27 @@ export default function CanvasProduct({
                     onPortMouseDown(instanceId, connType.type, 'type', false, e.currentTarget);
                   }
                 }}
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setTooltipInfo({
+                    type: connType.type,
+                    portCount: connType.ports.length,
+                    color: connType.color,
+                    isInput: false,
+                    x: rect.left + rect.width / 2,
+                    y: rect.top
+                  });
+                }}
+                onMouseLeave={() => setTooltipInfo(null)}
               >
                 <ChevronRight className="w-3 h-3 text-black/70" />
               </div>
-              );
-              })}
-              </div>
-              )}
+            );
+          })}
+        </div>
+      )}
 
-              {/* Top edge connection points (for overflow) */}
+      {/* Top edge connection points (for overflow) */}
       {(inputTypes.length > 6 || outputTypes.length > 6) && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-3">
           {[...inputTypes.slice(6).map(t => ({...t, isInput: true})), ...outputTypes.slice(6).map(t => ({...t, isInput: false}))].slice(0, 8).map((connType, i) => {
