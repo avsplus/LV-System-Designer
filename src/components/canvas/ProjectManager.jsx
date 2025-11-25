@@ -259,21 +259,32 @@ export default function ProjectManager({
             </div>
           ) : (
             <div className="flex gap-2 mb-4">
-              <Button
-                onClick={() => setShowSaveForm(true)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {currentProject ? 'Save As New' : 'Save Current Canvas'}
-              </Button>
-              <Button
-                onClick={handleNewProject}
-                variant="outline"
-                className="border-gray-700 text-gray-300"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
+              {currentProject && (
+                <Button
+                  onClick={() => {
+                    setProjectName('');
+                    setProjectDescription('');
+                    setShowSaveForm(true);
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save As New Project
+                </Button>
+              )}
+              {!currentProject && (
+                <Button
+                  onClick={() => {
+                    setProjectName('');
+                    setProjectDescription('');
+                    setShowSaveForm(true);
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Project
+                </Button>
+              )}
             </div>
           )}
 
