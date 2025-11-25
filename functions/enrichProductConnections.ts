@@ -9,11 +9,70 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Valid categories from the AVProduct entity schema
+        const validCategories = [
+            "televisions", "projectors", "projector_screens", "video_distribution", 
+            "matrix_switchers", "audio_streamers", "media_streamers", "speakers", 
+            "soundbars", "subwoofers", "stereo_amps", "multizone_amps", 
+            "surround_processors", "av_receivers", "network_switches"
+        ];
+
+        // Normalize category function
+        const normalizeCategory = (cat) => {
+            if (!cat) return null;
+            let normalized = cat.toLowerCase().trim()
+                .replace(/[\s-]+/g, '_')
+                .replace(/[^a-z_]/g, '');
+            
+            const categoryMapping = {
+                "av_receivers": "av_receivers",
+                "avreceivers": "av_receivers",
+                "matrix_switchers": "matrix_switchers",
+                "matrixswitchers": "matrix_switchers",
+                "matrix_switches": "matrix_switchers",
+                "matrixswitches": "matrix_switchers",
+                "media_streamers": "media_streamers",
+                "mediastreamers": "media_streamers",
+                "multizone_amps": "multizone_amps",
+                "multizoneamps": "multizone_amps",
+                "multi_zone_amps": "multizone_amps",
+                "network_switches": "network_switches",
+                "networkswitches": "network_switches",
+                "projector_screens": "projector_screens",
+                "projectorscreens": "projector_screens",
+                "video_distribution": "video_distribution",
+                "videodistribution": "video_distribution",
+                "audio_streamers": "audio_streamers",
+                "audiostreamers": "audio_streamers",
+                "stereo_amps": "stereo_amps",
+                "stereoamps": "stereo_amps",
+                "surround_processors": "surround_processors",
+                "surroundprocessors": "surround_processors"
+            };
+            
+            return categoryMapping[normalized] || normalized;
+        };
+
         // Get all products from database
         const products = await base44.asServiceRole.entities.AVProduct.list();
 
         let enriched = 0;
         let failed = 0;
+        let categoryFixed = 0;
+
+        // First pass: fix any products with invalid categories
+        for (const product of products) {
+            const normalizedCat = normalizeCategory(product.category);
+            if (normalizedCat !== product.category && validCategories.includes(normalizedCat)) {
+                try {
+                    await base44.asServiceRole.entities.AVProduct.update(product.id, { category: normalizedCat });
+                    product.category = normalizedCat; // Update local copy
+                    categoryFixed++;
+                } catch (e) {
+                    console.error(`Failed to fix category for ${product.brand} ${product.model}:`, e);
+                }
+            }
+        }
 
         // Process products in batches of 5 to avoid rate limits
         for (let i = 0; i < products.length; i += 5) {
