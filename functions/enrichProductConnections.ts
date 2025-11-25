@@ -250,7 +250,8 @@ Only include verified information. If you cannot verify a specification from mul
             total: products.length,
             enriched,
             failed,
-            message: `Enriched ${enriched} products with connection data`
+            categoryFixed,
+            message: `Enriched ${enriched} products with connection data${categoryFixed > 0 ? `, fixed ${categoryFixed} category names` : ''}`
         });
 
     } catch (error) {
