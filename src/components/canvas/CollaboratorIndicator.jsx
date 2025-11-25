@@ -8,7 +8,7 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
   const presenceIdRef = useRef(null);
   const previousProjectIdRef = useRef(null);
 
-  // Clean up all old presence records for this user on mount
+  // Clean up old presence records for this user once on mount
   useEffect(() => {
     if (!currentUserEmail) return;
     
@@ -27,26 +27,13 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
   }, [currentUserEmail]);
 
   useEffect(() => {
-    // Always clean up previous presence first, regardless of new project
+    // Clean up presence from previous project when switching
     const cleanupPreviousPresence = async () => {
-      // Delete from ref
       if (presenceIdRef.current) {
         try {
           await base44.entities.ProjectPresence.delete(presenceIdRef.current);
         } catch (e) {}
         presenceIdRef.current = null;
-      }
-      
-      // Also clean up any stale records for this user (extra safety)
-      if (currentUserEmail) {
-        try {
-          const staleRecords = await base44.entities.ProjectPresence.filter({
-            user_email: currentUserEmail
-          });
-          for (const record of staleRecords) {
-            await base44.entities.ProjectPresence.delete(record.id);
-          }
-        } catch (e) {}
       }
     };
     
@@ -60,42 +47,52 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
     }
 
     let interval;
+    let userInfo = null;
 
     const updatePresence = async () => {
       try {
-        const user = await base44.auth.me();
+        // Only fetch user info once
+        if (!userInfo) {
+          userInfo = await base44.auth.me();
+        }
         
-        // Find or create presence record
-        const existing = await base44.entities.ProjectPresence.filter({
-          project_id: projectId,
-          user_email: currentUserEmail
-        });
-
-        if (existing.length > 0) {
-          presenceIdRef.current = existing[0].id;
-          await base44.entities.ProjectPresence.update(existing[0].id, {
-            last_seen: new Date().toISOString(),
-            user_name: user.full_name || user.email
-          });
-        } else {
-          const created = await base44.entities.ProjectPresence.create({
-            project_id: projectId,
-            user_email: currentUserEmail,
-            user_name: user.full_name || user.email,
+        // Update or create presence record
+        if (presenceIdRef.current) {
+          await base44.entities.ProjectPresence.update(presenceIdRef.current, {
             last_seen: new Date().toISOString()
           });
-          presenceIdRef.current = created.id;
+        } else {
+          // Check for existing record first
+          const existing = await base44.entities.ProjectPresence.filter({
+            project_id: projectId,
+            user_email: currentUserEmail
+          });
+
+          if (existing.length > 0) {
+            presenceIdRef.current = existing[0].id;
+            await base44.entities.ProjectPresence.update(existing[0].id, {
+              last_seen: new Date().toISOString()
+            });
+          } else {
+            const created = await base44.entities.ProjectPresence.create({
+              project_id: projectId,
+              user_email: currentUserEmail,
+              user_name: userInfo.full_name || userInfo.email,
+              last_seen: new Date().toISOString()
+            });
+            presenceIdRef.current = created.id;
+          }
         }
 
-        // Fetch all active users on this project (active in last 10 seconds)
+        // Fetch active collaborators (active in last 15 seconds)
         const allPresence = await base44.entities.ProjectPresence.filter({
           project_id: projectId
         });
 
-        const tenSecondsAgo = new Date(Date.now() - 10000).toISOString();
+        const fifteenSecondsAgo = new Date(Date.now() - 15000).toISOString();
         const activeCollaborators = allPresence.filter(p => 
           p.user_email !== currentUserEmail && 
-          p.last_seen > tenSecondsAgo
+          p.last_seen > fifteenSecondsAgo
         );
 
         setCollaborators(activeCollaborators);
@@ -105,11 +102,10 @@ export default function CollaboratorIndicator({ projectId, currentUserEmail }) {
     };
 
     updatePresence();
-    interval = setInterval(updatePresence, 2000); // Update every 2 seconds
+    interval = setInterval(updatePresence, 10000); // Update every 10 seconds instead of 2
 
     return () => {
       clearInterval(interval);
-      // Clean up presence on unmount
       if (presenceIdRef.current) {
         base44.entities.ProjectPresence.delete(presenceIdRef.current).catch(() => {});
         presenceIdRef.current = null;
