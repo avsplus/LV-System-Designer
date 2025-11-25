@@ -137,11 +137,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
   return (
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
       {/* Logo */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-gray-800 flex justify-center">
         <img 
           src="https://fusionlvs.com/wp-content/uploads/2024/08/Official-Fusion-Logo-scaled.png" 
           alt="Fusion Logo" 
-          className="h-10 w-auto"
+          className="h-14 w-auto"
         />
       </div>
 
