@@ -52,7 +52,7 @@ export default function useProjectSync({
       }
     };
 
-    const interval = setInterval(checkForUpdates, 15000); // Check every 15 seconds
+    const interval = setInterval(checkForUpdates, 3000); // Check every 3 seconds for real-time collaboration
 
     return () => clearInterval(interval);
   }, [currentProject?.id, currentUserEmail, onProjectUpdated]);
