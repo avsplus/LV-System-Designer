@@ -594,41 +594,6 @@ export default function CanvasProduct({
         </div>
       )}
 
-      {/* Custom Tooltip */}
-      {tooltipInfo && tooltipInfo.element && (() => {
-        const rect = tooltipInfo.element.getBoundingClientRect();
-        return (
-          <div 
-            className="fixed z-[9999] pointer-events-none px-3 py-2 rounded-lg shadow-lg border-2 text-xs font-medium whitespace-nowrap"
-            style={{
-              left: rect.left + rect.width / 2,
-              top: rect.top - 8,
-              backgroundColor: tooltipInfo.color,
-              borderColor: tooltipInfo.color,
-              color: '#000',
-              transform: 'translate(-50%, -100%)',
-              boxShadow: `0 4px 12px ${tooltipInfo.color}40`
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">{tooltipInfo.type}</span>
-              <span className="opacity-50">•</span>
-              <span className="opacity-80">{tooltipInfo.isInput ? 'Input' : 'Output'}</span>
-              <span className="opacity-50">•</span>
-              <span className="opacity-80">{tooltipInfo.portCount} port{tooltipInfo.portCount > 1 ? 's' : ''}</span>
-            </div>
-            <div 
-              className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0"
-              style={{
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: `6px solid ${tooltipInfo.color}`
-              }}
-            />
-          </div>
-        );
-      })()}
-
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
             {label && (
