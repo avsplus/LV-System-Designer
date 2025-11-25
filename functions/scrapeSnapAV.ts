@@ -77,40 +77,52 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
         // Normalize category names and filter out duplicates
         const validCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"];
         
-        const categoryMapping = {
-            "av receivers": "av_receivers",
-            "av_receivers": "av_receivers",
-            "matrix switchers": "matrix_switchers",
-            "matrix switches": "matrix_switchers",
-            "matrix_switchers": "matrix_switchers",
-            "media streamers": "media_streamers",
-            "media_streamers": "media_streamers",
-            "multi-zone amps": "multizone_amps",
-            "multi zone amps": "multizone_amps",
-            "multizone amps": "multizone_amps",
-            "multizone_amps": "multizone_amps",
-            "network switches": "network_switches",
-            "network_switches": "network_switches",
-            "projector screens": "projector_screens",
-            "projector_screens": "projector_screens",
-            "video distribution": "video_distribution",
-            "video_distribution": "video_distribution",
-            "audio streamers": "audio_streamers",
-            "audio_streamers": "audio_streamers",
-            "stereo amps": "stereo_amps",
-            "stereo_amps": "stereo_amps",
-            "surround processors": "surround_processors",
-            "surround_processors": "surround_processors"
+        // Normalize any category format to snake_case
+        const normalizeCategory = (cat) => {
+            if (!cat) return null;
+            // Convert to lowercase, replace spaces/hyphens with underscores, remove extra chars
+            let normalized = cat.toLowerCase().trim()
+                .replace(/[\s-]+/g, '_')  // spaces and hyphens to underscores
+                .replace(/[^a-z_]/g, ''); // remove non-alpha chars except underscore
+            
+            // Handle specific mappings
+            const categoryMapping = {
+                "av_receivers": "av_receivers",
+                "avreceivers": "av_receivers",
+                "matrix_switchers": "matrix_switchers",
+                "matrixswitchers": "matrix_switchers",
+                "matrix_switches": "matrix_switchers",
+                "matrixswitches": "matrix_switchers",
+                "media_streamers": "media_streamers",
+                "mediastreamers": "media_streamers",
+                "multizone_amps": "multizone_amps",
+                "multizoneamps": "multizone_amps",
+                "multi_zone_amps": "multizone_amps",
+                "network_switches": "network_switches",
+                "networkswitches": "network_switches",
+                "projector_screens": "projector_screens",
+                "projectorscreens": "projector_screens",
+                "video_distribution": "video_distribution",
+                "videodistribution": "video_distribution",
+                "audio_streamers": "audio_streamers",
+                "audiostreamers": "audio_streamers",
+                "stereo_amps": "stereo_amps",
+                "stereoamps": "stereo_amps",
+                "surround_processors": "surround_processors",
+                "surroundprocessors": "surround_processors"
+            };
+            
+            return categoryMapping[normalized] || normalized;
         };
 
         const normalizedProducts = products.map(p => {
-            let category = p.category.toLowerCase().trim();
-            category = categoryMapping[category] || category;
+            let category = normalizeCategory(p.category);
             if (!validCategories.includes(category)) {
-                category = "av_receivers"; // fallback
+                console.log(`Invalid category "${p.category}" -> "${category}", skipping product`);
+                return null; // Skip products with invalid categories instead of defaulting
             }
             return { ...p, category };
-        });
+        }).filter(p => p !== null);
 
         const newProducts = normalizedProducts.filter(p => {
             const key = `${p.brand.toLowerCase()}-${p.model.toLowerCase()}`;

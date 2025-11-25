@@ -27,8 +27,13 @@ Deno.serve(async (req) => {
                     }
 
                     const response = await base44.integrations.Core.InvokeLLM({
-                        prompt: `You are an expert AV systems integrator. Find the EXACT connection ports, technical specifications, and control capabilities for this specific AV product by cross-referencing multiple authoritative sources:
+                        prompt: `You are an expert AV systems integrator. Find the EXACT connection ports, technical specifications, and control capabilities for this specific AV product.
 
+DATABASE CONTEXT:
+- Entity: AVProduct
+- Valid categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches
+
+PRODUCT TO ENRICH:
 Brand: ${product.brand}
 Model: ${product.model}
 Category: ${product.category}
@@ -43,7 +48,7 @@ Provide COMPLETE and ACCURATE information:
 
 CONNECTION PORTS:
 - List ALL physical input/output ports with their EXACT labels as shown on the device
-- Include all connection types: HDMI, Optical/TOSLINK, RCA, XLR, Speaker Wire, Ethernet, USB, Coaxial, 3.5mm Jack, Component, Composite, VGA, RS232, HDBaseT, IR, etc.
+- Include all connection types: HDMI, Optical/TOSLINK, RCA, XLR, Speaker Wire, Ethernet, USB, Coaxial, 3.5mm Jack, Component, Composite, VGA, RS232, HDBaseT, IR, Power, etc.
 - Be precise: "HDMI 1 (ARC)", "Optical In 1", "USB-A Front Panel", etc.
 
 CONTROL CAPABILITIES:
