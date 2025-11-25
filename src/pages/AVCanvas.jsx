@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1452,6 +1452,14 @@ export default function AVCanvas() {
                 <Trash2 className="w-4 h-4 mr-2" />
                 Clear Canvas
               </Button>
+              <Link to={createPageUrl("Account")}>
+                <Button
+                  variant="outline"
+                  className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                >
+                  <User className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
           </div>
 
