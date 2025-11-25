@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home } from "lucide-react";
+import { ToastProvider, useToast } from "../components/ui/Toast";
+import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
