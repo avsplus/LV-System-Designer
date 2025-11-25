@@ -482,7 +482,7 @@ export default function CanvasProduct({
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', false)}
-                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all ${
+                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
                   isConnecting ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125'
@@ -505,7 +505,9 @@ export default function CanvasProduct({
                     onPortMouseDown(instanceId, connType.type, 'type', false, e.currentTarget);
                   }
                 }}
-              />
+              >
+                <ChevronRight className="w-3 h-3 text-white/80" />
+              </div>
             );
           })}
         </div>
