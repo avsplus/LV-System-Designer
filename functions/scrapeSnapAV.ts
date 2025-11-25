@@ -15,9 +15,9 @@ Deno.serve(async (req) => {
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find 45 popular professional AV (audio/visual) products with 3 products per category across these 15 categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
+            prompt: `Find 45 popular professional AV (audio/visual) products with 3 products per category across these 16 categories: televisions,control_processors, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
 
-Include products from brands like: Sony, Samsung, LG, Epson, JVC, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, and other popular AV brands.
+Include products from brands like: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, and other popular AV brands.
 
 For each product provide: brand, model number, category, brief description, approximate price in USD.
 
@@ -36,7 +36,7 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
                                 model: { type: "string" },
                                 category: { 
                                     type: "string",
-                                    enum: ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"]
+                                    enum: ["televisions",control_processors, "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"]
                                 },
                                 description: { type: "string" },
                                 price: { type: "number" },
