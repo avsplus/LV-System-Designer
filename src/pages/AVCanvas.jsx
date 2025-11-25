@@ -1599,6 +1599,14 @@ export default function AVCanvas() {
               </div>
               <Button
                 variant="outline"
+                onClick={() => setShowRoomManager(true)}
+                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Rooms ({rooms.length})
+              </Button>
+              <Button
+                variant="outline"
                 onClick={clearCanvas}
                 disabled={canvasProducts.length === 0}
                 className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500"
@@ -1944,11 +1952,42 @@ export default function AVCanvas() {
             currentProject={currentProject}
             canvasProducts={canvasProducts}
             connections={connections}
+            rooms={rooms}
             onProjectLoad={handleProjectLoad}
             onClose={() => setShowProjectManager(false)}
           />
         )}
-      </div>
-    </DragDropContext>
-  );
-}
+
+        {showRoomManager && (
+          <RoomManager
+            rooms={rooms}
+            onAddRoom={handleAddRoom}
+            onDeleteRoom={handleDeleteRoom}
+            canvasProducts={canvasProducts}
+            onClose={() => setShowRoomManager(false)}
+            onDeviceClick={(device) => {
+              setSelectedCanvasProduct(ensureNetworkInfo(device));
+              setSelectedProduct(null);
+              setSelectedConnection(null);
+              setShowRoomManager(false);
+            }}
+            selectedRoom={selectedRoom}
+            onSelectRoom={setSelectedRoom}
+          />
+        )}
+
+        {pendingProductDrop && (
+          <RoomSelectDialog
+            rooms={rooms}
+            productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
+            onSelect={(room) => {
+              addProductToCanvas(pendingProductDrop.product, pendingProductDrop.position, room);
+              setPendingProductDrop(null);
+            }}
+            onCancel={() => setPendingProductDrop(null)}
+          />
+        )}
+        </div>
+        </DragDropContext>
+        );
+        }
