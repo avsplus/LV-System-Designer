@@ -15,32 +15,14 @@ Deno.serve(async (req) => {
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find at least 150 popular professional AV (audio/visual) products with at least 10 products per category across these categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
+            prompt: `Find 45 popular professional AV (audio/visual) products with 3 products per category across these 15 categories: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, and network_switches. 
 
-Include products from brands like: Sony, Samsung, LG, Epson, JVC, Crestron, Control4, Savant, RTI, Sonos, Denon, Marantz, Yamaha, KEF, Bowers & Wilkins, Klipsch, SVS, Cisco, Netgear, Ubiquiti, TP-Link, Araknis, Luxul, Pakedge, and other popular AV brands.
+Include products from brands like: Sony, Samsung, LG, Epson, JVC, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, and other popular AV brands.
 
-For network_switches, include managed switches suitable for AV installations with PoE support (at least 10 products).
+For each product provide: brand, model number, category, brief description, approximate price in USD.
 
-For each product, provide accurate current information including brand, model number, category, description, approximate price in USD, and any available product image URLs.
-
-CRITICAL: The category field MUST be one of these EXACT values (use underscores, lowercase only):
-- televisions
-- projectors
-- projector_screens
-- video_distribution
-- matrix_switchers
-- audio_streamers
-- media_streamers
-- speakers
-- soundbars
-- subwoofers
-- stereo_amps
-- multizone_amps
-- surround_processors
-- av_receivers
-- network_switches
-
-Return at least 10 products per category.`,
+CRITICAL: The category field MUST be one of these EXACT values (lowercase with underscores):
+televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",

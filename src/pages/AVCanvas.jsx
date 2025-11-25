@@ -71,6 +71,7 @@ function AVCanvasContent() {
   const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, startPos: {...}, mousePos: {...}, hoveredPort: {...} }
   const [hoveredPortId, setHoveredPortId] = useState(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState(null);
+        const [importProgress, setImportProgress] = useState(null);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
@@ -1938,6 +1939,7 @@ function AVCanvasContent() {
                         isHighlighted={isHighlighted}
                         label={cp.label}
                         networkInfo={ensureNetworkInfo(cp).networkInfo}
+                        zoom={zoom}
                         onClick={() => {
                                                         setSelectedCanvasProduct(ensureNetworkInfo(cp));
                                                         setSelectedProduct(null);
