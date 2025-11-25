@@ -3,10 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown } from "lucide-react";
+import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackActivity, ActivityActions } from "../activity/activityTracker";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ProjectManager({ 
   currentProject, 
@@ -22,6 +32,15 @@ export default function ProjectManager({
   const [projectName, setProjectName] = useState(currentProject?.name || '');
   const [projectDescription, setProjectDescription] = useState(currentProject?.description || '');
   const [currentUser, setCurrentUser] = useState(null);
+  const [alertDialog, setAlertDialog] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'alert' });
+
+  const showAlert = (message, title = 'Notice') => {
+    setAlertDialog({ open: true, title, message, type: 'alert', onConfirm: null });
+  };
+
+  const showConfirm = (message, title, onConfirm) => {
+    setAlertDialog({ open: true, title, message, type: 'confirm', onConfirm });
+  };
   
   const queryClient = useQueryClient();
 
@@ -101,7 +120,7 @@ export default function ProjectManager({
 
   const handleSave = () => {
     if (!projectName.trim()) {
-      alert('Please enter a project name');
+      showAlert('Please enter a project name', 'Missing Name');
       return;
     }
 
@@ -116,9 +135,15 @@ export default function ProjectManager({
 
   const handleLoad = (project) => {
     if (canvasProducts.length > 0 || connections.length > 0) {
-      if (!confirm('Loading this project will replace your current canvas. Continue?')) {
-        return;
-      }
+      showConfirm(
+        'Loading this project will replace your current canvas. Continue?',
+        'Load Project',
+        () => {
+          onProjectLoad(project);
+          onClose();
+        }
+      );
+      return;
     }
     onProjectLoad(project);
     onClose();
@@ -126,20 +151,24 @@ export default function ProjectManager({
 
   const handleDelete = (project) => {
     if (project.owner_email !== currentUser?.email) {
-      alert('You can only delete projects you own.');
+      showAlert('You can only delete projects you own.', 'Permission Denied');
       return;
     }
-    if (confirm(`Delete project "${project.name}"?`)) {
-      deleteMutation.mutate(project.id);
-      if (currentProject?.id === project.id) {
-        onProjectLoad(null);
+    showConfirm(
+      `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+      'Delete Project',
+      () => {
+        deleteMutation.mutate(project.id);
+        if (currentProject?.id === project.id) {
+          onProjectLoad(null);
+        }
       }
-    }
+    );
   };
 
   const handleShare = (project) => {
     if (project.owner_email !== currentUser?.email) {
-      alert('Only the project owner can manage sharing.');
+      showAlert('Only the project owner can manage sharing.', 'Permission Denied');
       return;
     }
     setShowShareForm(project);
@@ -150,13 +179,13 @@ export default function ProjectManager({
     const email = shareEmail.trim().toLowerCase();
     
     if (email === currentUser?.email) {
-      alert('You cannot share a project with yourself.');
+      showAlert('You cannot share a project with yourself.', 'Invalid Email');
       return;
     }
     
     const currentShared = showShareForm.shared_with || [];
     if (currentShared.includes(email)) {
-      alert('This user already has access.');
+      showAlert('This user already has access.', 'Already Shared');
       return;
     }
     
@@ -492,6 +521,40 @@ export default function ProjectManager({
           )}
         </div>
       </div>
+
+      {/* Styled Alert/Confirm Dialog */}
+      <AlertDialog open={alertDialog.open} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, open }))}>
+        <AlertDialogContent className="bg-gray-900 border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              {alertDialog.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              {alertDialog.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {alertDialog.type === 'confirm' ? (
+              <>
+                <AlertDialogCancel className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => alertDialog.onConfirm?.()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Continue
+                </AlertDialogAction>
+              </>
+            ) : (
+              <AlertDialogAction className="bg-blue-600 hover:bg-blue-700">
+                OK
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

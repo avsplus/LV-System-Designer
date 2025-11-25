@@ -13,6 +13,8 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
 import ActivityFeed from "../components/activity/ActivityFeed";
+import RoleBadge from "../components/auth/RoleBadge";
+import { ROLES } from "../components/auth/permissions";
 
 function AccountContent() {
   const confirmDialog = useConfirm();
@@ -157,9 +159,7 @@ function AccountContent() {
                           <Calendar className="w-4 h-4" />
                           Joined {new Date(user.created_date).toLocaleDateString()}
                         </div>
-                        <Badge className={user.role === 'admin' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-700 text-gray-300'}>
-                          {user.role}
-                        </Badge>
+                        <RoleBadge role={user.organization_role || (user.role === 'admin' ? ROLES.OWNER : ROLES.VIEWER)} />
                       </div>
                       <Button
                         variant="outline"

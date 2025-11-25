@@ -40,8 +40,17 @@ export default function Admin() {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: isAtLeast(ROLES.ADMINISTRATOR)
+    queryFn: async () => {
+      try {
+        const userList = await base44.entities.User.list();
+        return userList;
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        return [];
+      }
+    },
+    enabled: isAtLeast(ROLES.ADMINISTRATOR),
+    retry: 1
   });
 
   const { data: projects = [] } = useQuery({
@@ -88,7 +97,8 @@ export default function Admin() {
     const matchesSearch = !searchTerm || 
       u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'all' || u.organization_role === roleFilter;
+    const effectiveRole = u.organization_role || (u.role === 'admin' ? ROLES.OWNER : ROLES.VIEWER);
+    const matchesRole = roleFilter === 'all' || effectiveRole === roleFilter;
     return matchesSearch && matchesRole;
   });
 
@@ -96,12 +106,19 @@ export default function Admin() {
     updateRoleMutation.mutate({ userId, newRole });
   };
 
+  // Compute effective role (considering Base44's built-in admin role)
+  const getEffectiveRole = (u) => {
+    if (u.organization_role) return u.organization_role;
+    if (u.role === 'admin') return ROLES.OWNER;
+    return ROLES.VIEWER;
+  };
+
   const stats = {
     totalUsers: users.length,
-    owners: users.filter(u => u.organization_role === ROLES.OWNER).length,
-    admins: users.filter(u => u.organization_role === ROLES.ADMINISTRATOR).length,
-    designers: users.filter(u => u.organization_role === ROLES.DESIGNER).length,
-    viewers: users.filter(u => !u.organization_role || u.organization_role === ROLES.VIEWER).length,
+    owners: users.filter(u => getEffectiveRole(u) === ROLES.OWNER).length,
+    admins: users.filter(u => getEffectiveRole(u) === ROLES.ADMINISTRATOR).length,
+    designers: users.filter(u => getEffectiveRole(u) === ROLES.DESIGNER).length,
+    viewers: users.filter(u => getEffectiveRole(u) === ROLES.VIEWER).length,
     totalProjects: projects.length
   };
 
@@ -203,7 +220,7 @@ export default function Admin() {
                     const userProjects = projects.filter(p => 
                       p.owner_email === u.email || p.shared_with?.includes(u.email)
                     );
-                    const currentUserRole = u.organization_role || ROLES.VIEWER;
+                    const currentUserRole = getEffectiveRole(u);
                     const canEditThisUser = canManage(currentUserRole) && u.email !== user?.email;
                     
                     return (
