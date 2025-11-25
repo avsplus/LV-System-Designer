@@ -1317,9 +1317,17 @@ export default function AVCanvas() {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex h-screen bg-gray-950 overflow-hidden">
         <ProductSidebar 
-          products={products} 
-          onProductSelect={setSelectedProduct}
-        />
+                        products={products} 
+                        onProductSelect={(product) => {
+                          setSelectedProduct(product);
+                          setSelectedCanvasProduct(null);
+                          setSelectedConnection(null);
+                          setPanelHistory(prev => {
+                            const filtered = prev.filter(p => p !== 'productDetails');
+                            return [...filtered.slice(-1), 'productDetails'];
+                          });
+                        }}
+                      />
 
         <div className="flex-1 flex flex-col">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
@@ -1850,10 +1858,14 @@ export default function AVCanvas() {
                         label={cp.label}
                         networkInfo={ensureNetworkInfo(cp).networkInfo}
                         onClick={() => {
-                          setSelectedCanvasProduct(ensureNetworkInfo(cp));
-                          setSelectedProduct(null);
-                          setSelectedConnection(null);
-                        }}
+                                                        setSelectedCanvasProduct(ensureNetworkInfo(cp));
+                                                        setSelectedProduct(null);
+                                                        setSelectedConnection(null);
+                                                        setPanelHistory(prev => {
+                                                          const filtered = prev.filter(p => p !== 'deviceConnections');
+                                                          return [...filtered.slice(-1), 'deviceConnections'];
+                                                        });
+                                                      }}
                         onPortClick={handlePortClick}
                         onPortMouseDown={handlePortMouseDown}
                         registerPort={registerPort}
