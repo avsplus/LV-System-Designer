@@ -265,8 +265,8 @@ export default function CanvasProduct({
     
     setIsDragging(true);
     dragOffset.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
+      lastX: e.clientX,
+      lastY: e.clientY,
       clickTime,
       clickPos
     };
