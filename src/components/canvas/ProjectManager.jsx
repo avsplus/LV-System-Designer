@@ -372,9 +372,9 @@ export default function ProjectManager({
                           <p className="text-sm text-gray-400 mt-1">{project.description}</p>
                         )}
                         <div className="flex gap-3 text-xs text-gray-500 mt-2">
+                          <span>{project.rooms?.length || 0} rooms</span>
                           <span>{project.canvas_products?.length || 0} devices</span>
                           <span>{project.connections?.length || 0} connections</span>
-                          <span>{new Date(project.updated_date).toLocaleDateString()}</span>
                         </div>
                       </div>
                       <div className="flex gap-1 ml-2">
@@ -442,9 +442,9 @@ export default function ProjectManager({
                           <p className="text-sm text-gray-400 mt-1">{project.description}</p>
                         )}
                         <div className="flex gap-3 text-xs text-gray-500 mt-2">
+                          <span>{project.rooms?.length || 0} rooms</span>
                           <span>{project.canvas_products?.length || 0} devices</span>
                           <span>{project.connections?.length || 0} connections</span>
-                          <span>{new Date(project.updated_date).toLocaleDateString()}</span>
                         </div>
                       </div>
                       <div className="flex gap-1 ml-2">
