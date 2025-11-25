@@ -603,7 +603,7 @@ export default function CanvasProduct({
             backgroundColor: tooltipInfo.color,
             borderColor: tooltipInfo.color,
             color: '#000',
-            transform: 'translate(-50%, -120%)',
+            transform: 'translate(-50%, calc(-100% - 8px))',
             boxShadow: `0 4px 12px ${tooltipInfo.color}40`
           }}
         >
