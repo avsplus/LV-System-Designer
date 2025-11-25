@@ -295,11 +295,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
                     className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                      )}
                       {(() => {
                         const IconComponent = categoryIcons[category];
                         return IconComponent ? <IconComponent className="w-4 h-4 text-gray-300" /> : null;
@@ -309,6 +304,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       </div>
                       <span className="text-xs text-gray-500">({categoryProducts.length})</span>
                     </div>
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    )}
                   </button>
                   
                   {isExpanded && (
