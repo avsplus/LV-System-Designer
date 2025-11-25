@@ -171,6 +171,37 @@ export default function AVCanvas() {
     localStorage.setItem('av_canvas_temp_connections', JSON.stringify(connections));
   }, [connections]);
 
+  // Auto-save to database if project exists and user owns it
+  const autoSaveTimeoutRef = useRef(null);
+  useEffect(() => {
+    if (!currentProject?.id || !currentUserEmail) return;
+    if (currentProject.owner_email !== currentUserEmail) return; // Only auto-save owned projects
+    
+    // Debounce auto-save to avoid too many API calls
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        markLocalChange();
+        await base44.entities.AVProject.update(currentProject.id, {
+          canvas_products: canvasProducts,
+          connections: connections
+        });
+        console.log('Auto-saved project');
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, 1500); // Save 1.5 seconds after last change
+    
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, markLocalChange]);
+
   // Load temp project info on mount
   useEffect(() => {
     const tempProjectId = localStorage.getItem('av_canvas_temp_project_id');
