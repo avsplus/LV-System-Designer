@@ -278,11 +278,11 @@ export default function CanvasProduct({
     if (!isDragging) return;
     e.preventDefault();
     
-    const deltaX = (e.clientX - dragOffset.current.startX) / zoom;
-    const deltaY = (e.clientY - dragOffset.current.startY) / zoom;
+    const deltaX = e.clientX - dragOffset.current.startX;
+    const deltaY = e.clientY - dragOffset.current.startY;
     
-    const newX = dragOffset.current.startPosX + deltaX;
-    const newY = dragOffset.current.startPosY + deltaY;
+    const newX = dragOffset.current.startPosX + deltaX / zoom;
+    const newY = dragOffset.current.startPosY + deltaY / zoom;
     
     onPositionChange(instanceId, { x: newX, y: newY });
   };
