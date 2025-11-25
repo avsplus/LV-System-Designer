@@ -1351,13 +1351,13 @@ export default function AVCanvas() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant="outline"
-                    className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
-                  >
-                    <FolderOpen className="w-4 h-4 mr-2" />
-                    Project
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  </Button>
+                                            variant="outline"
+                                            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                                          >
+                                            <FolderOpen className="w-4 h-4 mr-2" />
+                                            Project
+                                            <ChevronDown className="w-4 h-4 ml-2" />
+                                          </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
                   <DropdownMenuItem 
@@ -1427,13 +1427,13 @@ export default function AVCanvas() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant="outline"
-                    className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Tools
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  </Button>
+                                            variant="outline"
+                                            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                                          >
+                                            <Settings className="w-4 h-4 mr-2" />
+                                            Tools
+                                            <ChevronDown className="w-4 h-4 ml-2" />
+                                          </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
                   <DropdownMenuItem 
@@ -1569,7 +1569,7 @@ export default function AVCanvas() {
                   )}
                 </div>
               )}
-              <div className="flex items-center gap-1 border border-gray-700 rounded-lg px-2 py-1">
+              <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1">
                 <Button
                   size="icon"
                   variant="ghost"
@@ -1599,21 +1599,21 @@ export default function AVCanvas() {
                 </Button>
               </div>
               <Button
-                variant="outline"
-                onClick={() => setShowRoomManager(true)}
-                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Rooms ({rooms.length})
-              </Button>
+                                    variant="outline"
+                                    onClick={() => setShowRoomManager(true)}
+                                    className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                                  >
+                                    <Home className="w-4 h-4 mr-2" />
+                                    Rooms ({rooms.length})
+                                  </Button>
               <Link to={createPageUrl("Account")}>
-                <Button
-                  variant="outline"
-                  className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
-                >
-                  <User className="w-4 h-4" />
-                </Button>
-              </Link>
+                                    <Button
+                                      variant="outline"
+                                      className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                                    >
+                                      <User className="w-4 h-4" />
+                                    </Button>
+                                  </Link>
             </div>
           </div>
 
