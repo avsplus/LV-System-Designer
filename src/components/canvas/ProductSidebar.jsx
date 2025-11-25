@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Grip, ChevronDown, ChevronRight, X, Filter } from "lucide-react";
+import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio } from "lucide-react";
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 
 const categorySolidColors = {
@@ -20,6 +20,23 @@ const categorySolidColors = {
   multizone_amps: "bg-amber-600",
   surround_processors: "bg-yellow-400",
   av_receivers: "bg-emerald-600"
+};
+
+const categoryIcons = {
+  televisions: Tv,
+  projectors: Video,
+  projector_screens: RectangleHorizontal,
+  video_distribution: Network,
+  matrix_switchers: LayoutGrid,
+  audio_streamers: Music,
+  media_streamers: Play,
+  speakers: Speaker,
+  soundbars: Volume2,
+  subwoofers: AudioLines,
+  stereo_amps: Gauge,
+  multizone_amps: Layers,
+  surround_processors: Cpu,
+  av_receivers: Radio
 };
 
 export default function ProductSidebar({ products, onProductSelect }) {
@@ -283,6 +300,10 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       )}
+                      {(() => {
+                        const IconComponent = categoryIcons[category];
+                        return IconComponent ? <IconComponent className="w-4 h-4 text-gray-300" /> : null;
+                      })()}
                       <div className={`${categorySolidColors[category]} px-2 py-1 rounded text-white text-xs font-medium capitalize`}>
                         {category.replace(/_/g, ' ')}
                       </div>
