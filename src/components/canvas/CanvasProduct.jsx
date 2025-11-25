@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Link2 } from "lucide-react";
+import { X, Link2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 
 const connectionsByCategory = {
   control_processors: {
