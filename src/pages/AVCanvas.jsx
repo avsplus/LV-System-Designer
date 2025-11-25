@@ -27,10 +27,13 @@ import useProjectSync from "../components/canvas/useProjectSync";
 import RoomManager from "../components/canvas/RoomManager";
 import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
+import { usePermissions } from "../components/auth/usePermissions";
+import { ROLES } from "../components/auth/permissions";
 
 function AVCanvasContent() {
-  const toast = useToast();
-  const confirmDialog = useConfirm();
+    const toast = useToast();
+    const confirmDialog = useConfirm();
+    const { isAtLeast, loading: permLoading } = usePermissions();
   const [currentProject, setCurrentProject] = useState(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);

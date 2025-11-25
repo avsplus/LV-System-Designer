@@ -51,8 +51,13 @@ export default function Admin() {
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: ({ userId, newRole }) => base44.entities.User.update(userId, { organization_role: newRole }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] })
+    mutationFn: async ({ userId, newRole }) => {
+      await base44.entities.User.update(userId, { organization_role: newRole });
+      return { userId, newRole };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    }
   });
 
   // Check access
