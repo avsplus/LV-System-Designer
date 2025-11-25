@@ -1444,9 +1444,9 @@ function AVCanvasContent() {
                             canvas_products: canvasProducts,
                             connections: connections
                           });
-                          alert('Project saved successfully!');
+                          toast.success('Project saved successfully!');
                         } catch (error) {
-                          alert('Failed to save project');
+                          toast.error('Failed to save project');
                         }
                       }}
                       className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
