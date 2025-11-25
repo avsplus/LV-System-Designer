@@ -34,22 +34,19 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
       // Upload the original file first
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      // Use LLM to generate a background-removed version
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Remove the background from this product image and return ONLY a direct URL to a version with transparent/white background. If you cannot process the image, return the original URL: ${file_url}`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            processed_url: { type: "string", description: "URL of the processed image or original if processing failed" },
-            success: { type: "boolean", description: "Whether background removal was successful" }
-          }
+      // Try to remove background using backend function
+      try {
+        const response = await base44.functions.invoke('removeBackground', { image_url: file_url });
+        if (response.data?.success && response.data?.processed_url) {
+          setFormData({ ...formData, image_url: response.data.processed_url });
+        } else {
+          // Use original if background removal failed
+          setFormData({ ...formData, image_url: file_url });
         }
-      });
-      
-      // Use processed URL if successful, otherwise use original
-      const finalUrl = result.success && result.processed_url ? result.processed_url : file_url;
-      setFormData({ ...formData, image_url: finalUrl });
+      } catch (bgError) {
+        console.error('Background removal failed, using original:', bgError);
+        setFormData({ ...formData, image_url: file_url });
+      }
     } catch (error) {
       console.error('Failed to upload image:', error);
       alert('Failed to upload image');

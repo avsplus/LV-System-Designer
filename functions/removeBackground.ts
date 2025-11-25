@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'image_url is required' }, { status: 400 });
     }
 
-    // Fetch the original image
+    // Use the free ClipDrop/Photoroom alternative - imgly background removal
+    // Or use the free tier of removal.ai
     const imageResponse = await fetch(image_url);
     if (!imageResponse.ok) {
       return Response.json({ error: 'Failed to fetch image' }, { status: 400 });
@@ -23,41 +24,39 @@ Deno.serve(async (req) => {
     
     const imageBlob = await imageResponse.blob();
     
-    // Use remove.bg API (free tier available)
+    // Try using the free PhotoRoom API (no key required for basic usage)
     const formData = new FormData();
-    formData.append('image_file', imageBlob);
-    formData.append('size', 'auto');
+    formData.append('image_file', imageBlob, 'image.png');
     
-    const removeBgResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: {
-        'X-Api-Key': Deno.env.get('REMOVE_BG_API_KEY') || ''
-      },
-      body: formData
-    });
+    // Use Hugging Face's free rembg API
+    const hfResponse = await fetch(
+      'https://api-inference.huggingface.co/models/briaai/RMBG-1.4',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': imageBlob.type || 'image/png'
+        },
+        body: imageBlob
+      }
+    );
 
-    if (!removeBgResponse.ok) {
-      // Fallback: return original image if remove.bg fails
-      console.error('remove.bg failed:', await removeBgResponse.text());
+    if (hfResponse.ok) {
+      const processedBlob = await hfResponse.blob();
+      const processedFile = new File([processedBlob], 'processed.png', { type: 'image/png' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: processedFile });
+      
       return Response.json({ 
-        processed_url: image_url, 
-        success: false,
-        message: 'Background removal service unavailable, using original image'
+        processed_url: file_url, 
+        success: true 
       });
     }
 
-    // Get the processed image
-    const processedBlob = await removeBgResponse.blob();
-    
-    // Convert blob to File for upload
-    const processedFile = new File([processedBlob], 'processed.png', { type: 'image/png' });
-    
-    // Upload processed image
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: processedFile });
-
+    // Fallback: return original image
+    console.error('Background removal failed:', await hfResponse.text());
     return Response.json({ 
-      processed_url: file_url, 
-      success: true 
+      processed_url: image_url, 
+      success: false,
+      message: 'Background removal service unavailable'
     });
 
   } catch (error) {
