@@ -114,7 +114,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
   const activeFiltersCount = selectedCategories.length + selectedBrands.length + selectedConnectionTypes.length;
 
-  // Group products by category
+  // Group products by category and sort alphabetically
   const productsByCategory = filteredProducts.reduce((acc, product) => {
     if (!acc[product.category]) {
       acc[product.category] = [];
@@ -122,6 +122,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
     acc[product.category].push(product);
     return acc;
   }, {});
+
+  // Sort categories alphabetically
+  const sortedCategories = Object.keys(productsByCategory).sort((a, b) => 
+    a.replace(/_/g, ' ').localeCompare(b.replace(/_/g, ' '))
+  );
 
   const toggleCategory = (category) => {
     setExpandedCategories(prev => ({
@@ -285,7 +290,8 @@ export default function ProductSidebar({ products, onProductSelect }) {
             {...provided.droppableProps}
             className="flex-1 overflow-y-auto p-3 space-y-3"
           >
-            {Object.entries(productsByCategory).map(([category, categoryProducts], catIndex) => {
+            {sortedCategories.map((category, catIndex) => {
+              const categoryProducts = productsByCategory[category];
               const isExpanded = expandedCategories[category] === true;
               
               return (
