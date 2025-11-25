@@ -177,6 +177,15 @@ const connectionsByCategory = {
       { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
       { type: "Optical", ports: ["Optical-Out"] }
     ]
+  },
+  network_switches: {
+    inputs: [
+      { type: "Power", ports: ["AC"] },
+      { type: "Ethernet", ports: ["Uplink-1", "Uplink-2"] }
+    ],
+    outputs: [
+      { type: "Ethernet", ports: ["Port-1", "Port-2", "Port-3", "Port-4", "Port-5", "Port-6", "Port-7", "Port-8"] }
+    ]
   }
 };
 
@@ -211,7 +220,8 @@ const categorySolidColors = {
   stereo_amps: "bg-orange-600",
   multizone_amps: "bg-amber-600",
   surround_processors: "bg-yellow-400",
-  av_receivers: "bg-emerald-600"
+  av_receivers: "bg-emerald-600",
+  network_switches: "bg-slate-600"
 };
 
 const categoryTextColors = {
@@ -228,7 +238,8 @@ const categoryTextColors = {
   stereo_amps: "text-orange-400",
   multizone_amps: "text-amber-400",
   surround_processors: "text-yellow-400",
-  av_receivers: "text-emerald-400"
+  av_receivers: "text-emerald-400",
+  network_switches: "text-slate-400"
 };
 
 export default function CanvasProduct({ 
