@@ -160,14 +160,10 @@ export default function ProjectManager({
     });
   };
 
-  const handleNewProject = () => {
-    if (canvasProducts.length > 0 || connections.length > 0) {
-      if (!confirm('Creating a new project will clear your current canvas. Continue?')) {
-        return;
-      }
-    }
-    onProjectLoad(null);
-    onClose();
+  const handleCreateProject = () => {
+    setProjectName('');
+    setProjectDescription('');
+    setShowSaveForm(true);
   };
 
   return (
