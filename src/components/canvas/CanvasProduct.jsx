@@ -265,8 +265,10 @@ export default function CanvasProduct({
     
     setIsDragging(true);
     dragOffset.current = {
-      lastX: e.clientX,
-      lastY: e.clientY,
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: position.x,
+      startPosY: position.y,
       clickTime,
       clickPos
     };
@@ -276,18 +278,13 @@ export default function CanvasProduct({
     if (!isDragging) return;
     e.preventDefault();
     
-    const deltaX = (e.clientX - dragOffset.current.lastX) / zoom;
-    const deltaY = (e.clientY - dragOffset.current.lastY) / zoom;
+    const deltaX = (e.clientX - dragOffset.current.startX) / zoom;
+    const deltaY = (e.clientY - dragOffset.current.startY) / zoom;
     
-    dragOffset.current.lastX = e.clientX;
-    dragOffset.current.lastY = e.clientY;
+    const newX = dragOffset.current.startPosX + deltaX;
+    const newY = dragOffset.current.startPosY + deltaY;
     
-    const newX = position.x + deltaX;
-    const newY = position.y + deltaY;
-    
-    requestAnimationFrame(() => {
-      onPositionChange(instanceId, { x: newX, y: newY });
-    });
+    onPositionChange(instanceId, { x: newX, y: newY });
   };
 
   const handleMouseUp = (e) => {
