@@ -779,11 +779,9 @@ export default function AVCanvas() {
   };
 
   const handleWheel = (e) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.05 : 0.05;
-      setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
-    }
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
   };
 
   const handleMouseDown = (e) => {
