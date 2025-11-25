@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Home, Plus } from "lucide-react";
+import { Home, Plus, AlertCircle } from "lucide-react";
 
 export default function RoomSelectDialog({ rooms, onSelect, onCancel, productName, onCreateRoom }) {
   const [showNewRoom, setShowNewRoom] = useState(rooms.length === 0);
   const [newRoomName, setNewRoomName] = useState('');
   const [error, setError] = useState('');
+  const noRoomsExist = rooms.length === 0;
 
   const handleCreateRoom = () => {
     const trimmedName = newRoomName.trim();
@@ -32,6 +33,15 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
         <p className="text-sm text-gray-400 mb-4">
           Choose a room for <span className="text-white font-medium">{productName}</span>
         </p>
+
+        {noRoomsExist && (
+          <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg mb-4">
+            <AlertCircle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-yellow-200">
+              Create a room first before adding devices. All devices must be assigned to a room.
+            </p>
+          </div>
+        )}
 
         {showNewRoom ? (
           <div className="space-y-3">
