@@ -1497,22 +1497,30 @@ function AVCanvasContent() {
                     Manage Devices
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={async () => {
-                      try {
-                        const { data } = await base44.functions.invoke('scrapeSnapAV');
-                        toast.success(`Successfully imported ${data.productsFound} AV products`);
-                        window.location.reload();
-                      } catch (error) {
-                        console.error('Import error:', error);
-                        const errorMsg = error.response?.data?.error || error.message;
-                        toast.error(`Failed to import products: ${errorMsg}`);
-                      }
-                    }}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Import AV Products
-                  </DropdownMenuItem>
+                                            onClick={async () => {
+                                              try {
+                                                setImportProgress({ status: 'running', message: 'Searching for AV products...' });
+                                                const { data } = await base44.functions.invoke('scrapeSnapAV');
+                                                setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
+                                                toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
+                                                setTimeout(() => {
+                                                  setImportProgress(null);
+                                                  window.location.reload();
+                                                }, 2000);
+                                              } catch (error) {
+                                                console.error('Import error:', error);
+                                                const errorMsg = error.response?.data?.error || error.message;
+                                                setImportProgress({ status: 'error', message: errorMsg });
+                                                toast.error(`Failed to import products: ${errorMsg}`);
+                                                setTimeout(() => setImportProgress(null), 5000);
+                                              }
+                                            }}
+                                            disabled={importProgress?.status === 'running'}
+                                            className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                                          >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
+                                          </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={async () => {
                       const proceed = await confirmDialog('This will search the web for actual connection ports for each product in your database. This may take a few minutes.', {
