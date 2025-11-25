@@ -11,6 +11,7 @@ export default function ProjectManager({
   currentProject, 
   canvasProducts, 
   connections,
+  rooms = [],
   onProjectLoad,
   onClose 
 }) {
@@ -93,7 +94,8 @@ export default function ProjectManager({
       name: projectName,
       description: projectDescription,
       canvas_products: canvasProducts,
-      connections: connections
+      connections: connections,
+      rooms: rooms
     });
   };
 
