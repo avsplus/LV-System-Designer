@@ -212,7 +212,7 @@ export default function ProjectManager({
           {showSaveForm ? (
             <div className="bg-gray-800 rounded-lg p-4 mb-4 border border-gray-700">
               <h3 className="font-semibold text-white mb-3">
-                {currentProject ? 'Update Project' : 'Save New Project'}
+                {currentProject && projectName === currentProject.name ? 'Update Project' : 'Create New Project'}
               </h3>
               <div className="space-y-3">
                 <div>
