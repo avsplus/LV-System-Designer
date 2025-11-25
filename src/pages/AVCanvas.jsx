@@ -1069,39 +1069,47 @@ export default function AVCanvas() {
     }
   };
 
-  // Force re-render when zoom/pan changes to update connection positions
-  const [, forceUpdate] = useState(0);
-  
-  useEffect(() => {
-    // Small delay to let DOM update after zoom/pan
-    const timer = setTimeout(() => forceUpdate(n => n + 1), 50);
-    return () => clearTimeout(timer);
-  }, [zoom, pan]);
+  // Card dimensions (must match CanvasProduct)
+  const CARD_WIDTH = 320;
+  const CARD_HEIGHT = 280;
+  const PORT_DOT_SIZE = 20; // w-5 = 1.25rem = 20px
+  const PORT_GAP = 12; // gap-3 = 0.75rem = 12px
 
-  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
-    // Use registered port refs for accurate positioning
-    const portId = getPortId(instanceId, connectionType, 'type', !isOutput);
-    const portData = portRefs.current.get(portId);
-
-    if (portData && portData.element) {
-      const portRect = portData.element.getBoundingClientRect();
-      const canvasRect = canvasRef.current?.getBoundingClientRect();
-
-      if (canvasRect) {
-        const x = (portRect.left + portRect.width / 2 - canvasRect.left - pan.x) / zoom;
-        const y = (portRect.top + portRect.height / 2 - canvasRect.top - pan.y) / zoom;
-        return { x, y };
-      }
-    }
-
-    // Fallback to product position calculation
+  // Calculate port position in world coordinates (no DOM dependency)
+  const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!product) return null;
 
-    const cardWidth = 320;
-    const x = isOutput ? product.position.x + cardWidth : product.position.x;
-    const y = product.position.y + 140;
-    return { x, y };
+    // Get connection types for this product
+    const defaultConnections = connectionsByCategory[product.product.category] || { inputs: [], outputs: [] };
+    const hasDbConnections = (product.product.input_connections?.length > 0) || 
+                              (product.product.output_connections?.length > 0);
+    const connections = hasDbConnections ? {
+      inputs: product.product.input_connections || [],
+      outputs: product.product.output_connections || []
+    } : defaultConnections;
+
+    const types = isOutput ? connections.outputs : connections.inputs;
+    const portIndex = types.findIndex(t => t.type === connectionType);
+    
+    if (portIndex === -1) return null;
+
+    // Calculate vertical position based on port index
+    const totalPorts = Math.min(types.length, 6);
+    const totalHeight = (totalPorts - 1) * (PORT_DOT_SIZE + PORT_GAP);
+    const startY = product.position.y + CARD_HEIGHT / 2 - totalHeight / 2;
+    const portY = startY + portIndex * (PORT_DOT_SIZE + PORT_GAP);
+
+    // X position: left edge for inputs, right edge for outputs
+    const portX = isOutput 
+      ? product.position.x + CARD_WIDTH + PORT_DOT_SIZE / 2
+      : product.position.x - PORT_DOT_SIZE / 2;
+
+    return { x: portX, y: portY };
+  };
+
+  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
+    return getPortWorldPosition(instanceId, connectionType, isOutput);
   };
 
   // Calculate connection positions directly (not memoized to ensure port refs are available)
