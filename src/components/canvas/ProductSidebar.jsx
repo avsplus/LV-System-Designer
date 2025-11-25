@@ -341,10 +341,13 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                     <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-white text-sm truncate mb-1">
+                                    <h3 className="font-medium text-white text-sm truncate">
                                       {product.brand}
                                     </h3>
                                     <p className="text-xs text-gray-400 truncate">{product.model}</p>
+                                    {product.description && (
+                                      <p className="text-xs text-gray-500 truncate mt-1">{product.description}</p>
+                                    )}
                                     {product.price && (
                                       <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
                                     )}

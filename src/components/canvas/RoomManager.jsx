@@ -29,7 +29,8 @@ export default function RoomManager({
   onClose,
   onDeviceClick,
   selectedRoom,
-  onSelectRoom
+  onSelectRoom,
+  keepOpen = false
 }) {
   const [newRoomName, setNewRoomName] = useState('');
   const [expandedRooms, setExpandedRooms] = useState({});
@@ -164,14 +165,19 @@ export default function RoomManager({
                       <div
                         key={device.instanceId}
                         onClick={() => onDeviceClick(device)}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-800/30 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors"
+                        className="px-3 py-2 bg-gray-800/30 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors"
                       >
-                        <span className={`text-sm font-mono font-bold ${categoryTextColors[device.product.category] || 'text-white'}`}>
-                          {device.label}
-                        </span>
-                        <span className="text-xs text-gray-500 truncate">
-                          {device.product.brand} {device.product.model}
-                        </span>
+                        <p className={`text-xs capitalize ${categoryTextColors[device.product.category] || 'text-gray-400'}`}>
+                          {device.product.category?.replace(/_/g, ' ')}
+                        </p>
+                        <p className="text-sm font-medium text-white">
+                          {device.label} <span className="text-gray-400 font-normal">— {device.product.model}</span>
+                        </p>
+                        {device.product.description && (
+                          <p className="text-xs text-gray-500 truncate mt-0.5">
+                            {device.product.description}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

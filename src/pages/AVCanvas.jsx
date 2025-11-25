@@ -1960,7 +1960,6 @@ export default function AVCanvas() {
               setSelectedCanvasProduct(ensureNetworkInfo(device));
               setSelectedProduct(null);
               setSelectedConnection(null);
-              setShowRoomManager(false);
             }}
             selectedRoom={selectedRoom}
             onSelectRoom={setSelectedRoom}
