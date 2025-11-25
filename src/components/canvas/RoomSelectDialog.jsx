@@ -43,7 +43,10 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
                   setNewRoomName(e.target.value);
                   setError('');
                 }}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateRoom()}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') handleCreateRoom();
+                }}
                 className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                 autoFocus
               />

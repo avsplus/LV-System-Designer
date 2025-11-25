@@ -87,7 +87,10 @@ export default function RoomManager({
               setNewRoomName(e.target.value);
               setError('');
             }}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddRoom()}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') handleAddRoom();
+            }}
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
           />
           <Button

@@ -849,7 +849,9 @@ export default function AVCanvas() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === 'Space' && !e.repeat) {
+      // Don't trigger space panning when typing in input fields
+      const isInputField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable;
+      if (e.code === 'Space' && !e.repeat && !isInputField) {
         e.preventDefault();
         setSpacePressed(true);
       }
