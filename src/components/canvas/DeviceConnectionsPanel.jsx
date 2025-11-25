@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { X, Pencil } from "lucide-react";
+import DeviceQuickEditForm from "./DeviceQuickEditForm";
 
 const connectionsByCategory = {
   televisions: {
@@ -218,8 +219,9 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types", highlight: { bg: "bg-gray-500/20", border: "border-gray-500/40", hover: "hover:border-gray-500", text: "text-gray-300" } }
 };
 
-export default function DeviceConnectionsPanel({ product, label, networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange }) {
-  const [localNetworkInfo, setLocalNetworkInfo] = React.useState(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
+export default function DeviceConnectionsPanel({ product, label, networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange, onDeviceUpdate }) {
+  const [localNetworkInfo, setLocalNetworkInfo] = useState(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
+  const [showQuickEdit, setShowQuickEdit] = useState(false);
 
   React.useEffect(() => {
     setLocalNetworkInfo(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
@@ -342,8 +344,23 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4">
-          <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
-          <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
+              <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
+            </div>
+            {onDeviceUpdate && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowQuickEdit(true)}
+                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
+                title="Quick Edit Device"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <div className={`w-5 h-5 rounded ${
               {
@@ -600,6 +617,17 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
           </div>
         )}
         </div>
+
+        {showQuickEdit && onDeviceUpdate && (
+          <DeviceQuickEditForm
+            product={productData}
+            onSave={(updatedProduct) => {
+              onDeviceUpdate(updatedProduct);
+              setShowQuickEdit(false);
+            }}
+            onClose={() => setShowQuickEdit(false)}
+          />
+        )}
         </div>
         );
         }
