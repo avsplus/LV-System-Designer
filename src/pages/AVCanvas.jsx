@@ -230,9 +230,16 @@ export default function AVCanvas() {
   }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // No project loads by default - user must explicitly load a project
-  // Clear any stale project reference from localStorage on mount
+  // Clear ALL cached state on mount to ensure clean workspace
   useEffect(() => {
     localStorage.removeItem('av_canvas_temp_project_id');
+    localStorage.removeItem('av_canvas_temp_products');
+    localStorage.removeItem('av_canvas_temp_connections');
+    localStorage.removeItem('av_canvas_temp_rooms');
+    setCanvasProducts([]);
+    setConnections([]);
+    setRooms([]);
+    setCurrentProject(null);
   }, []);
 
   const handleProjectLoad = (project) => {
