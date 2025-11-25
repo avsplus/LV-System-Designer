@@ -1542,7 +1542,7 @@ function AVCanvasContent() {
                   <DropdownMenuItem 
                     onClick={async () => {
                       if (canvasProducts.length === 0) {
-                        alert('Canvas is empty. Add some devices first.');
+                        toast.warning('Canvas is empty. Add some devices first.');
                         return;
                       }
                       try {
@@ -1561,9 +1561,10 @@ function AVCanvasContent() {
                         a.click();
                         window.URL.revokeObjectURL(url);
                         a.remove();
+                        toast.success('PDF exported successfully');
                       } catch (error) {
                         console.error('Export error:', error);
-                        alert('Failed to export PDF');
+                        toast.error('Failed to export PDF');
                       }
                     }}
                     className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
