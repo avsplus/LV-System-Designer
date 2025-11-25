@@ -269,23 +269,24 @@ export default function CanvasProduct({
       startY: e.clientY,
       startPosX: position.x,
       startPosY: position.y,
+      zoom,
       clickTime,
       clickPos
     };
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = React.useCallback((e) => {
     if (!isDragging) return;
     e.preventDefault();
     
     const deltaX = e.clientX - dragOffset.current.startX;
     const deltaY = e.clientY - dragOffset.current.startY;
     
-    const newX = dragOffset.current.startPosX + deltaX / zoom;
-    const newY = dragOffset.current.startPosY + deltaY / zoom;
+    const newX = dragOffset.current.startPosX + deltaX / dragOffset.current.zoom;
+    const newY = dragOffset.current.startPosY + deltaY / dragOffset.current.zoom;
     
     onPositionChange(instanceId, { x: newX, y: newY });
-  };
+  }, [isDragging, instanceId, onPositionChange]);
 
   const handleMouseUp = (e) => {
     const timeDiff = Date.now() - (dragOffset.current.clickTime || 0);
