@@ -276,11 +276,18 @@ export default function CanvasProduct({
         getPortId,
         hoveredPortId,
         connectingFromPortId,
-        zoom = 1
+        zoom = 1,
+        onTooltipChange
       }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [tooltipInfo, setTooltipInfo] = useState(null);
   const dragOffset = useRef({ x: 0, y: 0 });
+  
+  // Helper to set tooltip info at page level
+  const setTooltipInfo = (info) => {
+    if (onTooltipChange) {
+      onTooltipChange(info);
+    }
+  };
   
   // Ensure networkInfo is always defined
   const safeNetworkInfo = networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
