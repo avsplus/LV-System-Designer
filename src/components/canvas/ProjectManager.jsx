@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Save, FolderOpen, Trash2, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -14,27 +15,64 @@ export default function ProjectManager({
   onClose 
 }) {
   const [showSaveForm, setShowSaveForm] = useState(false);
+  const [showShareForm, setShowShareForm] = useState(null);
+  const [shareEmail, setShareEmail] = useState('');
   const [projectName, setProjectName] = useState(currentProject?.name || '');
   const [projectDescription, setProjectDescription] = useState(currentProject?.description || '');
+  const [currentUser, setCurrentUser] = useState(null);
   
   const queryClient = useQueryClient();
 
-  const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['avProjects'],
-    queryFn: () => base44.entities.AVProject.list('-updated_date'),
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
+
+  // Fetch user's own projects
+  const { data: ownProjects = [], isLoading: loadingOwn } = useQuery({
+    queryKey: ['avProjects', 'own', currentUser?.email],
+    queryFn: () => base44.entities.AVProject.filter({ owner_email: currentUser?.email }, '-updated_date'),
+    enabled: !!currentUser?.email,
   });
+
+  // Fetch projects shared with user
+  const { data: sharedProjects = [], isLoading: loadingShared } = useQuery({
+    queryKey: ['avProjects', 'shared', currentUser?.email],
+    queryFn: async () => {
+      const allProjects = await base44.entities.AVProject.list('-updated_date');
+      return allProjects.filter(p => 
+        p.shared_with?.includes(currentUser?.email) && p.owner_email !== currentUser?.email
+      );
+    },
+    enabled: !!currentUser?.email,
+  });
+
+  const isLoading = loadingOwn || loadingShared;
 
   const saveMutation = useMutation({
     mutationFn: (data) => {
-      if (currentProject) {
+      if (currentProject && currentProject.id) {
         return base44.entities.AVProject.update(currentProject.id, data);
       }
-      return base44.entities.AVProject.create(data);
+      return base44.entities.AVProject.create({
+        ...data,
+        owner_email: currentUser?.email,
+        shared_with: []
+      });
     },
     onSuccess: (savedProject) => {
       queryClient.invalidateQueries({ queryKey: ['avProjects'] });
       setShowSaveForm(false);
       onProjectLoad(savedProject);
+    },
+  });
+
+  const shareMutation = useMutation({
+    mutationFn: ({ projectId, sharedWith }) => 
+      base44.entities.AVProject.update(projectId, { shared_with: sharedWith }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avProjects'] });
+      setShowShareForm(null);
+      setShareEmail('');
     },
   });
 
@@ -70,12 +108,54 @@ export default function ProjectManager({
   };
 
   const handleDelete = (project) => {
+    if (project.owner_email !== currentUser?.email) {
+      alert('You can only delete projects you own.');
+      return;
+    }
     if (confirm(`Delete project "${project.name}"?`)) {
       deleteMutation.mutate(project.id);
       if (currentProject?.id === project.id) {
         onProjectLoad(null);
       }
     }
+  };
+
+  const handleShare = (project) => {
+    if (project.owner_email !== currentUser?.email) {
+      alert('Only the project owner can manage sharing.');
+      return;
+    }
+    setShowShareForm(project);
+  };
+
+  const handleAddShare = () => {
+    if (!shareEmail.trim() || !showShareForm) return;
+    const email = shareEmail.trim().toLowerCase();
+    
+    if (email === currentUser?.email) {
+      alert('You cannot share a project with yourself.');
+      return;
+    }
+    
+    const currentShared = showShareForm.shared_with || [];
+    if (currentShared.includes(email)) {
+      alert('This user already has access.');
+      return;
+    }
+    
+    shareMutation.mutate({
+      projectId: showShareForm.id,
+      sharedWith: [...currentShared, email]
+    });
+  };
+
+  const handleRemoveShare = (email) => {
+    if (!showShareForm) return;
+    const currentShared = showShareForm.shared_with || [];
+    shareMutation.mutate({
+      projectId: showShareForm.id,
+      sharedWith: currentShared.filter(e => e !== email)
+    });
   };
 
   const handleNewProject = () => {
@@ -195,15 +275,78 @@ export default function ProjectManager({
             </div>
           )}
 
+          {/* Share Modal */}
+          {showShareForm && (
+            <div className="bg-gray-800 rounded-lg p-4 mb-4 border border-purple-500/30">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-white flex items-center gap-2">
+                  <Share2 className="w-4 h-4 text-purple-400" />
+                  Share "{showShareForm.name}"
+                </h3>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setShowShareForm(null)}
+                  className="h-6 w-6 text-gray-400"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={shareEmail}
+                  onChange={(e) => setShareEmail(e.target.value)}
+                  placeholder="Enter user's email address"
+                  className="bg-gray-900 border-gray-700 text-white flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddShare()}
+                />
+                <Button
+                  onClick={handleAddShare}
+                  disabled={shareMutation.isPending || !shareEmail.trim()}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Users className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+              
+              {showShareForm.shared_with?.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-400 mb-2">Shared with:</p>
+                  {showShareForm.shared_with.map((email) => (
+                    <div key={email} className="flex items-center justify-between bg-gray-900 rounded px-3 py-2">
+                      <span className="text-sm text-gray-300">{email}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleRemoveShare(email)}
+                        className="h-6 w-6 text-gray-400 hover:text-red-400"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">No users have access yet</p>
+              )}
+            </div>
+          )}
+
+          {/* My Projects */}
           <div className="border-t border-gray-800 pt-4">
-            <h3 className="font-semibold text-white mb-3">Saved Projects</h3>
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <Crown className="w-4 h-4 text-yellow-500" />
+              My Projects
+            </h3>
             {isLoading ? (
               <p className="text-gray-400 text-sm">Loading projects...</p>
-            ) : projects.length === 0 ? (
+            ) : ownProjects.length === 0 ? (
               <p className="text-gray-400 text-sm">No saved projects yet</p>
             ) : (
               <div className="space-y-2">
-                {projects.map((project) => (
+                {ownProjects.map((project) => (
                   <div
                     key={project.id}
                     className={`bg-gray-800 rounded-lg p-3 border transition-all ${
@@ -214,7 +357,15 @@ export default function ProjectManager({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-white">{project.name}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-white">{project.name}</h4>
+                          {project.shared_with?.length > 0 && (
+                            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
+                              <Users className="w-3 h-3 mr-1" />
+                              {project.shared_with.length}
+                            </Badge>
+                          )}
+                        </div>
                         {project.description && (
                           <p className="text-sm text-gray-400 mt-1">{project.description}</p>
                         )}
@@ -225,6 +376,15 @@ export default function ProjectManager({
                         </div>
                       </div>
                       <div className="flex gap-1 ml-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleShare(project)}
+                          className="h-8 w-8 text-purple-400 hover:text-purple-300"
+                          title="Share project"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </Button>
                         <Button
                           size="icon"
                           variant="ghost"
@@ -250,6 +410,58 @@ export default function ProjectManager({
               </div>
             )}
           </div>
+
+          {/* Shared With Me */}
+          {sharedProjects.length > 0 && (
+            <div className="border-t border-gray-800 pt-4 mt-4">
+              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                <Users className="w-4 h-4 text-purple-400" />
+                Shared With Me
+              </h3>
+              <div className="space-y-2">
+                {sharedProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    className={`bg-gray-800 rounded-lg p-3 border transition-all ${
+                      currentProject?.id === project.id 
+                        ? 'border-purple-500' 
+                        : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-white">{project.name}</h4>
+                          <Badge className="bg-gray-700 text-gray-300 text-xs">
+                            by {project.owner_email}
+                          </Badge>
+                        </div>
+                        {project.description && (
+                          <p className="text-sm text-gray-400 mt-1">{project.description}</p>
+                        )}
+                        <div className="flex gap-3 text-xs text-gray-500 mt-2">
+                          <span>{project.canvas_products?.length || 0} devices</span>
+                          <span>{project.connections?.length || 0} connections</span>
+                          <span>{new Date(project.updated_date).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleLoad(project)}
+                          className="h-8 w-8 text-purple-400 hover:text-purple-300"
+                          title="Load project"
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
