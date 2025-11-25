@@ -36,7 +36,7 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
                                 model: { type: "string" },
                                 category: { 
                                     type: "string",
-                                    enum: ["televisions",control_processors, "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"]
+                                    enum: ["televisions","control_processors", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"]
                                 },
                                 description: { type: "string" },
                                 price: { type: "number" },
