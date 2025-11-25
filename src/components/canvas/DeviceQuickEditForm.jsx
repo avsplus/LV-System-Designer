@@ -31,22 +31,8 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     
     setUploadingImage(true);
     try {
-      // Upload the original file first
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Try to remove background using backend function
-      try {
-        const response = await base44.functions.invoke('removeBackground', { image_url: file_url });
-        if (response.data?.success && response.data?.processed_url) {
-          setFormData({ ...formData, image_url: response.data.processed_url });
-        } else {
-          // Use original if background removal failed
-          setFormData({ ...formData, image_url: file_url });
-        }
-      } catch (bgError) {
-        console.error('Background removal failed, using original:', bgError);
-        setFormData({ ...formData, image_url: file_url });
-      }
+      setFormData({ ...formData, image_url: file_url });
     } catch (error) {
       console.error('Failed to upload image:', error);
       alert('Failed to upload image');
