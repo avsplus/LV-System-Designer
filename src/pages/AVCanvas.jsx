@@ -228,17 +228,7 @@ export default function AVCanvas() {
     saveProject();
   }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
-  // Load temp project info on mount
-  useEffect(() => {
-    const tempProjectId = localStorage.getItem('av_canvas_temp_project_id');
-    if (tempProjectId) {
-      base44.entities.AVProject.filter({ id: tempProjectId }).then(projects => {
-        if (projects.length > 0) {
-          setCurrentProject(projects[0]);
-        }
-      }).catch(() => {});
-    }
-  }, []);
+  // No project loads by default - user must explicitly load a project
 
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
@@ -1339,7 +1329,7 @@ export default function AVCanvas() {
         <div className="flex-1 flex flex-col">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">AV System Designer</h1>
+              <h1 className="text-2xl font-bold text-white">AV System Design</h1>
               <div className="flex items-center gap-3 mt-0.5">
                 <p className="text-sm text-gray-400">
                   {currentProject ? (
@@ -1525,8 +1515,16 @@ export default function AVCanvas() {
                     <FileText className="w-4 h-4 mr-2" />
                     Export to PDF
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <DropdownMenuItem 
+                    onClick={clearCanvas}
+                    disabled={canvasProducts.length === 0}
+                    className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Canvas
+                  </DropdownMenuItem>
+                  </DropdownMenuContent>
+                  </DropdownMenu>
 
               {enrichmentProgress && (
                 <div className="absolute top-full right-6 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 min-w-[300px] z-10">
@@ -1604,15 +1602,6 @@ export default function AVCanvas() {
               >
                 <Home className="w-4 h-4 mr-2" />
                 Rooms ({rooms.length})
-              </Button>
-              <Button
-                variant="outline"
-                onClick={clearCanvas}
-                disabled={canvasProducts.length === 0}
-                className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Canvas
               </Button>
               <Link to={createPageUrl("Account")}>
                 <Button
@@ -1985,6 +1974,7 @@ export default function AVCanvas() {
               setPendingProductDrop(null);
             }}
             onCancel={() => setPendingProductDrop(null)}
+            onCreateRoom={handleAddRoom}
           />
         )}
         </div>
