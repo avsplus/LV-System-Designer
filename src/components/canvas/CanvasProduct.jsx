@@ -214,6 +214,23 @@ const categorySolidColors = {
   av_receivers: "bg-emerald-600"
 };
 
+const categoryTextColors = {
+  televisions: "text-blue-400",
+  projectors: "text-purple-400",
+  projector_screens: "text-fuchsia-400",
+  video_distribution: "text-cyan-400",
+  matrix_switchers: "text-teal-400",
+  audio_streamers: "text-pink-400",
+  media_streamers: "text-rose-400",
+  speakers: "text-green-400",
+  soundbars: "text-lime-400",
+  subwoofers: "text-red-400",
+  stereo_amps: "text-orange-400",
+  multizone_amps: "text-amber-400",
+  surround_processors: "text-yellow-400",
+  av_receivers: "text-emerald-400"
+};
+
 export default function CanvasProduct({ 
         instanceId,
         product, 
@@ -481,13 +498,12 @@ export default function CanvasProduct({
       )}
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
-          {label && (
-            <Badge className="bg-gray-700 text-white border-gray-600 font-mono font-bold">
-              {label}
-            </Badge>
-          )}
-          <div className={`w-6 h-6 rounded-md ${categorySolidColors[product.category]}`}></div>
-        </div>
+            {label && (
+              <Badge className={`bg-gray-700 border-gray-600 font-mono font-bold ${categoryTextColors[product.category] || 'text-white'}`}>
+                {label}
+              </Badge>
+            )}
+          </div>
         <div className="flex gap-1">
           <Button
             size="icon"
