@@ -1596,79 +1596,14 @@ function AVCanvasContent() {
                   </DropdownMenuContent>
                   </DropdownMenu>
 
-              {(enrichmentProgress || importProgress) && (
-                                    <div className="absolute top-full right-6 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 min-w-[300px] z-10">
-                                      {/* Import Progress */}
-                                      {importProgress?.status === 'running' && (
-                                        <>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs text-gray-300">Importing AV products...</span>
-                                          </div>
-                                          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                            <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse" style={{ width: '100%' }}></div>
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-2">{importProgress.message}</p>
-                                        </>
-                                      )}
-
-                                      {importProgress?.status === 'complete' && (
-                                        <>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs text-green-400 font-medium">✓ Import Complete</span>
-                                          </div>
-                                          <p className="text-xs text-gray-400">Imported {importProgress.imported} new products</p>
-                                          {importProgress.skipped > 0 && (
-                                            <p className="text-xs text-amber-400 mt-1">Skipped {importProgress.skipped} duplicates</p>
-                                          )}
-                                        </>
-                                      )}
-
-                                      {importProgress?.status === 'error' && (
-                                        <>
-                                          <div className="flex items-center mb-2">
-                                            <span className="text-xs text-red-400 font-medium">✗ Import Failed</span>
-                                          </div>
-                                          <p className="text-xs text-gray-400">{importProgress.message}</p>
-                                        </>
-                                      )}
-
-                                      {/* Enrichment Progress */}
-                                      {enrichmentProgress?.status === 'running' && (
-                                        <>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs text-gray-300">Enriching products...</span>
-                                            <span className="text-xs text-gray-400">{enrichmentProgress.total} products</span>
-                                          </div>
-                                          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                            <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse" style={{ width: '100%' }}></div>
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-2">Cross-referencing specifications from multiple sources...</p>
-                                        </>
-                                      )}
-
-                                      {enrichmentProgress?.status === 'complete' && (
-                                        <>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs text-green-400 font-medium">✓ Enrichment Complete</span>
-                                            <span className="text-xs text-gray-400">{enrichmentProgress.enriched}/{enrichmentProgress.total}</span>
-                                          </div>
-                                          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                            <div className="h-full bg-green-500" style={{ width: `${(enrichmentProgress.enriched / enrichmentProgress.total) * 100}%` }}></div>
-                                          </div>
-                                          {enrichmentProgress.failed > 0 && (
-                                            <p className="text-xs text-amber-400 mt-2">{enrichmentProgress.failed} products failed to enrich</p>
-                                          )}
-                                        </>
-                                      )}
-
-                                      {enrichmentProgress?.status === 'error' && (
-                                        <>
-                                          <div className="flex items-center mb-2">
-                                            <span className="text-xs text-red-400 font-medium">✗ Enrichment Failed</span>
-                                          </div>
-                                          <p className="text-xs text-gray-400">{enrichmentProgress.message}</p>
-                                        </>
-                                      )}
+              {/* Persistent Status Indicator */}
+                                  {(enrichmentProgress?.status === 'running' || importProgress?.status === 'running') && (
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 border border-blue-500/40 rounded-lg">
+                                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                                      <span className="text-xs text-blue-300 font-medium">
+                                        {importProgress?.status === 'running' && 'Importing products...'}
+                                        {enrichmentProgress?.status === 'running' && 'Enriching connections...'}
+                                      </span>
                                     </div>
                                   )}
               <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1">
