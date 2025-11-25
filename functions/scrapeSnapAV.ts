@@ -75,7 +75,7 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
         const products = response.products || [];
 
         // Normalize category names and filter out duplicates
-        const validCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches"];
+        const validCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "control_processors"];
         
         // Normalize any category format to snake_case
         const normalizeCategory = (cat) => {
@@ -109,7 +109,9 @@ televisions, projectors, projector_screens, video_distribution, matrix_switchers
                 "stereo_amps": "stereo_amps",
                 "stereoamps": "stereo_amps",
                 "surround_processors": "surround_processors",
-                "surroundprocessors": "surround_processors"
+                "surroundprocessors": "surround_processors",
+                "control_processors": "control_processors",
+                "controlprocessors": "control_processors"
             };
             
             return categoryMapping[normalized] || normalized;

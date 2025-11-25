@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
             "televisions", "projectors", "projector_screens", "video_distribution", 
             "matrix_switchers", "audio_streamers", "media_streamers", "speakers", 
             "soundbars", "subwoofers", "stereo_amps", "multizone_amps", 
-            "surround_processors", "av_receivers", "network_switches"
+            "surround_processors", "av_receivers", "network_switches", "control_processors"
         ];
 
         // Normalize category function
@@ -47,7 +47,9 @@ Deno.serve(async (req) => {
                 "stereo_amps": "stereo_amps",
                 "stereoamps": "stereo_amps",
                 "surround_processors": "surround_processors",
-                "surroundprocessors": "surround_processors"
+                "surroundprocessors": "surround_processors",
+                "control_processors": "control_processors",
+                "controlprocessors": "control_processors"
             };
             
             return categoryMapping[normalized] || normalized;
