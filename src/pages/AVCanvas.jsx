@@ -171,11 +171,15 @@ export default function AVCanvas() {
     localStorage.setItem('av_canvas_temp_connections', JSON.stringify(connections));
   }, [connections]);
 
-  // Auto-save to database if project exists and user owns it
+  // Auto-save to database if project exists (for owner or collaborator)
   const autoSaveTimeoutRef = useRef(null);
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
-    if (currentProject.owner_email !== currentUserEmail) return; // Only auto-save owned projects
+    
+    // Allow save if user is owner OR has access (shared_with)
+    const isOwner = currentProject.owner_email === currentUserEmail;
+    const isCollaborator = currentProject.shared_with?.includes(currentUserEmail);
+    if (!isOwner && !isCollaborator) return;
     
     // Debounce auto-save to avoid too many API calls
     if (autoSaveTimeoutRef.current) {
@@ -200,7 +204,7 @@ export default function AVCanvas() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, markLocalChange]);
+  }, [canvasProducts, connections, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // Load temp project info on mount
   useEffect(() => {
