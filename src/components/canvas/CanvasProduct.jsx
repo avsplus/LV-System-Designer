@@ -248,7 +248,8 @@ export default function CanvasProduct({
         registerPort,
         getPortId,
         hoveredPortId,
-        connectingFromPortId
+        connectingFromPortId,
+        zoom = 1
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
