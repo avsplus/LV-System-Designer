@@ -2001,11 +2001,27 @@ export default function AVCanvas() {
                         selectedRoom={selectedRoom}
                         onSelectRoom={setSelectedRoom}
                         onDeviceRoomChange={(instanceId, newRoom) => {
-                          setCanvasProducts(prev => prev.map(cp => 
-                            cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
-                          ));
-                        }}
-                      />
+                                          setCanvasProducts(prev => prev.map(cp => 
+                                            cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
+                                          ));
+                                        }}
+                                        onReorderDevices={(draggedId, targetId, room) => {
+                                          setCanvasProducts(prev => {
+                                            const roomDevices = prev.filter(cp => cp.room === room);
+                                            const otherDevices = prev.filter(cp => cp.room !== room);
+
+                                            const draggedIndex = roomDevices.findIndex(cp => cp.instanceId === draggedId);
+                                            const targetIndex = roomDevices.findIndex(cp => cp.instanceId === targetId);
+
+                                            if (draggedIndex === -1 || targetIndex === -1) return prev;
+
+                                            const [draggedItem] = roomDevices.splice(draggedIndex, 1);
+                                            roomDevices.splice(targetIndex, 0, draggedItem);
+
+                                            return [...otherDevices, ...roomDevices];
+                                          });
+                                        }}
+                                      />
                     )}
 
         {pendingProductDrop && (

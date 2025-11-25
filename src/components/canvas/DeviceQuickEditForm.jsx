@@ -107,6 +107,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
               <Input
                 value={conn.ports?.join(', ') || ''}
                 onChange={(e) => handlePortsChange(direction, idx, e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
                 placeholder="Port-1, Port-2"
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />

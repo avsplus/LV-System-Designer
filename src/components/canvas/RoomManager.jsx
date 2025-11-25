@@ -31,6 +31,7 @@ export default function RoomManager({
   selectedRoom,
   onSelectRoom,
   onDeviceRoomChange,
+  onReorderDevices,
   keepOpen = false
 }) {
   const [newRoomName, setNewRoomName] = useState('');
@@ -38,6 +39,7 @@ export default function RoomManager({
   const [error, setError] = useState('');
   const [draggedDevice, setDraggedDevice] = useState(null);
   const [dragOverRoom, setDragOverRoom] = useState(null);
+  const [dragOverDeviceId, setDragOverDeviceId] = useState(null);
 
   const handleAddRoom = () => {
     const trimmedName = newRoomName.trim();
@@ -181,7 +183,7 @@ export default function RoomManager({
 
                 {isExpanded && devices.length > 0 && (
                   <div className="pl-6 space-y-1">
-                    {devices.map((device) => (
+                    {devices.map((device, deviceIndex) => (
                       <div
                         key={device.instanceId}
                         draggable
@@ -192,11 +194,33 @@ export default function RoomManager({
                         onDragEnd={() => {
                           setDraggedDevice(null);
                           setDragOverRoom(null);
+                          setDragOverDeviceId(null);
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (draggedDevice && draggedDevice.instanceId !== device.instanceId && draggedDevice.room === device.room) {
+                            setDragOverDeviceId(device.instanceId);
+                          }
+                        }}
+                        onDragLeave={(e) => {
+                          e.stopPropagation();
+                          setDragOverDeviceId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (draggedDevice && draggedDevice.room === device.room && draggedDevice.instanceId !== device.instanceId && onReorderDevices) {
+                            onReorderDevices(draggedDevice.instanceId, device.instanceId, room);
+                          }
+                          setDraggedDevice(null);
+                          setDragOverRoom(null);
+                          setDragOverDeviceId(null);
                         }}
                         onClick={() => onDeviceClick(device)}
                         className={`px-3 py-2 bg-gray-800/30 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors flex items-start gap-2 ${
                           draggedDevice?.instanceId === device.instanceId ? 'opacity-50' : ''
-                        }`}
+                        } ${dragOverDeviceId === device.instanceId ? 'border-t-2 border-blue-500' : ''}`}
                       >
                         <GripVertical className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0 cursor-grab" />
                         <div className="flex-1 min-w-0">
