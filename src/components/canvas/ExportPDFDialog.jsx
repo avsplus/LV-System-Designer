@@ -64,12 +64,13 @@ export default function ExportPDFDialog({
   const handleGenerateRoomDiagram = () => {
     if (selectedRoom) {
       const roomDevices = canvasProducts.filter(cp => cp.room === selectedRoom);
-      const roomConnections = connections.filter(c => {
+      const roomConns = connections.filter(c => {
         const from = canvasProducts.find(cp => cp.instanceId === c.from);
         const to = canvasProducts.find(cp => cp.instanceId === c.to);
         return from?.room === selectedRoom || to?.room === selectedRoom;
       });
-      onGenerateRoomDiagram?.({ room: selectedRoom, devices: roomDevices, connections: roomConnections });
+      console.log('Generating room diagram:', { room: selectedRoom, devices: roomDevices.length, connections: roomConns.length });
+      onGenerateRoomDiagram?.({ room: selectedRoom, devices: roomDevices, connections: roomConns });
     }
   };
 
