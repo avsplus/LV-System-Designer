@@ -2,23 +2,48 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, FileText, Download, Loader2 } from "lucide-react";
+import { FileText, Download, Loader2, Image, Tag, Layers } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function ExportPDFDialog({ 
   open, 
   onClose, 
   onExport, 
   projectName,
-  isExporting 
+  isExporting,
+  exportEngine = 'jspdf', // 'jspdf' or 'apitemplate'
+  onExportEngineChange,
+  onGenerateLabels,
+  onGenerateRoomDiagram,
+  canvasProducts = [],
+  connections = [],
+  rooms = []
 }) {
   const [clientName, setClientName] = useState('');
   const [location, setLocation] = useState('');
+  const [selectedTab, setSelectedTab] = useState('pdf');
+  const [labelType, setLabelType] = useState('device');
+  const [selectedDevice, setSelectedDevice] = useState('');
+  const [selectedConnection, setSelectedConnection] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
 
   const handleExport = () => {
     onExport({ clientName, location });
