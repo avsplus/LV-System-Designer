@@ -2166,35 +2166,35 @@ function AVCanvasContent() {
             projectName={currentProject?.name}
             isExporting={isExporting}
             onExport={async ({ clientName, location }) => {
-              setIsExporting(true);
-              try {
-                const response = await base44.functions.invoke('exportCanvasToPDF', {
-                  canvasProducts,
-                  connections,
-                  rooms,
-                  projectName: currentProject?.name || 'AV-System-Design',
-                  clientName,
-                  location,
-                  orgSettings
-                });
+                                setIsExporting(true);
+                                try {
+                                  const response = await base44.functions.invoke('exportCanvasToPDF', {
+                                    canvasProducts,
+                                    connections,
+                                    rooms,
+                                    projectName: currentProject?.name || 'AV-System-Design',
+                                    clientName,
+                                    location,
+                                    orgSettings
+                                  }, { responseType: 'arraybuffer' });
 
-                const blob = new Blob([response.data], { type: 'application/pdf' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${currentProject?.name || 'AV-System-Design'}-Installation-Package.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
-                toast.success('Installation package exported successfully');
-                setShowExportDialog(false);
-              } catch (error) {
-                console.error('Export error:', error);
-                toast.error('Failed to export PDF');
-              }
-              setIsExporting(false);
-            }}
+                                  const blob = new Blob([response.data], { type: 'application/pdf' });
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `${currentProject?.name || 'AV-System-Design'}-Installation-Package.pdf`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  a.remove();
+                                  toast.success('Installation package exported successfully');
+                                  setShowExportDialog(false);
+                                } catch (error) {
+                                  console.error('Export error:', error);
+                                  toast.error('Failed to export PDF');
+                                }
+                                setIsExporting(false);
+                              }}
           />
         )}
 
