@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -972,14 +973,8 @@ Deno.serve(async (req) => {
       doc.roundedRect(cardX, yPos, deviceCardWidth, 3, 4, 4, 'F');
       doc.rect(cardX, yPos + 2, deviceCardWidth, 2, 'F'); // Square bottom of accent
 
-      // Category icon circle
-      setFill(doc, catColor);
-      doc.circle(cardX + 14, yPos + 18, 8, 'F');
-      setColor(doc, theme.colors.white);
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(7);
-      const iconText = categoryIcons[product.category] || 'DV';
-      doc.text(iconText, cardX + 14, yPos + 20, { align: 'center' });
+      // Category icon
+      drawCategoryIcon(doc, cardX + 14, yPos + 18, product.category, 16);
 
       // Device name (bold, prominent)
       setColor(doc, theme.colors.dark);
