@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       // ==========================================
 
       case 'generateInstallationPackage': {
-        // Generate AV installation package PDF
+        // Generate AV installation package PDF using create-pdf endpoint with HTML body
         const { canvasProducts, connections, rooms, projectName, clientName, location, orgSettings } = params;
         
         // Build HTML content for the PDF
@@ -79,21 +79,21 @@ Deno.serve(async (req) => {
           generatedBy: user.full_name || user.email
         });
 
-        const result = await apiRequest('/create-pdf-from-html', 'POST', {
-          html,
-          settings: {
-            paper_size: 'A4',
-            orientation: 'portrait',
-            margin_top: '10mm',
-            margin_bottom: '10mm',
-            margin_left: '10mm',
-            margin_right: '10mm',
-            header_template: '',
-            footer_template: `<div style="font-size: 8px; text-align: center; width: 100%; color: #666;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>`
-          },
-          expiration: 1440 // 24 hours
+        console.log('Generated HTML length:', html.length);
+
+        // Use create-pdf with body_html parameter
+        const result = await apiRequest('/v2/create-pdf', 'POST', {
+          body_html: html,
+          page_size: 'A4',
+          orientation: '1', // portrait
+          margin_top: 10,
+          margin_bottom: 10,
+          margin_left: 10,
+          margin_right: 10,
+          expiration: 1440
         });
 
+        console.log('APITemplate result:', result);
         return Response.json(result);
       }
 
@@ -103,11 +103,12 @@ Deno.serve(async (req) => {
         
         const html = generateDeviceLabelHTML(device, size);
         
-        const result = await apiRequest('/create-image-from-html', 'POST', {
-          html,
+        const result = await apiRequest('/v2/create-image', 'POST', {
+          body_html: html,
+          image_type: 'png',
           width: size?.width || 400,
           height: size?.height || 200,
-          format: 'png'
+          expiration: 1440
         });
 
         return Response.json(result);
@@ -119,11 +120,12 @@ Deno.serve(async (req) => {
         
         const html = generateCableLabelHTML(connection, fromDevice, toDevice, size);
         
-        const result = await apiRequest('/create-image-from-html', 'POST', {
-          html,
+        const result = await apiRequest('/v2/create-image', 'POST', {
+          body_html: html,
+          image_type: 'png',
           width: size?.width || 300,
           height: size?.height || 100,
-          format: 'png'
+          expiration: 1440
         });
 
         return Response.json(result);
@@ -135,11 +137,12 @@ Deno.serve(async (req) => {
         
         const html = generateRoomDiagramHTML(room, devices, connections);
         
-        const result = await apiRequest('/create-image-from-html', 'POST', {
-          html,
+        const result = await apiRequest('/v2/create-image', 'POST', {
+          body_html: html,
+          image_type: 'png',
           width: 1200,
           height: 800,
-          format: 'png'
+          expiration: 1440
         });
 
         return Response.json(result);
