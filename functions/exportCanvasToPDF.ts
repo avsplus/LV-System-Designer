@@ -118,17 +118,25 @@ Deno.serve(async (req) => {
     if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
     // ==========================================
-    // PAGE 1: COVER PAGE
+    // PAGE 1: COVER PAGE (Premium Design)
     // ==========================================
     setFillColor(COLORS.dark);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // Decorative accent line
-    setFillColor(COLORS.accent);
-    doc.rect(0, pageHeight * 0.35, pageWidth, 3, 'F');
-    doc.rect(0, pageHeight * 0.65, pageWidth, 1, 'F');
+    // Subtle gradient effect with rectangles
+    for (let i = 0; i < 5; i++) {
+      const opacity = 0.02 * (5 - i);
+      setFillColor([59, 130, 246]);
+      doc.setGState(new doc.GState({ opacity: opacity }));
+      doc.rect(0, pageHeight * (0.3 + i * 0.02), pageWidth, pageHeight * 0.4, 'F');
+    }
+    doc.setGState(new doc.GState({ opacity: 1 }));
 
-    // Logo (if available)
+    // Thin accent line
+    setFillColor(COLORS.accent);
+    doc.rect(pageWidth * 0.3, pageHeight * 0.38, pageWidth * 0.4, 2, 'F');
+
+    // Logo (if available) - centered at top
     if (orgSettings?.logo_url) {
       try {
         const logoResponse = await fetch(orgSettings.logo_url);
@@ -137,83 +145,91 @@ Deno.serve(async (req) => {
         const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
         const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
         
-        // Add logo centered at top
-        const logoWidth = 50;
-        const logoHeight = 25;
+        const logoWidth = 60;
+        const logoHeight = 30;
         const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.12, logoWidth, logoHeight);
+        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.15, logoWidth, logoHeight);
       } catch (e) {
         console.log('Could not load logo:', e);
       }
     }
 
-    // Project name
+    // Project name (large, elegant)
     setColor(COLORS.white);
     doc.setFont(undefined, 'bold');
-    centerText(projectName || 'AV System Design', pageHeight * 0.42, 32);
+    centerText(projectName || 'AV System Design', pageHeight * 0.44, 28);
 
-    // Subtitle
-    setColor(COLORS.secondary);
+    // Subtitle (subtle)
+    setColor([156, 163, 175]);
     doc.setFont(undefined, 'normal');
-    centerText('AV System Installation Package', pageHeight * 0.48, 14);
+    centerText('Installation Package', pageHeight * 0.50, 12);
 
-    // Details section
-    let detailY = pageHeight * 0.55;
-    doc.setFontSize(11);
+    // Details section with better spacing
+    let detailY = pageHeight * 0.58;
     
     if (clientName) {
-      setColor(COLORS.secondary);
-      centerText('Prepared for:', detailY, 10);
-      detailY += 6;
+      setColor([100, 116, 139]);
+      doc.setFontSize(9);
+      centerText('PREPARED FOR', detailY, 9);
+      detailY += 8;
       setColor(COLORS.white);
-      centerText(clientName, detailY, 12);
-      detailY += 12;
+      doc.setFont(undefined, 'bold');
+      centerText(clientName, detailY, 14);
+      detailY += 18;
     }
 
     if (location) {
-      setColor(COLORS.secondary);
-      centerText('Location:', detailY, 10);
-      detailY += 6;
+      setColor([100, 116, 139]);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      centerText('LOCATION', detailY, 9);
+      detailY += 8;
       setColor(COLORS.white);
-      centerText(location, detailY, 12);
-      detailY += 12;
+      doc.setFont(undefined, 'bold');
+      centerText(location, detailY, 14);
+      detailY += 18;
     }
 
-    setColor(COLORS.secondary);
-    centerText('Date:', detailY, 10);
-    detailY += 6;
+    setColor([100, 116, 139]);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    centerText('DATE', detailY, 9);
+    detailY += 8;
     setColor(COLORS.white);
-    centerText(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), detailY, 12);
+    doc.setFont(undefined, 'bold');
+    centerText(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), detailY, 14);
 
-    // Stats bar
-    const statsY = pageHeight * 0.75;
-    setFillColor([31, 41, 55]);
-    drawRoundedRect(margin + 20, statsY - 5, contentWidth - 40, 25, 3);
-
-    doc.setFontSize(10);
-    const statsWidth = (contentWidth - 40) / 4;
-    const statsX = margin + 20;
+    // Stats bar - cleaner design
+    const statsY = pageHeight * 0.82;
+    const statsWidth = contentWidth / 4;
 
     [
-      { label: 'Devices', value: canvasProducts.length },
-      { label: 'Connections', value: connections.length },
-      { label: 'Rooms', value: uniqueRooms.length },
-      { label: 'Cable Runs', value: connections.length }
+      { label: 'Devices', value: canvasProducts.length, color: [59, 130, 246] },
+      { label: 'Connections', value: connections.length, color: [34, 197, 94] },
+      { label: 'Rooms', value: uniqueRooms.length, color: [251, 191, 36] },
+      { label: 'Cable Runs', value: connections.length, color: [139, 92, 246] }
     ].forEach((stat, i) => {
-      const x = statsX + (statsWidth * i) + (statsWidth / 2);
-      setColor(COLORS.accent);
+      const x = margin + (statsWidth * i) + (statsWidth / 2);
+      
+      // Value
+      setColor(stat.color);
       doc.setFont(undefined, 'bold');
-      doc.text(stat.value.toString(), x, statsY + 5, { align: 'center' });
-      setColor(COLORS.secondary);
+      doc.setFontSize(20);
+      doc.text(stat.value.toString(), x, statsY, { align: 'center' });
+      
+      // Label
+      setColor([100, 116, 139]);
       doc.setFont(undefined, 'normal');
-      doc.text(stat.label, x, statsY + 12, { align: 'center' });
+      doc.setFontSize(9);
+      doc.text(stat.label, x, statsY + 8, { align: 'center' });
     });
 
-    // Powered by footer
+    // Footer
     setColor([75, 85, 99]);
     doc.setFontSize(8);
-    centerText(`Generated by ${user.full_name || user.email}`, pageHeight - 20, 8);
-    centerText('Powered by AV System Designer', pageHeight - 14, 8);
+    centerText(`Generated by ${user.full_name || user.email}`, pageHeight - 18, 8);
+    setColor([55, 65, 81]);
+    centerText('Powered by AV System Designer', pageHeight - 12, 7);
 
     // ==========================================
     // PAGE 2: SYSTEM OVERVIEW & LEGEND
