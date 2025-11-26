@@ -65,22 +65,33 @@ Deno.serve(async (req) => {
 
       case 'generateInstallationPackage': {
         // Generate AV installation package PDF using create-pdf-from-html endpoint
-        const { canvasProducts, connections, rooms, projectName, clientName, location, orgSettings } = params;
+        const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings } = params;
         
-        // Build HTML content for the PDF
-        const html = generateInstallationPackageHTML({
-          canvasProducts,
-          connections,
-          rooms,
-          projectName,
-          clientName,
-          location,
-          orgSettings,
-          generatedBy: user.full_name || user.email
+        console.log('generateInstallationPackage called with:', {
+          productsCount: canvasProducts?.length,
+          connectionsCount: connections?.length,
+          roomsCount: rooms?.length,
+          projectName
         });
 
-        console.log('Generated HTML length:', html.length);
-        console.log('HTML preview:', html.substring(0, 500));
+        // Build HTML content for the PDF
+        let html;
+        try {
+          html = generateInstallationPackageHTML({
+            canvasProducts: canvasProducts || [],
+            connections: connections || [],
+            rooms: rooms || [],
+            projectName: projectName || 'AV System Design',
+            clientName: clientName || '',
+            location: location || '',
+            orgSettings: orgSettings || {},
+            generatedBy: user.full_name || user.email
+          });
+          console.log('Generated HTML length:', html.length);
+        } catch (htmlError) {
+          console.error('HTML generation error:', htmlError);
+          return Response.json({ error: `HTML generation failed: ${htmlError.message}` }, { status: 500 });
+        }
 
         // Use create-pdf-from-html endpoint - body_html is the key field
         const requestBody = {
@@ -94,26 +105,36 @@ Deno.serve(async (req) => {
         };
 
         console.log('Sending request to APITemplate...');
+        console.log('API Key present:', !!API_KEY);
         
-        const response = await fetch('https://rest.apitemplate.io/v2/create-pdf-from-html?expiration=1440', {
-          method: 'POST',
-          headers: {
-            'X-API-KEY': API_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestBody)
-        });
+        try {
+          const response = await fetch('https://rest.apitemplate.io/v2/create-pdf-from-html?expiration=1440', {
+            method: 'POST',
+            headers: {
+              'X-API-KEY': API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          });
 
-        const responseText = await response.text();
-        console.log('APITemplate response status:', response.status);
-        console.log('APITemplate response:', responseText);
+          const responseText = await response.text();
+          console.log('APITemplate response status:', response.status);
+          console.log('APITemplate response:', responseText.substring(0, 500));
 
-        if (!response.ok) {
-          throw new Error(`APITemplate error: ${response.status} - ${responseText}`);
+          if (!response.ok) {
+            return Response.json({ 
+              error: `APITemplate error: ${response.status}`, 
+              details: responseText 
+            }, { status: 500 });
+          }
+
+          const result = JSON.parse(responseText);
+          console.log('Parsed result:', result);
+          return Response.json(result);
+        } catch (fetchError) {
+          console.error('Fetch error:', fetchError);
+          return Response.json({ error: `API request failed: ${fetchError.message}` }, { status: 500 });
         }
-
-        const result = JSON.parse(responseText);
-        return Response.json(result);
       }
 
       case 'generateDeviceLabel': {
