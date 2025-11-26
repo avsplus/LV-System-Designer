@@ -2176,9 +2176,32 @@ function AVCanvasContent() {
                                     clientName,
                                     location,
                                     orgSettings
-                                  }, { responseType: 'arraybuffer' });
+                                  });
 
-                                  const blob = new Blob([response.data], { type: 'application/pdf' });
+                                  // Handle the binary response properly
+                                  let pdfData = response.data;
+
+                                  // If response.data is a string (base64 or binary string), convert it
+                                  if (typeof pdfData === 'string') {
+                                    // Try to detect if it's base64
+                                    try {
+                                      const binaryString = atob(pdfData);
+                                      const bytes = new Uint8Array(binaryString.length);
+                                      for (let i = 0; i < binaryString.length; i++) {
+                                        bytes[i] = binaryString.charCodeAt(i);
+                                      }
+                                      pdfData = bytes;
+                                    } catch {
+                                      // Not base64, treat as binary string
+                                      const bytes = new Uint8Array(pdfData.length);
+                                      for (let i = 0; i < pdfData.length; i++) {
+                                        bytes[i] = pdfData.charCodeAt(i);
+                                      }
+                                      pdfData = bytes;
+                                    }
+                                  }
+
+                                  const blob = new Blob([pdfData], { type: 'application/pdf' });
                                   const url = window.URL.createObjectURL(blob);
                                   const a = document.createElement('a');
                                   a.href = url;
