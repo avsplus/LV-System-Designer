@@ -148,33 +148,95 @@ function drawPageHeader(doc, title, subtitle, y = theme.page.marginY) {
   return y + 22;
 }
 
+// Draw a category-specific icon shape
+function drawCategoryIcon(doc, cx, cy, category, size = 10) {
+  const catColor = getCategoryColor(category);
+  setFill(doc, catColor);
+  setDraw(doc, catColor);
+
+  const halfSize = size / 2;
+
+  switch(category) {
+    case 'televisions':
+      // TV shape - rectangle with stand
+      doc.roundedRect(cx - halfSize, cy - halfSize * 0.7, size, size * 0.7, 1, 1, 'F');
+      doc.rect(cx - 1, cy + halfSize * 0.1, 2, 2, 'F');
+      doc.rect(cx - halfSize * 0.6, cy + halfSize * 0.5, size * 0.6, 1, 'F');
+      break;
+    case 'projectors':
+      // Projector - lens circle with body
+      doc.roundedRect(cx - halfSize, cy - halfSize * 0.5, size, size * 0.6, 1, 1, 'F');
+      setFill(doc, theme.colors.white);
+      doc.circle(cx - halfSize * 0.3, cy, halfSize * 0.4, 'F');
+      setFill(doc, catColor);
+      doc.circle(cx - halfSize * 0.3, cy, halfSize * 0.2, 'F');
+      break;
+    case 'speakers':
+      // Speaker cone
+      doc.roundedRect(cx - halfSize * 0.8, cy - halfSize, size * 0.8, size, 2, 2, 'F');
+      setFill(doc, theme.colors.white);
+      doc.circle(cx, cy - halfSize * 0.3, halfSize * 0.3, 'F');
+      doc.circle(cx, cy + halfSize * 0.4, halfSize * 0.5, 'F');
+      break;
+    case 'av_receivers':
+      // Receiver - rectangle with knobs
+      doc.roundedRect(cx - halfSize, cy - halfSize * 0.4, size, size * 0.5, 1, 1, 'F');
+      setFill(doc, theme.colors.white);
+      doc.circle(cx - halfSize * 0.5, cy, 1.5, 'F');
+      doc.circle(cx + halfSize * 0.5, cy, 1.5, 'F');
+      break;
+    case 'media_streamers':
+      // Play button triangle
+      doc.circle(cx, cy, halfSize, 'F');
+      setFill(doc, theme.colors.white);
+      doc.triangle(cx - 2, cy - 3, cx - 2, cy + 3, cx + 3, cy, 'F');
+      break;
+    case 'network_switches':
+      // Network icon - square with dots
+      doc.roundedRect(cx - halfSize, cy - halfSize * 0.5, size, size * 0.5, 1, 1, 'F');
+      setFill(doc, theme.colors.white);
+      for (let i = 0; i < 4; i++) {
+        doc.circle(cx - halfSize * 0.6 + i * 3, cy, 0.8, 'F');
+      }
+      break;
+    case 'subwoofers':
+      // Subwoofer - square with big cone
+      doc.roundedRect(cx - halfSize, cy - halfSize, size, size, 2, 2, 'F');
+      setFill(doc, theme.colors.white);
+      doc.circle(cx, cy, halfSize * 0.7, 'F');
+      setFill(doc, catColor);
+      doc.circle(cx, cy, halfSize * 0.3, 'F');
+      break;
+    default:
+      // Default circle with text
+      doc.circle(cx, cy, halfSize, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(6);
+      const iconText = categoryTextIcons[category] || 'DV';
+      doc.text(iconText, cx, cy + 1.5, { align: 'center' });
+  }
+}
+
 function drawDeviceCard(doc, x, y, device, connections) {
-  const { cardWidth, cardHeight, cardRadius, cardPaddingX, cardPaddingY, topBarHeight } = theme.layout;
-  const categoryColor = getCategoryColor(device.product.category);
-  
-  // Card background
-  setFill(doc, theme.colors.cardBg);
-  setDraw(doc, theme.colors.border);
-  doc.roundedRect(x, y, cardWidth, cardHeight, cardRadius, cardRadius, 'FD');
-  
-  // Top accent bar
-  setFill(doc, categoryColor);
-  doc.roundedRect(x, y, cardWidth, topBarHeight, cardRadius, cardRadius, 'F');
-  doc.rect(x, y + topBarHeight - 1, cardWidth, 1, 'F');
-  
-  // Category icon circle
-  const circleRadius = 5;
-  const circleCx = x + cardPaddingX + circleRadius;
-  const circleCy = y + topBarHeight + cardPaddingY + circleRadius;
-  
-  setFill(doc, categoryColor);
-  doc.circle(circleCx, circleCy, circleRadius, 'F');
-  
-  setColor(doc, theme.colors.white);
-  doc.setFont(undefined, 'bold');
-  doc.setFontSize(theme.fonts.tiny);
-  const iconText = categoryIcons[device.product.category] || 'DV';
-  doc.text(iconText, circleCx, circleCy + 1.5, { align: 'center' });
+    const { cardWidth, cardHeight, cardRadius, cardPaddingX, cardPaddingY, topBarHeight } = theme.layout;
+    const categoryColor = getCategoryColor(device.product.category);
+
+    // Card background
+    setFill(doc, theme.colors.cardBg);
+    setDraw(doc, theme.colors.border);
+    doc.roundedRect(x, y, cardWidth, cardHeight, cardRadius, cardRadius, 'FD');
+
+    // Top accent bar
+    setFill(doc, categoryColor);
+    doc.roundedRect(x, y, cardWidth, topBarHeight, cardRadius, cardRadius, 'F');
+    doc.rect(x, y + topBarHeight - 1, cardWidth, 1, 'F');
+
+    // Category icon
+    const iconCx = x + cardPaddingX + 6;
+    const iconCy = y + topBarHeight + cardPaddingY + 6;
+
+    drawCategoryIcon(doc, iconCx, iconCy, device.product.category, 12);
   
   // Device name
   const titleX = circleCx + circleRadius + 3;
