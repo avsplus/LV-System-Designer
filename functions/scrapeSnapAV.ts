@@ -9,17 +9,39 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Parse request body for category filter
+        let selectedCategory = null;
+        try {
+            const body = await req.json();
+            selectedCategory = body.category || null;
+        } catch (e) {
+            // No body or invalid JSON, import all categories
+        }
+
         // Fetch existing products to avoid duplicates
         const existingProducts = await base44.asServiceRole.entities.AVProduct.list();
         const existingKeys = new Set(existingProducts.map(p => `${p.brand.toLowerCase()}-${p.model.toLowerCase()}`));
 
+        // All valid categories
+        const allCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "control_processors", "hdmi_extenders"];
+        
+        // Determine which categories to import
+        const categoriesToImport = selectedCategory && selectedCategory !== 'all' 
+            ? [selectedCategory] 
+            : allCategories;
+
+        const categoryList = categoriesToImport.join(', ');
+        const productCount = selectedCategory && selectedCategory !== 'all' ? 10 : 34;
+
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find 30 popular professional AV products (2 per category) across: televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, control_processors.
+            prompt: `Find ${productCount} popular professional AV products across these categories: ${categoryList}.
 
-Brands: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul.
+Brands: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary.
 
-For each: brand, model, category, description (short), price in USD.`,
+For hdmi_extenders category: include HDBaseT extender kits, AVoIP encoders/decoders, HDMI over Cat6 kits.
+
+For each: brand, model, category (use exact category name from the list), description (short), price in USD.`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",
@@ -46,7 +68,7 @@ For each: brand, model, category, description (short), price in USD.`,
         const products = response.products || [];
 
         // Normalize category names and filter out duplicates
-        const validCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "control_processors"];
+        const validCategories = allCategories;
         
         // Normalize any category format to snake_case
         const normalizeCategory = (cat) => {
@@ -80,7 +102,13 @@ For each: brand, model, category, description (short), price in USD.`,
                 "surround_processors": "surround_processors",
                 "surroundprocessors": "surround_processors",
                 "control_processors": "control_processors",
-                "controlprocessors": "control_processors"
+                "controlprocessors": "control_processors",
+                "hdmi_extenders": "hdmi_extenders",
+                "hdmiextenders": "hdmi_extenders",
+                "hdmi_extender": "hdmi_extenders",
+                "hdbasetext": "hdmi_extenders",
+                "hdbaset_extenders": "hdmi_extenders",
+                "avoip": "hdmi_extenders"
             };
             
             return categoryMapping[normalized] || normalized;
