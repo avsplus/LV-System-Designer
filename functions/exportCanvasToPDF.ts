@@ -83,8 +83,17 @@ const theme = {
   }
 };
 
-// Category icons (2-letter abbreviations)
+// Category icons (emoji-style symbols for PDF)
 const categoryIcons = {
+  televisions: '📺', projectors: '📽', projector_screens: '🖼',
+  video_distribution: '🔀', matrix_switchers: '⊞', audio_streamers: '🎵',
+  media_streamers: '▶', speakers: '🔊', soundbars: '🔉', subwoofers: '🔈',
+  stereo_amps: '🎛', multizone_amps: '🎚', surround_processors: '🎬',
+  av_receivers: '📻', network_switches: '🌐', control_processors: '⚙'
+};
+
+// Simple text icons as fallback (jsPDF doesn't render emojis well)
+const categoryTextIcons = {
   televisions: 'TV', projectors: 'PJ', projector_screens: 'SC',
   video_distribution: 'VD', matrix_switchers: 'MX', audio_streamers: 'AS',
   media_streamers: 'MS', speakers: 'SP', soundbars: 'SB', subwoofers: 'SW',
@@ -345,108 +354,279 @@ Deno.serve(async (req) => {
       return Response.json({ pdf: pdfBase64 });
     }
 
-    if (action === 'generateRoomDiagram') {
-      const { room, devices = [], connections: roomConnections = [] } = requestData;
-      if (!room) {
-        return Response.json({ error: 'Room name required' }, { status: 400 });
+    if (action === 'generateWireSchedule') {
+      const { canvasProducts: devices = [], connections: conns = [], projectName: pName, clientName: cName } = requestData;
+
+      if (!conns || conns.length === 0) {
+        return Response.json({ error: 'No connections to export' }, { status: 400 });
       }
-      if (!devices || devices.length === 0) {
-        return Response.json({ error: 'No devices in room' }, { status: 400 });
-      }
-      
+
       const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
       const pageWidth = 297;
       const pageHeight = 210;
       const margin = 15;
-      
+
       // Header
-      setFill(doc, theme.colors.accent);
-      doc.rect(0, 0, pageWidth, 25, 'F');
+      setFill(doc, theme.colors.dark);
+      doc.rect(0, 0, pageWidth, 30, 'F');
       setColor(doc, theme.colors.white);
       doc.setFont(undefined, 'bold');
-      doc.setFontSize(18);
-      doc.text(room, margin, 17);
+      doc.setFontSize(20);
+      doc.text('Wire Schedule', margin, 20);
+      setColor(doc, theme.colors.muted);
       doc.setFontSize(10);
-      doc.text(`${devices.length} Devices`, pageWidth - margin, 17, { align: 'right' });
-      
-      // Device boxes in a grid
-      const boxWidth = 60;
-      const boxHeight = 40;
-      const cols = Math.min(4, devices.length);
-      const startX = (pageWidth - (cols * (boxWidth + 15) - 15)) / 2;
-      let y = 40;
-      
-      devices.forEach((device, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const x = startX + col * (boxWidth + 15);
-        const boxY = y + row * (boxHeight + 20);
-        
-        if (boxY + boxHeight > pageHeight - 20) return;
-        
-        const catColor = getCategoryColor(device.product?.category);
-        
-        // Device box
-        setFill(doc, [248, 250, 252]);
-        setDraw(doc, catColor);
-        doc.setLineWidth(1);
-        doc.roundedRect(x, boxY, boxWidth, boxHeight, 3, 3, 'FD');
-        
-        // Top accent
-        setFill(doc, catColor);
-        doc.roundedRect(x, boxY, boxWidth, 4, 3, 3, 'F');
-        doc.rect(x, boxY + 2, boxWidth, 2, 'F');
-        
-        // Device name
-        setColor(doc, theme.colors.dark);
-        doc.setFont(undefined, 'bold');
-        doc.setFontSize(9);
-        doc.text(truncate(device.label || device.product?.brand || 'Device', 18), x + 5, boxY + 14);
-        
-        // Model
-        setColor(doc, theme.colors.muted);
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(7);
-        doc.text(truncate(device.product?.model || '', 20), x + 5, boxY + 22);
-        
-        // IP if available
-        if (device.networkInfo?.ip && device.networkInfo.ip !== '000.000.000.000') {
-          doc.setFontSize(6);
-          doc.text(device.networkInfo.ip, x + 5, boxY + 30);
-        }
-        
-        // Connection count
-        const deviceConns = roomConnections.filter(c => c.from === device.instanceId || c.to === device.instanceId);
-        if (deviceConns.length > 0) {
-          setFill(doc, catColor);
-          doc.circle(x + boxWidth - 8, boxY + boxHeight - 8, 5, 'F');
+      doc.text(pName || 'AV System', pageWidth - margin, 15, { align: 'right' });
+      if (cName) {
+        doc.text(cName, pageWidth - margin, 22, { align: 'right' });
+      }
+
+      let y = 45;
+
+      // Table header
+      const colWidths = [25, 55, 35, 55, 35, 30, 35];
+      const headers = ['Wire ID', 'From Device', 'From Port', 'To Device', 'To Port', 'Type', 'Rooms'];
+
+      setFill(doc, [31, 41, 55]);
+      doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(8);
+
+      let xPos = margin + 3;
+      headers.forEach((header, i) => {
+        doc.text(header, xPos, y);
+        xPos += colWidths[i];
+      });
+
+      y += 8;
+
+      // Table rows
+      conns.forEach((conn, i) => {
+        if (y > pageHeight - 20) {
+          doc.addPage();
+          y = 25;
+
+          // Redraw header on new page
+          setFill(doc, [31, 41, 55]);
+          doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
           setColor(doc, theme.colors.white);
-          doc.setFontSize(7);
           doc.setFont(undefined, 'bold');
-          doc.text(deviceConns.length.toString(), x + boxWidth - 8, boxY + boxHeight - 6, { align: 'center' });
+          doc.setFontSize(8);
+          xPos = margin + 3;
+          headers.forEach((header, j) => {
+            doc.text(header, xPos, y);
+            xPos += colWidths[j];
+          });
+          y += 8;
+        }
+
+        const fromDevice = devices.find(d => d.instanceId === conn.from);
+        const toDevice = devices.find(d => d.instanceId === conn.to);
+
+        // Zebra striping
+        if (i % 2 === 0) {
+          setFill(doc, [249, 250, 251]);
+          doc.rect(margin, y - 4, pageWidth - margin * 2, 8, 'F');
+        }
+
+        xPos = margin + 3;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+
+        // Wire ID badge
+        const cableColor = getCableColor(conn.type);
+        setFill(doc, cableColor);
+        doc.roundedRect(xPos, y - 3, 18, 6, 1, 1, 'F');
+        setColor(doc, theme.colors.white);
+        doc.setFont(undefined, 'bold');
+        doc.text(conn.wireId || `W${i + 1}`, xPos + 2, y + 1);
+        xPos += colWidths[0];
+
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'normal');
+        doc.text(truncate(fromDevice?.label || fromDevice?.product?.brand || 'Unknown', 20), xPos, y + 1);
+        xPos += colWidths[1];
+        doc.text(truncate(conn.fromPort || '-', 12), xPos, y + 1);
+        xPos += colWidths[2];
+        doc.text(truncate(toDevice?.label || toDevice?.product?.brand || 'Unknown', 20), xPos, y + 1);
+        xPos += colWidths[3];
+        doc.text(truncate(conn.toPort || '-', 12), xPos, y + 1);
+        xPos += colWidths[4];
+        setColor(doc, cableColor);
+        doc.text(truncate(conn.type || '-', 10), xPos, y + 1);
+        xPos += colWidths[5];
+        setColor(doc, theme.colors.muted);
+        const rooms = [fromDevice?.room, toDevice?.room].filter(Boolean);
+        doc.text(truncate([...new Set(rooms)].join(' → ') || '-', 12), xPos, y + 1);
+
+        y += 8;
+      });
+
+      // Footer
+      setColor(doc, theme.colors.muted);
+      doc.setFontSize(8);
+      doc.text(`Generated ${new Date().toLocaleDateString()} | ${conns.length} connections`, margin, pageHeight - 10);
+
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      return Response.json({ pdf: pdfBase64 });
+    }
+
+    if (action === 'generateBOM') {
+      const { canvasProducts: devices = [], projectName: pName, clientName: cName } = requestData;
+
+      if (!devices || devices.length === 0) {
+        return Response.json({ error: 'No devices to export' }, { status: 400 });
+      }
+
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+
+      // Header
+      setFill(doc, theme.colors.dark);
+      doc.rect(0, 0, pageWidth, 30, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(20);
+      doc.text('Bill of Materials', margin, 20);
+      setColor(doc, theme.colors.muted);
+      doc.setFontSize(10);
+      doc.text(pName || 'AV System', pageWidth - margin, 15, { align: 'right' });
+      if (cName) {
+        doc.text(cName, pageWidth - margin, 22, { align: 'right' });
+      }
+
+      let y = 45;
+
+      // Group by brand+model for quantity count
+      const grouped = {};
+      devices.forEach(d => {
+        const key = `${d.product?.brand || 'Unknown'}|${d.product?.model || 'Unknown'}|${d.product?.category || ''}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            brand: d.product?.brand || 'Unknown',
+            model: d.product?.model || 'Unknown',
+            category: d.product?.category || '',
+            price: d.product?.price || 0,
+            quantity: 0,
+            rooms: []
+          };
+        }
+        grouped[key].quantity++;
+        if (d.room && !grouped[key].rooms.includes(d.room)) {
+          grouped[key].rooms.push(d.room);
         }
       });
-      
-      // Connection legend at bottom
-      const connTypes = [...new Set(roomConnections.map(c => c.type))];
-      if (connTypes.length > 0) {
-        const legendY = pageHeight - 20;
-        setColor(doc, theme.colors.muted);
-        doc.setFontSize(8);
-        doc.text('Connection Types:', margin, legendY);
-        
-        let legendX = margin + 35;
-        connTypes.forEach(type => {
-          const color = getCableColor(type);
-          setFill(doc, color);
-          doc.roundedRect(legendX, legendY - 4, 15, 6, 1, 1, 'F');
+
+      const items = Object.values(grouped);
+
+      // Table header
+      const colWidths = [50, 45, 35, 15, 20, 25];
+      const headers = ['Brand / Model', 'Category', 'Rooms', 'Qty', 'Unit $', 'Total $'];
+
+      setFill(doc, [31, 41, 55]);
+      doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(8);
+
+      let xPos = margin + 3;
+      headers.forEach((header, i) => {
+        doc.text(header, xPos, y);
+        xPos += colWidths[i];
+      });
+
+      y += 10;
+
+      let grandTotal = 0;
+
+      // Table rows
+      items.forEach((item, i) => {
+        if (y > pageHeight - 30) {
+          doc.addPage();
+          y = 25;
+
+          // Redraw header
+          setFill(doc, [31, 41, 55]);
+          doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
           setColor(doc, theme.colors.white);
-          doc.setFontSize(6);
-          doc.text(type.substring(0, 4), legendX + 2, legendY);
-          legendX += 20;
-        });
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8);
+          xPos = margin + 3;
+          headers.forEach((header, j) => {
+            doc.text(header, xPos, y);
+            xPos += colWidths[j];
+          });
+          y += 10;
+        }
+
+        // Zebra striping
+        if (i % 2 === 0) {
+          setFill(doc, [249, 250, 251]);
+          doc.rect(margin, y - 5, pageWidth - margin * 2, 10, 'F');
+        }
+
+        const catColor = getCategoryColor(item.category);
+        const lineTotal = item.price * item.quantity;
+        grandTotal += lineTotal;
+
+        xPos = margin + 3;
+
+        // Category color dot
+        setFill(doc, catColor);
+        doc.circle(xPos + 2, y, 2, 'F');
+
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(8);
+        doc.text(truncate(item.brand, 18), xPos + 6, y - 1);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
+        setColor(doc, theme.colors.muted);
+        doc.text(truncate(item.model, 20), xPos + 6, y + 4);
+        xPos += colWidths[0];
+
+        doc.setFontSize(7);
+        doc.text(truncate(item.category.replace(/_/g, ' '), 16), xPos, y + 1);
+        xPos += colWidths[1];
+
+        doc.text(truncate(item.rooms.join(', ') || '-', 14), xPos, y + 1);
+        xPos += colWidths[2];
+
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.text(item.quantity.toString(), xPos + 4, y + 1);
+        xPos += colWidths[3];
+
+        doc.setFont(undefined, 'normal');
+        doc.text(item.price ? `$${item.price.toFixed(0)}` : '-', xPos, y + 1);
+        xPos += colWidths[4];
+
+        doc.text(lineTotal ? `$${lineTotal.toFixed(0)}` : '-', xPos, y + 1);
+
+        y += 10;
+      });
+
+      // Total row
+      y += 5;
+      setFill(doc, theme.colors.dark);
+      doc.rect(margin, y - 5, pageWidth - margin * 2, 10, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(10);
+      doc.text('TOTAL', margin + 5, y + 1);
+      doc.text(`${devices.length} devices`, margin + 120, y + 1);
+      if (grandTotal > 0) {
+        doc.text(`$${grandTotal.toFixed(2)}`, pageWidth - margin - 5, y + 1, { align: 'right' });
       }
-      
+
+      // Footer
+      setColor(doc, theme.colors.muted);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Generated ${new Date().toLocaleDateString()}`, margin, pageHeight - 10);
+
       const pdfBase64 = doc.output('datauristring').split(',')[1];
       return Response.json({ pdf: pdfBase64 });
     }
