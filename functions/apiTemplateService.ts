@@ -286,18 +286,36 @@ Deno.serve(async (req) => {
 
       case 'generateRoomDiagram': {
         // Generate room diagram as image
-        const { room, devices, connections } = params;
+        const { room, devices = [], connections: roomConnections = [] } = params;
         
-        const html = generateRoomDiagramHTML(room, devices, connections);
-        
-        const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
-          body_html: html,
-          image_type: 'png',
-          width: 1200,
-          height: 800
+        console.log('generateRoomDiagram called with:', {
+          room,
+          devicesCount: devices?.length,
+          connectionsCount: roomConnections?.length
         });
 
-        return Response.json(result);
+        if (!room) {
+          return Response.json({ error: 'Room name is required' }, { status: 400 });
+        }
+
+        if (!devices || devices.length === 0) {
+          return Response.json({ error: 'No devices in this room' }, { status: 400 });
+        }
+        
+        const html = generateRoomDiagramHTML(room, devices, roomConnections);
+        
+        try {
+          const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
+            body_html: html,
+            image_type: 'png',
+            width: 1200,
+            height: 800
+          });
+          return Response.json(result);
+        } catch (error) {
+          console.error('Room diagram generation error:', error);
+          return Response.json({ error: error.message }, { status: 500 });
+        }
       }
 
       default:
