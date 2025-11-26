@@ -64,8 +64,9 @@ Deno.serve(async (req) => {
       // ==========================================
 
       case 'generateInstallationPackage': {
-        // Generate AV installation package PDF using create-pdf-from-html endpoint
+        // Generate AV installation package PDF using template ID
         const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings } = params;
+        const TEMPLATE_ID = 'c0377b23582ce40c';
         
         console.log('generateInstallationPackage called with:', {
           productsCount: canvasProducts?.length,
@@ -74,47 +75,81 @@ Deno.serve(async (req) => {
           projectName
         });
 
-        // Build HTML content for the PDF
-        let html;
-        try {
-          html = generateInstallationPackageHTML({
-            canvasProducts: canvasProducts || [],
-            connections: connections || [],
-            rooms: rooms || [],
-            projectName: projectName || 'AV System Design',
-            clientName: clientName || '',
-            location: location || '',
-            orgSettings: orgSettings || {},
-            generatedBy: user.full_name || user.email
-          });
-          console.log('Generated HTML length:', html.length);
-        } catch (htmlError) {
-          console.error('HTML generation error:', htmlError);
-          return Response.json({ error: `HTML generation failed: ${htmlError.message}` }, { status: 500 });
-        }
+        // Build template data
+        const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
+        if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
-        // Use create-pdf-from-html endpoint - body_html is the key field
-        const requestBody = {
-          body_html: html,
-          page_size: 'A4',
-          orientation: '1',
-          margin_top: 10,
-          margin_bottom: 10,
-          margin_left: 10,
-          margin_right: 10
+        // Build devices list for template
+        const devicesList = canvasProducts.map(cp => {
+          const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
+          return {
+            label: cp.label || cp.product?.brand || 'Device',
+            brand: cp.product?.brand || '',
+            model: cp.product?.model || '',
+            category: (cp.product?.category || '').replace(/_/g, ' '),
+            room: cp.room || 'Unassigned',
+            ip: cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-',
+            mac: cp.networkInfo?.mac && cp.networkInfo.mac !== '00:00:00:00:00:00' ? cp.networkInfo.mac : '-',
+            connections_count: deviceConnections.length
+          };
+        });
+
+        // Build cable schedule for template
+        const cableSchedule = connections.map((conn, i) => {
+          const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+          const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+          return {
+            wire_id: conn.wireId || `C${i + 1}`,
+            from_device: fromDevice?.label || fromDevice?.product?.brand || 'Unknown',
+            from_port: conn.fromPort || '-',
+            to_device: toDevice?.label || toDevice?.product?.brand || 'Unknown',
+            to_port: conn.toPort || '-',
+            type: conn.type || '-'
+          };
+        });
+
+        // Build rooms data for template
+        const roomsData = uniqueRooms.map(room => {
+          const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+          return {
+            name: room,
+            device_count: roomDevices.length,
+            devices: roomDevices.map(cp => ({
+              label: cp.label || cp.product?.brand || 'Device',
+              brand: cp.product?.brand || '',
+              model: cp.product?.model || '',
+              ip: cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : ''
+            }))
+          };
+        });
+
+        // Template data payload
+        const templateData = {
+          project_name: projectName || 'AV System Design',
+          client_name: clientName || '',
+          location: location || '',
+          date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          generated_by: user.full_name || user.email,
+          total_devices: canvasProducts.length,
+          total_connections: connections.length,
+          total_rooms: uniqueRooms.length,
+          logo_url: orgSettings?.logo_url || '',
+          devices: devicesList,
+          cables: cableSchedule,
+          rooms: roomsData
         };
 
-        console.log('Sending request to APITemplate...');
-        console.log('API Key present:', !!API_KEY);
+        console.log('Sending request to APITemplate with template ID:', TEMPLATE_ID);
+        console.log('Template data:', JSON.stringify(templateData).substring(0, 500));
         
         try {
-          const response = await fetch('https://rest.apitemplate.io/v2/create-pdf-from-html?expiration=1440', {
+          const response = await fetch(`https://rest.apitemplate.io/v2/create-pdf?template_id=${TEMPLATE_ID}&expiration=1440`, {
             method: 'POST',
             headers: {
               'X-API-KEY': API_KEY,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(templateData)
           });
 
           const responseText = await response.text();
