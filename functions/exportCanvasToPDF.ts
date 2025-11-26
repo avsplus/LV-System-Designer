@@ -105,8 +105,10 @@ const getCategoryColor = (category) =>
 const getCableColor = (type) => 
   theme.colors.cables[type] || theme.colors.muted;
 
-const truncate = (str, maxLen) => 
+const truncateText = (str, maxLen) => 
   str && str.length > maxLen ? str.substring(0, maxLen - 1) + '..' : (str || '');
+
+const truncate = truncateText;
 
 const centerText = (doc, text, y, fontSize) => {
   doc.setFontSize(fontSize);
