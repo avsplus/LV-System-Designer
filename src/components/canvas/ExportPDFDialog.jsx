@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, Loader2, Image, Tag, Layers } from "lucide-react";
+import { FileText, Download, Loader2, Cable, Package } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,8 +31,8 @@ export default function ExportPDFDialog({
   isExporting,
   exportEngine = 'jspdf', // 'jspdf' or 'apitemplate'
   onExportEngineChange,
-  onGenerateLabels,
-  onGenerateRoomDiagram,
+  onGenerateWireSchedule,
+  onGenerateBOM,
   canvasProducts = [],
   connections = [],
   rooms = []
@@ -40,41 +40,18 @@ export default function ExportPDFDialog({
   const [clientName, setClientName] = useState('');
   const [location, setLocation] = useState('');
   const [selectedTab, setSelectedTab] = useState('pdf');
-  const [labelType, setLabelType] = useState('device');
-  const [selectedDevice, setSelectedDevice] = useState('');
-  const [selectedConnection, setSelectedConnection] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState('');
 
   const handleExport = () => {
     onExport({ clientName, location, engine: exportEngine });
   };
 
-  const handleGenerateLabel = () => {
-    if (labelType === 'device' && selectedDevice) {
-      const device = canvasProducts.find(cp => cp.instanceId === selectedDevice);
-      onGenerateLabels?.({ type: 'device', device });
-    } else if (labelType === 'cable' && selectedConnection) {
-      const conn = connections[parseInt(selectedConnection)];
-      const fromDevice = canvasProducts.find(cp => cp.instanceId === conn?.from);
-      const toDevice = canvasProducts.find(cp => cp.instanceId === conn?.to);
-      onGenerateLabels?.({ type: 'cable', connection: conn, fromDevice, toDevice });
-    }
+  const handleGenerateWireSchedule = () => {
+    onGenerateWireSchedule?.({ canvasProducts, connections, projectName, clientName });
   };
 
-  const handleGenerateRoomDiagram = () => {
-    if (selectedRoom) {
-      const roomDevices = canvasProducts.filter(cp => cp.room === selectedRoom);
-      const roomConns = connections.filter(c => {
-        const from = canvasProducts.find(cp => cp.instanceId === c.from);
-        const to = canvasProducts.find(cp => cp.instanceId === c.to);
-        return from?.room === selectedRoom || to?.room === selectedRoom;
-      });
-      console.log('Generating room diagram:', { room: selectedRoom, devices: roomDevices.length, connections: roomConns.length });
-      onGenerateRoomDiagram?.({ room: selectedRoom, devices: roomDevices, connections: roomConns });
-    }
+  const handleGenerateBOM = () => {
+    onGenerateBOM?.({ canvasProducts, connections, projectName, clientName });
   };
-
-  const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -91,11 +68,11 @@ export default function ExportPDFDialog({
             <TabsTrigger value="pdf" className="data-[state=active]:bg-blue-600">
               <FileText className="w-4 h-4 mr-1" /> PDF
             </TabsTrigger>
-            <TabsTrigger value="labels" className="data-[state=active]:bg-blue-600">
-              <Tag className="w-4 h-4 mr-1" /> Labels
+            <TabsTrigger value="wireschedulse" className="data-[state=active]:bg-blue-600">
+              <Cable className="w-4 h-4 mr-1" /> Wire Schedule
             </TabsTrigger>
-            <TabsTrigger value="diagrams" className="data-[state=active]:bg-blue-600">
-              <Layers className="w-4 h-4 mr-1" /> Diagrams
+            <TabsTrigger value="bom" className="data-[state=active]:bg-blue-600">
+              <Package className="w-4 h-4 mr-1" /> BOM
             </TabsTrigger>
           </TabsList>
 
@@ -188,71 +165,25 @@ export default function ExportPDFDialog({
             </div>
           </TabsContent>
 
-          {/* Labels Tab */}
-          <TabsContent value="labels" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label className="text-gray-300">Label Type</Label>
-              <Select value={labelType} onValueChange={setLabelType}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="device" className="text-white">Device Label</SelectItem>
-                  <SelectItem value="cable" className="text-white">Cable Label</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Wire Schedule Tab */}
+          <TabsContent value="wireschedulse" className="space-y-4 mt-4">
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <p className="text-sm text-gray-400 mb-1">Total Connections</p>
+              <p className="text-white font-medium text-2xl">{connections.length}</p>
             </div>
-
-            {labelType === 'device' && (
-              <div className="space-y-2">
-                <Label className="text-gray-300">Select Device</Label>
-                <Select value={selectedDevice} onValueChange={setSelectedDevice}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                    <SelectValue placeholder="Choose a device..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
-                    {canvasProducts.map(cp => (
-                      <SelectItem key={cp.instanceId} value={cp.instanceId} className="text-white">
-                        {cp.label || cp.product.brand} - {cp.product.model}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {labelType === 'cable' && (
-              <div className="space-y-2">
-                <Label className="text-gray-300">Select Connection</Label>
-                <Select value={selectedConnection} onValueChange={setSelectedConnection}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                    <SelectValue placeholder="Choose a connection..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
-                    {connections.map((conn, i) => {
-                      const from = canvasProducts.find(cp => cp.instanceId === conn.from);
-                      const to = canvasProducts.find(cp => cp.instanceId === conn.to);
-                      return (
-                        <SelectItem key={i} value={i.toString()} className="text-white">
-                          {conn.wireId || `C${i+1}`}: {from?.label || 'Unknown'} → {to?.label || 'Unknown'}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
               <p className="text-purple-400 text-sm font-medium mb-1">
-                <Image className="w-4 h-4 inline mr-1" />
-                Label Output:
+                <Cable className="w-4 h-4 inline mr-1" />
+                Wire Schedule Contents:
               </p>
-              <p className="text-xs text-gray-400">
-                {labelType === 'device' 
-                  ? 'Generates a printable device label with name, model, room, and network info.'
-                  : 'Generates a cable label with wire ID, route, and connection type.'}
-              </p>
+              <ul className="text-xs text-gray-400 space-y-1">
+                <li>• Cable ID / Wire ID</li>
+                <li>• Source device and port</li>
+                <li>• Destination device and port</li>
+                <li>• Connection type (HDMI, Ethernet, etc.)</li>
+                <li>• Room locations</li>
+              </ul>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -264,9 +195,9 @@ export default function ExportPDFDialog({
                 Cancel
               </Button>
               <Button
-                onClick={handleGenerateLabel}
+                onClick={handleGenerateWireSchedule}
                 className="bg-purple-600 hover:bg-purple-700"
-                disabled={isExporting || (labelType === 'device' ? !selectedDevice : !selectedConnection)}
+                disabled={isExporting || connections.length === 0}
               >
                 {isExporting ? (
                   <>
@@ -275,40 +206,33 @@ export default function ExportPDFDialog({
                   </>
                 ) : (
                   <>
-                    <Image className="w-4 h-4 mr-2" />
-                    Generate Label
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Wire Schedule
                   </>
                 )}
               </Button>
             </div>
           </TabsContent>
 
-          {/* Diagrams Tab */}
-          <TabsContent value="diagrams" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label className="text-gray-300">Select Room</Label>
-              <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Choose a room..." />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  {uniqueRooms.map(room => (
-                    <SelectItem key={room} value={room} className="text-white">
-                      {room} ({canvasProducts.filter(cp => cp.room === room).length} devices)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* BOM Tab */}
+          <TabsContent value="bom" className="space-y-4 mt-4">
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <p className="text-sm text-gray-400 mb-1">Total Devices</p>
+              <p className="text-white font-medium text-2xl">{canvasProducts.length}</p>
             </div>
 
             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
               <p className="text-green-400 text-sm font-medium mb-1">
-                <Layers className="w-4 h-4 inline mr-1" />
-                Room Diagram:
+                <Package className="w-4 h-4 inline mr-1" />
+                Bill of Materials Contents:
               </p>
-              <p className="text-xs text-gray-400">
-                Generates a visual diagram showing all devices in the selected room with their connections.
-              </p>
+              <ul className="text-xs text-gray-400 space-y-1">
+                <li>• Device brand and model</li>
+                <li>• Category</li>
+                <li>• Quantity per model</li>
+                <li>• Room assignments</li>
+                <li>• Unit price and total (if available)</li>
+              </ul>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -320,9 +244,9 @@ export default function ExportPDFDialog({
                 Cancel
               </Button>
               <Button
-                onClick={handleGenerateRoomDiagram}
+                onClick={handleGenerateBOM}
                 className="bg-green-600 hover:bg-green-700"
-                disabled={isExporting || !selectedRoom}
+                disabled={isExporting || canvasProducts.length === 0}
               >
                 {isExporting ? (
                   <>
@@ -331,8 +255,8 @@ export default function ExportPDFDialog({
                   </>
                 ) : (
                   <>
-                    <Image className="w-4 h-4 mr-2" />
-                    Generate Diagram
+                    <Download className="w-4 h-4 mr-2" />
+                    Export BOM
                   </>
                 )}
               </Button>
