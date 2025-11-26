@@ -2244,7 +2244,8 @@ function AVCanvasContent() {
                       canvasProducts: devices,
                       connections: conns,
                       projectName: pName || currentProject?.name,
-                      clientName: cName
+                      clientName: cName,
+                      orgSettings
                     });
 
                     const base64 = response.data.pdf;
@@ -2278,7 +2279,8 @@ function AVCanvasContent() {
                       canvasProducts: devices,
                       connections: conns,
                       projectName: pName || currentProject?.name,
-                      clientName: cName
+                      clientName: cName,
+                      orgSettings
                     });
 
                     const base64 = response.data.pdf;
