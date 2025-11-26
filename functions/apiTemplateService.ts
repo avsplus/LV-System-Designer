@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       // ==========================================
 
       case 'generateInstallationPackage': {
-        // Generate AV installation package PDF using create-pdf endpoint with HTML body
+        // Generate AV installation package PDF using create-pdf-from-html endpoint
         const { canvasProducts, connections, rooms, projectName, clientName, location, orgSettings } = params;
         
         // Build HTML content for the PDF
@@ -81,16 +81,15 @@ Deno.serve(async (req) => {
 
         console.log('Generated HTML length:', html.length);
 
-        // Use create-pdf with body_html parameter
-        const result = await apiRequest('/v2/create-pdf', 'POST', {
+        // Use create-pdf-from-html endpoint
+        const result = await apiRequest('/v2/create-pdf-from-html?expiration=1440', 'POST', {
           body_html: html,
           page_size: 'A4',
-          orientation: '1', // portrait
+          orientation: '1',
           margin_top: 10,
           margin_bottom: 10,
           margin_left: 10,
-          margin_right: 10,
-          expiration: 1440
+          margin_right: 10
         });
 
         console.log('APITemplate result:', result);
