@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -432,10 +431,28 @@ Deno.serve(async (req) => {
       // Header
       setFill(doc, theme.colors.dark);
       doc.rect(0, 0, pageWidth, 30, 'F');
+
+      // Logo on left (if available in orgSettings)
+      if (orgSettings?.logo_url) {
+        try {
+          const logoResponse = await fetch(orgSettings.logo_url);
+          const logoBlob = await logoResponse.blob();
+          const logoArrayBuffer = await logoBlob.arrayBuffer();
+          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
+          const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+          doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, margin, 5, 30, 20);
+        } catch (e) {
+          console.log('Could not load logo:', e);
+        }
+      }
+
+      // Centered title
       setColor(doc, theme.colors.white);
       doc.setFont(undefined, 'bold');
       doc.setFontSize(20);
-      doc.text('Wire Schedule', margin, 20);
+      doc.text('Wire Schedule', pageWidth / 2, 18, { align: 'center' });
+
+      // Project info on right
       setColor(doc, theme.colors.muted);
       doc.setFontSize(10);
       doc.text(pName || 'AV System', pageWidth - margin, 15, { align: 'right' });
@@ -549,10 +566,28 @@ Deno.serve(async (req) => {
       // Header
       setFill(doc, theme.colors.dark);
       doc.rect(0, 0, pageWidth, 30, 'F');
+
+      // Logo on left (if available in orgSettings)
+      if (orgSettings?.logo_url) {
+        try {
+          const logoResponse = await fetch(orgSettings.logo_url);
+          const logoBlob = await logoResponse.blob();
+          const logoArrayBuffer = await logoBlob.arrayBuffer();
+          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
+          const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+          doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, margin, 5, 30, 20);
+        } catch (e) {
+          console.log('Could not load logo:', e);
+        }
+      }
+
+      // Centered title
       setColor(doc, theme.colors.white);
       doc.setFont(undefined, 'bold');
       doc.setFontSize(20);
-      doc.text('Bill of Materials', margin, 20);
+      doc.text('Bill of Materials', pageWidth / 2, 18, { align: 'center' });
+
+      // Project info on right
       setColor(doc, theme.colors.muted);
       doc.setFontSize(10);
       doc.text(pName || 'AV System', pageWidth - margin, 15, { align: 'right' });
