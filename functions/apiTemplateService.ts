@@ -307,17 +307,20 @@ Deno.serve(async (req) => {
         console.log('Generated HTML length:', html.length);
         
         try {
-          const response = await fetch('https://rest.apitemplate.io/v2/create-image-from-html?expiration=1440', {
+          // APITemplate.io v2 uses /v2/create-image for HTML to image
+          const response = await fetch('https://rest.apitemplate.io/v2/create-image?expiration=1440', {
             method: 'POST',
             headers: {
               'X-API-KEY': API_KEY,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              body_html: html,
-              image_type: 'png',
-              width: 1200,
-              height: 800
+              body: html,
+              settings: {
+                image_type: 'png',
+                width: 1200,
+                height: 800
+              }
             })
           });
 
@@ -329,7 +332,7 @@ Deno.serve(async (req) => {
             return Response.json({ 
               error: `APITemplate error: ${response.status}`, 
               details: responseText 
-            }, { status: 500 });
+            }, { status: response.status });
           }
 
           const result = JSON.parse(responseText);
