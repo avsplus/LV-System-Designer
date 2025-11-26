@@ -432,7 +432,7 @@ Deno.serve(async (req) => {
       setFill(doc, theme.colors.dark);
       doc.rect(0, 0, pageWidth, 30, 'F');
 
-      // Logo on left (if available in orgSettings)
+      // Logo on left (if available in orgSettings) - maintain aspect ratio
       if (orgSettings?.logo_url) {
         try {
           const logoResponse = await fetch(orgSettings.logo_url);
@@ -440,7 +440,10 @@ Deno.serve(async (req) => {
           const logoArrayBuffer = await logoBlob.arrayBuffer();
           const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
           const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
-          doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, margin, 5, 30, 20);
+          // Max height 18mm, maintain aspect ratio
+          const maxHeight = 18;
+          const maxWidth = 40;
+          doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, margin, 6, 0, maxHeight);
         } catch (e) {
           console.log('Could not load logo:', e);
         }
@@ -567,7 +570,7 @@ Deno.serve(async (req) => {
       setFill(doc, theme.colors.dark);
       doc.rect(0, 0, pageWidth, 30, 'F');
 
-      // Logo on left (if available in orgSettings)
+      // Logo on left (if available in orgSettings) - maintain aspect ratio
       if (orgSettings?.logo_url) {
         try {
           const logoResponse = await fetch(orgSettings.logo_url);
@@ -575,7 +578,9 @@ Deno.serve(async (req) => {
           const logoArrayBuffer = await logoBlob.arrayBuffer();
           const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
           const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
-          doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, margin, 5, 30, 20);
+          // Max height 18mm, maintain aspect ratio
+          const maxHeight = 18;
+          doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, margin, 6, 0, maxHeight);
         } catch (e) {
           console.log('Could not load logo:', e);
         }
