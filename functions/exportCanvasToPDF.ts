@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
       setColor(COLORS.dark);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(9);
-      doc.text(`• ${cat.replace(/_/g, ' ')} (${count})`, x, y);
+      doc.text(`- ${cat.replace(/_/g, ' ')} (${count})`, x, y);
     });
 
     // ==========================================
@@ -609,8 +609,8 @@ Deno.serve(async (req) => {
         
         doc.setFont(undefined, 'normal');
         doc.setFontSize(8);
-        doc.text('• Verify all cable runs before closing walls', margin + 8, yPos + 22);
-        doc.text('• Label all cables at both ends with wire IDs', margin + 8, yPos + 28);
+        doc.text('- Verify all cable runs before closing walls', margin + 8, yPos + 22);
+        doc.text('- Label all cables at both ends with wire IDs', margin + 8, yPos + 28);
       }
     });
 
@@ -630,10 +630,10 @@ Deno.serve(async (req) => {
     yPos = 50;
 
     const guidelines = [
-      { icon: '⚠️', title: 'HDMI Tips', points: ['Use certified cables for 4K/8K', 'Max 15ft passive, use active beyond', 'Test before closing walls'] },
-      { icon: '🔌', title: 'Power Sequence', points: ['Power on: Source → Processing → Display', 'Power off: Display → Processing → Source', 'Use sequenced power when available'] },
-      { icon: '🌐', title: 'Network Setup', points: ['Assign static IPs to all AV devices', 'Document all IP addresses', 'Configure VLANs if required'] },
-      { icon: '🎚️', title: 'Audio Leveling', points: ['Run room correction after install', 'Set reference level to 0dB', 'Document EQ settings'] }
+      { icon: '!', title: 'HDMI Tips', points: ['Use certified cables for 4K/8K', 'Max 15ft passive, use active beyond', 'Test before closing walls'] },
+      { icon: '+', title: 'Power Sequence', points: ['Power on: Source > Processing > Display', 'Power off: Display > Processing > Source', 'Use sequenced power when available'] },
+      { icon: '*', title: 'Network Setup', points: ['Assign static IPs to all AV devices', 'Document all IP addresses', 'Configure VLANs if required'] },
+      { icon: '#', title: 'Audio Leveling', points: ['Run room correction after install', 'Set reference level to 0dB', 'Document EQ settings'] }
     ];
 
     guidelines.forEach(guide => {
@@ -654,7 +654,7 @@ Deno.serve(async (req) => {
       doc.setFontSize(9);
       setColor(COLORS.secondary);
       guide.points.forEach((point, i) => {
-        doc.text(`• ${point}`, margin + 10, yPos + 22 + (i * 7));
+        doc.text(`- ${point}`, margin + 10, yPos + 22 + (i * 7));
       });
 
       yPos += 50;
