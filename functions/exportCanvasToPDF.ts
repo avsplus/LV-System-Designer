@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -256,8 +255,201 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { canvasProducts, connections, projectName, rooms = [], clientName, location, orgSettings } = await req.json();
+    const requestData = await req.json();
+    const { action, canvasProducts, connections, projectName, rooms = [], clientName, location, orgSettings } = requestData;
 
+    // Handle label and diagram generation actions
+    if (action === 'generateDeviceLabel') {
+      const { device } = requestData;
+      if (!device) {
+        return Response.json({ error: 'Device data required' }, { status: 400 });
+      }
+      
+      const doc = new jsPDF({ unit: 'mm', format: [100, 50], orientation: 'landscape' });
+      const catColor = getCategoryColor(device.product?.category);
+      
+      // Background
+      setFill(doc, theme.colors.white);
+      doc.rect(0, 0, 100, 50, 'F');
+      
+      // Left accent bar
+      setFill(doc, catColor);
+      doc.rect(0, 0, 4, 50, 'F');
+      
+      // Category icon
+      doc.circle(15, 18, 8, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(8);
+      const iconText = categoryIcons[device.product?.category] || 'DV';
+      doc.text(iconText, 15, 20, { align: 'center' });
+      
+      // Device name
+      setColor(doc, theme.colors.dark);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(14);
+      doc.text(device.label || device.product?.brand || 'Device', 28, 16);
+      
+      // Model
+      setColor(doc, theme.colors.muted);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.text(device.product?.model || '', 28, 24);
+      
+      // Room & IP
+      doc.setFontSize(8);
+      if (device.room) {
+        doc.text(`Room: ${device.room}`, 8, 38);
+      }
+      if (device.networkInfo?.ip && device.networkInfo.ip !== '000.000.000.000') {
+        doc.text(`IP: ${device.networkInfo.ip}`, 8, 45);
+      }
+      
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      return Response.json({ pdf: pdfBase64 });
+    }
+
+    if (action === 'generateCableLabel') {
+      const { connection, fromDevice, toDevice } = requestData;
+      if (!connection) {
+        return Response.json({ error: 'Connection data required' }, { status: 400 });
+      }
+      
+      const doc = new jsPDF({ unit: 'mm', format: [80, 30], orientation: 'landscape' });
+      const cableColor = getCableColor(connection.type);
+      
+      // Background with cable color
+      setFill(doc, cableColor);
+      doc.rect(0, 0, 80, 30, 'F');
+      
+      // Wire ID
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(14);
+      doc.text(connection.wireId || 'CABLE', 5, 12);
+      
+      // Route info
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(8);
+      const fromLabel = fromDevice?.label || fromDevice?.product?.brand || 'Source';
+      const toLabel = toDevice?.label || toDevice?.product?.brand || 'Destination';
+      doc.text(`${fromLabel} → ${toLabel}`, 5, 20);
+      
+      // Type and ports
+      doc.setFontSize(7);
+      doc.text(`${connection.type} | ${connection.fromPort || '?'} → ${connection.toPort || '?'}`, 5, 26);
+      
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      return Response.json({ pdf: pdfBase64 });
+    }
+
+    if (action === 'generateRoomDiagram') {
+      const { room, devices = [], connections: roomConnections = [] } = requestData;
+      if (!room) {
+        return Response.json({ error: 'Room name required' }, { status: 400 });
+      }
+      if (!devices || devices.length === 0) {
+        return Response.json({ error: 'No devices in room' }, { status: 400 });
+      }
+      
+      const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+      const pageWidth = 297;
+      const pageHeight = 210;
+      const margin = 15;
+      
+      // Header
+      setFill(doc, theme.colors.accent);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(18);
+      doc.text(room, margin, 17);
+      doc.setFontSize(10);
+      doc.text(`${devices.length} Devices`, pageWidth - margin, 17, { align: 'right' });
+      
+      // Device boxes in a grid
+      const boxWidth = 60;
+      const boxHeight = 40;
+      const cols = Math.min(4, devices.length);
+      const startX = (pageWidth - (cols * (boxWidth + 15) - 15)) / 2;
+      let y = 40;
+      
+      devices.forEach((device, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = startX + col * (boxWidth + 15);
+        const boxY = y + row * (boxHeight + 20);
+        
+        if (boxY + boxHeight > pageHeight - 20) return;
+        
+        const catColor = getCategoryColor(device.product?.category);
+        
+        // Device box
+        setFill(doc, [248, 250, 252]);
+        setDraw(doc, catColor);
+        doc.setLineWidth(1);
+        doc.roundedRect(x, boxY, boxWidth, boxHeight, 3, 3, 'FD');
+        
+        // Top accent
+        setFill(doc, catColor);
+        doc.roundedRect(x, boxY, boxWidth, 4, 3, 3, 'F');
+        doc.rect(x, boxY + 2, boxWidth, 2, 'F');
+        
+        // Device name
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(9);
+        doc.text(truncate(device.label || device.product?.brand || 'Device', 18), x + 5, boxY + 14);
+        
+        // Model
+        setColor(doc, theme.colors.muted);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
+        doc.text(truncate(device.product?.model || '', 20), x + 5, boxY + 22);
+        
+        // IP if available
+        if (device.networkInfo?.ip && device.networkInfo.ip !== '000.000.000.000') {
+          doc.setFontSize(6);
+          doc.text(device.networkInfo.ip, x + 5, boxY + 30);
+        }
+        
+        // Connection count
+        const deviceConns = roomConnections.filter(c => c.from === device.instanceId || c.to === device.instanceId);
+        if (deviceConns.length > 0) {
+          setFill(doc, catColor);
+          doc.circle(x + boxWidth - 8, boxY + boxHeight - 8, 5, 'F');
+          setColor(doc, theme.colors.white);
+          doc.setFontSize(7);
+          doc.setFont(undefined, 'bold');
+          doc.text(deviceConns.length.toString(), x + boxWidth - 8, boxY + boxHeight - 6, { align: 'center' });
+        }
+      });
+      
+      // Connection legend at bottom
+      const connTypes = [...new Set(roomConnections.map(c => c.type))];
+      if (connTypes.length > 0) {
+        const legendY = pageHeight - 20;
+        setColor(doc, theme.colors.muted);
+        doc.setFontSize(8);
+        doc.text('Connection Types:', margin, legendY);
+        
+        let legendX = margin + 35;
+        connTypes.forEach(type => {
+          const color = getCableColor(type);
+          setFill(doc, color);
+          doc.roundedRect(legendX, legendY - 4, 15, 6, 1, 1, 'F');
+          setColor(doc, theme.colors.white);
+          doc.setFontSize(6);
+          doc.text(type.substring(0, 4), legendX + 2, legendY);
+          legendX += 20;
+        });
+      }
+      
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      return Response.json({ pdf: pdfBase64 });
+    }
+
+    // Default: Full installation package
     if (!canvasProducts || canvasProducts.length === 0) {
       return Response.json({ error: 'No devices on canvas' }, { status: 400 });
     }
