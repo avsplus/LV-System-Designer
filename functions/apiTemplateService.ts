@@ -1,42 +1,32 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-const API_BASE = 'https://rest.apitemplate.io/v2';
 const API_KEY = Deno.env.get('APITEMPLATE_API_KEY');
 
-// Helper to make API requests
-async function apiRequest(endpoint, method = 'GET', body = null, isFormData = false) {
+// Helper to make API requests to APITemplate.io
+async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
     'X-API-KEY': API_KEY,
+    'Content-Type': 'application/json'
   };
-  
-  if (!isFormData && body) {
-    headers['Content-Type'] = 'application/json';
-  }
 
-  const options = {
-    method,
-    headers,
-  };
+  const options = { method, headers };
 
   if (body) {
-    options.body = isFormData ? body : JSON.stringify(body);
+    options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, options);
+  const url = `https://rest.apitemplate.io${endpoint}`;
+  console.log('APITemplate request:', url, method);
+  
+  const response = await fetch(url, options);
   
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('APITemplate error response:', errorText);
     throw new Error(`APITemplate error: ${response.status} - ${errorText}`);
   }
 
-  const contentType = response.headers.get('content-type');
-  if (contentType?.includes('application/json')) {
-    return response.json();
-  }
-  
-  // For binary responses (PDF/Image)
-  const arrayBuffer = await response.arrayBuffer();
-  return { binary: true, data: arrayBuffer, contentType };
+  return response.json();
 }
 
 Deno.serve(async (req) => {
