@@ -638,6 +638,7 @@ Deno.serve(async (req) => {
         // Determine cable length and type based on connection type and room proximity
         let cableName, cableLength, cableNotes = '';
         
+        let isExtender = false;
         if (cableType === 'HDMI' || cableType === 'HDBaseT') {
           if (sameRoom) {
             cableName = 'HDMI Cable (15ft)';
@@ -652,7 +653,8 @@ Deno.serve(async (req) => {
             });
             cableName = 'HDBaseT/AVoIP Extender Kit';
             cableLength = 'Kit';
-            cableNotes = 'Required for cross-room HDMI';
+            cableNotes = `Cross-room: ${fromRoom} → ${toRoom}`;
+            isExtender = true;
           }
         } else if (cableType === 'Ethernet') {
           if (sameRoom) {
@@ -699,7 +701,8 @@ Deno.serve(async (req) => {
           cableLength = '-';
         }
         
-        const cableKey = cableName;
+        // Use unique key that includes notes for extenders (to separate different cross-room connections)
+        const cableKey = isExtender ? `${cableName}_${cableNotes}` : cableName;
         if (!cableRequirements[cableKey]) {
           cableRequirements[cableKey] = {
             brand: 'Cable/Wire',
@@ -709,6 +712,7 @@ Deno.serve(async (req) => {
             quantity: 0,
             rooms: [],
             isCable: true,
+            isExtender: isExtender,
             notes: cableNotes
           };
         }
@@ -830,7 +834,42 @@ Deno.serve(async (req) => {
       y += 15;
 
       // CABLES & WIRING SECTION
-      const cableItems = items.filter(item => item.isCable);
+      const cableItems = items.filter(item => item.isCable && !item.isExtender);
+      const extenderItems = items.filter(item => item.isExtender);
+      
+      // Collect all notes for reference
+      const allNotes = [];
+      cableItems.forEach(item => {
+        if (item.notes && !allNotes.includes(item.notes)) {
+          allNotes.push(item.notes);
+        }
+      });
+      extenderItems.forEach(item => {
+        if (item.notes && !allNotes.includes(item.notes)) {
+          allNotes.push(item.notes);
+        }
+      });
+
+      // Default cable prices (estimates)
+      const cablePrices = {
+        'HDMI Cable (15ft)': 25,
+        'Ethernet Cable Cat6 (15ft)': 12,
+        'Ethernet Cable Cat6 (250ft)': 85,
+        'Speaker Wire 14AWG (15ft)': 15,
+        'Speaker Wire 14AWG (250ft)': 95,
+        'Optical/TOSLINK Cable (6ft)': 15,
+        'RCA Audio Cable (6ft)': 12,
+        'XLR Balanced Cable (15ft)': 35,
+        'Subwoofer Cable (15ft)': 25,
+        'Coaxial Digital Cable (6ft)': 15,
+        'USB Cable (6ft)': 10,
+        'RS232/Control Cable (15ft)': 20,
+        'Component Cable (6ft)': 18,
+        'Composite Cable (6ft)': 10,
+        'VGA Cable (6ft)': 15,
+        'HDBaseT/AVoIP Extender Kit': 450,
+      };
+
       if (cableItems.length > 0) {
         if (y > pageHeight - 80) {
           doc.addPage();
@@ -844,8 +883,8 @@ Deno.serve(async (req) => {
         y += 8;
 
         // Cable table header
-        const cableColWidths = [80, 50, 25, 25];
-        const cableHeaders = ['Cable Type', 'Notes', 'Qty', 'Length'];
+        const cableColWidths = [60, 15, 15, 20, 25, 25];
+        const cableHeaders = ['Cable Type', 'Note', 'Qty', 'Length', 'Unit $', 'Total $'];
 
         setFill(doc, [142, 92, 44]); // Brown for cables
         doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
@@ -860,8 +899,10 @@ Deno.serve(async (req) => {
         });
         y += 10;
 
+        let cableTotal = 0;
+
         cableItems.forEach((item, i) => {
-          if (y > pageHeight - 30) {
+          if (y > pageHeight - 50) {
             doc.addPage();
             y = 25;
             
@@ -897,12 +938,19 @@ Deno.serve(async (req) => {
           setColor(doc, theme.colors.dark);
           doc.setFont(undefined, 'normal');
           doc.setFontSize(8);
-          doc.text(truncate(item.model, 35), xPos + 6, y);
+          doc.text(truncate(item.model, 28), xPos + 6, y);
           xPos += cableColWidths[0];
 
-          setColor(doc, theme.colors.muted);
-          doc.setFontSize(7);
-          doc.text(truncate(item.notes || '-', 22), xPos, y);
+          // Note reference number
+          const noteIndex = item.notes ? allNotes.indexOf(item.notes) + 1 : 0;
+          if (noteIndex > 0) {
+            setFill(doc, [100, 116, 139]);
+            doc.circle(xPos + 5, y - 1, 4, 'F');
+            setColor(doc, theme.colors.white);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(6);
+            doc.text(noteIndex.toString(), xPos + 5, y, { align: 'center' });
+          }
           xPos += cableColWidths[1];
 
           setColor(doc, theme.colors.dark);
@@ -914,28 +962,169 @@ Deno.serve(async (req) => {
           doc.setFont(undefined, 'normal');
           const lengthMatch = item.model.match(/\((\d+ft|Kit)\)/);
           doc.text(lengthMatch ? lengthMatch[1] : '-', xPos, y);
+          xPos += cableColWidths[3];
+
+          // Unit price
+          const unitPrice = cablePrices[item.model] || 0;
+          doc.text(unitPrice > 0 ? `$${unitPrice}` : '-', xPos, y);
+          xPos += cableColWidths[4];
+
+          // Total price
+          const lineTotal = unitPrice * item.quantity;
+          cableTotal += lineTotal;
+          doc.text(lineTotal > 0 ? `$${lineTotal}` : '-', xPos, y);
 
           y += 8;
         });
 
-        // Warning for cross-room HDMI
-        if (hdmiCrossRoomConnections.length > 0) {
-          y += 5;
-          setFill(doc, [254, 226, 226]);
-          doc.rect(margin, y - 3, pageWidth - margin * 2, 8 + hdmiCrossRoomConnections.length * 5, 'F');
-          
-          setColor(doc, [185, 28, 28]);
+        // Cable subtotal
+        y += 3;
+        setFill(doc, [217, 179, 130]);
+        doc.rect(margin, y - 5, pageWidth - margin * 2, 8, 'F');
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(9);
+        doc.text('Cables Subtotal', margin + 5, y);
+        doc.text(`${cableItems.reduce((sum, c) => sum + c.quantity, 0)} cables`, margin + 100, y);
+        if (cableTotal > 0) {
+          doc.text(`$${cableTotal}`, pageWidth - margin - 5, y, { align: 'right' });
+        }
+        y += 12;
+        grandTotal += cableTotal;
+      }
+
+      // HDMI EXTENDERS SECTION
+      if (extenderItems.length > 0) {
+        if (y > pageHeight - 60) {
+          doc.addPage();
+          y = 25;
+        }
+
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(12);
+        doc.text('HDMI Extenders (Cross-Room)', margin, y);
+        y += 8;
+
+        // Extender table header
+        const extColWidths = [70, 15, 15, 30, 30];
+        const extHeaders = ['Equipment', 'Note', 'Qty', 'Unit $', 'Total $'];
+
+        setFill(doc, [139, 92, 246]); // Purple for extenders
+        doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
+        setColor(doc, theme.colors.white);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(8);
+
+        xPos = margin + 3;
+        extHeaders.forEach((header, i) => {
+          doc.text(header, xPos, y);
+          xPos += extColWidths[i];
+        });
+        y += 10;
+
+        let extenderTotal = 0;
+
+        extenderItems.forEach((item, i) => {
+          // Zebra striping
+          if (i % 2 === 0) {
+            setFill(doc, [243, 232, 255]);
+            doc.rect(margin, y - 5, pageWidth - margin * 2, 8, 'F');
+          }
+
+          xPos = margin + 3;
+
+          // Extender icon
+          setFill(doc, [139, 92, 246]);
+          doc.circle(xPos + 2, y - 1, 2, 'F');
+
+          setColor(doc, theme.colors.dark);
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(8);
+          doc.text(truncate(item.model, 32), xPos + 6, y);
+          xPos += extColWidths[0];
+
+          // Note reference number
+          const noteIndex = item.notes ? allNotes.indexOf(item.notes) + 1 : 0;
+          if (noteIndex > 0) {
+            setFill(doc, [139, 92, 246]);
+            doc.circle(xPos + 5, y - 1, 4, 'F');
+            setColor(doc, theme.colors.white);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(6);
+            doc.text(noteIndex.toString(), xPos + 5, y, { align: 'center' });
+          }
+          xPos += extColWidths[1];
+
+          setColor(doc, theme.colors.dark);
           doc.setFont(undefined, 'bold');
           doc.setFontSize(8);
-          doc.text('⚠ Cross-Room HDMI Requires HDBaseT or AVoIP:', margin + 3, y + 2);
-          
+          doc.text(item.quantity.toString(), xPos + 4, y);
+          xPos += extColWidths[2];
+
           doc.setFont(undefined, 'normal');
-          doc.setFontSize(7);
-          hdmiCrossRoomConnections.forEach((conn, i) => {
-            doc.text(`• ${conn.from} (${conn.fromRoom}) → ${conn.to} (${conn.toRoom})`, margin + 5, y + 7 + i * 5);
-          });
-          y += 10 + hdmiCrossRoomConnections.length * 5;
+          const unitPrice = cablePrices[item.model] || 450;
+          doc.text(`$${unitPrice}`, xPos, y);
+          xPos += extColWidths[3];
+
+          const lineTotal = unitPrice * item.quantity;
+          extenderTotal += lineTotal;
+          doc.text(`$${lineTotal}`, xPos, y);
+
+          y += 8;
+        });
+
+        // Extender subtotal
+        y += 3;
+        setFill(doc, [196, 181, 253]);
+        doc.rect(margin, y - 5, pageWidth - margin * 2, 8, 'F');
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(9);
+        doc.text('Extenders Subtotal', margin + 5, y);
+        doc.text(`${extenderItems.reduce((sum, c) => sum + c.quantity, 0)} kits`, margin + 100, y);
+        if (extenderTotal > 0) {
+          doc.text(`$${extenderTotal}`, pageWidth - margin - 5, y, { align: 'right' });
         }
+        y += 12;
+        grandTotal += extenderTotal;
+      }
+
+      // NOTES SECTION
+      if (allNotes.length > 0) {
+        if (y > pageHeight - 50) {
+          doc.addPage();
+          y = 25;
+        }
+
+        y += 5;
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(10);
+        doc.text('Notes', margin, y);
+        y += 8;
+
+        setFill(doc, [249, 250, 251]);
+        const notesHeight = Math.max(allNotes.length * 8 + 8, 20);
+        doc.rect(margin, y - 4, pageWidth - margin * 2, notesHeight, 'F');
+
+        allNotes.forEach((note, i) => {
+          // Note number badge
+          setFill(doc, [100, 116, 139]);
+          doc.circle(margin + 8, y + 1, 4, 'F');
+          setColor(doc, theme.colors.white);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(6);
+          doc.text((i + 1).toString(), margin + 8, y + 2.5, { align: 'center' });
+
+          // Note text in italic style
+          setColor(doc, [55, 65, 81]);
+          doc.setFont(undefined, 'italic');
+          doc.setFontSize(8);
+          doc.text(note, margin + 16, y + 2);
+          y += 8;
+        });
+        y += 5;
       }
 
       // Grand Total row
