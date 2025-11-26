@@ -1219,14 +1219,8 @@ Deno.serve(async (req) => {
         setFill(doc, theme.colors.cardBg);
         drawRoundedRect(margin, yPos, contentWidth, 40, 3);
 
-        // Icon placeholder
-        setFill(doc, theme.colors.accent);
-        drawRoundedRect(margin + 5, yPos + 5, 30, 30, 2);
-        setColor(doc, theme.colors.white);
-        doc.setFont(undefined, 'bold');
-        doc.setFontSize(14);
-        const iconText = product.category.substring(0, 2).toUpperCase();
-        doc.text(iconText, margin + 12, yPos + 24);
+        // Icon
+        drawCategoryIcon(doc, margin + 20, yPos + 20, product.category, 20);
 
         // Device info
         setColor(doc, theme.colors.dark);
