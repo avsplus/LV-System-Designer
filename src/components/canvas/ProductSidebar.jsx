@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2 } from "lucide-react";
+import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable } from "lucide-react";
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { useSettings } from "../settings/SettingsContext";
 
@@ -22,7 +22,8 @@ const categorySolidColors = {
   surround_processors: "bg-yellow-400",
   av_receivers: "bg-emerald-600",
   network_switches: "bg-slate-600",
-  control_processors: "bg-violet-600"
+  control_processors: "bg-violet-600",
+  hdmi_extenders: "bg-indigo-600"
 };
 
 const categoryIcons = {
@@ -41,7 +42,8 @@ const categoryIcons = {
   surround_processors: Cpu,
   av_receivers: Radio,
   network_switches: Router,
-  control_processors: Settings2
+  control_processors: Settings2,
+  hdmi_extenders: Cable
 };
 
 export default function ProductSidebar({ products, onProductSelect }) {

@@ -200,6 +200,21 @@ const connectionsByCategory = {
     outputs: [
       { type: "Ethernet", ports: ["Port-1", "Port-2", "Port-3", "Port-4", "Port-5", "Port-6", "Port-7", "Port-8"] }
     ]
+  },
+  hdmi_extenders: {
+    inputs: [
+      { type: "Power", ports: ["AC"] },
+      { type: "HDMI", ports: ["HDMI-In"] },
+      { type: "Ethernet", ports: ["LAN-In", "Cat6-In"] },
+      { type: "IR", ports: ["IR-In"] },
+      { type: "RS232", ports: ["RS232-In"] }
+    ],
+    outputs: [
+      { type: "HDMI", ports: ["HDMI-Out"] },
+      { type: "Ethernet", ports: ["LAN-Out", "Cat6-Out"] },
+      { type: "IR", ports: ["IR-Out"] },
+      { type: "RS232", ports: ["RS232-Out"] }
+    ]
   }
 };
 
@@ -236,7 +251,8 @@ const categorySolidColors = {
   surround_processors: "bg-yellow-400",
   av_receivers: "bg-emerald-600",
   network_switches: "bg-slate-600",
-  control_processors: "bg-violet-600"
+  control_processors: "bg-violet-600",
+  hdmi_extenders: "bg-indigo-600"
 };
 
 const categoryTextColors = {
@@ -255,7 +271,8 @@ const categoryTextColors = {
   surround_processors: "text-yellow-400",
   av_receivers: "text-emerald-400",
   network_switches: "text-slate-400",
-  control_processors: "text-violet-400"
+  control_processors: "text-violet-400",
+  hdmi_extenders: "text-indigo-400"
 };
 
 export default function CanvasProduct({ 
