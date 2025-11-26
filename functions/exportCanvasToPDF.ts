@@ -239,11 +239,11 @@ function drawDeviceCard(doc, x, y, device, connections) {
     drawCategoryIcon(doc, iconCx, iconCy, device.product.category, 12);
   
   // Device name
-  const titleX = circleCx + circleRadius + 3;
+  const titleX = iconCx + 10;
   setColor(doc, theme.colors.text);
   doc.setFont(undefined, 'bold');
   doc.setFontSize(theme.fonts.heading);
-  doc.text(truncate(device.label || device.product.brand, 14), titleX, circleCy + 1);
+  doc.text(truncate(device.label || device.product.brand, 14), titleX, iconCy + 1);
   
   // Category tag
   const catText = device.product.category.replace(/_/g, ' ');
