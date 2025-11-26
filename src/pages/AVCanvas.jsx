@@ -82,7 +82,8 @@ function AVCanvasContent() {
         const [importProgress, setImportProgress] = useState(null);
         const [currentUserEmail, setCurrentUserEmail] = useState(null);
         const [showExportDialog, setShowExportDialog] = useState(false);
-        const [isExporting, setIsExporting] = useState(false);
+              const [isExporting, setIsExporting] = useState(false);
+              const [exportEngine, setExportEngine] = useState('jspdf');
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
