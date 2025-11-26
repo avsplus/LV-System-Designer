@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -275,25 +276,14 @@ Deno.serve(async (req) => {
     if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
     // ==========================================
-    // PAGE 1: COVER PAGE (Premium Design)
+    // PAGE 1: COVER PAGE (Clean 3-Section Layout)
     // ==========================================
+    
+    // Section 1: Logo area (top ~22%)
     setFill(doc, theme.colors.dark);
-    doc.rect(0, 0, pageWidth, pageHeight, 'F');
-
-    // Subtle gradient effect with rectangles
-    for (let i = 0; i < 5; i++) {
-      const opacity = 0.02 * (5 - i);
-      setFill(doc, [59, 130, 246]);
-      doc.setGState(new doc.GState({ opacity: opacity }));
-      doc.rect(0, pageHeight * (0.3 + i * 0.02), pageWidth, pageHeight * 0.4, 'F');
-    }
-    doc.setGState(new doc.GState({ opacity: 1 }));
-
-    // Thin accent line
-    setFill(doc, theme.colors.accent);
-    doc.rect(pageWidth * 0.3, pageHeight * 0.38, pageWidth * 0.4, 2, 'F');
-
-    // Logo (if available) - centered at top
+    doc.rect(0, 0, pageWidth, pageHeight * 0.22, 'F');
+    
+    // Logo
     if (orgSettings?.logo_url) {
       try {
         const logoResponse = await fetch(orgSettings.logo_url);
@@ -302,64 +292,73 @@ Deno.serve(async (req) => {
         const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
         const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
         
-        const logoWidth = 60;
-        const logoHeight = 30;
+        const logoWidth = 55;
+        const logoHeight = 28;
         const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.15, logoWidth, logoHeight);
+        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.07, logoWidth, logoHeight);
       } catch (e) {
         console.log('Could not load logo:', e);
       }
     }
-
-    // Project name (large, elegant)
+    
+    // Section 2: Project/Client info (middle ~53%)
+    setFill(doc, [15, 23, 42]); // Slightly lighter dark
+    doc.rect(0, pageHeight * 0.22, pageWidth, pageHeight * 0.53, 'F');
+    
+    // Accent line at section top
+    setFill(doc, theme.colors.accent);
+    doc.rect(pageWidth * 0.25, pageHeight * 0.22, pageWidth * 0.5, 2, 'F');
+    
+    // Project name
     setColor(doc, theme.colors.white);
     doc.setFont(undefined, 'bold');
-    centerText(doc, projectName || 'AV System Design', pageHeight * 0.44, 28);
-
-    // Subtitle (subtle)
-    setColor(doc, [156, 163, 175]);
+    centerText(doc, projectName || 'AV System Design', pageHeight * 0.32, 24);
+    
+    // Subtitle
+    setColor(doc, theme.colors.accent);
     doc.setFont(undefined, 'normal');
-    centerText(doc, 'Installation Package', pageHeight * 0.50, 12);
-
-    // Details section with better spacing
-    let detailY = pageHeight * 0.58;
+    centerText(doc, 'Installation Package', pageHeight * 0.38, 11);
+    
+    // Client & Location info
+    let detailY = pageHeight * 0.46;
     
     if (clientName) {
       setColor(doc, [100, 116, 139]);
-      doc.setFontSize(9);
-      centerText(doc, 'PREPARED FOR', detailY, 9);
-      detailY += 8;
+      centerText(doc, 'PREPARED FOR', detailY, 8);
+      detailY += 6;
       setColor(doc, theme.colors.white);
       doc.setFont(undefined, 'bold');
-      centerText(doc, clientName, detailY, 14);
-      detailY += 18;
+      centerText(doc, clientName, detailY, 12);
+      detailY += 14;
     }
-
+    
     if (location) {
       setColor(doc, [100, 116, 139]);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      centerText(doc, 'LOCATION', detailY, 9);
-      detailY += 8;
+      centerText(doc, 'LOCATION', detailY, 8);
+      detailY += 6;
       setColor(doc, theme.colors.white);
       doc.setFont(undefined, 'bold');
-      centerText(doc, location, detailY, 14);
-      detailY += 18;
+      centerText(doc, location, detailY, 12);
+      detailY += 14;
     }
-
+    
     setColor(doc, [100, 116, 139]);
     doc.setFont(undefined, 'normal');
-    doc.setFontSize(9);
-    centerText(doc, 'DATE', detailY, 9);
-    detailY += 8;
+    centerText(doc, 'DATE', detailY, 8);
+    detailY += 6;
     setColor(doc, theme.colors.white);
     doc.setFont(undefined, 'bold');
-    centerText(doc, new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), detailY, 14);
-
-    // Stats bar - cleaner design
+    centerText(doc, new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), detailY, 12);
+    
+    // Section 3: Stats & Footer (bottom ~25%)
+    setFill(doc, theme.colors.dark);
+    doc.rect(0, pageHeight * 0.75, pageWidth, pageHeight * 0.25, 'F');
+    
+    // Stats
     const statsY = pageHeight * 0.82;
     const statsWidth = contentWidth / 4;
-
+    
     [
       { label: 'Devices', value: canvasProducts.length, color: theme.colors.accent },
       { label: 'Connections', value: connections.length, color: theme.colors.success },
@@ -367,26 +366,21 @@ Deno.serve(async (req) => {
       { label: 'Cable Runs', value: connections.length, color: [139, 92, 246] }
     ].forEach((stat, i) => {
       const x = margin + (statsWidth * i) + (statsWidth / 2);
-      
-      // Value
       setColor(doc, stat.color);
       doc.setFont(undefined, 'bold');
-      doc.setFontSize(20);
+      doc.setFontSize(18);
       doc.text(stat.value.toString(), x, statsY, { align: 'center' });
-      
-      // Label
       setColor(doc, [100, 116, 139]);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      doc.text(stat.label, x, statsY + 8, { align: 'center' });
+      doc.setFontSize(8);
+      doc.text(stat.label, x, statsY + 6, { align: 'center' });
     });
-
+    
     // Footer
+    setColor(doc, [100, 116, 139]);
+    centerText(doc, `Generated by ${user.full_name || user.email}`, pageHeight - 14, 8);
     setColor(doc, [75, 85, 99]);
-    doc.setFontSize(8);
-    centerText(doc, `Generated by ${user.full_name || user.email}`, pageHeight - 18, 8);
-    setColor(doc, [55, 65, 81]);
-    centerText(doc, 'Powered by AV System Designer', pageHeight - 12, 7);
+    centerText(doc, 'Powered by AV System Designer', pageHeight - 8, 7);
 
     // ==========================================
     // PAGE 2: SYSTEM OVERVIEW & LEGEND
