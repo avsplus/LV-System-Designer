@@ -1,73 +1,250 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
-// Color constants
-const COLORS = {
-  primary: [30, 64, 175],      // Blue
-  secondary: [107, 114, 128],  // Gray
-  dark: [17, 24, 39],          // Dark gray
-  light: [243, 244, 246],      // Light gray
-  white: [255, 255, 255],
-  accent: [59, 130, 246],      // Bright blue
-  success: [34, 197, 94],      // Green
-  warning: [251, 191, 36],     // Yellow
-  // Cable colors
-  hdmi: [231, 76, 60],         // Red
-  optical: [42, 127, 219],     // Blue
-  rca: [255, 179, 0],          // Yellow/Orange
-  xlr: [26, 188, 156],         // Teal
-  speaker: [142, 92, 44],      // Brown
-  ethernet: [39, 174, 96],     // Green
-  usb: [42, 127, 219],         // Blue
-  coaxial: [42, 127, 219],     // Blue
-  hdbaset: [233, 30, 99],      // Pink
-  control: [127, 140, 141],    // Gray
-  power: [255, 165, 0]         // Orange
+// ==========================================
+// DESIGN TOKENS (PDF "CSS")
+// ==========================================
+const theme = {
+  page: {
+    width: 210,
+    height: 297,
+    marginX: 15,
+    marginY: 15,
+  },
+  fonts: {
+    title: 20,
+    subtitle: 11,
+    heading: 12,
+    body: 9,
+    small: 8,
+    tiny: 7,
+  },
+  colors: {
+    text: [32, 38, 54],
+    muted: [107, 114, 128],
+    cardBg: [249, 250, 251],
+    border: [229, 231, 235],
+    headerLine: [229, 231, 235],
+    white: [255, 255, 255],
+    dark: [17, 24, 39],
+    accent: [59, 130, 246],
+    success: [34, 197, 94],
+    warning: [251, 191, 36],
+    categories: {
+      televisions: [59, 130, 246],
+      projectors: [139, 92, 246],
+      projector_screens: [217, 70, 239],
+      video_distribution: [6, 182, 212],
+      matrix_switchers: [20, 184, 166],
+      audio_streamers: [236, 72, 153],
+      media_streamers: [244, 63, 94],
+      speakers: [34, 197, 94],
+      soundbars: [132, 204, 22],
+      subwoofers: [239, 68, 68],
+      stereo_amps: [249, 115, 22],
+      multizone_amps: [245, 158, 11],
+      surround_processors: [234, 179, 8],
+      av_receivers: [16, 185, 129],
+      network_switches: [100, 116, 139],
+      control_processors: [139, 92, 246],
+      default: [75, 85, 99]
+    },
+    cables: {
+      'HDMI': [231, 76, 60],
+      'HDBaseT': [233, 30, 99],
+      'Optical': [42, 127, 219],
+      'Optical/TOSLINK': [42, 127, 219],
+      'RCA': [255, 179, 0],
+      'XLR': [26, 188, 156],
+      'Speaker Wire': [142, 92, 44],
+      'Ethernet': [39, 174, 96],
+      'USB': [42, 127, 219],
+      'Coaxial': [42, 127, 219],
+      'Component': [231, 76, 60],
+      'Composite': [231, 76, 60],
+      'VGA': [231, 76, 60],
+      'RS232': [127, 140, 141],
+      'Control': [127, 140, 141],
+      'IR': [127, 140, 141],
+      'Subwoofer': [142, 92, 44],
+      '3.5mm Jack': [255, 179, 0],
+      'Power': [255, 165, 0]
+    }
+  },
+  layout: {
+    cardWidth: 85,
+    cardHeight: 52,
+    cardRadius: 3,
+    cardGapX: 10,
+    cardGapY: 8,
+    cardPaddingX: 6,
+    cardPaddingY: 6,
+    topBarHeight: 2.5,
+  }
 };
 
-const CONNECTION_COLORS = {
-  'HDMI': COLORS.hdmi,
-  'HDBaseT': COLORS.hdbaset,
-  'Optical': COLORS.optical,
-  'Optical/TOSLINK': COLORS.optical,
-  'RCA': COLORS.rca,
-  'XLR': COLORS.xlr,
-  'Speaker Wire': COLORS.speaker,
-  'Ethernet': COLORS.ethernet,
-  'USB': COLORS.usb,
-  'Coaxial': COLORS.coaxial,
-  'Component': COLORS.hdmi,
-  'Composite': COLORS.hdmi,
-  'VGA': COLORS.hdmi,
-  'RS232': COLORS.control,
-  'Control': COLORS.control,
-  'IR': COLORS.control,
-  'Subwoofer': COLORS.speaker,
-  '3.5mm Jack': COLORS.rca,
-  'Power': COLORS.power
+// Category icons (2-letter abbreviations)
+const categoryIcons = {
+  televisions: 'TV', projectors: 'PJ', projector_screens: 'SC',
+  video_distribution: 'VD', matrix_switchers: 'MX', audio_streamers: 'AS',
+  media_streamers: 'MS', speakers: 'SP', soundbars: 'SB', subwoofers: 'SW',
+  stereo_amps: 'SA', multizone_amps: 'MA', surround_processors: 'SR',
+  av_receivers: 'AV', network_switches: 'NS', control_processors: 'CP'
 };
 
-const CABLE_COLOR_NAMES = {
-  'HDMI': 'Black w/ Red Label',
-  'HDBaseT': 'Purple CAT6',
-  'Optical': 'Blue Fiber',
-  'Optical/TOSLINK': 'Blue Fiber',
-  'RCA': 'Red/White',
-  'XLR': 'Black 3-Pin',
-  'Speaker Wire': 'CL2 Red/Black',
-  'Ethernet': 'Blue CAT6',
-  'USB': 'Gray USB',
-  'Coaxial': 'Orange RG6',
-  'Component': 'RGB Bundle',
-  'Composite': 'Yellow RCA',
-  'VGA': 'Blue VGA',
-  'RS232': 'Gray DB9',
-  'Control': 'Gray Control',
-  'IR': 'IR Emitter',
-  'Subwoofer': 'Purple RCA',
-  '3.5mm Jack': 'Black 3.5mm',
-  'Power': 'Black IEC'
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
+const setColor = (doc, color) => doc.setTextColor(color[0], color[1], color[2]);
+const setFill = (doc, color) => doc.setFillColor(color[0], color[1], color[2]);
+const setDraw = (doc, color) => doc.setDrawColor(color[0], color[1], color[2]);
+
+const getCategoryColor = (category) => 
+  theme.colors.categories[category] || theme.colors.categories.default;
+
+const getCableColor = (type) => 
+  theme.colors.cables[type] || theme.colors.muted;
+
+const truncate = (str, maxLen) => 
+  str && str.length > maxLen ? str.substring(0, maxLen - 1) + '..' : (str || '');
+
+const centerText = (doc, text, y, fontSize) => {
+  doc.setFontSize(fontSize);
+  const textWidth = doc.getTextWidth(text);
+  doc.text(text, (theme.page.width - textWidth) / 2, y);
 };
+
+// ==========================================
+// REUSABLE COMPONENTS
+// ==========================================
+function drawPageHeader(doc, title, subtitle, y = theme.page.marginY) {
+  const { marginX, width } = theme.page;
+  
+  setColor(doc, theme.colors.text);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(theme.fonts.title);
+  doc.text(title, marginX, y + 6);
+  
+  setColor(doc, theme.colors.muted);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(theme.fonts.subtitle);
+  doc.text(subtitle, marginX, y + 13);
+  
+  setDraw(doc, theme.colors.headerLine);
+  doc.setLineWidth(0.3);
+  doc.line(marginX, y + 17, width - marginX, y + 17);
+  
+  return y + 22;
+}
+
+function drawDeviceCard(doc, x, y, device, connections) {
+  const { cardWidth, cardHeight, cardRadius, cardPaddingX, cardPaddingY, topBarHeight } = theme.layout;
+  const categoryColor = getCategoryColor(device.product.category);
+  
+  // Card background
+  setFill(doc, theme.colors.cardBg);
+  setDraw(doc, theme.colors.border);
+  doc.roundedRect(x, y, cardWidth, cardHeight, cardRadius, cardRadius, 'FD');
+  
+  // Top accent bar
+  setFill(doc, categoryColor);
+  doc.roundedRect(x, y, cardWidth, topBarHeight, cardRadius, cardRadius, 'F');
+  doc.rect(x, y + topBarHeight - 1, cardWidth, 1, 'F');
+  
+  // Category icon circle
+  const circleRadius = 5;
+  const circleCx = x + cardPaddingX + circleRadius;
+  const circleCy = y + topBarHeight + cardPaddingY + circleRadius;
+  
+  setFill(doc, categoryColor);
+  doc.circle(circleCx, circleCy, circleRadius, 'F');
+  
+  setColor(doc, theme.colors.white);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(theme.fonts.tiny);
+  const iconText = categoryIcons[device.product.category] || 'DV';
+  doc.text(iconText, circleCx, circleCy + 1.5, { align: 'center' });
+  
+  // Device name
+  const titleX = circleCx + circleRadius + 3;
+  setColor(doc, theme.colors.text);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(theme.fonts.heading);
+  doc.text(truncate(device.label || device.product.brand, 14), titleX, circleCy + 1);
+  
+  // Category tag
+  const catText = device.product.category.replace(/_/g, ' ');
+  doc.setFontSize(theme.fonts.tiny);
+  const catWidth = doc.getTextWidth(catText) + 4;
+  const tagX = x + cardWidth - cardPaddingX - catWidth;
+  const tagY = y + topBarHeight + 3;
+  
+  setFill(doc, [248, 250, 252]);
+  setDraw(doc, [226, 232, 240]);
+  doc.roundedRect(tagX, tagY, catWidth, 5, 1.5, 1.5, 'FD');
+  setColor(doc, theme.colors.muted);
+  doc.setFont(undefined, 'normal');
+  doc.text(catText, tagX + 2, tagY + 3.5);
+  
+  // Info grid
+  const col1X = x + cardPaddingX;
+  const col2X = x + cardWidth / 2 + 2;
+  let infoY = y + topBarHeight + cardPaddingY + 14;
+  
+  doc.setFontSize(theme.fonts.small);
+  
+  // Model & Room
+  setColor(doc, theme.colors.muted);
+  doc.text('Model', col1X, infoY);
+  doc.text('Room', col2X, infoY);
+  
+  setColor(doc, theme.colors.text);
+  doc.text(truncate(device.product.model, 16), col1X, infoY + 4);
+  doc.text(truncate(device.room || 'Unassigned', 14), col2X, infoY + 4);
+  
+  // IP & Ports
+  infoY += 10;
+  setColor(doc, theme.colors.muted);
+  doc.text('IP Address', col1X, infoY);
+  doc.text('Ports', col2X, infoY);
+  
+  setColor(doc, theme.colors.text);
+  const ip = device.networkInfo?.ip && device.networkInfo.ip !== '000.000.000.000' 
+    ? device.networkInfo.ip : '-';
+  doc.text(ip, col1X, infoY + 4);
+  
+  const portsInUse = connections.map(c => c.from === device.instanceId ? c.fromPort : c.toPort).filter(Boolean);
+  const portsText = portsInUse.length > 0 ? portsInUse.slice(0, 2).join(', ') + (portsInUse.length > 2 ? '...' : '') : '-';
+  doc.text(truncate(portsText, 14), col2X, infoY + 4);
+  
+  // Connection count badge
+  if (connections.length > 0) {
+    const badgeX = x + cardWidth - cardPaddingX - 8;
+    const badgeY = y + cardHeight - cardPaddingY - 5;
+    setFill(doc, [239, 246, 255]);
+    setDraw(doc, [219, 234, 254]);
+    doc.roundedRect(badgeX, badgeY, 8, 5, 2, 2, 'FD');
+    setColor(doc, theme.colors.accent);
+    doc.setFontSize(theme.fonts.tiny);
+    doc.text(connections.length.toString(), badgeX + 4, badgeY + 3.5, { align: 'center' });
+  }
+}
+
+function drawDarkHeader(doc, title, subtitle) {
+  const { marginX, width } = theme.page;
+  setFill(doc, theme.colors.dark);
+  doc.rect(0, 0, width, 28, 'F');
+  setColor(doc, theme.colors.white);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(16);
+  doc.text(title, marginX, 18);
+  if (subtitle) {
+    setColor(doc, theme.colors.muted);
+    doc.setFontSize(10);
+    doc.text(subtitle, width - marginX, 18, { align: 'right' });
+  }
+  return 38;
+}
 
 Deno.serve(async (req) => {
   try {
