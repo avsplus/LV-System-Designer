@@ -26,6 +26,7 @@ import CollaboratorIndicator from "../components/canvas/CollaboratorIndicator";
 import useProjectSync from "../components/canvas/useProjectSync";
 import RoomManager from "../components/canvas/RoomManager";
 import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
+import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
@@ -79,7 +80,9 @@ function AVCanvasContent() {
   const [portTooltip, setPortTooltip] = useState(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState(null);
         const [importProgress, setImportProgress] = useState(null);
-  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+        const [currentUserEmail, setCurrentUserEmail] = useState(null);
+        const [showExportDialog, setShowExportDialog] = useState(false);
+        const [isExporting, setIsExporting] = useState(false);
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
@@ -1622,38 +1625,18 @@ function AVCanvasContent() {
                     {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={async () => {
-                      if (canvasProducts.length === 0) {
-                        toast.warning('Canvas is empty. Add some devices first.');
-                        return;
-                      }
-                      try {
-                        const response = await base44.functions.invoke('exportCanvasToPDF', {
-                          canvasProducts,
-                          connections,
-                          projectName: currentProject?.name || 'AV-System-Design'
-                        });
-
-                        const blob = new Blob([response.data], { type: 'application/pdf' });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${currentProject?.name || 'AV-System-Design'}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        a.remove();
-                        toast.success('PDF exported successfully');
-                      } catch (error) {
-                        console.error('Export error:', error);
-                        toast.error('Failed to export PDF');
-                      }
-                    }}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Export to PDF
-                  </DropdownMenuItem>
+                      onClick={() => {
+                        if (canvasProducts.length === 0) {
+                          toast.warning('Canvas is empty. Add some devices first.');
+                          return;
+                        }
+                        setShowExportDialog(true);
+                      }}
+                      className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Export to PDF
+                    </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={clearCanvas}
                     disabled={canvasProducts.length === 0}
@@ -2176,8 +2159,47 @@ function AVCanvasContent() {
                                       />
                     )}
 
+        {showExportDialog && (
+          <ExportPDFDialog
+            open={showExportDialog}
+            onClose={() => setShowExportDialog(false)}
+            projectName={currentProject?.name}
+            isExporting={isExporting}
+            onExport={async ({ clientName, location }) => {
+              setIsExporting(true);
+              try {
+                const response = await base44.functions.invoke('exportCanvasToPDF', {
+                  canvasProducts,
+                  connections,
+                  rooms,
+                  projectName: currentProject?.name || 'AV-System-Design',
+                  clientName,
+                  location,
+                  orgSettings
+                });
+
+                const blob = new Blob([response.data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentProject?.name || 'AV-System-Design'}-Installation-Package.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                toast.success('Installation package exported successfully');
+                setShowExportDialog(false);
+              } catch (error) {
+                console.error('Export error:', error);
+                toast.error('Failed to export PDF');
+              }
+              setIsExporting(false);
+            }}
+          />
+        )}
+
         {pendingProductDrop && (
-          <RoomSelectDialog
+            <RoomSelectDialog
             rooms={rooms}
             productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
             onSelect={(room) => {
