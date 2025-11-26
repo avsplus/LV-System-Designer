@@ -97,17 +97,16 @@ Deno.serve(async (req) => {
       }
 
       case 'generateDeviceLabel': {
-        // Generate device label image
+        // Generate device label image using create-image-from-html
         const { device, size } = params;
         
         const html = generateDeviceLabelHTML(device, size);
         
-        const result = await apiRequest('/v2/create-image', 'POST', {
+        const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
           body_html: html,
           image_type: 'png',
           width: size?.width || 400,
-          height: size?.height || 200,
-          expiration: 1440
+          height: size?.height || 200
         });
 
         return Response.json(result);
@@ -119,12 +118,11 @@ Deno.serve(async (req) => {
         
         const html = generateCableLabelHTML(connection, fromDevice, toDevice, size);
         
-        const result = await apiRequest('/v2/create-image', 'POST', {
+        const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
           body_html: html,
           image_type: 'png',
           width: size?.width || 300,
-          height: size?.height || 100,
-          expiration: 1440
+          height: size?.height || 100
         });
 
         return Response.json(result);
@@ -136,12 +134,11 @@ Deno.serve(async (req) => {
         
         const html = generateRoomDiagramHTML(room, devices, connections);
         
-        const result = await apiRequest('/v2/create-image', 'POST', {
+        const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
           body_html: html,
           image_type: 'png',
           width: 1200,
-          height: 800,
-          expiration: 1440
+          height: 800
         });
 
         return Response.json(result);
