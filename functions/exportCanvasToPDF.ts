@@ -128,6 +128,25 @@ Deno.serve(async (req) => {
     doc.rect(0, pageHeight * 0.35, pageWidth, 3, 'F');
     doc.rect(0, pageHeight * 0.65, pageWidth, 1, 'F');
 
+    // Logo (if available)
+    if (orgSettings?.logo_url) {
+      try {
+        const logoResponse = await fetch(orgSettings.logo_url);
+        const logoBlob = await logoResponse.blob();
+        const logoArrayBuffer = await logoBlob.arrayBuffer();
+        const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
+        const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+        
+        // Add logo centered above title
+        const logoWidth = 50;
+        const logoHeight = 25;
+        const logoX = (pageWidth - logoWidth) / 2;
+        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.28, logoWidth, logoHeight);
+      } catch (e) {
+        console.log('Could not load logo:', e);
+      }
+    }
+
     // Project name
     setColor(COLORS.white);
     doc.setFont(undefined, 'bold');
