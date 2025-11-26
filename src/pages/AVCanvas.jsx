@@ -2239,19 +2239,33 @@ function AVCanvasContent() {
                 onGenerateLabels={async ({ type, device, connection, fromDevice, toDevice }) => {
                   setIsExporting(true);
                   try {
-                    const response = await base44.functions.invoke('apiTemplateService', {
+                    const response = await base44.functions.invoke('exportCanvasToPDF', {
                       action: type === 'device' ? 'generateDeviceLabel' : 'generateCableLabel',
                       device,
                       connection,
                       fromDevice,
-                      toDevice,
-                      size: type === 'device' ? { width: 400, height: 200 } : { width: 300, height: 100 }
+                      toDevice
                     });
 
-                    if (response.data.download_url) {
-                      window.open(response.data.download_url, '_blank');
-                      toast.success(`${type === 'device' ? 'Device' : 'Cable'} label generated`);
+                    const base64 = response.data.pdf;
+                    const binaryString = atob(base64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                      bytes[i] = binaryString.charCodeAt(i);
                     }
+
+                    const blob = new Blob([bytes], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = type === 'device' 
+                      ? `${device?.label || 'Device'}-Label.pdf`
+                      : `${connection?.wireId || 'Cable'}-Label.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    toast.success(`${type === 'device' ? 'Device' : 'Cable'} label generated`);
                   } catch (error) {
                     console.error('Label generation error:', error);
                     toast.error('Failed to generate label');
@@ -2261,17 +2275,30 @@ function AVCanvasContent() {
                 onGenerateRoomDiagram={async ({ room, devices, connections: roomConnections }) => {
                   setIsExporting(true);
                   try {
-                    const response = await base44.functions.invoke('apiTemplateService', {
+                    const response = await base44.functions.invoke('exportCanvasToPDF', {
                       action: 'generateRoomDiagram',
                       room,
                       devices,
                       connections: roomConnections
                     });
 
-                    if (response.data.download_url) {
-                      window.open(response.data.download_url, '_blank');
-                      toast.success('Room diagram generated');
+                    const base64 = response.data.pdf;
+                    const binaryString = atob(base64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                      bytes[i] = binaryString.charCodeAt(i);
                     }
+
+                    const blob = new Blob([bytes], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${room}-Diagram.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    toast.success('Room diagram generated');
                   } catch (error) {
                     console.error('Diagram generation error:', error);
                     toast.error('Failed to generate diagram');
