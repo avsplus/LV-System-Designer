@@ -2161,51 +2161,119 @@ function AVCanvasContent() {
                     )}
 
         {showExportDialog && (
-          <ExportPDFDialog
-            open={showExportDialog}
-            onClose={() => setShowExportDialog(false)}
-            projectName={currentProject?.name}
-            isExporting={isExporting}
-            onExport={async ({ clientName, location }) => {
-                                setIsExporting(true);
-                                try {
-                                  const response = await base44.functions.invoke('exportCanvasToPDF', {
-                                    canvasProducts,
-                                    connections,
-                                    rooms,
-                                    projectName: currentProject?.name || 'AV-System-Design',
-                                    clientName,
-                                    location,
-                                    orgSettings
-                                  });
+              <ExportPDFDialog
+                open={showExportDialog}
+                onClose={() => setShowExportDialog(false)}
+                projectName={currentProject?.name}
+                isExporting={isExporting}
+                exportEngine={exportEngine}
+                onExportEngineChange={setExportEngine}
+                canvasProducts={canvasProducts}
+                connections={connections}
+                rooms={rooms}
+                onExport={async ({ clientName, location, engine }) => {
+                  setIsExporting(true);
+                  try {
+                    if (engine === 'apitemplate') {
+                      // Use APITemplate.io
+                      const response = await base44.functions.invoke('apiTemplateService', {
+                        action: 'generateInstallationPackage',
+                        canvasProducts,
+                        connections,
+                        rooms,
+                        projectName: currentProject?.name || 'AV-System-Design',
+                        clientName,
+                        location,
+                        orgSettings
+                      });
 
-                                  // Convert base64 to blob
-                                  const base64 = response.data.pdf;
-                                  const binaryString = atob(base64);
-                                  const bytes = new Uint8Array(binaryString.length);
-                                  for (let i = 0; i < binaryString.length; i++) {
-                                    bytes[i] = binaryString.charCodeAt(i);
-                                  }
+                      if (response.data.download_url) {
+                        window.open(response.data.download_url, '_blank');
+                        toast.success('PDF generated successfully');
+                      } else {
+                        throw new Error('No download URL returned');
+                      }
+                    } else {
+                      // Use jsPDF (existing)
+                      const response = await base44.functions.invoke('exportCanvasToPDF', {
+                        canvasProducts,
+                        connections,
+                        rooms,
+                        projectName: currentProject?.name || 'AV-System-Design',
+                        clientName,
+                        location,
+                        orgSettings
+                      });
 
-                                  const blob = new Blob([bytes], { type: 'application/pdf' });
-                                  const url = window.URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = `${currentProject?.name || 'AV-System-Design'}-Installation-Package.pdf`;
-                                  document.body.appendChild(a);
-                                  a.click();
-                                  window.URL.revokeObjectURL(url);
-                                  a.remove();
-                                  toast.success('Installation package exported successfully');
-                                  setShowExportDialog(false);
-                                } catch (error) {
-                                  console.error('Export error:', error);
-                                  toast.error('Failed to export PDF');
-                                }
-                                setIsExporting(false);
-                              }}
-          />
-        )}
+                      const base64 = response.data.pdf;
+                      const binaryString = atob(base64);
+                      const bytes = new Uint8Array(binaryString.length);
+                      for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                      }
+
+                      const blob = new Blob([bytes], { type: 'application/pdf' });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${currentProject?.name || 'AV-System-Design'}-Installation-Package.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      a.remove();
+                      toast.success('Installation package exported successfully');
+                    }
+                    setShowExportDialog(false);
+                  } catch (error) {
+                    console.error('Export error:', error);
+                    toast.error('Failed to export PDF');
+                  }
+                  setIsExporting(false);
+                }}
+                onGenerateLabels={async ({ type, device, connection, fromDevice, toDevice }) => {
+                  setIsExporting(true);
+                  try {
+                    const response = await base44.functions.invoke('apiTemplateService', {
+                      action: type === 'device' ? 'generateDeviceLabel' : 'generateCableLabel',
+                      device,
+                      connection,
+                      fromDevice,
+                      toDevice,
+                      size: type === 'device' ? { width: 400, height: 200 } : { width: 300, height: 100 }
+                    });
+
+                    if (response.data.download_url) {
+                      window.open(response.data.download_url, '_blank');
+                      toast.success(`${type === 'device' ? 'Device' : 'Cable'} label generated`);
+                    }
+                  } catch (error) {
+                    console.error('Label generation error:', error);
+                    toast.error('Failed to generate label');
+                  }
+                  setIsExporting(false);
+                }}
+                onGenerateRoomDiagram={async ({ room, devices, connections: roomConnections }) => {
+                  setIsExporting(true);
+                  try {
+                    const response = await base44.functions.invoke('apiTemplateService', {
+                      action: 'generateRoomDiagram',
+                      room,
+                      devices,
+                      connections: roomConnections
+                    });
+
+                    if (response.data.download_url) {
+                      window.open(response.data.download_url, '_blank');
+                      toast.success('Room diagram generated');
+                    }
+                  } catch (error) {
+                    console.error('Diagram generation error:', error);
+                    toast.error('Failed to generate diagram');
+                  }
+                  setIsExporting(false);
+                }}
+              />
+            )}
 
         {pendingProductDrop && (
             <RoomSelectDialog
