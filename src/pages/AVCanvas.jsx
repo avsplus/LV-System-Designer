@@ -27,6 +27,7 @@ import useProjectSync from "../components/canvas/useProjectSync";
 import RoomManager from "../components/canvas/RoomManager";
 import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
+import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
@@ -83,7 +84,8 @@ function AVCanvasContent() {
         const [currentUserEmail, setCurrentUserEmail] = useState(null);
         const [showExportDialog, setShowExportDialog] = useState(false);
               const [isExporting, setIsExporting] = useState(false);
-              const [exportEngine, setExportEngine] = useState('jspdf');
+                                  const [exportEngine, setExportEngine] = useState('jspdf');
+                    const [showImportDialog, setShowImportDialog] = useState(false);
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
   const connectingStateRef = useRef(null);
@@ -1570,24 +1572,7 @@ function AVCanvasContent() {
                     Manage Devices
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                                            onClick={async () => {
-                                              try {
-                                                setImportProgress({ status: 'running', message: 'Searching for AV products...' });
-                                                const { data } = await base44.functions.invoke('scrapeSnapAV');
-                                                setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
-                                                toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
-                                                setTimeout(() => {
-                                                  setImportProgress(null);
-                                                  window.location.reload();
-                                                }, 2000);
-                                              } catch (error) {
-                                                console.error('Import error:', error);
-                                                const errorMsg = error.response?.data?.error || error.message;
-                                                setImportProgress({ status: 'error', message: errorMsg });
-                                                toast.error(`Failed to import products: ${errorMsg}`);
-                                                setTimeout(() => setImportProgress(null), 5000);
-                                              }
-                                            }}
+                                            onClick={() => setShowImportDialog(true)}
                                             disabled={importProgress?.status === 'running'}
                                             className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
                                           >
@@ -2309,8 +2294,35 @@ function AVCanvasContent() {
               />
             )}
 
-        {pendingProductDrop && (
-            <RoomSelectDialog
+        {showImportDialog && (
+                        <ImportProductsDialog
+                          open={showImportDialog}
+                          onClose={() => setShowImportDialog(false)}
+                          isImporting={importProgress?.status === 'running'}
+                          onImport={async (category) => {
+                            setShowImportDialog(false);
+                            try {
+                              setImportProgress({ status: 'running', message: 'Searching for AV products...' });
+                              const { data } = await base44.functions.invoke('scrapeSnapAV', { category });
+                              setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
+                              toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
+                              setTimeout(() => {
+                                setImportProgress(null);
+                                window.location.reload();
+                              }, 2000);
+                            } catch (error) {
+                              console.error('Import error:', error);
+                              const errorMsg = error.response?.data?.error || error.message;
+                              setImportProgress({ status: 'error', message: errorMsg });
+                              toast.error(`Failed to import products: ${errorMsg}`);
+                              setTimeout(() => setImportProgress(null), 5000);
+                            }
+                          }}
+                        />
+                      )}
+
+                      {pendingProductDrop && (
+                        <RoomSelectDialog
             rooms={rooms}
             productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
             onSelect={(room) => {
