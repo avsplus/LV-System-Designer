@@ -253,18 +253,33 @@ Deno.serve(async (req) => {
       }
 
       case 'generateDeviceLabel': {
-        // Generate device label image using create-image-from-html
+        // Generate device label image using v2 create-image endpoint
         const { device, size } = params;
         
         const html = generateDeviceLabelHTML(device, size);
         
-        const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
-          body_html: html,
-          image_type: 'png',
-          width: size?.width || 400,
-          height: size?.height || 200
+        const response = await fetch('https://rest.apitemplate.io/v2/create-image?expiration=1440', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            body: html,
+            settings: {
+              image_type: 'png',
+              width: size?.width || 400,
+              height: size?.height || 200
+            }
+          })
         });
 
+        if (!response.ok) {
+          const errorText = await response.text();
+          return Response.json({ error: `APITemplate error: ${response.status}`, details: errorText }, { status: response.status });
+        }
+
+        const result = await response.json();
         return Response.json(result);
       }
 
@@ -274,13 +289,28 @@ Deno.serve(async (req) => {
         
         const html = generateCableLabelHTML(connection, fromDevice, toDevice, size);
         
-        const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
-          body_html: html,
-          image_type: 'png',
-          width: size?.width || 300,
-          height: size?.height || 100
+        const response = await fetch('https://rest.apitemplate.io/v2/create-image?expiration=1440', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            body: html,
+            settings: {
+              image_type: 'png',
+              width: size?.width || 300,
+              height: size?.height || 100
+            }
+          })
         });
 
+        if (!response.ok) {
+          const errorText = await response.text();
+          return Response.json({ error: `APITemplate error: ${response.status}`, details: errorText }, { status: response.status });
+        }
+
+        const result = await response.json();
         return Response.json(result);
       }
 
