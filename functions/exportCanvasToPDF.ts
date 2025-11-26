@@ -311,111 +311,196 @@ Deno.serve(async (req) => {
     });
 
     // ==========================================
-    // PAGE 3+: DEVICE CARDS (Grid Layout)
+    // PAGE 3+: DEVICE CARDS (Premium Layout)
     // ==========================================
     doc.addPage();
     yPos = margin;
 
-    // Page header
-    setFillColor(COLORS.dark);
-    doc.rect(0, 0, pageWidth, 35, 'F');
-    setColor(COLORS.white);
+    // Category colors for visual coding
+    const categoryColors = {
+      televisions: [59, 130, 246],       // Blue
+      projectors: [139, 92, 246],        // Purple
+      projector_screens: [217, 70, 239], // Fuchsia
+      video_distribution: [6, 182, 212], // Cyan
+      matrix_switchers: [20, 184, 166],  // Teal
+      audio_streamers: [236, 72, 153],   // Pink
+      media_streamers: [244, 63, 94],    // Rose
+      speakers: [34, 197, 94],           // Green
+      soundbars: [132, 204, 22],         // Lime
+      subwoofers: [239, 68, 68],         // Red
+      stereo_amps: [249, 115, 22],       // Orange
+      multizone_amps: [245, 158, 11],    // Amber
+      surround_processors: [234, 179, 8],// Yellow
+      av_receivers: [16, 185, 129],      // Emerald
+      network_switches: [100, 116, 139], // Slate
+      control_processors: [139, 92, 246] // Violet
+    };
+
+    // Category icons (2-letter abbreviations)
+    const categoryIcons = {
+      televisions: 'TV',
+      projectors: 'PJ',
+      projector_screens: 'SC',
+      video_distribution: 'VD',
+      matrix_switchers: 'MX',
+      audio_streamers: 'AS',
+      media_streamers: 'MS',
+      speakers: 'SP',
+      soundbars: 'SB',
+      subwoofers: 'SW',
+      stereo_amps: 'SA',
+      multizone_amps: 'MA',
+      surround_processors: 'SR',
+      av_receivers: 'AV',
+      network_switches: 'NS',
+      control_processors: 'CP'
+    };
+
+    // Minimal header
+    setColor(COLORS.dark);
     doc.setFont(undefined, 'bold');
-    doc.setFontSize(18);
-    doc.text('Device Documentation', margin, 23);
+    doc.setFontSize(20);
+    doc.text('Device Documentation', margin, yPos + 8);
+    
     setColor(COLORS.secondary);
+    doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-    doc.text(`${canvasProducts.length} Devices`, pageWidth - margin, 23, { align: 'right' });
+    doc.text(`${projectName || 'AV System'} | ${canvasProducts.length} Devices`, margin, yPos + 16);
+    
+    // Subtle divider
+    setDrawColor([229, 231, 235]);
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPos + 22, pageWidth - margin, yPos + 22);
 
-    yPos = 45;
+    yPos = 48;
 
-    const deviceCardWidth = (contentWidth - 5) / 2;
-    const deviceCardHeight = 65;
+    const deviceCardWidth = (contentWidth - 10) / 2;
+    const deviceCardHeight = 72;
 
     canvasProducts.forEach((cp, index) => {
       const col = index % 2;
-      const cardX = margin + (col * (deviceCardWidth + 5));
+      const cardX = margin + (col * (deviceCardWidth + 10));
 
-      if (col === 0 && yPos + deviceCardHeight > pageHeight - margin) {
+      if (col === 0 && yPos + deviceCardHeight > pageHeight - margin - 10) {
         doc.addPage();
         yPos = margin;
         
-        // Page header
-        setFillColor(COLORS.dark);
-        doc.rect(0, 0, pageWidth, 35, 'F');
-        setColor(COLORS.white);
+        // Minimal header on continuation pages
+        setColor(COLORS.dark);
         doc.setFont(undefined, 'bold');
-        doc.setFontSize(18);
-        doc.text('Device Documentation', margin, 23);
-        yPos = 45;
+        doc.setFontSize(16);
+        doc.text('Device Documentation', margin, yPos + 8);
+        setDrawColor([229, 231, 235]);
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPos + 14, pageWidth - margin, yPos + 14);
+        yPos = 32;
       }
 
       const product = cp.product;
       const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
+      const catColor = categoryColors[product.category] || COLORS.accent;
 
-      // Card background
-      setFillColor(COLORS.light);
-      drawRoundedRect(cardX, yPos, deviceCardWidth, deviceCardHeight, 3);
+      // Card background with subtle shadow effect
+      setFillColor([248, 250, 252]); // Very light gray
+      drawRoundedRect(cardX, yPos, deviceCardWidth, deviceCardHeight, 4);
+      
+      // Top accent bar (thin, color-coded)
+      setFillColor(catColor);
+      doc.roundedRect(cardX, yPos, deviceCardWidth, 3, 4, 4, 'F');
+      doc.rect(cardX, yPos + 2, deviceCardWidth, 2, 'F'); // Square bottom of accent
 
-      // Category accent bar
-      setFillColor(COLORS.accent);
-      doc.rect(cardX, yPos, 4, deviceCardHeight, 'F');
+      // Category icon circle
+      setFillColor(catColor);
+      doc.circle(cardX + 14, yPos + 18, 8, 'F');
+      setColor(COLORS.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(7);
+      const iconText = categoryIcons[product.category] || 'DV';
+      doc.text(iconText, cardX + 14, yPos + 20, { align: 'center' });
 
-      // Device label
+      // Device name (bold, prominent)
       setColor(COLORS.dark);
       doc.setFont(undefined, 'bold');
-      doc.setFontSize(11);
-      doc.text(cp.label || product.brand, cardX + 8, yPos + 10);
+      doc.setFontSize(12);
+      const displayName = cp.label || product.brand;
+      doc.text(displayName, cardX + 26, yPos + 16);
 
-      // Category badge
-      setFillColor([229, 231, 235]);
+      // Category pill badge
       const catText = product.category.replace(/_/g, ' ');
-      const catWidth = doc.getTextWidth(catText) + 6;
-      drawRoundedRect(cardX + deviceCardWidth - catWidth - 8, yPos + 4, catWidth, 10, 2);
-      setColor(COLORS.secondary);
-      doc.setFont(undefined, 'normal');
       doc.setFontSize(7);
-      doc.text(catText, cardX + deviceCardWidth - catWidth - 5, yPos + 10);
+      const catWidth = doc.getTextWidth(catText) + 8;
+      setFillColor([catColor[0], catColor[1], catColor[2]]);
+      doc.setGState(new doc.GState({ opacity: 0.15 }));
+      drawRoundedRect(cardX + 26, yPos + 20, catWidth, 9, 2);
+      doc.setGState(new doc.GState({ opacity: 1 }));
+      setColor(catColor);
+      doc.setFont(undefined, 'normal');
+      doc.text(catText, cardX + 30, yPos + 26);
+
+      // Device info section
+      const infoStartY = yPos + 36;
+      setColor(COLORS.secondary);
+      doc.setFontSize(8);
 
       // Model
-      setColor(COLORS.secondary);
-      doc.setFontSize(9);
-      doc.text(`Model: ${product.model}`, cardX + 8, yPos + 20);
+      setColor([100, 116, 139]);
+      doc.text('Model', cardX + 8, infoStartY);
+      setColor(COLORS.dark);
+      doc.setFont(undefined, 'medium');
+      doc.text(product.model, cardX + 8, infoStartY + 6);
 
-      // Room
+      // Room (if assigned)
       if (cp.room) {
-        doc.text(`Room: ${cp.room}`, cardX + 8, yPos + 28);
+        setColor([100, 116, 139]);
+        doc.setFont(undefined, 'normal');
+        doc.text('Room', cardX + deviceCardWidth / 2, infoStartY);
+        setColor(COLORS.dark);
+        doc.text(cp.room, cardX + deviceCardWidth / 2, infoStartY + 6);
       }
 
-      // Network info
+      // Network info (if available)
       if (cp.networkInfo && cp.networkInfo.ip && cp.networkInfo.ip !== '000.000.000.000') {
-        doc.text(`IP: ${cp.networkInfo.ip}`, cardX + 8, yPos + 36);
+        setColor([100, 116, 139]);
+        doc.setFont(undefined, 'normal');
+        doc.text('IP Address', cardX + 8, infoStartY + 14);
+        setColor(COLORS.dark);
+        doc.text(cp.networkInfo.ip, cardX + 8, infoStartY + 20);
       }
 
-      // Ports in use
+      // Ports info (compact)
       const portsInUse = deviceConnections.map(c => {
         if (c.from === cp.instanceId) return c.fromPort;
         return c.toPort;
       }).filter(Boolean);
 
       if (portsInUse.length > 0) {
-        doc.setFontSize(8);
-        const portsText = `Ports: ${portsInUse.slice(0, 4).join(' / ')}${portsInUse.length > 4 ? '...' : ''}`;
-        doc.text(portsText, cardX + 8, yPos + 44);
+        setColor([100, 116, 139]);
+        doc.setFont(undefined, 'normal');
+        doc.text('Connectivity', cardX + deviceCardWidth / 2, infoStartY + 14);
+        setColor(COLORS.dark);
+        const portsText = portsInUse.slice(0, 3).join(', ') + (portsInUse.length > 3 ? '...' : '');
+        doc.text(portsText, cardX + deviceCardWidth / 2, infoStartY + 20);
       }
 
-      // Connection count badge
-      setFillColor(COLORS.accent);
-      drawRoundedRect(cardX + deviceCardWidth - 25, yPos + deviceCardHeight - 18, 20, 12, 2);
-      setColor(COLORS.white);
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(8);
-      doc.text(`${deviceConnections.length}`, cardX + deviceCardWidth - 15, yPos + deviceCardHeight - 10, { align: 'center' });
+      // Connection count (subtle pill in corner)
+      if (deviceConnections.length > 0) {
+        setFillColor([229, 231, 235]);
+        drawRoundedRect(cardX + deviceCardWidth - 22, yPos + 10, 16, 12, 3);
+        setColor(COLORS.secondary);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(8);
+        doc.text(`${deviceConnections.length}`, cardX + deviceCardWidth - 14, yPos + 18, { align: 'center' });
+      }
 
       if (col === 1) {
-        yPos += deviceCardHeight + 5;
+        yPos += deviceCardHeight + 8;
       }
     });
+    
+    // Handle odd number of devices
+    if (canvasProducts.length % 2 === 1) {
+      yPos += deviceCardHeight + 8;
+    }
 
     // ==========================================
     // CABLE SCHEDULE PAGE
