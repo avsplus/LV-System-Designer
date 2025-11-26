@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -729,16 +730,10 @@ Deno.serve(async (req) => {
     centerText(`${projectName || 'AV System Design'} - Installation Package`, yPos, 8);
     centerText(`Generated ${new Date().toLocaleDateString()}`, yPos + 6, 8);
 
-    // Generate PDF
-    const pdfBytes = doc.output('arraybuffer');
+    // Generate PDF as base64
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
 
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${projectName || 'AV-System-Design'}-Installation-Package.pdf"`
-      }
-    });
+    return Response.json({ pdf: pdfBase64 });
   } catch (error) {
     console.error('PDF Export error:', error);
     return Response.json({ error: error.message }, { status: 500 });
