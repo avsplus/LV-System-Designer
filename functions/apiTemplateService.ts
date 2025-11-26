@@ -288,11 +288,12 @@ Deno.serve(async (req) => {
         // Generate room diagram as image
         const { room, devices = [], connections: roomConnections = [] } = params;
         
-        console.log('generateRoomDiagram called with:', {
+        console.log('generateRoomDiagram called with:', JSON.stringify({
           room,
           devicesCount: devices?.length,
-          connectionsCount: roomConnections?.length
-        });
+          connectionsCount: roomConnections?.length,
+          devicesSample: devices?.slice(0, 2)
+        }));
 
         if (!room) {
           return Response.json({ error: 'Room name is required' }, { status: 400 });
@@ -303,14 +304,35 @@ Deno.serve(async (req) => {
         }
         
         const html = generateRoomDiagramHTML(room, devices, roomConnections);
+        console.log('Generated HTML length:', html.length);
         
         try {
-          const result = await apiRequest('/v2/create-image-from-html?expiration=1440', 'POST', {
-            body_html: html,
-            image_type: 'png',
-            width: 1200,
-            height: 800
+          const response = await fetch('https://rest.apitemplate.io/v2/create-image-from-html?expiration=1440', {
+            method: 'POST',
+            headers: {
+              'X-API-KEY': API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              body_html: html,
+              image_type: 'png',
+              width: 1200,
+              height: 800
+            })
           });
+
+          const responseText = await response.text();
+          console.log('APITemplate response status:', response.status);
+          console.log('APITemplate response:', responseText.substring(0, 500));
+
+          if (!response.ok) {
+            return Response.json({ 
+              error: `APITemplate error: ${response.status}`, 
+              details: responseText 
+            }, { status: 500 });
+          }
+
+          const result = JSON.parse(responseText);
           return Response.json(result);
         } catch (error) {
           console.error('Room diagram generation error:', error);
