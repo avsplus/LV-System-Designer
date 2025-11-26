@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -138,11 +137,11 @@ Deno.serve(async (req) => {
         const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoArrayBuffer)));
         const logoFormat = orgSettings.logo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
         
-        // Add logo centered above title
+        // Add logo centered at top
         const logoWidth = 50;
         const logoHeight = 25;
         const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.28, logoWidth, logoHeight);
+        doc.addImage(`data:image/${logoFormat.toLowerCase()};base64,${logoBase64}`, logoFormat, logoX, pageHeight * 0.12, logoWidth, logoHeight);
       } catch (e) {
         console.log('Could not load logo:', e);
       }
