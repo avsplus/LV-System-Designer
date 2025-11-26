@@ -2176,6 +2176,7 @@ function AVCanvasContent() {
                   try {
                     if (engine === 'apitemplate') {
                       // Use APITemplate.io
+                      console.log('Calling APITemplate service...');
                       const response = await base44.functions.invoke('apiTemplateService', {
                         action: 'generateInstallationPackage',
                         canvasProducts,
@@ -2187,10 +2188,15 @@ function AVCanvasContent() {
                         orgSettings
                       });
 
+                      console.log('APITemplate response:', response.data);
+
                       if (response.data.download_url) {
                         window.open(response.data.download_url, '_blank');
                         toast.success('PDF generated successfully');
+                      } else if (response.data.error) {
+                        throw new Error(response.data.error);
                       } else {
+                        console.error('Unexpected response:', response.data);
                         throw new Error('No download URL returned');
                       }
                     } else {
