@@ -555,7 +555,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'generateBOM') {
-      const { canvasProducts: devices = [], projectName: pName, clientName: cName } = requestData;
+      const { canvasProducts: devices = [], connections: conns = [], projectName: pName, clientName: cName } = requestData;
 
       if (!devices || devices.length === 0) {
         return Response.json({ error: 'No devices to export' }, { status: 400 });
@@ -613,7 +613,8 @@ Deno.serve(async (req) => {
             category: d.product?.category || '',
             price: d.product?.price || 0,
             quantity: 0,
-            rooms: []
+            rooms: [],
+            isCable: false
           };
         }
         grouped[key].quantity++;
@@ -622,7 +623,107 @@ Deno.serve(async (req) => {
         }
       });
 
-      const items = Object.values(grouped);
+      // Calculate cable requirements from connections
+      const cableRequirements = {};
+      const hdmiCrossRoomConnections = [];
+      
+      conns.forEach(conn => {
+        const fromDevice = devices.find(d => d.instanceId === conn.from);
+        const toDevice = devices.find(d => d.instanceId === conn.to);
+        const fromRoom = fromDevice?.room || 'Unassigned';
+        const toRoom = toDevice?.room || 'Unassigned';
+        const sameRoom = fromRoom === toRoom;
+        const cableType = conn.type || 'Unknown';
+        
+        // Determine cable length and type based on connection type and room proximity
+        let cableName, cableLength, cableNotes = '';
+        
+        if (cableType === 'HDMI' || cableType === 'HDBaseT') {
+          if (sameRoom) {
+            cableName = 'HDMI Cable (15ft)';
+            cableLength = '15ft';
+          } else {
+            // Cross-room HDMI requires extender
+            hdmiCrossRoomConnections.push({
+              from: fromDevice?.label || fromDevice?.product?.brand || 'Unknown',
+              to: toDevice?.label || toDevice?.product?.brand || 'Unknown',
+              fromRoom,
+              toRoom
+            });
+            cableName = 'HDBaseT/AVoIP Extender Kit';
+            cableLength = 'Kit';
+            cableNotes = 'Required for cross-room HDMI';
+          }
+        } else if (cableType === 'Ethernet') {
+          if (sameRoom) {
+            cableName = 'Ethernet Cable Cat6 (15ft)';
+            cableLength = '15ft';
+          } else {
+            cableName = 'Ethernet Cable Cat6 (250ft)';
+            cableLength = '250ft';
+          }
+        } else if (cableType === 'Speaker Wire') {
+          if (sameRoom) {
+            cableName = 'Speaker Wire 14AWG (15ft)';
+            cableLength = '15ft';
+          } else {
+            cableName = 'Speaker Wire 14AWG (250ft)';
+            cableLength = '250ft';
+          }
+        } else if (cableType === 'Optical' || cableType === 'Optical/TOSLINK') {
+          cableName = 'Optical/TOSLINK Cable (6ft)';
+          cableLength = '6ft';
+        } else if (cableType === 'RCA') {
+          cableName = 'RCA Audio Cable (6ft)';
+          cableLength = '6ft';
+        } else if (cableType === 'XLR') {
+          cableName = 'XLR Balanced Cable (15ft)';
+          cableLength = '15ft';
+        } else if (cableType === 'Subwoofer') {
+          cableName = 'Subwoofer Cable (15ft)';
+          cableLength = '15ft';
+        } else if (cableType === 'Coaxial') {
+          cableName = 'Coaxial Digital Cable (6ft)';
+          cableLength = '6ft';
+        } else if (cableType === 'USB') {
+          cableName = 'USB Cable (6ft)';
+          cableLength = '6ft';
+        } else if (cableType === 'RS232' || cableType === 'Control') {
+          cableName = 'RS232/Control Cable (15ft)';
+          cableLength = '15ft';
+        } else if (cableType === 'Component' || cableType === 'Composite' || cableType === 'VGA') {
+          cableName = `${cableType} Cable (6ft)`;
+          cableLength = '6ft';
+        } else {
+          cableName = `${cableType} Cable`;
+          cableLength = '-';
+        }
+        
+        const cableKey = cableName;
+        if (!cableRequirements[cableKey]) {
+          cableRequirements[cableKey] = {
+            brand: 'Cable/Wire',
+            model: cableName,
+            category: 'cables',
+            price: 0,
+            quantity: 0,
+            rooms: [],
+            isCable: true,
+            notes: cableNotes
+          };
+        }
+        cableRequirements[cableKey].quantity++;
+      });
+
+      // Combine devices and cables
+      const items = [...Object.values(grouped), ...Object.values(cableRequirements)];
+
+      // EQUIPMENT SECTION
+      setColor(doc, theme.colors.dark);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(12);
+      doc.text('Equipment', margin, y);
+      y += 8;
 
       // Table header
       const colWidths = [50, 45, 35, 15, 20, 25];
@@ -643,10 +744,12 @@ Deno.serve(async (req) => {
       y += 10;
 
       let grandTotal = 0;
+      let deviceCount = 0;
 
-      // Table rows
-      items.forEach((item, i) => {
-        if (y > pageHeight - 30) {
+      // Equipment rows (non-cables)
+      const equipmentItems = items.filter(item => !item.isCable);
+      equipmentItems.forEach((item, i) => {
+        if (y > pageHeight - 50) {
           doc.addPage();
           y = 25;
 
@@ -673,6 +776,7 @@ Deno.serve(async (req) => {
         const catColor = getCategoryColor(item.category);
         const lineTotal = item.price * item.quantity;
         grandTotal += lineTotal;
+        deviceCount += item.quantity;
 
         xPos = margin + 3;
 
@@ -711,18 +815,138 @@ Deno.serve(async (req) => {
         y += 10;
       });
 
-      // Total row
-      y += 5;
+      // Equipment subtotal
+      y += 3;
+      setFill(doc, [229, 231, 235]);
+      doc.rect(margin, y - 5, pageWidth - margin * 2, 8, 'F');
+      setColor(doc, theme.colors.dark);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9);
+      doc.text('Equipment Subtotal', margin + 5, y);
+      doc.text(`${deviceCount} items`, margin + 120, y);
+      if (grandTotal > 0) {
+        doc.text(`$${grandTotal.toFixed(0)}`, pageWidth - margin - 5, y, { align: 'right' });
+      }
+      y += 15;
+
+      // CABLES & WIRING SECTION
+      const cableItems = items.filter(item => item.isCable);
+      if (cableItems.length > 0) {
+        if (y > pageHeight - 80) {
+          doc.addPage();
+          y = 25;
+        }
+
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(12);
+        doc.text('Cables & Wiring', margin, y);
+        y += 8;
+
+        // Cable table header
+        const cableColWidths = [80, 50, 25, 25];
+        const cableHeaders = ['Cable Type', 'Notes', 'Qty', 'Length'];
+
+        setFill(doc, [142, 92, 44]); // Brown for cables
+        doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
+        setColor(doc, theme.colors.white);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(8);
+
+        xPos = margin + 3;
+        cableHeaders.forEach((header, i) => {
+          doc.text(header, xPos, y);
+          xPos += cableColWidths[i];
+        });
+        y += 10;
+
+        cableItems.forEach((item, i) => {
+          if (y > pageHeight - 30) {
+            doc.addPage();
+            y = 25;
+            
+            // Redraw cable header
+            setFill(doc, [142, 92, 44]);
+            doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
+            setColor(doc, theme.colors.white);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(8);
+            xPos = margin + 3;
+            cableHeaders.forEach((header, j) => {
+              doc.text(header, xPos, y);
+              xPos += cableColWidths[j];
+            });
+            y += 10;
+          }
+
+          // Zebra striping
+          if (i % 2 === 0) {
+            setFill(doc, [254, 249, 231]);
+            doc.rect(margin, y - 5, pageWidth - margin * 2, 8, 'F');
+          }
+
+          xPos = margin + 3;
+
+          // Cable icon
+          setFill(doc, getCableColor(item.model.includes('HDMI') ? 'HDMI' : 
+                                     item.model.includes('Ethernet') ? 'Ethernet' :
+                                     item.model.includes('Speaker') ? 'Speaker Wire' : 
+                                     item.model.includes('Optical') ? 'Optical' : 'Control'));
+          doc.circle(xPos + 2, y - 1, 2, 'F');
+
+          setColor(doc, theme.colors.dark);
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(8);
+          doc.text(truncate(item.model, 35), xPos + 6, y);
+          xPos += cableColWidths[0];
+
+          setColor(doc, theme.colors.muted);
+          doc.setFontSize(7);
+          doc.text(truncate(item.notes || '-', 22), xPos, y);
+          xPos += cableColWidths[1];
+
+          setColor(doc, theme.colors.dark);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8);
+          doc.text(item.quantity.toString(), xPos + 4, y);
+          xPos += cableColWidths[2];
+
+          doc.setFont(undefined, 'normal');
+          const lengthMatch = item.model.match(/\((\d+ft|Kit)\)/);
+          doc.text(lengthMatch ? lengthMatch[1] : '-', xPos, y);
+
+          y += 8;
+        });
+
+        // Warning for cross-room HDMI
+        if (hdmiCrossRoomConnections.length > 0) {
+          y += 5;
+          setFill(doc, [254, 226, 226]);
+          doc.rect(margin, y - 3, pageWidth - margin * 2, 8 + hdmiCrossRoomConnections.length * 5, 'F');
+          
+          setColor(doc, [185, 28, 28]);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8);
+          doc.text('⚠ Cross-Room HDMI Requires HDBaseT or AVoIP:', margin + 3, y + 2);
+          
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(7);
+          hdmiCrossRoomConnections.forEach((conn, i) => {
+            doc.text(`• ${conn.from} (${conn.fromRoom}) → ${conn.to} (${conn.toRoom})`, margin + 5, y + 7 + i * 5);
+          });
+          y += 10 + hdmiCrossRoomConnections.length * 5;
+        }
+      }
+
+      // Grand Total row
+      y += 8;
       setFill(doc, theme.colors.dark);
       doc.rect(margin, y - 5, pageWidth - margin * 2, 10, 'F');
       setColor(doc, theme.colors.white);
       doc.setFont(undefined, 'bold');
       doc.setFontSize(10);
-      doc.text('TOTAL', margin + 5, y + 1);
-      doc.text(`${devices.length} devices`, margin + 120, y + 1);
-      if (grandTotal > 0) {
-        doc.text(`$${grandTotal.toFixed(2)}`, pageWidth - margin - 5, y + 1, { align: 'right' });
-      }
+      doc.text('GRAND TOTAL', margin + 5, y + 1);
+      doc.text(`${devices.length} devices + ${cableItems.reduce((sum, c) => sum + c.quantity, 0)} cables`, margin + 80, y + 1);
 
       // Footer
       setColor(doc, theme.colors.muted);
