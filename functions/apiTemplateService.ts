@@ -80,9 +80,10 @@ Deno.serve(async (req) => {
         });
 
         console.log('Generated HTML length:', html.length);
+        console.log('HTML preview:', html.substring(0, 500));
 
-        // Use create-pdf-from-html endpoint
-        const result = await apiRequest('/v2/create-pdf-from-html?expiration=1440', 'POST', {
+        // Use create-pdf-from-html endpoint - body_html is the key field
+        const requestBody = {
           body_html: html,
           page_size: 'A4',
           orientation: '1',
@@ -90,9 +91,28 @@ Deno.serve(async (req) => {
           margin_bottom: 10,
           margin_left: 10,
           margin_right: 10
+        };
+
+        console.log('Sending request to APITemplate...');
+        
+        const response = await fetch('https://rest.apitemplate.io/v2/create-pdf-from-html?expiration=1440', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
         });
 
-        console.log('APITemplate result:', result);
+        const responseText = await response.text();
+        console.log('APITemplate response status:', response.status);
+        console.log('APITemplate response:', responseText);
+
+        if (!response.ok) {
+          throw new Error(`APITemplate error: ${response.status} - ${responseText}`);
+        }
+
+        const result = JSON.parse(responseText);
         return Response.json(result);
       }
 
