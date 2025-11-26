@@ -2236,15 +2236,15 @@ function AVCanvasContent() {
                   }
                   setIsExporting(false);
                 }}
-                onGenerateLabels={async ({ type, device, connection, fromDevice, toDevice }) => {
+                onGenerateWireSchedule={async ({ canvasProducts: devices, connections: conns, projectName: pName, clientName: cName }) => {
                   setIsExporting(true);
                   try {
                     const response = await base44.functions.invoke('exportCanvasToPDF', {
-                      action: type === 'device' ? 'generateDeviceLabel' : 'generateCableLabel',
-                      device,
-                      connection,
-                      fromDevice,
-                      toDevice
+                      action: 'generateWireSchedule',
+                      canvasProducts: devices,
+                      connections: conns,
+                      projectName: pName || currentProject?.name,
+                      clientName: cName
                     });
 
                     const base64 = response.data.pdf;
@@ -2258,28 +2258,27 @@ function AVCanvasContent() {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = type === 'device' 
-                      ? `${device?.label || 'Device'}-Label.pdf`
-                      : `${connection?.wireId || 'Cable'}-Label.pdf`;
+                    a.download = `${currentProject?.name || 'Project'}-Wire-Schedule.pdf`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
                     a.remove();
-                    toast.success(`${type === 'device' ? 'Device' : 'Cable'} label generated`);
+                    toast.success('Wire schedule exported');
                   } catch (error) {
-                    console.error('Label generation error:', error);
-                    toast.error('Failed to generate label');
+                    console.error('Wire schedule error:', error);
+                    toast.error('Failed to export wire schedule');
                   }
                   setIsExporting(false);
                 }}
-                onGenerateRoomDiagram={async ({ room, devices, connections: roomConnections }) => {
+                onGenerateBOM={async ({ canvasProducts: devices, connections: conns, projectName: pName, clientName: cName }) => {
                   setIsExporting(true);
                   try {
                     const response = await base44.functions.invoke('exportCanvasToPDF', {
-                      action: 'generateRoomDiagram',
-                      room,
-                      devices,
-                      connections: roomConnections
+                      action: 'generateBOM',
+                      canvasProducts: devices,
+                      connections: conns,
+                      projectName: pName || currentProject?.name,
+                      clientName: cName
                     });
 
                     const base64 = response.data.pdf;
@@ -2293,15 +2292,15 @@ function AVCanvasContent() {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${room}-Diagram.pdf`;
+                    a.download = `${currentProject?.name || 'Project'}-BOM.pdf`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
                     a.remove();
-                    toast.success('Room diagram generated');
+                    toast.success('Bill of Materials exported');
                   } catch (error) {
-                    console.error('Diagram generation error:', error);
-                    toast.error('Failed to generate diagram');
+                    console.error('BOM generation error:', error);
+                    toast.error('Failed to export BOM');
                   }
                   setIsExporting(false);
                 }}
