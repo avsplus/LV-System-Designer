@@ -123,20 +123,100 @@ Deno.serve(async (req) => {
           };
         });
 
-        // Template data payload
+        // Build HTML body content for the template
+        const bodyHtml = `
+          <div class="keep-together">
+            <h1>Project Overview</h1>
+            <div class="info-box">
+              <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
+              <p><strong>Location:</strong> ${location || 'N/A'}</p>
+              <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
+            </div>
+            <div class="highlight">
+              <h3>System Summary</h3>
+              <p><strong>${canvasProducts.length}</strong> Devices · <strong>${connections.length}</strong> Connections · <strong>${uniqueRooms.length}</strong> Rooms</p>
+            </div>
+          </div>
+
+          <div class="keep-together">
+            <h1>Device Documentation</h1>
+            <table>
+              <thead>
+                <tr>
+                  <th>Device</th>
+                  <th>Model</th>
+                  <th>Room</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${devicesList.map(d => `
+                  <tr>
+                    <td><strong>${d.label}</strong><br><span style="font-size: 10px; color: #666;">${d.category}</span></td>
+                    <td>${d.brand} ${d.model}</td>
+                    <td>${d.room}</td>
+                    <td style="font-family: 'IBM Plex Mono', monospace; font-size: 10px;">${d.ip}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="keep-together">
+            <h1>Cable Schedule</h1>
+            <table>
+              <thead>
+                <tr>
+                  <th>Cable ID</th>
+                  <th>From</th>
+                  <th>Port</th>
+                  <th>To</th>
+                  <th>Port</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${cableSchedule.map(c => `
+                  <tr>
+                    <td><strong>${c.wire_id}</strong></td>
+                    <td>${c.from_device}</td>
+                    <td>${c.from_port}</td>
+                    <td>${c.to_device}</td>
+                    <td>${c.to_port}</td>
+                    <td>${c.type}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          ${roomsData.map(room => `
+            <div class="keep-together">
+              <h2>${room.name}</h2>
+              <p>${room.device_count} device${room.device_count !== 1 ? 's' : ''} in this room</p>
+              <ul>
+                ${room.devices.map(d => `<li><strong>${d.label}</strong> — ${d.brand} ${d.model}${d.ip ? ` (${d.ip})` : ''}</li>`).join('')}
+              </ul>
+            </div>
+          `).join('')}
+
+          <div class="keep-together">
+            <h1>Sign-Off</h1>
+            <p>This document certifies that the AV system installation has been completed according to specifications.</p>
+            <div class="info-box">
+              <p><strong>Installer Name:</strong> _______________________________</p>
+              <p><strong>Installer Signature:</strong> _______________________________</p>
+              <p><strong>Client Signature:</strong> _______________________________</p>
+              <p><strong>Date:</strong> _______________________________</p>
+            </div>
+          </div>
+        `;
+
+        // Template data payload - matches your template variables
         const templateData = {
-          project_name: projectName || 'AV System Design',
-          client_name: clientName || '',
-          location: location || '',
+          title: projectName || 'AV System Design',
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-          generated_by: user.full_name || user.email,
-          total_devices: canvasProducts.length,
-          total_connections: connections.length,
-          total_rooms: uniqueRooms.length,
-          logo_url: orgSettings?.logo_url || '',
-          devices: devicesList,
-          cables: cableSchedule,
-          rooms: roomsData
+          body: bodyHtml
         };
 
         console.log('Sending request to APITemplate with template ID:', TEMPLATE_ID);
