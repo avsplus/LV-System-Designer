@@ -21,10 +21,7 @@ export default function useProjectSync({
     }, 2000);
   }, []);
 
-  // Check if we're within the local change window (5 seconds after last change)
-  const isWithinLocalChangeWindow = useCallback(() => {
-    return Date.now() - localChangeTimestamp.current < 5000;
-  }, []);
+
 
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
@@ -34,7 +31,7 @@ export default function useProjectSync({
 
     const checkForUpdates = async () => {
       // Skip sync if we're saving or within local change window
-      if (isSaving.current || isWithinLocalChangeWindow()) {
+      if (isSaving.current || (Date.now() - localChangeTimestamp.current < 5000)) {
         return;
       }
 
@@ -48,7 +45,7 @@ export default function useProjectSync({
         const latestProject = projects[0];
 
         // Double-check we're still not in local change window after fetch
-        if (isWithinLocalChangeWindow()) {
+        if (Date.now() - localChangeTimestamp.current < 5000) {
           return;
         }
 
@@ -70,7 +67,7 @@ export default function useProjectSync({
     const interval = setInterval(checkForUpdates, 5000);
 
     return () => clearInterval(interval);
-  }, [currentProject?.id, currentUserEmail, onProjectUpdated, isWithinLocalChangeWindow]);
+  }, [currentProject?.id, currentUserEmail, onProjectUpdated]);
 
   return { markLocalChange };
 }
