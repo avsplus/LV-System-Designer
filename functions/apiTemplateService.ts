@@ -87,7 +87,12 @@ Deno.serve(async (req) => {
         const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
         if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
-        // Build HTML body content using Fusion CSS classes with page breaks
+        // Build HTML body content based on export type
+        const exportTypeTitle = exportType === 'client' ? 'Client Proposal' : exportType === 'documentation' ? 'Full Documentation' : 'Installation Package';
+        
+        // Calculate totals for pricing sections
+        const totalDevicePrice = canvasProducts.reduce((sum, cp) => sum + (cp.product?.price || 0), 0);
+        
         const bodyHtml = `
 <!-- Project Overview -->
 <section class="keep-together">
@@ -98,6 +103,7 @@ Deno.serve(async (req) => {
     <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
     <p><strong>Location:</strong> ${location || 'N/A'}</p>
     <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
+    <p><strong>Document Type:</strong> ${exportTypeTitle}</p>
   </div>
 
   <div class="info-box">
@@ -112,6 +118,142 @@ Deno.serve(async (req) => {
 
 <div class="page-break"></div>
 
+${isClient ? `
+<!-- Scope of Work -->
+<section class="keep-together">
+  <h1>Scope of Work</h1>
+  
+  <div class="info-box">
+    <div class="info-box-title">Project Scope</div>
+    <p>This proposal includes the design, supply, and installation of a complete audio/video system across ${uniqueRooms.length} room(s).</p>
+  </div>
+
+  <h2>Rooms Included</h2>
+  <ul>
+    ${uniqueRooms.map(room => {
+      const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+      return `<li><strong>${room}</strong> - ${roomDevices.length} device(s)</li>`;
+    }).join('')}
+  </ul>
+</section>
+
+<div class="page-break"></div>
+
+<!-- Devices Per Room -->
+<section>
+  <h1>Equipment by Room</h1>
+
+  ${uniqueRooms.map(room => {
+    const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+    if (roomDevices.length === 0) return '';
+    return `
+  <h2>${room}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Equipment</th>
+        <th>Brand / Model</th>
+        <th>Category</th>
+        ${showPricing ? '<th style="text-align:right;">Price</th>' : ''}
+      </tr>
+    </thead>
+    <tbody>
+      ${roomDevices.map(cp => `
+      <tr>
+        <td>${cp.label || 'Device'}</td>
+        <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
+        <td>${(cp.product?.category || '').replace(/_/g, ' ')}</td>
+        ${showPricing ? `<td style="text-align:right;">$${(cp.product?.price || 0).toLocaleString()}</td>` : ''}
+      </tr>
+      `).join('')}
+    </tbody>
+  </table>
+    `;
+  }).join('')}
+</section>
+
+<div class="page-break"></div>
+
+<!-- Bill of Materials with Pricing -->
+<section>
+  <h1>Bill of Materials</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Brand / Model</th>
+        <th style="text-align:center;">Qty</th>
+        <th style="text-align:right;">Unit Price</th>
+        <th style="text-align:right;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${(() => {
+        const grouped = {};
+        canvasProducts.forEach(cp => {
+          const key = `${cp.product?.brand}-${cp.product?.model}`;
+          if (!grouped[key]) {
+            grouped[key] = { product: cp.product, count: 0 };
+          }
+          grouped[key].count++;
+        });
+        return Object.values(grouped).map(item => `
+      <tr>
+        <td>${(item.product?.category || '').replace(/_/g, ' ')}</td>
+        <td><strong>${item.product?.brand || ''}</strong> ${item.product?.model || ''}</td>
+        <td style="text-align:center;">${item.count}</td>
+        <td style="text-align:right;">$${(item.product?.price || 0).toLocaleString()}</td>
+        <td style="text-align:right;">$${((item.product?.price || 0) * item.count).toLocaleString()}</td>
+      </tr>
+        `).join('');
+      })()}
+      <tr style="font-weight:bold;background-color:#f1f5f9;">
+        <td colspan="4" style="text-align:right;">Equipment Subtotal:</td>
+        <td style="text-align:right;">$${totalDevicePrice.toLocaleString()}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  ${showLabor ? `
+  <h2>Labor & Installation</h2>
+  <table>
+    <tbody>
+      <tr>
+        <td>System Design & Engineering</td>
+        <td style="text-align:right;">Included</td>
+      </tr>
+      <tr>
+        <td>Equipment Installation</td>
+        <td style="text-align:right;">TBD</td>
+      </tr>
+      <tr>
+        <td>Cable Runs & Termination</td>
+        <td style="text-align:right;">TBD</td>
+      </tr>
+      <tr>
+        <td>System Programming & Testing</td>
+        <td style="text-align:right;">TBD</td>
+      </tr>
+      <tr style="font-weight:bold;background-color:#f1f5f9;">
+        <td>Labor Subtotal:</td>
+        <td style="text-align:right;">TBD</td>
+      </tr>
+    </tbody>
+  </table>
+  ` : ''}
+
+  <div class="highlight" style="margin-top:20px;">
+    <h3>Project Total</h3>
+    <p style="font-size:18px;font-weight:bold;">Equipment: $${totalDevicePrice.toLocaleString()}</p>
+    ${showLabor ? '<p style="font-size:14px;">Labor: TBD</p>' : ''}
+  </div>
+</section>
+
+<div class="page-break"></div>
+` : ''}
+
+${isInstaller ? `
 <!-- Device Documentation -->
 <section>
   <h1>Device Documentation</h1>
@@ -134,33 +276,32 @@ Deno.serve(async (req) => {
     <tbody>
       ${roomDevices.map(cp => {
         const category = (cp.product?.category || '').toLowerCase();
-        // Match exact category names from AVProduct entity
         const deviceColor = 
-          category === 'network_switches' ? '#3b82f6' :           // blue - network
-          category === 'media_streamers' ? '#f43f5e' :            // rose - media streamers
-          category === 'audio_streamers' ? '#ec4899' :            // pink - audio streamers
-          category === 'av_receivers' ? '#f59e0b' :               // amber - av receivers
-          category === 'surround_processors' ? '#eab308' :        // yellow - surround
-          category === 'stereo_amps' ? '#f97316' :                // orange - stereo amps
-          category === 'multizone_amps' ? '#f59e0b' :             // amber - multizone amps
-          category === 'projectors' ? '#8b5cf6' :                 // purple - projectors
-          category === 'projector_screens' ? '#a855f7' :          // violet - screens
-          category === 'televisions' ? '#6366f1' :                // indigo - TVs
-          category === 'speakers' ? '#22c55e' :                   // green - speakers
-          category === 'soundbars' ? '#84cc16' :                  // lime - soundbars
-          category === 'subwoofers' ? '#ef4444' :                 // red - subwoofers
-          category === 'video_distribution' ? '#06b6d4' :         // cyan - video dist
-          category === 'matrix_switchers' ? '#14b8a6' :           // teal - matrix
-          category === 'hdmi_extenders' ? '#0ea5e9' :             // sky - hdmi extenders
-          category === 'control_processors' ? '#ec4899' :         // pink - control
-          '#64748b';  // slate - fallback
+          category === 'network_switches' ? '#3b82f6' :
+          category === 'media_streamers' ? '#f43f5e' :
+          category === 'audio_streamers' ? '#ec4899' :
+          category === 'av_receivers' ? '#f59e0b' :
+          category === 'surround_processors' ? '#eab308' :
+          category === 'stereo_amps' ? '#f97316' :
+          category === 'multizone_amps' ? '#f59e0b' :
+          category === 'projectors' ? '#8b5cf6' :
+          category === 'projector_screens' ? '#a855f7' :
+          category === 'televisions' ? '#6366f1' :
+          category === 'speakers' ? '#22c55e' :
+          category === 'soundbars' ? '#84cc16' :
+          category === 'subwoofers' ? '#ef4444' :
+          category === 'video_distribution' ? '#06b6d4' :
+          category === 'matrix_switchers' ? '#14b8a6' :
+          category === 'hdmi_extenders' ? '#0ea5e9' :
+          category === 'control_processors' ? '#ec4899' :
+          '#64748b';
         return `
       <tr>
         <td><span style="display:inline-block;min-width:60px;max-width:60px;width:60px;padding:3px 4px;border-radius:4px;font-size:8px;font-weight:700;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
-                      <td><strong style="font-size:14px;">${cp.product?.brand || ''}</strong> <span style="font-size:10px;">${cp.product?.model || ''}</span></td>
-                      <td class="mono" style="font-size:12px;">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
-                      <td class="mono" style="font-size:9px;">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
-                      <td class="mono" style="font-size:9px;">${cp.networkInfo?.sw ? `SW ${cp.networkInfo.sw}` : '-'} · ${cp.networkInfo?.port ? `Port ${cp.networkInfo.port}` : '-'}</td>
+        <td><strong style="font-size:14px;">${cp.product?.brand || ''}</strong> <span style="font-size:10px;">${cp.product?.model || ''}</span></td>
+        <td class="mono" style="font-size:12px;">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
+        <td class="mono" style="font-size:9px;">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
+        <td class="mono" style="font-size:9px;">${cp.networkInfo?.sw ? `SW ${cp.networkInfo.sw}` : '-'} · ${cp.networkInfo?.port ? `Port ${cp.networkInfo.port}` : '-'}</td>
       </tr>
         `;
       }).join('')}
@@ -171,6 +312,7 @@ Deno.serve(async (req) => {
 </section>
 
 <!-- Wire Schedule -->
+${showWireSchedule && connections.length > 0 ? `
 <section class="keep-together">
   <h1>Wire Schedule</h1>
 
@@ -191,25 +333,24 @@ Deno.serve(async (req) => {
         const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
         const wireId = conn.wireId || `C${i + 1}`;
         const connType = (conn.type || '').toLowerCase();
-        // Match wire color to connection type
         const wireColor = 
-          connType === 'hdmi' ? '#e74c3c' :              // red - HDMI
-          connType === 'hdbaset' ? '#e91e63' :           // pink - HDBaseT
-          connType === 'ethernet' ? '#27ae60' :          // green - Ethernet
-          connType === 'optical' || connType === 'optical/toslink' ? '#2a7fdb' :  // blue - Optical
-          connType === 'rca' ? '#ffb300' :               // amber - RCA
-          connType === 'xlr' ? '#1abc9c' :               // teal - XLR
-          connType === 'speaker wire' ? '#8e5c2c' :      // brown - Speaker Wire
-          connType === 'coaxial' ? '#9b59b6' :           // purple - Coaxial
-          connType === 'usb' ? '#2a7fdb' :               // blue - USB
-          connType === 'rs232' ? '#7f8c8d' :             // gray - RS232
-          connType === 'control' ? '#7f8c8d' :           // gray - Control
-          connType === 'subwoofer' ? '#e74c3c' :         // red - Subwoofer
-          connType === 'component' ? '#2ecc71' :         // green - Component
-          connType === 'composite' ? '#f1c40f' :         // yellow - Composite
-          connType === 'vga' ? '#3498db' :               // blue - VGA
-          connType === '3.5mm jack' ? '#95a5a6' :        // silver - 3.5mm
-          '#64748b';                                     // slate - fallback
+          connType === 'hdmi' ? '#e74c3c' :
+          connType === 'hdbaset' ? '#e91e63' :
+          connType === 'ethernet' ? '#27ae60' :
+          connType === 'optical' || connType === 'optical/toslink' ? '#2a7fdb' :
+          connType === 'rca' ? '#ffb300' :
+          connType === 'xlr' ? '#1abc9c' :
+          connType === 'speaker wire' ? '#8e5c2c' :
+          connType === 'coaxial' ? '#9b59b6' :
+          connType === 'usb' ? '#2a7fdb' :
+          connType === 'rs232' ? '#7f8c8d' :
+          connType === 'control' ? '#7f8c8d' :
+          connType === 'subwoofer' ? '#e74c3c' :
+          connType === 'component' ? '#2ecc71' :
+          connType === 'composite' ? '#f1c40f' :
+          connType === 'vga' ? '#3498db' :
+          connType === '3.5mm jack' ? '#95a5a6' :
+          '#64748b';
         return `
       <tr>
         <td><span style="display:inline-block;min-width:40px;max-width:40px;width:40px;padding:2px 4px;border-radius:4px;font-size:9px;font-weight:700;font-family:monospace;color:#fff;background-color:${wireColor};text-align:center;">${wireId}</span></td>
@@ -224,6 +365,7 @@ Deno.serve(async (req) => {
     </tbody>
   </table>
 </section>
+` : ''}
 
 <div class="page-break"></div>
 
@@ -246,16 +388,18 @@ Deno.serve(async (req) => {
 </section>
 
 <div class="page-break"></div>
+` : ''}
 
 <!-- Sign-off -->
 <section class="keep-together">
-  <h1>Sign-off</h1>
+  <h1>${isClient ? 'Proposal Acceptance' : 'Installation Sign-off'}</h1>
 
   <div class="info-box">
-    <div class="info-box-title">Client Approval</div>
+    <div class="info-box-title">${isClient ? 'Client Acceptance' : 'Client Approval'}</div>
     <p>
-      The client acknowledges that the above AV system design has been reviewed and approved
-      for installation.
+      ${isClient 
+        ? 'By signing below, the client accepts this proposal and authorizes the work to proceed as described.'
+        : 'The client acknowledges that the above AV system design has been reviewed and approved for installation.'}
     </p>
   </div>
 
