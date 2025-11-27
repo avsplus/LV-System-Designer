@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
                             '#10b981';  // green - fallback (source)
         return `
       <tr>
-        <td><span style="display:inline-block;width:70px;padding:4px 6px;border-radius:4px;font-size:10px;font-weight:600;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
+        <td><span style="display:inline-block;min-width:80px;max-width:80px;width:80px;padding:4px 6px;border-radius:4px;font-size:9px;font-weight:600;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
         <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
         <td class="mono">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
         <td class="mono">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
