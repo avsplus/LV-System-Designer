@@ -1831,9 +1831,10 @@ function AVCanvasContent() {
                         })}
 
                         {/* Render hovered connection last (on top) */}
-                        {hoveredConnectionIndex !== null && (() => {
+                        {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
                         const index = hoveredConnectionIndex;
                         const connection = connections[index];
+                        if (!connection) return null;
                         const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
                         const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
 
