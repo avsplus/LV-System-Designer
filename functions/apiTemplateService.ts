@@ -126,12 +126,26 @@ Deno.serve(async (req) => {
     <tbody>
       ${roomDevices.map(cp => {
         const category = (cp.product?.category || '').toLowerCase();
-        const deviceColor = category.includes('network') || category.includes('switch') ? '#3b82f6' :  // blue - network
-                            category.includes('media') || category.includes('streamer') ? '#10b981' :  // green - source
-                            category.includes('receiver') || category.includes('amp') || category.includes('audio') ? '#f59e0b' :  // amber - audio
-                            category.includes('projector') || category.includes('television') || category.includes('tv') ? '#8b5cf6' :  // purple - video
-                            category.includes('control') ? '#ec4899' :  // pink - control
-                            '#10b981';  // green - fallback (source)
+        // Match exact category names from AVProduct entity
+        const deviceColor = 
+          category === 'network_switches' ? '#3b82f6' :           // blue - network
+          category === 'media_streamers' ? '#f43f5e' :            // rose - media streamers
+          category === 'audio_streamers' ? '#ec4899' :            // pink - audio streamers
+          category === 'av_receivers' ? '#f59e0b' :               // amber - av receivers
+          category === 'surround_processors' ? '#eab308' :        // yellow - surround
+          category === 'stereo_amps' ? '#f97316' :                // orange - stereo amps
+          category === 'multizone_amps' ? '#f59e0b' :             // amber - multizone amps
+          category === 'projectors' ? '#8b5cf6' :                 // purple - projectors
+          category === 'projector_screens' ? '#a855f7' :          // violet - screens
+          category === 'televisions' ? '#6366f1' :                // indigo - TVs
+          category === 'speakers' ? '#22c55e' :                   // green - speakers
+          category === 'soundbars' ? '#84cc16' :                  // lime - soundbars
+          category === 'subwoofers' ? '#ef4444' :                 // red - subwoofers
+          category === 'video_distribution' ? '#06b6d4' :         // cyan - video dist
+          category === 'matrix_switchers' ? '#14b8a6' :           // teal - matrix
+          category === 'hdmi_extenders' ? '#0ea5e9' :             // sky - hdmi extenders
+          category === 'control_processors' ? '#ec4899' :         // pink - control
+          '#64748b';  // slate - fallback
         return `
       <tr>
         <td><span style="display:inline-block;min-width:80px;max-width:80px;width:80px;padding:4px 6px;border-radius:4px;font-size:9px;font-weight:600;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
