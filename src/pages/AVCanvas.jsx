@@ -33,6 +33,26 @@ import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
 import { useSettings } from "../components/settings/SettingsContext";
 
+const categoryAbbreviations = {
+  televisions: 'TV',
+  projectors: 'PJ',
+  projector_screens: 'SCR',
+  video_distribution: 'VD',
+  matrix_switchers: 'MX',
+  audio_streamers: 'AS',
+  media_streamers: 'MS',
+  speakers: 'SPK',
+  soundbars: 'SB',
+  subwoofers: 'SUB',
+  stereo_amps: 'AMP',
+  multizone_amps: 'MZA',
+  surround_processors: 'SP',
+  av_receivers: 'AVR',
+  network_switches: 'SW',
+  control_processors: 'CP',
+  hdmi_extenders: 'EXT'
+};
+
 function AVCanvasContent() {
     const toast = useToast();
     const confirmDialog = useConfirm();
@@ -552,7 +572,8 @@ function AVCanvasContent() {
       type: connectionData.type,
       fromPort: connectionData.fromPort,
       toPort: connectionData.toPort,
-      wireId: wireId
+      wireId: wireId,
+      wireSpec: connectionData.wireSpec || null
     }]);
 
     // Track activity
