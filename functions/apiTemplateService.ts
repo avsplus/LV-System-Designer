@@ -124,15 +124,23 @@ Deno.serve(async (req) => {
       </tr>
     </thead>
     <tbody>
-      ${roomDevices.map(cp => `
+      ${roomDevices.map(cp => {
+        const category = (cp.product?.category || '').toLowerCase();
+        const deviceClass = category.includes('network') || category.includes('switch') ? 'device-badge--network' :
+                            category.includes('media') || category.includes('streamer') ? 'device-badge--source' :
+                            category.includes('receiver') || category.includes('amp') || category.includes('audio') ? 'device-badge--audio' :
+                            category.includes('projector') || category.includes('television') || category.includes('tv') ? 'device-badge--video' :
+                            category.includes('control') ? 'device-badge--control' : 'device-badge--source';
+        return `
       <tr>
-        <td class="mono">${cp.label || cp.product?.brand || 'Device'}</td>
+        <td><span class="device-badge ${deviceClass}">${cp.label || cp.product?.brand || 'Device'}</span></td>
         <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
         <td class="mono">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
         <td class="mono">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
         <td class="mono">${cp.networkInfo?.sw ? `SW ${cp.networkInfo.sw}` : '-'} · ${cp.networkInfo?.port ? `Port ${cp.networkInfo.port}` : '-'}</td>
       </tr>
-      `).join('')}
+        `;
+      }).join('')}
     </tbody>
   </table>
     `;
