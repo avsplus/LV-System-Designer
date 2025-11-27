@@ -79,137 +79,143 @@ Deno.serve(async (req) => {
         const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
         if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
-        // Build devices list for template
-        const devicesList = canvasProducts.map(cp => {
-          const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
-          return {
-            label: cp.label || cp.product?.brand || 'Device',
-            brand: cp.product?.brand || '',
-            model: cp.product?.model || '',
-            category: (cp.product?.category || '').replace(/_/g, ' '),
-            room: cp.room || 'Unassigned',
-            ip: cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-',
-            mac: cp.networkInfo?.mac && cp.networkInfo.mac !== '00:00:00:00:00:00' ? cp.networkInfo.mac : '-',
-            connections_count: deviceConnections.length
-          };
-        });
-
-        // Build cable schedule for template
-        const cableSchedule = connections.map((conn, i) => {
-          const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
-          const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
-          return {
-            wire_id: conn.wireId || `C${i + 1}`,
-            from_device: fromDevice?.label || fromDevice?.product?.brand || 'Unknown',
-            from_port: conn.fromPort || '-',
-            to_device: toDevice?.label || toDevice?.product?.brand || 'Unknown',
-            to_port: conn.toPort || '-',
-            type: conn.type || '-'
-          };
-        });
-
-        // Build rooms data for template
-        const roomsData = uniqueRooms.map(room => {
-          const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
-          return {
-            name: room,
-            device_count: roomDevices.length,
-            devices: roomDevices.map(cp => ({
-              label: cp.label || cp.product?.brand || 'Device',
-              brand: cp.product?.brand || '',
-              model: cp.product?.model || '',
-              ip: cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : ''
-            }))
-          };
-        });
-
-        // Build HTML body content for the template
+        // Build HTML body content using Fusion CSS classes
         const bodyHtml = `
-          <div class="keep-together">
-            <h1>Project Overview</h1>
-            <div class="info-box">
-              <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
-              <p><strong>Location:</strong> ${location || 'N/A'}</p>
-              <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
-            </div>
-            <div class="highlight">
-              <h3>System Summary</h3>
-              <p><strong>${canvasProducts.length}</strong> Devices · <strong>${connections.length}</strong> Connections · <strong>${uniqueRooms.length}</strong> Rooms</p>
-            </div>
-          </div>
+<!-- Project Overview -->
+<section class="keep-together">
+  <h1>Project Overview</h1>
 
-          <div class="keep-together">
-            <h1>Device Documentation</h1>
-            <table>
-              <thead>
-                <tr>
-                  <th>Device</th>
-                  <th>Model</th>
-                  <th>Room</th>
-                  <th>IP Address</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${devicesList.map(d => `
-                  <tr>
-                    <td><strong>${d.label}</strong><br><span style="font-size: 10px; color: #666;">${d.category}</span></td>
-                    <td>${d.brand} ${d.model}</td>
-                    <td>${d.room}</td>
-                    <td style="font-family: 'IBM Plex Mono', monospace; font-size: 10px;">${d.ip}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
+  <div class="highlight">
+    <h3>Project Details</h3>
+    <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
+    <p><strong>Location:</strong> ${location || 'N/A'}</p>
+    <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
+  </div>
 
-          <div class="keep-together">
-            <h1>Cable Schedule</h1>
-            <table>
-              <thead>
-                <tr>
-                  <th>Cable ID</th>
-                  <th>From</th>
-                  <th>Port</th>
-                  <th>To</th>
-                  <th>Port</th>
-                  <th>Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${cableSchedule.map(c => `
-                  <tr>
-                    <td><strong>${c.wire_id}</strong></td>
-                    <td>${c.from_device}</td>
-                    <td>${c.from_port}</td>
-                    <td>${c.to_device}</td>
-                    <td>${c.to_port}</td>
-                    <td>${c.type}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
+  <div class="info-box">
+    <div class="info-box-title">System Summary</div>
+    <p>
+      <strong>${canvasProducts.length}</strong> Devices ·
+      <strong>${connections.length}</strong> Connections ·
+      <strong>${uniqueRooms.length}</strong> Rooms
+    </p>
+  </div>
+</section>
 
-          ${roomsData.map(room => `
-            <div class="keep-together">
-              <h2>${room.name}</h2>
-              <p>${room.device_count} device${room.device_count !== 1 ? 's' : ''} in this room</p>
-              <ul>
-                ${room.devices.map(d => `<li><strong>${d.label}</strong> — ${d.brand} ${d.model}${d.ip ? ` (${d.ip})` : ''}</li>`).join('')}
-              </ul>
-            </div>
-          `).join('')}
+<!-- Device Documentation -->
+<section>
+  <h1>Device Documentation</h1>
 
-          <div class="keep-together">
-            <h1>Sign-Off</h1>
-            <p>This document certifies that the AV system installation has been completed according to specifications.</p>
-            <div class="info-box">
-              <p><strong>Installer Name:</strong> _______________________________</p>
-              <p><strong>Installer Signature:</strong> _______________________________</p>
-              <p><strong>Client Signature:</strong> _______________________________</p>
-              <p><strong>Date:</strong> _______________________________</p>
-            </div>
-          </div>
+  ${uniqueRooms.map(room => {
+    const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+    if (roomDevices.length === 0) return '';
+    return `
+  <h2>${room}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Label</th>
+        <th>Brand / Model</th>
+        <th>Category</th>
+        <th>IP Address</th>
+        <th>Switch / Port</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${roomDevices.map(cp => `
+      <tr>
+        <td class="mono">${cp.label || cp.product?.brand || 'Device'}</td>
+        <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
+        <td class="mono">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
+        <td class="mono">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
+        <td class="mono">${cp.networkInfo?.sw ? `SW ${cp.networkInfo.sw}` : '-'} · ${cp.networkInfo?.port ? `Port ${cp.networkInfo.port}` : '-'}</td>
+      </tr>
+      `).join('')}
+    </tbody>
+  </table>
+    `;
+  }).join('')}
+</section>
+
+<!-- Cable Schedule -->
+<section>
+  <h1>Cable Schedule</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Wire ID</th>
+        <th>Type</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Ports</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${connections.map((conn, i) => {
+        const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+        const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+        return `
+      <tr>
+        <td class="mono">${conn.wireId || `C${i + 1}`}</td>
+        <td class="mono">${conn.type || '-'}</td>
+        <td class="mono">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</td>
+        <td class="mono">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</td>
+        <td class="mono">${conn.fromPort || '?'} → ${conn.toPort || '?'}</td>
+      </tr>
+        `;
+      }).join('')}
+    </tbody>
+  </table>
+</section>
+
+<!-- Room Overview -->
+<section>
+  <h1>Room Overview</h1>
+
+  ${uniqueRooms.map(room => {
+    const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+    if (roomDevices.length === 0) return '';
+    return `
+  <h2>${room}</h2>
+  <ul>
+    ${roomDevices.map(cp => `
+    <li>${cp.label || cp.product?.brand || 'Device'} · ${cp.product?.brand || ''} ${cp.product?.model || ''}</li>
+    `).join('')}
+  </ul>
+    `;
+  }).join('')}
+</section>
+
+<!-- Sign-off -->
+<section class="keep-together">
+  <h1>Sign-off</h1>
+
+  <div class="info-box">
+    <div class="info-box-title">Client Approval</div>
+    <p>
+      The client acknowledges that the above AV system design has been reviewed and approved
+      for installation.
+    </p>
+  </div>
+
+  <table>
+    <tbody>
+      <tr>
+        <td style="width: 50%;">
+          <p><strong>Client Name</strong></p>
+          <p>______________________________</p>
+          <p>Date: ________________________</p>
+        </td>
+        <td style="width: 50%;">
+          <p><strong>Prepared By</strong></p>
+          <p>______________________________</p>
+          <p>Date: ________________________</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
         `;
 
         // Template data payload - matches your template variables
