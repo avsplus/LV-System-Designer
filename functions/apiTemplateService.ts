@@ -83,6 +83,14 @@ Deno.serve(async (req) => {
           projectName
         });
 
+        // Fetch wire pricing for cable labor calculation
+        let wirePricingData = [];
+        try {
+          wirePricingData = await base44.asServiceRole.entities.WirePricing.list();
+        } catch (e) {
+          console.log('Could not fetch wire pricing:', e.message);
+        }
+
         // Build template data
         const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
         if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
@@ -93,6 +101,30 @@ Deno.serve(async (req) => {
         // Calculate totals for pricing sections
         const totalDevicePrice = canvasProducts.reduce((sum, cp) => sum + (cp.product?.price || 0), 0);
         const totalInstallLabor = canvasProducts.reduce((sum, cp) => sum + (cp.product?.installation_labor || 0), 0);
+        
+        // Calculate cable labor from wire pricing
+        let cableLaborTotal = 0;
+        connections.forEach(conn => {
+          const wireType = conn.type || '';
+          const pricing = wirePricingData.find(wp => 
+            wp.wire_type?.toLowerCase() === wireType.toLowerCase()
+          );
+          if (pricing?.labor_price_per_run) {
+            cableLaborTotal += pricing.labor_price_per_run;
+          }
+        });
+        
+        // Get labor rates from org settings
+        const laborRates = orgSettings?.labor_rates || {};
+        const designEngineeringRate = laborRates.design_engineering_rate || 0;
+        const equipmentInstallationRate = laborRates.equipment_installation_rate || 0;
+        const systemProgrammingRate = laborRates.system_programming_rate || 0;
+        
+        // Calculate labor subtotal
+        const laborSubtotal = designEngineeringRate + equipmentInstallationRate + cableLaborTotal + systemProgrammingRate;
+        
+        // Grand total
+        const grandTotal = totalDevicePrice + totalInstallLabor + laborSubtotal;
         
         const bodyHtml = `
 <!-- Project Overview -->
@@ -226,38 +258,38 @@ ${isClient ? `
       <tbody>
         <tr>
           <td>System Design & Engineering</td>
-          <td style="text-align:right;">Included</td>
+          <td style="text-align:right;">${designEngineeringRate === 0 ? 'Included' : '$' + designEngineeringRate.toLocaleString()}</td>
         </tr>
         <tr>
           <td>Equipment Installation</td>
-          <td style="text-align:right;">TBD</td>
+          <td style="text-align:right;">${equipmentInstallationRate > 0 ? '$' + equipmentInstallationRate.toLocaleString() : 'TBD'}</td>
         </tr>
         <tr>
-          <td>Cable Runs & Termination</td>
-          <td style="text-align:right;">TBD</td>
+          <td>Cable Runs & Termination (${connections.length} runs)</td>
+          <td style="text-align:right;">${cableLaborTotal > 0 ? '$' + cableLaborTotal.toLocaleString() : 'TBD'}</td>
         </tr>
         <tr>
           <td>System Programming & Testing</td>
-          <td style="text-align:right;">TBD</td>
+          <td style="text-align:right;">${systemProgrammingRate > 0 ? '$' + systemProgrammingRate.toLocaleString() : 'TBD'}</td>
         </tr>
         <tr style="font-weight:bold;background-color:#f1f5f9;">
           <td>Labor Subtotal:</td>
-          <td style="text-align:right;">TBD</td>
+          <td style="text-align:right;">${laborSubtotal > 0 ? '$' + laborSubtotal.toLocaleString() : 'TBD'}</td>
         </tr>
       </tbody>
     </table>
 
     <div class="highlight" style="margin-top:20px;">
       <h3>Project Total</h3>
-      <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${(totalDevicePrice + totalInstallLabor).toLocaleString()}</p>
-      <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Install Labor: $${totalInstallLabor.toLocaleString()}</p>
+      <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${grandTotal.toLocaleString()}</p>
+      <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Device Install: $${totalInstallLabor.toLocaleString()} | Other Labor: $${laborSubtotal.toLocaleString()}</p>
     </div>
   </div>
   ` : `
   <div class="highlight" style="margin-top:20px;">
     <h3>Project Total</h3>
-    <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${(totalDevicePrice + totalInstallLabor).toLocaleString()}</p>
-    <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Install Labor: $${totalInstallLabor.toLocaleString()}</p>
+    <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${grandTotal.toLocaleString()}</p>
+    <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Device Install: $${totalInstallLabor.toLocaleString()} | Other Labor: $${laborSubtotal.toLocaleString()}</p>
   </div>
   `}
 </section>
