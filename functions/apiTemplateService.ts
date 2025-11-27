@@ -166,13 +166,84 @@ Deno.serve(async (req) => {
 
 ${isClient ? `
 <!-- Scope of Work -->
-<section class="keep-together">
+<section>
   <h1>Scope of Work</h1>
   
   <div class="info-box">
-    <div class="info-box-title">Project Scope</div>
-    <p>This proposal includes the design, supply, and installation of a complete audio/video system across ${uniqueRooms.length} room(s).</p>
+    <div class="info-box-title">Project Overview</div>
+    <p>This proposal includes the complete design, supply, installation, configuration, and training for a professional audio/video system across ${uniqueRooms.length} room(s) with ${canvasProducts.length} devices and ${connections.length} integrated connections.</p>
   </div>
+
+  <h2>1. Equipment Supply</h2>
+  <p>Supply and delivery of the following equipment categories:</p>
+  <ul>
+    ${(() => {
+      const categories = {};
+      canvasProducts.forEach(cp => {
+        const cat = (cp.product?.category || 'other').replace(/_/g, ' ');
+        if (!categories[cat]) categories[cat] = 0;
+        categories[cat]++;
+      });
+      return Object.entries(categories).map(([cat, count]) => 
+        `<li><strong>${count}x</strong> ${cat.charAt(0).toUpperCase() + cat.slice(1)}</li>`
+      ).join('');
+    })()}
+  </ul>
+
+  <h2>2. Equipment Installation</h2>
+  <p>Professional installation of all equipment in designated locations:</p>
+  <ul>
+    ${uniqueRooms.map(room => {
+      const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+      if (roomDevices.length === 0) return '';
+      const deviceList = roomDevices.map(d => d.product?.brand + ' ' + d.product?.model).join(', ');
+      return `<li><strong>${room}:</strong> ${roomDevices.length} device(s) - ${deviceList}</li>`;
+    }).join('')}
+  </ul>
+  <p style="font-size:12px;color:#64748b;margin-top:8px;">Includes mounting hardware, power connections, and physical placement per manufacturer specifications.</p>
+
+  <h2>3. Cabling & Infrastructure</h2>
+  <p>Supply and installation of all required cabling:</p>
+  <ul>
+    ${(() => {
+      const cableTypes = {};
+      connections.forEach(conn => {
+        const type = conn.type || 'Unknown';
+        if (!cableTypes[type]) cableTypes[type] = 0;
+        cableTypes[type]++;
+      });
+      return Object.entries(cableTypes).map(([type, count]) => {
+        const isEthernet = type.toLowerCase() === 'ethernet' || type.toLowerCase() === 'hdbaset';
+        return `<li><strong>${count}x</strong> ${type} cable run${count > 1 ? 's' : ''}${isEthernet ? ` (includes ${count * 2} terminations)` : ''}</li>`;
+      }).join('');
+    })()}
+  </ul>
+  <p style="font-size:12px;color:#64748b;margin-top:8px;">All cables professionally routed, labeled, and terminated per industry standards.</p>
+
+  <h2>4. System Programming & Configuration</h2>
+  <p>Complete system configuration including:</p>
+  <ul>
+    <li>Network configuration and IP address assignment for ${canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length} networked devices</li>
+    <li>Audio/video signal routing and optimization</li>
+    <li>Control system programming and integration</li>
+    <li>Source and display calibration</li>
+    <li>Multi-room audio zone configuration (if applicable)</li>
+    <li>Complete system testing and verification</li>
+  </ul>
+
+  <h2>5. Client Training & Documentation</h2>
+  <p>Upon completion, we will provide:</p>
+  <ul>
+    <li>On-site training session for system operation</li>
+    <li>User guide with daily operation instructions</li>
+    <li>Complete system documentation including:</li>
+    <ul style="margin-left:20px;margin-top:4px;">
+      <li>Equipment inventory and warranty information</li>
+      <li>Network configuration details</li>
+      <li>Wiring schedule and cable labels</li>
+      <li>Troubleshooting guide</li>
+    </ul>
+  </ul>
 
   <h2>Rooms Included</h2>
   <ul>
