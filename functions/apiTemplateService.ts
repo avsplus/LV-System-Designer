@@ -220,38 +220,46 @@ ${isClient ? `
   </table>
 
   ${showLabor ? `
-  <h2>Labor & Installation</h2>
-  <table>
-    <tbody>
-      <tr>
-        <td>System Design & Engineering</td>
-        <td style="text-align:right;">Included</td>
-      </tr>
-      <tr>
-        <td>Equipment Installation</td>
-        <td style="text-align:right;">TBD</td>
-      </tr>
-      <tr>
-        <td>Cable Runs & Termination</td>
-        <td style="text-align:right;">TBD</td>
-      </tr>
-      <tr>
-        <td>System Programming & Testing</td>
-        <td style="text-align:right;">TBD</td>
-      </tr>
-      <tr style="font-weight:bold;background-color:#f1f5f9;">
-        <td>Labor Subtotal:</td>
-        <td style="text-align:right;">TBD</td>
-      </tr>
-    </tbody>
-  </table>
-  ` : ''}
+  <div class="keep-together">
+    <h2>Labor & Installation</h2>
+    <table>
+      <tbody>
+        <tr>
+          <td>System Design & Engineering</td>
+          <td style="text-align:right;">Included</td>
+        </tr>
+        <tr>
+          <td>Equipment Installation</td>
+          <td style="text-align:right;">TBD</td>
+        </tr>
+        <tr>
+          <td>Cable Runs & Termination</td>
+          <td style="text-align:right;">TBD</td>
+        </tr>
+        <tr>
+          <td>System Programming & Testing</td>
+          <td style="text-align:right;">TBD</td>
+        </tr>
+        <tr style="font-weight:bold;background-color:#f1f5f9;">
+          <td>Labor Subtotal:</td>
+          <td style="text-align:right;">TBD</td>
+        </tr>
+      </tbody>
+    </table>
 
+    <div class="highlight" style="margin-top:20px;">
+      <h3>Project Total</h3>
+      <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${(totalDevicePrice + totalInstallLabor).toLocaleString()}</p>
+      <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Install Labor: $${totalInstallLabor.toLocaleString()}</p>
+    </div>
+  </div>
+  ` : `
   <div class="highlight" style="margin-top:20px;">
     <h3>Project Total</h3>
     <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${(totalDevicePrice + totalInstallLabor).toLocaleString()}</p>
     <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Install Labor: $${totalInstallLabor.toLocaleString()}</p>
   </div>
+  `}
 </section>
 
 <div class="page-break"></div>
