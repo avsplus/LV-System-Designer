@@ -157,6 +157,11 @@ export default function Settings() {
     grid_size: 20,
     default_zoom: 1,
     auto_save: true,
+    labor_rates: {
+      equipment_installation_rate: 0,
+      system_programming_rate: 0,
+      design_engineering_rate: 0
+    },
     device_custom_fields: [],
     project_metadata_fields: [],
     export_template: {
@@ -173,6 +178,7 @@ export default function Settings() {
       setForm({
         ...form,
         ...settings,
+        labor_rates: { ...form.labor_rates, ...settings.labor_rates },
         export_template: { ...form.export_template, ...settings.export_template }
       });
     }
@@ -640,6 +646,72 @@ export default function Settings() {
           {/* Export Tab */}
           {canViewAdvanced && (
             <TabsContent value="export" className="space-y-6">
+              {/* Labor Rates Section */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+                <h3 className="text-lg font-semibold text-white">Labor Rates</h3>
+                <p className="text-sm text-gray-400">Configure flat labor rates for proposals. Set to 0 for "Included" or leave blank for "TBD".</p>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-gray-300">System Design & Engineering</Label>
+                    <div className="mt-2 relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <Input
+                        type="number"
+                        value={form.labor_rates?.design_engineering_rate || ''}
+                        onChange={(e) => setForm({
+                          ...form,
+                          labor_rates: { ...form.labor_rates, design_engineering_rate: parseFloat(e.target.value) || 0 }
+                        })}
+                        disabled={!canEdit}
+                        placeholder="0 = Included"
+                        className="pl-7 bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300">Equipment Installation</Label>
+                    <div className="mt-2 relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <Input
+                        type="number"
+                        value={form.labor_rates?.equipment_installation_rate || ''}
+                        onChange={(e) => setForm({
+                          ...form,
+                          labor_rates: { ...form.labor_rates, equipment_installation_rate: parseFloat(e.target.value) || 0 }
+                        })}
+                        disabled={!canEdit}
+                        placeholder="Flat rate"
+                        className="pl-7 bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300">System Programming & Testing</Label>
+                    <div className="mt-2 relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <Input
+                        type="number"
+                        value={form.labor_rates?.system_programming_rate || ''}
+                        onChange={(e) => setForm({
+                          ...form,
+                          labor_rates: { ...form.labor_rates, system_programming_rate: parseFloat(e.target.value) || 0 }
+                        })}
+                        disabled={!canEdit}
+                        placeholder="Flat rate"
+                        className="pl-7 bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-500">
+                  Note: "Cable Runs & Termination" is calculated automatically from your Wire Pricing settings (labor per run × number of connections).
+                </p>
+              </div>
+
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
                 <h3 className="text-lg font-semibold text-white">PDF Export Template</h3>
                 
