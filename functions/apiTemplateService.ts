@@ -64,9 +64,17 @@ Deno.serve(async (req) => {
       // ==========================================
 
       case 'generateInstallationPackage': {
-        // Generate AV installation package PDF using template ID
-        const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings } = params;
-        const TEMPLATE_ID = 'c0377b23582ce40c';
+                // Generate AV installation package PDF using template ID
+                const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
+                const TEMPLATE_ID = 'c0377b23582ce40c';
+
+                // Export type flags
+                const isInstaller = exportType === 'installer' || exportType === 'documentation';
+                const isClient = exportType === 'client' || exportType === 'documentation';
+                const showWireSchedule = isInstaller;
+                const showDeviceConnections = isInstaller;
+                const showPricing = isClient;
+                const showLabor = isClient;
         
         console.log('generateInstallationPackage called with:', {
           productsCount: canvasProducts?.length,
