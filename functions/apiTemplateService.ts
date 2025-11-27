@@ -159,9 +159,16 @@ Deno.serve(async (req) => {
       ${connections.map((conn, i) => {
         const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
         const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+        const wireId = conn.wireId || `C${i + 1}`;
+        const prefix = wireId?.[0] || '';
+        const wireClass = prefix === 'V' ? 'wire-badge--video' :
+                          prefix === 'A' ? 'wire-badge--audio' :
+                          prefix === 'N' ? 'wire-badge--network' :
+                          prefix === 'C' ? 'wire-badge--control' :
+                          prefix === 'P' ? 'wire-badge--power' : 'wire-badge--network';
         return `
       <tr>
-        <td class="mono">${conn.wireId || `C${i + 1}`}</td>
+        <td><span class="wire-badge ${wireClass}">${wireId}</span></td>
         <td class="mono">${conn.type || '-'}</td>
         <td class="mono">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</td>
         <td class="mono">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</td>
