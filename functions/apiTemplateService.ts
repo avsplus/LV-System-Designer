@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
           '#64748b';  // slate - fallback
         return `
       <tr>
-        <td><span style="display:inline-block;min-width:60px;max-width:60px;width:60px;padding:3px 4px;border-radius:4px;font-size:8px;font-weight:600;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
+        <td><span style="display:inline-block;min-width:60px;max-width:60px;width:60px;padding:3px 4px;border-radius:4px;font-size:8px;font-weight:700;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
                       <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
                       <td class="mono">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
                       <td class="mono" style="font-size:9px;">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
@@ -164,9 +164,9 @@ Deno.serve(async (req) => {
 
 <div class="page-break"></div>
 
-<!-- Cable Schedule -->
+<!-- Wire Schedule -->
 <section>
-  <h1>Cable Schedule</h1>
+  <h1>Wire Schedule</h1>
 
   <table>
     <thead>
@@ -205,10 +205,10 @@ Deno.serve(async (req) => {
           '#64748b';                                     // slate - fallback
         return `
       <tr>
-        <td><span style="display:inline-block;min-width:40px;max-width:40px;width:40px;padding:2px 4px;border-radius:4px;font-size:9px;font-weight:600;font-family:monospace;color:#fff;background-color:${wireColor};text-align:center;">${wireId}</span></td>
+        <td><span style="display:inline-block;min-width:40px;max-width:40px;width:40px;padding:2px 4px;border-radius:4px;font-size:9px;font-weight:700;font-family:monospace;color:#fff;background-color:${wireColor};text-align:center;">${wireId}</span></td>
         <td class="mono">${conn.type || '-'}</td>
-        <td class="mono">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</td>
-        <td class="mono">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</td>
+        <td class="mono">${fromDevice?.room || 'Unassigned'}<br><strong>${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</strong></td>
+        <td class="mono">${toDevice?.room || 'Unassigned'}<br><strong>${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</strong></td>
         <td class="mono">${conn.fromPort || '?'} → ${conn.toPort || '?'}</td>
       </tr>
         `;
