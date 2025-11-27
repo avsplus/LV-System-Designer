@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/select";
 import { 
   ChevronLeft, Building2, Palette, Globe, Layout, 
-  Database, FileText, Upload, Save, Plus, X, Loader2, Check
+  Database, FileText, Upload, Save, Plus, X, Loader2, Check, Download
 } from "lucide-react";
+import exportDataSchema from "../components/canvas/exportDataSchema.json";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { usePermissions } from "../components/auth/usePermissions";
