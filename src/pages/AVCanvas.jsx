@@ -327,27 +327,6 @@ function AVCanvasContent() {
     }
   };
 
-  // Category abbreviations for device labels
-  const categoryAbbreviations = {
-    network_switches: 'NW',
-    media_streamers: 'MS',
-    audio_streamers: 'AS',
-    av_receivers: 'AVR',
-    surround_processors: 'SP',
-    stereo_amps: 'SA',
-    multizone_amps: 'MZA',
-    projectors: 'PRJ',
-    projector_screens: 'SCR',
-    televisions: 'TV',
-    speakers: 'SPK',
-    soundbars: 'SB',
-    subwoofers: 'SUB',
-    video_distribution: 'VD',
-    matrix_switchers: 'MTX',
-    hdmi_extenders: 'EXT',
-    control_processors: 'CTL'
-  };
-
   const addProductToCanvas = (product, position, room) => {
     const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
     // Generate short unique label: CATEGORY-ROOM_INITIAL-NUMBER (max 12 chars)
