@@ -1588,12 +1588,19 @@ function AVCanvasContent() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
                   <DropdownMenuItem 
-                    onClick={() => window.location.href = createPageUrl("DeviceManager")}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Manage Devices
-                  </DropdownMenuItem>
+                                            onClick={() => window.location.href = createPageUrl("DeviceManager")}
+                                            className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                                          >
+                                            <Settings className="w-4 h-4 mr-2" />
+                                            Manage Devices
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem 
+                                            onClick={() => window.location.href = createPageUrl("WirePricing")}
+                                            className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                                          >
+                                            <Link2 className="w-4 h-4 mr-2" />
+                                            Wire Pricing
+                                          </DropdownMenuItem>
                   <DropdownMenuItem 
                                             onClick={() => setShowImportDialog(true)}
                                             disabled={importProgress?.status === 'running'}
