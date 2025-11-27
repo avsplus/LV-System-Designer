@@ -628,6 +628,7 @@ Deno.serve(async (req) => {
       const hdmiCrossRoomConnections = [];
       
       conns.forEach(conn => {
+        if (!conn) return;
         const fromDevice = devices.find(d => d.instanceId === conn.from);
         const toDevice = devices.find(d => d.instanceId === conn.to);
         const fromRoom = fromDevice?.room || 'Unassigned';
