@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
 </section>
 
 <!-- Wire Schedule -->
-<section>
+<section class="keep-together">
   <h1>Wire Schedule</h1>
 
   <table>
@@ -205,7 +205,7 @@ Deno.serve(async (req) => {
         return `
       <tr>
         <td><span style="display:inline-block;min-width:40px;max-width:40px;width:40px;padding:2px 4px;border-radius:4px;font-size:9px;font-weight:700;font-family:monospace;color:#fff;background-color:${wireColor};text-align:center;">${wireId}</span></td>
-        <td class="mono">${conn.type || '-'}</td>
+        <td class="mono" style="font-size:14px;">${conn.type || '-'}</td>
         <td class="mono" style="font-size:11px;">${conn.wireSpec || '-'}</td>
         <td class="mono"><span style="font-size:12px;">${fromDevice?.room || 'Unassigned'}</span><br><strong style="font-size:14px;">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</strong></td>
         <td class="mono"><span style="font-size:12px;">${toDevice?.room || 'Unassigned'}</span><br><strong style="font-size:14px;">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</strong></td>
