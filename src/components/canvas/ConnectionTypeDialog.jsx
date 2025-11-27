@@ -32,13 +32,15 @@ const connectionTypes = [
     id: "speaker_wire", 
     name: "Speaker Wire", 
     color: "bg-orange-500/10 text-orange-400 border-orange-500/50",
-    signals: ["Audio"]
+    signals: ["Audio"],
+    wireSpecs: ["14/2", "14/4", "16/2", "16/4", "12/2", "12/4"]
   },
   { 
     id: "ethernet", 
     name: "Ethernet", 
     color: "bg-blue-500/10 text-blue-400 border-blue-500/50",
-    signals: ["Data", "Audio", "Video"]
+    signals: ["Data", "Audio", "Video"],
+    wireSpecs: ["Cat5e", "Cat6 UTP", "Cat6 STP", "Cat6A UTP", "Cat6A STP"]
   },
   { 
     id: "usb", 
@@ -245,6 +247,14 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
   const [selectedType, setSelectedType] = useState(defaultType);
   const [selectedFromPort, setSelectedFromPort] = useState(pendingConnection?.fromPortName || "");
   const [selectedToPort, setSelectedToPort] = useState(pendingConnection?.toPortName || "");
+  const [selectedWireSpec, setSelectedWireSpec] = useState("");
+
+  // Get wire specs for selected type
+  const getWireSpecs = (type) => {
+    const normalizedType = normalizeType(type);
+    const typeInfo = connectionTypes.find(t => normalizeType(t.name) === normalizedType);
+    return typeInfo?.wireSpecs || [];
+  };
 
   // Get ports that are already used
   const getUsedPorts = (instanceId, connectionType, isInput) => {
@@ -269,7 +279,7 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
   const availableFromPorts = selectedCompatible?.fromPorts.filter(p => !usedFromPorts.has(p)) || [];
   const availableToPorts = selectedCompatible?.toPorts.filter(p => !usedToPorts.has(p)) || [];
 
-  // Auto-select first available port when type changes
+  // Auto-select first available port and wire spec when type changes
   React.useEffect(() => {
     if (availableFromPorts.length > 0) {
       setSelectedFromPort(availableFromPorts[0]);
@@ -280,6 +290,13 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
       setSelectedToPort(availableToPorts[0]);
     } else {
       setSelectedToPort("");
+    }
+    // Set default wire spec if available
+    const specs = getWireSpecs(selectedType);
+    if (specs.length > 0) {
+      setSelectedWireSpec(specs[0]);
+    } else {
+      setSelectedWireSpec("");
     }
   }, [selectedType]);
 
@@ -357,61 +374,84 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
             </div>
 
             {selectedType && (
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="text-sm font-medium text-white mb-2 block">Output Port</label>
-                  <Select value={selectedFromPort} onValueChange={setSelectedFromPort}>
-                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                      <SelectValue placeholder="Select output port" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableFromPorts.map(port => (
-                        <SelectItem key={port} value={port}>{port}</SelectItem>
-                      ))}
-                      {usedFromPorts.size > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
-                          {selectedCompatible.fromPorts.filter(p => usedFromPorts.has(p)).map(port => (
-                            <SelectItem key={port} value={port} disabled>
-                              {port} (in use)
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {fromProduct.brand} • {availableFromPorts.length} available
-                  </p>
+              <>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="text-sm font-medium text-white mb-2 block">Output Port</label>
+                    <Select value={selectedFromPort} onValueChange={setSelectedFromPort}>
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                        <SelectValue placeholder="Select output port" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableFromPorts.map(port => (
+                          <SelectItem key={port} value={port}>{port}</SelectItem>
+                        ))}
+                        {usedFromPorts.size > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
+                            {selectedCompatible.fromPorts.filter(p => usedFromPorts.has(p)).map(port => (
+                              <SelectItem key={port} value={port} disabled>
+                                {port} (in use)
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {fromProduct.brand} • {availableFromPorts.length} available
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-white mb-2 block">Input Port</label>
+                    <Select value={selectedToPort} onValueChange={setSelectedToPort}>
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                        <SelectValue placeholder="Select input port" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableToPorts.map(port => (
+                          <SelectItem key={port} value={port}>{port}</SelectItem>
+                        ))}
+                        {usedToPorts.size > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
+                            {selectedCompatible.toPorts.filter(p => usedToPorts.has(p)).map(port => (
+                              <SelectItem key={port} value={port} disabled>
+                                {port} (in use)
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {toProduct.brand} • {availableToPorts.length} available
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-white mb-2 block">Input Port</label>
-                  <Select value={selectedToPort} onValueChange={setSelectedToPort}>
-                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                      <SelectValue placeholder="Select input port" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableToPorts.map(port => (
-                        <SelectItem key={port} value={port}>{port}</SelectItem>
-                      ))}
-                      {usedToPorts.size > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
-                          {selectedCompatible.toPorts.filter(p => usedToPorts.has(p)).map(port => (
-                            <SelectItem key={port} value={port} disabled>
-                              {port} (in use)
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {toProduct.brand} • {availableToPorts.length} available
-                  </p>
-                </div>
-              </div>
+                {getWireSpecs(selectedType).length > 0 && (
+                  <div className="mb-6">
+                    <label className="text-sm font-medium text-white mb-2 block">Wire Specification</label>
+                    <Select value={selectedWireSpec} onValueChange={setSelectedWireSpec}>
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white w-full">
+                        <SelectValue placeholder="Select wire specification" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getWireSpecs(selectedType).map(spec => (
+                          <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {normalizeType(selectedType) === 'ethernet' 
+                        ? 'UTP = Unshielded, STP = Shielded' 
+                        : 'Gauge / Conductors'}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -436,7 +476,8 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
               onSelect({
                 type: selectedType,
                 fromPort: selectedFromPort,
-                toPort: selectedToPort
+                toPort: selectedToPort,
+                wireSpec: selectedWireSpec || null
               });
             }} 
             className="bg-blue-600 hover:bg-blue-700"

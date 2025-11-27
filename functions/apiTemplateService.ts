@@ -162,8 +162,6 @@ Deno.serve(async (req) => {
   }).join('')}
 </section>
 
-<div class="page-break"></div>
-
 <!-- Wire Schedule -->
 <section>
   <h1>Wire Schedule</h1>
@@ -173,6 +171,7 @@ Deno.serve(async (req) => {
       <tr>
         <th>Wire ID</th>
         <th>Type</th>
+        <th>Spec</th>
         <th>From</th>
         <th>To</th>
         <th>Ports</th>
@@ -207,6 +206,7 @@ Deno.serve(async (req) => {
       <tr>
         <td><span style="display:inline-block;min-width:40px;max-width:40px;width:40px;padding:2px 4px;border-radius:4px;font-size:9px;font-weight:700;font-family:monospace;color:#fff;background-color:${wireColor};text-align:center;">${wireId}</span></td>
         <td class="mono">${conn.type || '-'}</td>
+        <td class="mono" style="font-size:11px;">${conn.wireSpec || '-'}</td>
         <td class="mono"><span style="font-size:12px;">${fromDevice?.room || 'Unassigned'}</span><br><strong style="font-size:14px;">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</strong></td>
         <td class="mono"><span style="font-size:12px;">${toDevice?.room || 'Unassigned'}</span><br><strong style="font-size:14px;">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</strong></td>
         <td class="mono" style="font-size:12px;">${conn.fromPort || '?'} → ${conn.toPort || '?'}</td>
