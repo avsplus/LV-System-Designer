@@ -327,12 +327,35 @@ function AVCanvasContent() {
     }
   };
 
+  // Category abbreviations for device labels
+  const categoryAbbreviations = {
+    network_switches: 'NW',
+    media_streamers: 'MS',
+    audio_streamers: 'AS',
+    av_receivers: 'AVR',
+    surround_processors: 'SP',
+    stereo_amps: 'SA',
+    multizone_amps: 'MZA',
+    projectors: 'PRJ',
+    projector_screens: 'SCR',
+    televisions: 'TV',
+    speakers: 'SPK',
+    soundbars: 'SB',
+    subwoofers: 'SUB',
+    video_distribution: 'VD',
+    matrix_switchers: 'MTX',
+    hdmi_extenders: 'EXT',
+    control_processors: 'CTL'
+  };
+
   const addProductToCanvas = (product, position, room) => {
     const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
-    // Count how many of this brand already exist in this room
+    // Generate short unique label: CATEGORY-ROOM_INITIAL-NUMBER (max 12 chars)
+    const catAbbr = categoryAbbreviations[product.category] || 'DEV';
+    const roomInitial = room ? room.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : 'UN';
     const roomDevices = canvasProducts.filter(cp => cp.room === room);
-    const brandCount = roomDevices.filter(cp => cp.product.brand === product.brand).length + 1;
-    const deviceLabel = `${product.brand} ${brandCount}`;
+    const catCount = roomDevices.filter(cp => cp.product.category === product.category).length + 1;
+    const deviceLabel = `${catAbbr}-${roomInitial}-${catCount}`;
 
     setCanvasProducts(prev => [...prev, {
       instanceId,
