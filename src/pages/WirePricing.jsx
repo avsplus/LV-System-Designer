@@ -33,7 +33,7 @@ const defaultWireSpecs = {
 export default function WirePricingPage() {
   const { isAtLeast, loading: permLoading } = usePermissions();
   const queryClient = useQueryClient();
-  const [newEntry, setNewEntry] = useState({ wire_type: '', wire_spec: '', material_price_per_foot: '', labor_price_per_run: '' });
+  const [newEntry, setNewEntry] = useState({ wire_type: '', wire_spec: '', material_price_per_foot: '', labor_price_per_run: '', termination_price: '' });
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
 
@@ -46,7 +46,7 @@ export default function WirePricingPage() {
     mutationFn: (data) => base44.entities.WirePricing.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['wirePricing']);
-      setNewEntry({ wire_type: '', wire_spec: '', material_price_per_foot: '', labor_price_per_run: '' });
+      setNewEntry({ wire_type: '', wire_spec: '', material_price_per_foot: '', labor_price_per_run: '', termination_price: '' });
     }
   });
 
@@ -71,7 +71,8 @@ export default function WirePricingPage() {
       wire_type: newEntry.wire_type,
       wire_spec: newEntry.wire_spec || null,
       material_price_per_foot: parseFloat(newEntry.material_price_per_foot) || 0,
-      labor_price_per_run: parseFloat(newEntry.labor_price_per_run) || 0
+      labor_price_per_run: parseFloat(newEntry.labor_price_per_run) || 0,
+      termination_price: parseFloat(newEntry.termination_price) || 0
     });
   };
 
@@ -79,7 +80,8 @@ export default function WirePricingPage() {
     setEditingId(entry.id);
     setEditData({
       material_price_per_foot: entry.material_price_per_foot || '',
-      labor_price_per_run: entry.labor_price_per_run || ''
+      labor_price_per_run: entry.labor_price_per_run || '',
+      termination_price: entry.termination_price || ''
     });
   };
 
@@ -88,7 +90,8 @@ export default function WirePricingPage() {
       id,
       data: {
         material_price_per_foot: parseFloat(editData.material_price_per_foot) || 0,
-        labor_price_per_run: parseFloat(editData.labor_price_per_run) || 0
+        labor_price_per_run: parseFloat(editData.labor_price_per_run) || 0,
+        termination_price: parseFloat(editData.termination_price) || 0
       }
     });
   };
@@ -134,7 +137,7 @@ export default function WirePricingPage() {
         {canEdit && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
             <h3 className="text-white font-medium mb-3">Add New Wire Pricing</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Wire Type</label>
                 <select
@@ -174,13 +177,24 @@ export default function WirePricingPage() {
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Labor $/run</label>
+                <Input
+                  type="number"
+                  value={newEntry.labor_price_per_run}
+                  onChange={(e) => setNewEntry({ ...newEntry, labor_price_per_run: e.target.value })}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Termination $/end</label>
                 <div className="flex gap-2">
                   <Input
                     type="number"
-                    value={newEntry.labor_price_per_run}
-                    onChange={(e) => setNewEntry({ ...newEntry, labor_price_per_run: e.target.value })}
+                    value={newEntry.termination_price}
+                    onChange={(e) => setNewEntry({ ...newEntry, termination_price: e.target.value })}
                     className="bg-gray-800 border-gray-700 text-white"
                     placeholder="0.00"
+                    disabled={newEntry.wire_type !== 'Ethernet' && newEntry.wire_type !== 'HDBaseT'}
                   />
                   <Button
                     onClick={handleCreate}
@@ -192,6 +206,7 @@ export default function WirePricingPage() {
                 </div>
               </div>
             </div>
+            <p className="text-xs text-gray-500 mt-2">Note: Termination pricing applies only to Ethernet/HDBaseT (2 terminations per run)</p>
           </div>
         )}
 
@@ -202,14 +217,16 @@ export default function WirePricingPage() {
                 <h3 className="text-white font-medium">{type}</h3>
               </div>
               <div className="divide-y divide-gray-800">
-                {entries.map(entry => (
+                {entries.map(entry => {
+                  const isEthernet = entry.wire_type === 'Ethernet' || entry.wire_type === 'HDBaseT';
+                  return (
                   <div key={entry.id} className="px-4 py-3 flex items-center gap-4">
                     <div className="flex-1">
                       <span className="text-gray-300">{entry.wire_spec || 'All specs'}</span>
                     </div>
                     {editingId === entry.id ? (
                       <>
-                        <div className="w-28">
+                        <div className="w-24">
                           <Input
                             type="number"
                             value={editData.material_price_per_foot}
@@ -218,13 +235,23 @@ export default function WirePricingPage() {
                             placeholder="$/ft"
                           />
                         </div>
-                        <div className="w-28">
+                        <div className="w-24">
                           <Input
                             type="number"
                             value={editData.labor_price_per_run}
                             onChange={(e) => setEditData({ ...editData, labor_price_per_run: e.target.value })}
                             className="bg-gray-800 border-gray-700 text-white text-sm"
                             placeholder="$/run"
+                          />
+                        </div>
+                        <div className="w-24">
+                          <Input
+                            type="number"
+                            value={editData.termination_price}
+                            onChange={(e) => setEditData({ ...editData, termination_price: e.target.value })}
+                            className="bg-gray-800 border-gray-700 text-white text-sm"
+                            placeholder="$/end"
+                            disabled={!isEthernet}
                           />
                         </div>
                         <Button
@@ -246,11 +273,14 @@ export default function WirePricingPage() {
                       </>
                     ) : (
                       <>
-                        <div className="text-gray-400 text-sm w-28">
+                        <div className="text-gray-400 text-sm w-24">
                           ${entry.material_price_per_foot?.toFixed(2) || '0.00'}/ft
                         </div>
-                        <div className="text-gray-400 text-sm w-28">
+                        <div className="text-gray-400 text-sm w-24">
                           ${entry.labor_price_per_run?.toFixed(2) || '0.00'}/run
+                        </div>
+                        <div className="text-gray-400 text-sm w-24">
+                          {isEthernet ? `$${entry.termination_price?.toFixed(2) || '0.00'}/end` : '-'}
                         </div>
                         {canEdit && (
                           <>
@@ -275,7 +305,7 @@ export default function WirePricingPage() {
                       </>
                     )}
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           ))}

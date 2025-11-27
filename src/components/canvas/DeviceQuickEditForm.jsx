@@ -18,6 +18,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     description: product.description || '',
     price: product.price || '',
     installation_labor: product.installation_labor || '',
+    configuration_labor: product.configuration_labor || '',
     image_url: product.image_url || '',
     input_connections: product.input_connections || [],
     output_connections: product.output_connections || []
@@ -98,6 +99,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
         description: formData.description,
         price: formData.price ? parseFloat(formData.price) : null,
         installation_labor: formData.installation_labor ? parseFloat(formData.installation_labor) : null,
+        configuration_labor: formData.configuration_labor ? parseFloat(formData.configuration_labor) : null,
         image_url: formData.image_url || null,
         input_connections: formData.input_connections,
         output_connections: formData.output_connections
@@ -228,7 +230,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm text-gray-400 mb-1 block">Equipment Price</label>
                   <Input
@@ -245,6 +247,16 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
                     type="number"
                     value={formData.installation_labor}
                     onChange={(e) => setFormData({ ...formData, installation_labor: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 mb-1 block">Config Labor</label>
+                  <Input
+                    type="number"
+                    value={formData.configuration_labor}
+                    onChange={(e) => setFormData({ ...formData, configuration_labor: e.target.value })}
                     className="bg-gray-800 border-gray-700 text-white"
                     placeholder="0.00"
                   />
