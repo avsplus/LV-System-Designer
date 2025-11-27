@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
         const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
         if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
-        // Build HTML body content using Fusion CSS classes
+        // Build HTML body content using Fusion CSS classes with page breaks
         const bodyHtml = `
 <!-- Project Overview -->
 <section class="keep-together">
@@ -101,6 +101,8 @@ Deno.serve(async (req) => {
     </p>
   </div>
 </section>
+
+<div class="page-break"></div>
 
 <!-- Device Documentation -->
 <section>
@@ -137,6 +139,8 @@ Deno.serve(async (req) => {
   }).join('')}
 </section>
 
+<div class="page-break"></div>
+
 <!-- Cable Schedule -->
 <section>
   <h1>Cable Schedule</h1>
@@ -169,6 +173,8 @@ Deno.serve(async (req) => {
   </table>
 </section>
 
+<div class="page-break"></div>
+
 <!-- Room Overview -->
 <section>
   <h1>Room Overview</h1>
@@ -186,6 +192,8 @@ Deno.serve(async (req) => {
     `;
   }).join('')}
 </section>
+
+<div class="page-break"></div>
 
 <!-- Sign-off -->
 <section class="keep-together">
