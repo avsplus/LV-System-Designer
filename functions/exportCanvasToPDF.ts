@@ -1553,6 +1553,7 @@ Deno.serve(async (req) => {
 
     // Table rows with zebra striping
     connections.forEach((conn, i) => {
+      if (!conn) return;
       if (yPos > pageHeight - 25) {
         doc.addPage();
         yPos = margin;
