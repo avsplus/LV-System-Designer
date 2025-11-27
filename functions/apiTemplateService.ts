@@ -92,6 +92,7 @@ Deno.serve(async (req) => {
         
         // Calculate totals for pricing sections
         const totalDevicePrice = canvasProducts.reduce((sum, cp) => sum + (cp.product?.price || 0), 0);
+        const totalInstallLabor = canvasProducts.reduce((sum, cp) => sum + (cp.product?.installation_labor || 0), 0);
         
         const bodyHtml = `
 <!-- Project Overview -->
@@ -185,6 +186,7 @@ ${isClient ? `
         <th>Brand / Model</th>
         <th style="text-align:center;">Qty</th>
         <th style="text-align:right;">Unit Price</th>
+        <th style="text-align:right;">Install Labor</th>
         <th style="text-align:right;">Total</th>
       </tr>
     </thead>
@@ -204,13 +206,15 @@ ${isClient ? `
         <td><strong>${item.product?.brand || ''}</strong> ${item.product?.model || ''}</td>
         <td style="text-align:center;">${item.count}</td>
         <td style="text-align:right;">$${(item.product?.price || 0).toLocaleString()}</td>
-        <td style="text-align:right;">$${((item.product?.price || 0) * item.count).toLocaleString()}</td>
+        <td style="text-align:right;">$${(item.product?.installation_labor || 0).toLocaleString()}</td>
+        <td style="text-align:right;">$${(((item.product?.price || 0) + (item.product?.installation_labor || 0)) * item.count).toLocaleString()}</td>
       </tr>
         `).join('');
       })()}
       <tr style="font-weight:bold;background-color:#f1f5f9;">
         <td colspan="4" style="text-align:right;">Equipment Subtotal:</td>
-        <td style="text-align:right;">$${totalDevicePrice.toLocaleString()}</td>
+        <td style="text-align:right;">$${totalInstallLabor.toLocaleString()}</td>
+        <td style="text-align:right;">$${(totalDevicePrice + totalInstallLabor).toLocaleString()}</td>
       </tr>
     </tbody>
   </table>
@@ -245,8 +249,8 @@ ${isClient ? `
 
   <div class="highlight" style="margin-top:20px;">
     <h3>Project Total</h3>
-    <p style="font-size:18px;font-weight:bold;">Equipment: $${totalDevicePrice.toLocaleString()}</p>
-    ${showLabor ? '<p style="font-size:14px;">Labor: TBD</p>' : ''}
+    <p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${(totalDevicePrice + totalInstallLabor).toLocaleString()}</p>
+    <p style="font-size:12px;color:#64748b;">Equipment: $${totalDevicePrice.toLocaleString()} | Install Labor: $${totalInstallLabor.toLocaleString()}</p>
   </div>
 </section>
 
