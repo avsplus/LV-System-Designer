@@ -3,6 +3,7 @@ import DeviceManager from './pages/DeviceManager';
 import account from './pages/account';
 import Admin from './pages/Admin';
 import Settings from './pages/Settings';
+import WirePricing from './pages/WirePricing';
 import __Layout from './Layout.jsx';
 
 
@@ -12,6 +13,7 @@ export const PAGES = {
     "account": account,
     "Admin": Admin,
     "Settings": Settings,
+    "WirePricing": WirePricing,
 }
 
 export const pagesConfig = {
