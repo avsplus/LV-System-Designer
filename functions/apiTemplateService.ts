@@ -424,7 +424,7 @@ ${showWireSchedule && connections.length > 0 ? `
 
         // Template data payload - matches your template variables
         const templateData = {
-          title: projectName || 'AV System Design',
+          title: `${projectName || 'AV System Design'} - ${exportTypeTitle}`,
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
           body: bodyHtml
         };
