@@ -620,6 +620,31 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
+
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+                <h3 className="text-lg font-semibold text-white">Export Data Schema</h3>
+                <p className="text-sm text-gray-400">
+                  Download the JSON schema documenting all available data variables for PDF export customization.
+                </p>
+                <Button
+                  variant="outline"
+                  className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(exportDataSchema, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'export-data-schema.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    a.remove();
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Schema (JSON)
+                </Button>
+              </div>
             </TabsContent>
           )}
         </Tabs>
