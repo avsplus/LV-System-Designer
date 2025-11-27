@@ -317,7 +317,8 @@ ${isInstaller ? `
 
 <!-- Wire Schedule -->
 ${showWireSchedule && connections.length > 0 ? `
-<section class="keep-together">
+<div class="page-break"></div>
+<section>
   <h1>Wire Schedule</h1>
 
   <table>
