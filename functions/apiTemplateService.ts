@@ -149,8 +149,8 @@ Deno.serve(async (req) => {
         return `
       <tr>
         <td><span style="display:inline-block;min-width:60px;max-width:60px;width:60px;padding:3px 4px;border-radius:4px;font-size:8px;font-weight:700;font-family:monospace;color:#fff;background-color:${deviceColor};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cp.label || cp.product?.brand || 'Device'}</span></td>
-                      <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
-                      <td class="mono">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
+                      <td><strong style="font-size:14px;">${cp.product?.brand || ''}</strong> <span style="font-size:10px;">${cp.product?.model || ''}</span></td>
+                      <td class="mono" style="font-size:12px;">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
                       <td class="mono" style="font-size:9px;">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
                       <td class="mono" style="font-size:9px;">${cp.networkInfo?.sw ? `SW ${cp.networkInfo.sw}` : '-'} · ${cp.networkInfo?.port ? `Port ${cp.networkInfo.port}` : '-'}</td>
       </tr>
@@ -207,9 +207,9 @@ Deno.serve(async (req) => {
       <tr>
         <td><span style="display:inline-block;min-width:40px;max-width:40px;width:40px;padding:2px 4px;border-radius:4px;font-size:9px;font-weight:700;font-family:monospace;color:#fff;background-color:${wireColor};text-align:center;">${wireId}</span></td>
         <td class="mono">${conn.type || '-'}</td>
-        <td class="mono">${fromDevice?.room || 'Unassigned'}<br><strong>${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</strong></td>
-        <td class="mono">${toDevice?.room || 'Unassigned'}<br><strong>${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</strong></td>
-        <td class="mono">${conn.fromPort || '?'} → ${conn.toPort || '?'}</td>
+        <td class="mono"><span style="font-size:12px;">${fromDevice?.room || 'Unassigned'}</span><br><strong style="font-size:14px;">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</strong></td>
+        <td class="mono"><span style="font-size:12px;">${toDevice?.room || 'Unassigned'}</span><br><strong style="font-size:14px;">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</strong></td>
+        <td class="mono" style="font-size:12px;">${conn.fromPort || '?'} → ${conn.toPort || '?'}</td>
       </tr>
         `;
       }).join('')}
