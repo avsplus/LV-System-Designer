@@ -2179,7 +2179,7 @@ function AVCanvasContent() {
                 canvasProducts={canvasProducts}
                 connections={connections}
                 rooms={rooms}
-                onExport={async ({ clientName, location, engine }) => {
+                onExport={async ({ clientName, location, engine, exportType }) => {
                   setIsExporting(true);
                   try {
                     if (engine === 'apitemplate') {
@@ -2193,7 +2193,8 @@ function AVCanvasContent() {
                         projectName: currentProject?.name || 'AV-System-Design',
                         clientName,
                         location,
-                        orgSettings
+                        orgSettings,
+                        exportType: exportType || 'installer'
                       });
 
                       console.log('APITemplate response:', response.data);
@@ -2216,7 +2217,8 @@ function AVCanvasContent() {
                         projectName: currentProject?.name || 'AV-System-Design',
                         clientName,
                         location,
-                        orgSettings
+                        orgSettings,
+                        exportType: exportType || 'installer'
                       });
 
                       const base64 = response.data.pdf;
@@ -2226,16 +2228,17 @@ function AVCanvasContent() {
                         bytes[i] = binaryString.charCodeAt(i);
                       }
 
+                      const exportTypeNames = { installer: 'Installer-Package', client: 'Client-Proposal', documentation: 'Full-Documentation' };
                       const blob = new Blob([bytes], { type: 'application/pdf' });
                       const url = window.URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = `${currentProject?.name || 'AV-System-Design'}-Installation-Package.pdf`;
+                      a.download = `${currentProject?.name || 'AV-System-Design'}-${exportTypeNames[exportType] || 'Package'}.pdf`;
                       document.body.appendChild(a);
                       a.click();
                       window.URL.revokeObjectURL(url);
                       a.remove();
-                      toast.success('Installation package exported successfully');
+                      toast.success('PDF exported successfully');
                     }
                     setShowExportDialog(false);
                   } catch (error) {
