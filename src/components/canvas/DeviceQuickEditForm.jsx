@@ -17,6 +17,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     model: product.model || '',
     description: product.description || '',
     price: product.price || '',
+    installation_labor: product.installation_labor || '',
     image_url: product.image_url || '',
     input_connections: product.input_connections || [],
     output_connections: product.output_connections || []
@@ -96,6 +97,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
         model: formData.model,
         description: formData.description,
         price: formData.price ? parseFloat(formData.price) : null,
+        installation_labor: formData.installation_labor ? parseFloat(formData.installation_labor) : null,
         image_url: formData.image_url || null,
         input_connections: formData.input_connections,
         output_connections: formData.output_connections
@@ -226,15 +228,27 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
                   rows={3}
                 />
               </div>
-              <div>
-                <label className="text-sm text-gray-400 mb-1 block">Price</label>
-                <Input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="0.00"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-400 mb-1 block">Equipment Price</label>
+                  <Input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 mb-1 block">Install Labor</label>
+                  <Input
+                    type="number"
+                    value={formData.installation_labor}
+                    onChange={(e) => setFormData({ ...formData, installation_labor: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white"
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Product Image</label>
