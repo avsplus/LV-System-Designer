@@ -183,13 +183,26 @@ Deno.serve(async (req) => {
         const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
         const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
         const wireId = conn.wireId || `C${i + 1}`;
-        const prefix = wireId?.[0] || '';
-        const wireColor = prefix === 'V' ? '#8b5cf6' :  // purple - video
-                          prefix === 'A' ? '#f59e0b' :  // amber - audio
-                          prefix === 'N' ? '#3b82f6' :  // blue - network
-                          prefix === 'C' ? '#ec4899' :  // pink - control
-                          prefix === 'P' ? '#ef4444' :  // red - power
-                          '#3b82f6';                    // blue - fallback
+        const connType = (conn.type || '').toLowerCase();
+        // Match wire color to connection type
+        const wireColor = 
+          connType === 'hdmi' ? '#e74c3c' :              // red - HDMI
+          connType === 'hdbaset' ? '#e91e63' :           // pink - HDBaseT
+          connType === 'ethernet' ? '#27ae60' :          // green - Ethernet
+          connType === 'optical' || connType === 'optical/toslink' ? '#2a7fdb' :  // blue - Optical
+          connType === 'rca' ? '#ffb300' :               // amber - RCA
+          connType === 'xlr' ? '#1abc9c' :               // teal - XLR
+          connType === 'speaker wire' ? '#8e5c2c' :      // brown - Speaker Wire
+          connType === 'coaxial' ? '#9b59b6' :           // purple - Coaxial
+          connType === 'usb' ? '#2a7fdb' :               // blue - USB
+          connType === 'rs232' ? '#7f8c8d' :             // gray - RS232
+          connType === 'control' ? '#7f8c8d' :           // gray - Control
+          connType === 'subwoofer' ? '#e74c3c' :         // red - Subwoofer
+          connType === 'component' ? '#2ecc71' :         // green - Component
+          connType === 'composite' ? '#f1c40f' :         // yellow - Composite
+          connType === 'vga' ? '#3498db' :               // blue - VGA
+          connType === '3.5mm jack' ? '#95a5a6' :        // silver - 3.5mm
+          '#64748b';                                     // slate - fallback
         return `
       <tr>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:monospace;color:#fff;background-color:${wireColor};">${wireId}</span></td>
