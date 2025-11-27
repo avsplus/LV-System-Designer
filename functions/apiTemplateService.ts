@@ -126,14 +126,15 @@ Deno.serve(async (req) => {
     <tbody>
       ${roomDevices.map(cp => {
         const category = (cp.product?.category || '').toLowerCase();
-        const deviceClass = category.includes('network') || category.includes('switch') ? 'device-badge--network' :
-                            category.includes('media') || category.includes('streamer') ? 'device-badge--source' :
-                            category.includes('receiver') || category.includes('amp') || category.includes('audio') ? 'device-badge--audio' :
-                            category.includes('projector') || category.includes('television') || category.includes('tv') ? 'device-badge--video' :
-                            category.includes('control') ? 'device-badge--control' : 'device-badge--source';
+        const deviceColor = category.includes('network') || category.includes('switch') ? '#3b82f6' :  // blue - network
+                            category.includes('media') || category.includes('streamer') ? '#10b981' :  // green - source
+                            category.includes('receiver') || category.includes('amp') || category.includes('audio') ? '#f59e0b' :  // amber - audio
+                            category.includes('projector') || category.includes('television') || category.includes('tv') ? '#8b5cf6' :  // purple - video
+                            category.includes('control') ? '#ec4899' :  // pink - control
+                            '#10b981';  // green - fallback (source)
         return `
       <tr>
-        <td><span class="device-badge ${deviceClass}">${cp.label || cp.product?.brand || 'Device'}</span></td>
+        <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:monospace;color:#fff;background-color:${deviceColor};">${cp.label || cp.product?.brand || 'Device'}</span></td>
         <td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td>
         <td class="mono">${(cp.product?.category || '').replace(/_/g, ' ')}</td>
         <td class="mono">${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td>
@@ -169,14 +170,15 @@ Deno.serve(async (req) => {
         const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
         const wireId = conn.wireId || `C${i + 1}`;
         const prefix = wireId?.[0] || '';
-        const wireClass = prefix === 'V' ? 'wire-badge--video' :
-                          prefix === 'A' ? 'wire-badge--audio' :
-                          prefix === 'N' ? 'wire-badge--network' :
-                          prefix === 'C' ? 'wire-badge--control' :
-                          prefix === 'P' ? 'wire-badge--power' : 'wire-badge--network';
+        const wireColor = prefix === 'V' ? '#8b5cf6' :  // purple - video
+                          prefix === 'A' ? '#f59e0b' :  // amber - audio
+                          prefix === 'N' ? '#3b82f6' :  // blue - network
+                          prefix === 'C' ? '#ec4899' :  // pink - control
+                          prefix === 'P' ? '#ef4444' :  // red - power
+                          '#3b82f6';                    // blue - fallback
         return `
       <tr>
-        <td><span class="wire-badge ${wireClass}">${wireId}</span></td>
+        <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:monospace;color:#fff;background-color:${wireColor};">${wireId}</span></td>
         <td class="mono">${conn.type || '-'}</td>
         <td class="mono">${fromDevice?.label || fromDevice?.product?.brand || 'Unknown'}</td>
         <td class="mono">${toDevice?.label || toDevice?.product?.brand || 'Unknown'}</td>
