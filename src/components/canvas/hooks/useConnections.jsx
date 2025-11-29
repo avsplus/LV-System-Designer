@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { trackActivity, ActivityActions } from "../../activity/activityTracker";
 import { CONNECTION_CATEGORIES, CONNECTIONS_BY_CATEGORY, PORT_HIT_RADIUS, PORT_OFFSET, CARD_WIDTH, CARD_HEIGHT, PORT_DOT_SIZE, PORT_GAP } from '../constants';
 

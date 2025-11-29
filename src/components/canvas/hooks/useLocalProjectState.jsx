@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from "@/api/base44Client";
 import { trackActivity, ActivityActions } from "../../activity/activityTracker";
 import { CATEGORY_ABBREVIATIONS } from '../constants';

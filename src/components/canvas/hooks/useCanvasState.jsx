@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export default function useCanvasState(orgSettings) {
   const [zoom, setZoom] = useState(orgSettings?.default_zoom || 1);
