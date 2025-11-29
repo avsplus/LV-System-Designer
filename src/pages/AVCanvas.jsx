@@ -708,20 +708,8 @@ function AVCanvasContent() {
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
-      setConnections(connections.filter((_, i) => i !== selectedConnection.index));
+      handleRemoveConnection(selectedConnection.index);
       setSelectedConnection(null);
-    }
-  };
-
-  const handleRemoveConnection = (index) => {
-    const removedConnection = connections[index];
-    setConnections(connections.filter((_, i) => i !== index));
-
-    // Track activity
-    if (currentProject?.id && removedConnection) {
-      trackActivity(ActivityActions.REMOVED_CONNECTION, currentProject.id, currentProject.name, {
-        connection_type: removedConnection.type
-      });
     }
   };
 
@@ -733,96 +721,19 @@ function AVCanvasContent() {
       cancelText: 'Cancel'
     });
     if (proceed) {
-      setCanvasProducts([]);
-      setConnections([]);
-      setRooms([]);
+      clearCanvasData();
       setSelectedProduct(null);
       setSelectedConnection(null);
       setSelectedRoom(null);
       setCurrentProject(null);
-      localStorage.removeItem('av_canvas_temp_products');
-      localStorage.removeItem('av_canvas_temp_connections');
-      localStorage.removeItem('av_canvas_temp_rooms');
-      localStorage.removeItem('av_canvas_temp_project_id');
       toast.success('Canvas cleared');
     }
   };
 
-  const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 0.1, 2));
-  };
-
-  const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.1, 0.5));
-  };
-
-  const handleZoomReset = () => {
-    setZoom(1);
-  };
-
-  const handleWheel = (e) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
-  };
-
+  // Canvas mouse down handler using the hook
   const handleMouseDown = (e) => {
-    if (e.button === 1 || (e.button === 0 && spacePressed) || (e.button === 0 && e.target === canvasRef.current)) {
-      e.preventDefault();
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-    }
+    handlePanStart(e, canvasRef.current);
   };
-
-  const handleMouseMove = (e) => {
-    if (isPanning) {
-      setPan({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsPanning(false);
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Don't trigger space panning when typing in input fields
-      const isInputField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable;
-      if (e.code === 'Space' && !e.repeat && !isInputField) {
-        e.preventDefault();
-        setSpacePressed(true);
-      }
-    };
-
-    const handleKeyUp = (e) => {
-      if (e.code === 'Space') {
-        setSpacePressed(false);
-        setIsPanning(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isPanning) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isPanning, panStart, pan]);
 
   useEffect(() => {
     const handleDragMouseMove = (e) => {
