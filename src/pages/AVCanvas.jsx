@@ -32,36 +32,77 @@ import { trackActivity, ActivityActions } from "../components/activity/activityT
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
 import { useSettings } from "../components/settings/SettingsContext";
+import useCanvasZoomPan from "../components/canvas/hooks/useCanvasZoomPan";
+import useProjectData, { ensureNetworkInfo } from "../components/canvas/hooks/useProjectData";
 
+// Category abbreviations for device labels
+const categoryAbbreviations = {
+  televisions: 'TV',
+  projectors: 'PJ',
+  projector_screens: 'SCR',
+  video_distribution: 'VD',
+  matrix_switchers: 'MX',
+  audio_streamers: 'AS',
+  media_streamers: 'MS',
+  speakers: 'SPK',
+  soundbars: 'SB',
+  subwoofers: 'SUB',
+  stereo_amps: 'AMP',
+  multizone_amps: 'MZA',
+  surround_processors: 'SP',
+  av_receivers: 'AVR',
+  network_switches: 'SW',
+  control_processors: 'CP',
+  hdmi_extenders: 'EXT'
+};
 
 function AVCanvasContent() {
-    const toast = useToast();
-    const confirmDialog = useConfirm();
-    const { isAtLeast, loading: permLoading } = usePermissions();
-    const { settings: orgSettings } = useSettings();
+  const toast = useToast();
+  const confirmDialog = useConfirm();
+  const { isAtLeast, loading: permLoading } = usePermissions();
+  const { settings: orgSettings } = useSettings();
+  
+  // Zoom and pan state from hook
+  const {
+    zoom, setZoom, pan, isPanning, spacePressed,
+    handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart
+  } = useCanvasZoomPan(orgSettings?.default_zoom || 1);
+
+  // Project and current user state
   const [currentProject, setCurrentProject] = useState(null);
-  const [showProjectManager, setShowProjectManager] = useState(false);
-  const [showRoomManager, setShowRoomManager] = useState(false);
-  const [rooms, setRooms] = useState(() => {
-    const saved = localStorage.getItem('av_canvas_temp_rooms');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [pendingProductDrop, setPendingProductDrop] = useState(null);
-  const [canvasProducts, setCanvasProducts] = useState(() => {
-    const saved = localStorage.getItem('av_canvas_temp_products');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [connections, setConnections] = useState(() => {
-    const saved = localStorage.getItem('av_canvas_temp_connections');
-    return saved ? JSON.parse(saved) : [];
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+
+  // Get current user
+  useEffect(() => {
+    base44.auth.me().then(user => setCurrentUserEmail(user.email)).catch(() => {});
+  }, []);
+
+  // Project sync callback
+  const handleProjectUpdatedFromSyncCallback = React.useCallback((updatedProject) => {
+    setCurrentProject(updatedProject);
+    projectData.handleProjectUpdatedFromSync(updatedProject);
+  }, []);
+
+  const { markLocalChange } = useProjectSync({
+    currentProject,
+    currentUserEmail,
+    onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
 
-  // Helper to ensure networkInfo is always defined
-  const ensureNetworkInfo = (product) => ({
-    ...product,
-    networkInfo: product.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
-  });
+  // Project data from hook
+  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange);
+  const {
+    rooms, setRooms, canvasProducts, setCanvasProducts, connections, setConnections,
+    loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
+    handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
+    handleRemoveConnection, clearCanvas: clearCanvasData, lastSavedRef
+  } = projectData;
+
+  // UI state
+  const [showProjectManager, setShowProjectManager] = useState(false);
+  const [showRoomManager, setShowRoomManager] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [pendingProductDrop, setPendingProductDrop] = useState(null);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [connectingTo, setConnectingTo] = useState(null);
   const [pendingConnection, setPendingConnection] = useState(null);
@@ -71,28 +112,23 @@ function AVCanvasContent() {
   const [panelHistory, setPanelHistory] = useState([]);
   const [highlightedConnections, setHighlightedConnections] = useState([]);
   const [hoveredConnectionIndex, setHoveredConnectionIndex] = useState(null);
-  const [zoom, setZoom] = useState(orgSettings?.default_zoom || 1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [spacePressed, setSpacePressed] = useState(false);
   const [dragMousePosition, setDragMousePosition] = useState(null);
-  const [connectingState, setConnectingState] = useState(null); // { mode: 'connecting', fromPort: {...}, startPos: {...}, mousePos: {...}, hoveredPort: {...} }
+  const [connectingState, setConnectingState] = useState(null);
   const [hoveredPortId, setHoveredPortId] = useState(null);
   const [portTooltip, setPortTooltip] = useState(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState(null);
-        const [importProgress, setImportProgress] = useState(null);
-        const [currentUserEmail, setCurrentUserEmail] = useState(null);
-        const [showExportDialog, setShowExportDialog] = useState(false);
-              const [isExporting, setIsExporting] = useState(false);
-                                  const [exportEngine, setExportEngine] = useState('jspdf');
-                    const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importProgress, setImportProgress] = useState(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportEngine, setExportEngine] = useState('jspdf');
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  
   const canvasRef = useRef(null);
-  const portRefs = useRef(new Map()); // Map of portId -> { element, instanceId, connectionType, portName, isInput, position }
+  const portRefs = useRef(new Map());
   const connectingStateRef = useRef(null);
   
-  const PORT_HIT_RADIUS = 50; // Pixels for hit testing (increased for easier targeting)
-  const PORT_OFFSET = 20; // Offset distance from port for clean routing
+  const PORT_HIT_RADIUS = 50;
+  const PORT_OFFSET = 20;
   
   // Generate orthogonal path for connection routing
   const generateOrthogonalPath = (fromPos, toPos, fromIsInput, toIsInput) => {
