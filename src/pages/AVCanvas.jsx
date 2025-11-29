@@ -227,59 +227,29 @@ function AVCanvasContent() {
       return;
     }
 
-    // Block canvas operations if no project loaded
     if (!currentProject) {
       setDragMousePosition(null);
       return;
     }
 
-    // Dragging from sidebar to canvas
     if (source.droppableId === 'sidebar' && destination.droppableId === 'canvas') {
       const product = products.find(p => p.id === draggableId);
       if (product && dragMousePosition) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
-        
-        // Calculate position relative to canvas, accounting for zoom and pan
         const x = (dragMousePosition.x - canvasRect.left - pan.x) / zoom - 128;
         const y = (dragMousePosition.y - canvasRect.top - pan.y) / zoom - 100;
-
-        // Always show room selection dialog
         setPendingProductDrop({ product, position: { x, y } });
       }
     }
     setDragMousePosition(null);
   };
 
-  const handlePositionChange = (instanceId, newPosition) => {
-    setCanvasProducts(canvasProducts.map(cp => 
-      cp.instanceId === instanceId 
-        ? ensureNetworkInfo({ ...cp, position: newPosition })
-        : ensureNetworkInfo(cp)
-    ));
-  };
-
-  const handleNetworkInfoChange = (instanceId, networkInfo) => {
-    setCanvasProducts(canvasProducts.map(cp => 
-      cp.instanceId === instanceId 
-        ? ensureNetworkInfo({ ...cp, networkInfo: networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' } })
-        : ensureNetworkInfo(cp)
-    ));
-  };
-
-  const handleRemoveProduct = (instanceId) => {
-    const removedProduct = canvasProducts.find(cp => cp.instanceId === instanceId);
-    setCanvasProducts(canvasProducts.filter(cp => cp.instanceId !== instanceId));
-    setConnections(connections.filter(c => c.from !== instanceId && c.to !== instanceId));
+  // Wrapper for remove product to clear selection
+  const handleRemoveProductWithSelection = (instanceId) => {
     if (selectedCanvasProduct?.instanceId === instanceId) {
       setSelectedCanvasProduct(null);
     }
-
-    // Track activity
-    if (currentProject?.id && removedProduct) {
-      trackActivity(ActivityActions.REMOVED_DEVICE, currentProject.id, currentProject.name, {
-        device_name: `${removedProduct.product.brand} ${removedProduct.product.model}`
-      });
-    }
+    handleRemoveProduct(instanceId);
   };
 
   const handleConnect = (instanceId) => {
