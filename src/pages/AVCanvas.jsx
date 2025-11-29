@@ -32,9 +32,7 @@ import { trackActivity, ActivityActions } from "../components/activity/activityT
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
 import { useSettings } from "../components/settings/SettingsContext";
-import useCanvasState from "../components/canvas/hooks/useCanvasState";
-import useLocalProjectState, { ensureNetworkInfo } from "../components/canvas/hooks/useLocalProjectState";
-import { CATEGORY_ABBREVIATIONS, CONNECTION_CATEGORIES, CONNECTIONS_BY_CATEGORY, CARD_WIDTH, CARD_HEIGHT, PORT_DOT_SIZE, PORT_GAP, PORT_HIT_RADIUS, PORT_OFFSET } from "../components/canvas/constants";
+
 
 function AVCanvasContent() {
     const toast = useToast();
