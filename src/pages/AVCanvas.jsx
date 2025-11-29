@@ -35,27 +35,6 @@ import { useSettings } from "../components/settings/SettingsContext";
 import useCanvasZoomPan from "../components/canvas/hooks/useCanvasZoomPan";
 import useProjectData, { ensureNetworkInfo } from "../components/canvas/hooks/useProjectData";
 
-// Category abbreviations for device labels
-const categoryAbbreviations = {
-  televisions: 'TV',
-  projectors: 'PJ',
-  projector_screens: 'SCR',
-  video_distribution: 'VD',
-  matrix_switchers: 'MX',
-  audio_streamers: 'AS',
-  media_streamers: 'MS',
-  speakers: 'SPK',
-  soundbars: 'SB',
-  subwoofers: 'SUB',
-  stereo_amps: 'AMP',
-  multizone_amps: 'MZA',
-  surround_processors: 'SP',
-  av_receivers: 'AVR',
-  network_switches: 'SW',
-  control_processors: 'CP',
-  hdmi_extenders: 'EXT'
-};
-
 function AVCanvasContent() {
   const toast = useToast();
   const confirmDialog = useConfirm();
@@ -64,7 +43,7 @@ function AVCanvasContent() {
   
   // Zoom and pan state from hook
   const {
-    zoom, setZoom, pan, isPanning, spacePressed,
+    zoom, pan, isPanning, spacePressed,
     handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart
   } = useCanvasZoomPan(orgSettings?.default_zoom || 1);
 
@@ -92,10 +71,10 @@ function AVCanvasContent() {
   // Project data from hook
   const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange);
   const {
-    rooms, setRooms, canvasProducts, setCanvasProducts, connections, setConnections,
+    rooms, canvasProducts, connections, setConnections,
     loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
     handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
-    handleRemoveConnection, clearCanvas: clearCanvasData, lastSavedRef
+    handleRemoveConnection, clearCanvas: clearCanvasData
   } = projectData;
 
   // UI state
@@ -132,12 +111,9 @@ function AVCanvasContent() {
   
   // Generate orthogonal path for connection routing
   const generateOrthogonalPath = (fromPos, toPos, fromIsInput, toIsInput) => {
-    // Determine exit and entry directions based on port type
-    // Inputs are on left (enter from left), outputs are on right (exit to right)
     const fromDirection = fromIsInput ? 'left' : 'right';
     const toDirection = toIsInput ? 'left' : 'right';
     
-    // Calculate offset points
     const fromOffset = {
       x: fromPos.x + (fromDirection === 'right' ? PORT_OFFSET : -PORT_OFFSET),
       y: fromPos.y
@@ -148,22 +124,16 @@ function AVCanvasContent() {
       y: toPos.y
     };
     
-    // Build path points: start -> fromOffset -> routing -> toOffset -> end
     const points = [fromPos, fromOffset];
-    
-    // Middle routing depends on relative positions
     const dx = toOffset.x - fromOffset.x;
     const dy = toOffset.y - fromOffset.y;
     
     if (fromDirection === 'right' && toDirection === 'left') {
-      // Standard left-to-right flow
       if (dx > 0) {
-        // Simple L-shape
         const midX = fromOffset.x + dx / 2;
         points.push({ x: midX, y: fromOffset.y });
         points.push({ x: midX, y: toOffset.y });
       } else {
-        // Z-shape for backwards connection
         const midX = fromOffset.x + Math.max(20, -dx / 2);
         const midY = fromOffset.y + dy / 2;
         points.push({ x: midX, y: fromOffset.y });
@@ -172,7 +142,6 @@ function AVCanvasContent() {
         points.push({ x: toOffset.x - 20, y: toOffset.y });
       }
     } else if (fromDirection === 'left' && toDirection === 'right') {
-      // Right-to-left flow (backwards)
       const midX = fromOffset.x + dx / 2;
       const midY = fromOffset.y + dy / 2;
       points.push({ x: fromOffset.x - 20, y: fromOffset.y });
@@ -180,7 +149,6 @@ function AVCanvasContent() {
       points.push({ x: toOffset.x + 20, y: midY });
       points.push({ x: toOffset.x + 20, y: toOffset.y });
     } else {
-      // Same side (both inputs or both outputs) - rare case
       const midX = Math.min(fromOffset.x, toOffset.x) - 40;
       const midY = fromOffset.y + dy / 2;
       points.push({ x: midX, y: fromOffset.y });
@@ -194,7 +162,6 @@ function AVCanvasContent() {
     return points;
   };
   
-  // Convert points array to SVG path
   const pointsToPathData = (points) => {
     if (points.length < 2) return '';
     let path = `M ${points[0].x} ${points[0].y}`;
@@ -222,12 +189,7 @@ function AVCanvasContent() {
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
 
-    if (!destination) {
-      setDragMousePosition(null);
-      return;
-    }
-
-    if (!currentProject) {
+    if (!destination || !currentProject) {
       setDragMousePosition(null);
       return;
     }
@@ -244,7 +206,6 @@ function AVCanvasContent() {
     setDragMousePosition(null);
   };
 
-  // Wrapper for remove product to clear selection
   const handleRemoveProductWithSelection = (instanceId) => {
     if (selectedCanvasProduct?.instanceId === instanceId) {
       setSelectedCanvasProduct(null);
@@ -274,13 +235,11 @@ function AVCanvasContent() {
       return { valid: false, errors, warnings };
     }
 
-    // Ensure networkInfo exists with defaults
     const fromProduct = ensureNetworkInfo(rawFromProduct);
     const toProduct = ensureNetworkInfo(rawToProduct);
     const fromNetworkInfo = fromProduct.networkInfo;
     const toNetworkInfo = toProduct.networkInfo;
 
-    // Check network info for Ethernet connections
     if (connectionType === 'Ethernet') {
       const fromNeedsNetwork = ['televisions', 'projectors', 'video_distribution', 'matrix_switchers', 
                                 'audio_streamers', 'media_streamers', 'soundbars', 'multizone_amps', 
@@ -300,7 +259,6 @@ function AVCanvasContent() {
       }
     }
     
-    // Check for duplicate connections on the same ports
     const duplicateConnection = connections.find(c => 
       c.from === fromId && c.to === toId && c.type === connectionType
     );
@@ -312,7 +270,6 @@ function AVCanvasContent() {
   };
 
   const handleConnectionTypeSelect = async (connectionData) => {
-    // Validate connection
     const validation = validateConnection(connectingFrom, connectingTo, connectionData.type);
     
     if (!validation.valid) {
@@ -323,7 +280,6 @@ function AVCanvasContent() {
       return;
     }
     
-    // Show warnings if any
     if (validation.warnings.length > 0) {
       const proceed = await confirmDialog(validation.warnings.join('\n\n'), {
         title: 'Connection Warning',
@@ -339,36 +295,14 @@ function AVCanvasContent() {
       }
     }
     
-    // Store connection data for use after async operations
-    const fromId = connectingFrom;
-    const toId = connectingTo;
-    
-    // Categorize connection types
     const connectionCategories = {
-      'HDMI': 'V',
-      'HDBaseT': 'V',
-      'Component': 'V',
-      'Composite': 'V',
-      'VGA': 'V',
-      'Optical': 'A',
-      'Optical/TOSLINK': 'A',
-      'RCA': 'A',
-      'XLR': 'A',
-      'Speaker Wire': 'A',
-      'Coaxial': 'A',
-      'Subwoofer': 'A',
-      '3.5mm Jack': 'A',
-      'Wireless': 'A',
-      'Ethernet': 'N',
-      'USB': 'N',
-      'RS232': 'C',
-      'Control': 'C',
-      'Power': 'P'
+      'HDMI': 'V', 'HDBaseT': 'V', 'Component': 'V', 'Composite': 'V', 'VGA': 'V',
+      'Optical': 'A', 'Optical/TOSLINK': 'A', 'RCA': 'A', 'XLR': 'A', 'Speaker Wire': 'A',
+      'Coaxial': 'A', 'Subwoofer': 'A', '3.5mm Jack': 'A', 'Wireless': 'A',
+      'Ethernet': 'N', 'USB': 'N', 'RS232': 'C', 'Control': 'C', 'Power': 'P'
     };
     
     const prefix = connectionCategories[connectionData.type] || 'W';
-    
-    // Count existing connections of this category
     const existingOfType = connections.filter(c => {
       const cPrefix = connectionCategories[c.type] || 'W';
       return cPrefix === prefix;
@@ -376,7 +310,6 @@ function AVCanvasContent() {
     
     const wireId = `${prefix}${String(existingOfType + 1).padStart(3, '0')}`;
     
-    // Always use the dialog-selected ports
     setConnections([...connections, { 
       from: connectingFrom, 
       to: connectingTo,
@@ -387,7 +320,6 @@ function AVCanvasContent() {
       wireSpec: connectionData.wireSpec || null
     }]);
 
-    // Track activity
     if (currentProject?.id) {
       trackActivity(ActivityActions.ADDED_CONNECTION, currentProject.id, currentProject.name, {
         connection_type: connectionData.type
@@ -397,7 +329,7 @@ function AVCanvasContent() {
     setConnectingFrom(null);
     setConnectingTo(null);
     setPendingConnection(null);
-    };
+  };
 
   const handleConnectionClick = (connection, index) => {
     setSelectedConnection({ ...connection, index });
@@ -414,32 +346,22 @@ function AVCanvasContent() {
   };
 
   const handlePortClick = (instanceId, connectionType, portName, isInput) => {
-    // When clicking on a type-level port (portName === 'type'), find ANY connection of that type
-    // Otherwise, use fuzzy matching for specific port names
     const connectionIndex = connections.findIndex(conn => {
       if (conn.type !== connectionType) return false;
       
       if (isInput) {
         if (conn.to !== instanceId) return false;
-        // If portName is 'type', match any port of this connection type
         if (portName === 'type') return true;
-        
         const connPort = conn.toPort;
         if (!connPort) return false;
-        
-        // Fuzzy match for port names
         const pNorm = portName.toLowerCase().replace(/[-_]/g, '');
         const cNorm = connPort.toLowerCase().replace(/[-_]/g, '');
         return connPort === portName || pNorm.includes(cNorm) || cNorm.includes(pNorm);
       } else {
         if (conn.from !== instanceId) return false;
-        // If portName is 'type', match any port of this connection type
         if (portName === 'type') return true;
-        
         const connPort = conn.fromPort;
         if (!connPort) return false;
-        
-        // Fuzzy match for port names
         const pNorm = portName.toLowerCase().replace(/[-_]/g, '');
         const cNorm = connPort.toLowerCase().replace(/[-_]/g, '');
         return connPort === portName || pNorm.includes(cNorm) || cNorm.includes(pNorm);
@@ -449,8 +371,6 @@ function AVCanvasContent() {
     if (connectionIndex !== -1) {
       handleConnectionClick(connections[connectionIndex], connectionIndex);
     } else {
-      // No connection on this port - show empty connection details
-      const device = canvasProducts.find(cp => cp.instanceId === instanceId);
       const emptyConnection = {
         type: connectionType,
         [isInput ? 'to' : 'from']: instanceId,
@@ -463,35 +383,24 @@ function AVCanvasContent() {
     }
   };
 
-  // Port ID helper
   const getPortId = (instanceId, connectionType, portName, isInput) => {
     return `${instanceId}:${isInput ? 'in' : 'out'}:${connectionType}:${portName}`;
   };
 
-  // Register port element for hit-testing
   const registerPort = (portId, element, instanceId, connectionType, portName, isInput) => {
     if (element) {
-      portRefs.current.set(portId, { 
-        element, 
-        instanceId, 
-        connectionType, 
-        portName, 
-        isInput 
-      });
+      portRefs.current.set(portId, { element, instanceId, connectionType, portName, isInput });
     } else {
       portRefs.current.delete(portId);
     }
   };
   
-  // Hit test to find port near mouse position
   const hitTestPort = (mouseX, mouseY) => {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return null;
     
     let closestPort = null;
     let closestDistance = PORT_HIT_RADIUS;
-    
-    console.log('Hit testing at:', mouseX, mouseY, 'Port count:', portRefs.current.size);
     
     for (const [portId, portData] of portRefs.current.entries()) {
       if (!portData.element) continue;
@@ -511,21 +420,13 @@ function AVCanvasContent() {
           x: (portCenterX - canvasRect.left - pan.x) / zoom,
           y: (portCenterY - canvasRect.top - pan.y) / zoom
         };
-        closestPort = { 
-          portId, 
-          ...portData, 
-          position,
-          distance 
-        };
-        console.log('Found close port:', portId, 'distance:', distance);
+        closestPort = { portId, ...portData, position, distance };
       }
     }
     
-    console.log('Closest port:', closestPort);
     return closestPort;
   };
 
-  // Get port position in canvas coordinates
   const getPortPosition = (portElement) => {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect || !portElement) return null;
@@ -537,21 +438,13 @@ function AVCanvasContent() {
     };
   };
 
-  // Start connecting from a port
   const handlePortMouseDown = (instanceId, connectionType, portName, isInput, portElement) => {
     const startPos = getPortPosition(portElement);
-    if (!startPos) {
-      return;
-    }
+    if (!startPos) return;
 
     const newState = {
       mode: 'connecting',
-      fromPort: {
-        instanceId,
-        connectionType,
-        portName,
-        isInput
-      },
+      fromPort: { instanceId, connectionType, portName, isInput },
       startPos,
       mousePos: startPos,
       startTime: Date.now(),
@@ -563,7 +456,6 @@ function AVCanvasContent() {
     connectingStateRef.current = newState;
   };
 
-  // Update mouse position while dragging
   const handleGlobalMouseMove = React.useCallback((e) => {
     const currentState = connectingStateRef.current;
     if (!currentState) return;
@@ -571,44 +463,21 @@ function AVCanvasContent() {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
 
-    // Hit test for nearby ports
     const hitPort = hitTestPort(e.clientX, e.clientY);
     
-    // Validate if this is a valid target port
     let validHitPort = null;
     if (hitPort) {
       const validDirection = currentState.fromPort.isInput !== hitPort.isInput;
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
       
-      console.log('Validating port:', {
-        fromInput: currentState.fromPort.isInput,
-        toInput: hitPort.isInput,
-        validDirection,
-        fromType: currentState.fromPort.connectionType,
-        toType: hitPort.connectionType,
-        sameType,
-        fromDevice: currentState.fromPort.instanceId,
-        toDevice: hitPort.instanceId,
-        differentDevice
-      });
-      
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
-        console.log('✓ Valid target port found!');
-      } else {
-        console.log('✗ Port validation failed:', {
-          reason: !validDirection ? 'Cannot connect two inputs or two outputs together' :
-                  !sameType ? 'Connection types must match' :
-                  !differentDevice ? 'Cannot connect device to itself' : 'Unknown'
-        });
       }
     }
 
-    // Update hovered port for visual feedback
     setHoveredPortId(validHitPort ? validHitPort.portId : null);
 
-    // Use snapped position if hovering valid port, otherwise use mouse position
     const mousePos = validHitPort 
       ? validHitPort.position
       : {
@@ -616,20 +485,14 @@ function AVCanvasContent() {
           y: (e.clientY - canvasRect.top - pan.y) / zoom
         };
 
-    const newState = {
-      ...currentState,
-      mousePos,
-      hoveredPort: validHitPort
-    };
+    const newState = { ...currentState, mousePos, hoveredPort: validHitPort };
     setConnectingState(newState);
     connectingStateRef.current = newState;
   }, [zoom, pan]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
     const currentState = connectingStateRef.current;
-    if (!currentState) {
-      return;
-    }
+    if (!currentState) return;
 
     const timeDiff = Date.now() - (currentState.startTime || 0);
     const mouseMoveDist = Math.sqrt(
@@ -637,7 +500,6 @@ function AVCanvasContent() {
       Math.pow(e.clientY - (currentState.clickY || e.clientY), 2)
     );
 
-    // Quick click with minimal movement - this was just a click, not a drag
     if (timeDiff < 200 && mouseMoveDist < 10) {
       setConnectingState(null);
       connectingStateRef.current = null;
@@ -645,31 +507,24 @@ function AVCanvasContent() {
       return;
     }
 
-    console.log('Drag detected - hovered port:', currentState.hoveredPort);
-
-    // Drag operation - show connection dialog
     if (currentState.hoveredPort) {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
       
-      // Validate connection is possible
       const validDirection = fromPort.isInput !== toPort.isInput;
       const sameType = fromPort.connectionType === toPort.connectionType;
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
       
       if (!validDirection || !sameType || !differentDevice) {
-        console.log('Cannot create connection - invalid port combination');
         setConnectingState(null);
         connectingStateRef.current = null;
         setHoveredPortId(null);
         return;
       }
 
-      // Determine correct from/to based on port directions
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
       const toId = fromPort.isInput ? fromPort.instanceId : toPort.instanceId;
 
-      // Check if target device is a speaker/subwoofer and already has a connection
       const targetDevice = canvasProducts.find(cp => cp.instanceId === toId);
       const isEndpointDevice = targetDevice && ['speakers', 'subwoofers'].includes(targetDevice.product.category);
 
@@ -683,20 +538,7 @@ function AVCanvasContent() {
         }
       }
 
-      // Store pending connection info (only IDs and type, not port names)
-      setPendingConnection({
-        fromId,
-        toId,
-        connectionType: fromPort.connectionType
-      });
-
-      console.log('=== Connection Attempt ===');
-      console.log('From:', fromId, 'To:', toId);
-      console.log('Connection Type:', fromPort.connectionType);
-      console.log('From Product:', canvasProducts.find(cp => cp.instanceId === fromId));
-      console.log('To Product:', canvasProducts.find(cp => cp.instanceId === toId));
-
-      // Set connecting states to trigger the dialog
+      setPendingConnection({ fromId, toId, connectionType: fromPort.connectionType });
       setConnectingFrom(fromId);
       setConnectingTo(toId);
     }
@@ -704,7 +546,7 @@ function AVCanvasContent() {
     setConnectingState(null);
     connectingStateRef.current = null;
     setHoveredPortId(null);
-  }, [zoom, handlePortClick, canvasProducts, connections]);
+  }, [canvasProducts, connections]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
@@ -730,7 +572,6 @@ function AVCanvasContent() {
     }
   };
 
-  // Canvas mouse down handler using the hook
   const handleMouseDown = (e) => {
     handlePanStart(e, canvasRef.current);
   };
@@ -750,18 +591,9 @@ function AVCanvasContent() {
     };
   }, [handleGlobalMouseMove, handleGlobalMouseUp]);
 
-  // Sync connectingState to ref
   useEffect(() => {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
-
-  // Helper to filter media streamer connections
-  const filterMediaStreamerConnections = (connections) => {
-    return {
-      inputs: connections.inputs.filter(input => input.type !== 'HDMI'),
-      outputs: connections.outputs.filter(output => output.type === 'HDMI')
-    };
-  };
 
   const connectionsByCategory = {
     televisions: {
@@ -844,9 +676,7 @@ function AVCanvasContent() {
       ]
     },
     speakers: {
-      inputs: [
-        { type: "Speaker Wire", ports: ["Input"] }
-      ],
+      inputs: [{ type: "Speaker Wire", ports: ["Input"] }],
       outputs: []
     },
     soundbars: {
@@ -863,9 +693,7 @@ function AVCanvasContent() {
       ]
     },
     subwoofers: {
-      inputs: [
-        { type: "Subwoofer", ports: ["Input"] }
-      ],
+      inputs: [{ type: "Subwoofer", ports: ["Input"] }],
       outputs: []
     },
     stereo_amps: {
@@ -927,38 +755,33 @@ function AVCanvasContent() {
     }
   };
 
-  // Card dimensions (must match CanvasProduct)
   const CARD_WIDTH = 320;
   const CARD_HEIGHT = 280;
-  const PORT_DOT_SIZE = 20; // w-5 = 1.25rem = 20px
-  const PORT_GAP = 12; // gap-3 = 0.75rem = 12px
+  const PORT_DOT_SIZE = 20;
+  const PORT_GAP = 12;
 
-  // Calculate port position in world coordinates (no DOM dependency)
   const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!product) return null;
 
-    // Get connection types for this product
     const defaultConnections = connectionsByCategory[product.product.category] || { inputs: [], outputs: [] };
     const hasDbConnections = (product.product.input_connections?.length > 0) || 
                               (product.product.output_connections?.length > 0);
-    const connections = hasDbConnections ? {
+    const conns = hasDbConnections ? {
       inputs: product.product.input_connections || [],
       outputs: product.product.output_connections || []
     } : defaultConnections;
 
-    const types = isOutput ? connections.outputs : connections.inputs;
+    const types = isOutput ? conns.outputs : conns.inputs;
     const portIndex = types.findIndex(t => t.type === connectionType);
     
     if (portIndex === -1) return null;
 
-    // Calculate vertical position based on port index
     const totalPorts = Math.min(types.length, 6);
     const totalHeight = (totalPorts - 1) * (PORT_DOT_SIZE + PORT_GAP);
     const startY = product.position.y + CARD_HEIGHT / 2 - totalHeight / 2;
     const portY = startY + portIndex * (PORT_DOT_SIZE + PORT_GAP);
 
-    // X position: left edge for inputs, right edge for outputs
     const portX = isOutput 
       ? product.position.x + CARD_WIDTH + PORT_DOT_SIZE / 2
       : product.position.x - PORT_DOT_SIZE / 2;
@@ -970,7 +793,6 @@ function AVCanvasContent() {
     return getPortWorldPosition(instanceId, connectionType, isOutput);
   };
 
-  // Calculate connection positions directly (not memoized to ensure port refs are available)
   const connectionPositions = connections.map((connection, index) => {
     const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
     const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
@@ -980,18 +802,14 @@ function AVCanvasContent() {
     const fromPoint = getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
     const toPoint = getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
 
-    // Determine edge based on where the port actually is relative to the card
     let fromEdge = null, toEdge = null;
 
     if (fromPoint) {
-      const cardWidth = 320;
-      const cardHeight = 280;
       const fromLeft = fromProduct.position.x;
-      const fromRight = fromProduct.position.x + cardWidth;
+      const fromRight = fromProduct.position.x + CARD_WIDTH;
       const fromTop = fromProduct.position.y;
-      const fromBottom = fromProduct.position.y + cardHeight;
+      const fromBottom = fromProduct.position.y + CARD_HEIGHT;
 
-      // Check which edge the port is closest to
       const distToLeft = Math.abs(fromPoint.x - fromLeft);
       const distToRight = Math.abs(fromPoint.x - fromRight);
       const distToTop = Math.abs(fromPoint.y - fromTop);
@@ -1005,12 +823,10 @@ function AVCanvasContent() {
     }
 
     if (toPoint) {
-      const cardWidth = 320;
-      const cardHeight = 280;
       const toLeft = toProduct.position.x;
-      const toRight = toProduct.position.x + cardWidth;
+      const toRight = toProduct.position.x + CARD_WIDTH;
       const toTop = toProduct.position.y;
-      const toBottom = toProduct.position.y + cardHeight;
+      const toBottom = toProduct.position.y + CARD_HEIGHT;
 
       const distToLeft = Math.abs(toPoint.x - toLeft);
       const distToRight = Math.abs(toPoint.x - toRight);
@@ -1031,42 +847,31 @@ function AVCanvasContent() {
     const connection = connections[connectionIndex];
     if (!connection) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
-    // Use memoized positions
     const { fromPoint, toPoint } = connectionPositions[connectionIndex] || {};
+    if (fromPoint && toPoint) return { from: fromPoint, to: toPoint };
 
-    if (fromPoint && toPoint) {
-      return { from: fromPoint, to: toPoint };
-    }
-
-    // Fallback to old calculation if connection points not found
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
-
     if (!fromProduct || !toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
 
-    const cardWidth = 320;
-    const cardHeight = 280;
-
     const fromCenter = {
-      x: fromProduct.position.x + cardWidth / 2,
-      y: fromProduct.position.y + cardHeight / 2
+      x: fromProduct.position.x + CARD_WIDTH / 2,
+      y: fromProduct.position.y + CARD_HEIGHT / 2
     };
 
     const toCenter = {
-      x: toProduct.position.x + cardWidth / 2,
-      y: toProduct.position.y + cardHeight / 2
+      x: toProduct.position.x + CARD_WIDTH / 2,
+      y: toProduct.position.y + CARD_HEIGHT / 2
     };
 
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
 
-    // Get all connections for a specific device and edge, with their indices
     const getEdgeConnectionIndices = (deviceId, edge) => {
       const indices = [];
       connections.forEach((c, idx) => {
         const isFromDevice = c.from === deviceId;
         const isToDevice = c.to === deviceId;
-
         if (!isFromDevice && !isToDevice) return;
 
         const otherId = isFromDevice ? c.to : c.from;
@@ -1074,15 +879,13 @@ function AVCanvasContent() {
         if (!otherProduct) return;
 
         const deviceProduct = canvasProducts.find(cp => cp.instanceId === deviceId);
-
         const otherCenter = {
-          x: otherProduct.position.x + cardWidth / 2,
-          y: otherProduct.position.y + cardHeight / 2
+          x: otherProduct.position.x + CARD_WIDTH / 2,
+          y: otherProduct.position.y + CARD_HEIGHT / 2
         };
-
         const deviceCenter = {
-          x: deviceProduct.position.x + cardWidth / 2,
-          y: deviceProduct.position.y + cardHeight / 2
+          x: deviceProduct.position.x + CARD_WIDTH / 2,
+          y: deviceProduct.position.y + CARD_HEIGHT / 2
         };
 
         const cdx = otherCenter.x - deviceCenter.x;
@@ -1097,9 +900,7 @@ function AVCanvasContent() {
           if (edge === 'top') matchesEdge = cdy < 0;
         }
 
-        if (matchesEdge) {
-          indices.push(idx);
-        }
+        if (matchesEdge) indices.push(idx);
       });
       return indices.sort((a, b) => a - b);
     };
@@ -1107,7 +908,6 @@ function AVCanvasContent() {
     let fromEdge, toEdge;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      // Horizontal connection
       if (dx > 0) {
         const fromIndices = getEdgeConnectionIndices(fromId, 'right');
         const toIndices = getEdgeConnectionIndices(toId, 'left');
@@ -1119,14 +919,8 @@ function AVCanvasContent() {
         const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
         const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
-        fromEdge = {
-          x: fromProduct.position.x + cardWidth,
-          y: fromCenter.y + fromOffset
-        };
-        toEdge = {
-          x: toProduct.position.x,
-          y: toCenter.y + toOffset
-        };
+        fromEdge = { x: fromProduct.position.x + CARD_WIDTH, y: fromCenter.y + fromOffset };
+        toEdge = { x: toProduct.position.x, y: toCenter.y + toOffset };
       } else {
         const fromIndices = getEdgeConnectionIndices(fromId, 'left');
         const toIndices = getEdgeConnectionIndices(toId, 'right');
@@ -1138,17 +932,10 @@ function AVCanvasContent() {
         const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
         const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
-        fromEdge = {
-          x: fromProduct.position.x,
-          y: fromCenter.y + fromOffset
-        };
-        toEdge = {
-          x: toProduct.position.x + cardWidth,
-          y: toCenter.y + toOffset
-        };
+        fromEdge = { x: fromProduct.position.x, y: fromCenter.y + fromOffset };
+        toEdge = { x: toProduct.position.x + CARD_WIDTH, y: toCenter.y + toOffset };
       }
     } else {
-      // Vertical connection
       if (dy > 0) {
         const fromIndices = getEdgeConnectionIndices(fromId, 'bottom');
         const toIndices = getEdgeConnectionIndices(toId, 'top');
@@ -1160,14 +947,8 @@ function AVCanvasContent() {
         const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
         const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
-        fromEdge = {
-          x: fromCenter.x + fromOffset,
-          y: fromProduct.position.y + cardHeight
-        };
-        toEdge = {
-          x: toCenter.x + toOffset,
-          y: toProduct.position.y
-        };
+        fromEdge = { x: fromCenter.x + fromOffset, y: fromProduct.position.y + CARD_HEIGHT };
+        toEdge = { x: toCenter.x + toOffset, y: toProduct.position.y };
       } else {
         const fromIndices = getEdgeConnectionIndices(fromId, 'top');
         const toIndices = getEdgeConnectionIndices(toId, 'bottom');
@@ -1179,14 +960,8 @@ function AVCanvasContent() {
         const fromOffset = fromTotal > 1 ? ((fromPosition - (fromTotal - 1) / 2) * 30) : 0;
         const toOffset = toTotal > 1 ? ((toPosition - (toTotal - 1) / 2) * 30) : 0;
 
-        fromEdge = {
-          x: fromCenter.x + fromOffset,
-          y: fromProduct.position.y
-        };
-        toEdge = {
-          x: toCenter.x + toOffset,
-          y: toProduct.position.y + cardHeight
-        };
+        fromEdge = { x: fromCenter.x + fromOffset, y: fromProduct.position.y };
+        toEdge = { x: toCenter.x + toOffset, y: toProduct.position.y + CARD_HEIGHT };
       }
     }
 
@@ -1197,17 +972,17 @@ function AVCanvasContent() {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex h-screen bg-gray-950 overflow-hidden">
         <ProductSidebar 
-                        products={products} 
-                        onProductSelect={(product) => {
-                          setSelectedProduct(product);
-                          setSelectedCanvasProduct(null);
-                          setSelectedConnection(null);
-                          setPanelHistory(prev => {
-                            const filtered = prev.filter(p => p !== 'productDetails');
-                            return [...filtered.slice(-1), 'productDetails'];
-                          });
-                        }}
-                      />
+          products={products} 
+          onProductSelect={(product) => {
+            setSelectedProduct(product);
+            setSelectedCanvasProduct(null);
+            setSelectedConnection(null);
+            setPanelHistory(prev => {
+              const filtered = prev.filter(p => p !== 'productDetails');
+              return [...filtered.slice(-1), 'productDetails'];
+            });
+          }}
+        />
 
         <div className="flex-1 flex flex-col">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
@@ -1230,20 +1005,14 @@ function AVCanvasContent() {
             <div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                                            variant="outline"
-                                            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                                          >
-                                            <FolderOpen className="w-4 h-4 mr-2" />
-                                            Project
-                                            <ChevronDown className="w-4 h-4 ml-2" />
-                                          </Button>
+                  <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Project
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
-                  <DropdownMenuItem 
-                    onClick={() => setShowProjectManager(true)}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
+                  <DropdownMenuItem onClick={() => setShowProjectManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <FolderOpen className="w-4 h-4 mr-2" />
                     Projects
                   </DropdownMenuItem>
@@ -1280,17 +1049,11 @@ function AVCanvasContent() {
                       Save Progress
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem 
-                    onClick={() => setShowProjectManager(true)}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
+                  <DropdownMenuItem onClick={() => setShowProjectManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <FolderOpen className="w-4 h-4 mr-2" />
                     Load Project
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setShowProjectManager(true)}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
+                  <DropdownMenuItem onClick={() => setShowProjectManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Plus className="w-4 h-4 mr-2" />
                     Create New Project
                   </DropdownMenuItem>
@@ -1299,38 +1062,25 @@ function AVCanvasContent() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                                            variant="outline"
-                                            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                                          >
-                                            <Settings className="w-4 h-4 mr-2" />
-                                            Tools
-                                            <ChevronDown className="w-4 h-4 ml-2" />
-                                          </Button>
+                  <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Tools
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
-                  <DropdownMenuItem 
-                                            onClick={() => window.location.href = createPageUrl("DeviceManager")}
-                                            className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                                          >
-                                            <Settings className="w-4 h-4 mr-2" />
-                                            Manage Devices
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem 
-                                            onClick={() => window.location.href = createPageUrl("WirePricing")}
-                                            className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                                          >
-                                            <Link2 className="w-4 h-4 mr-2" />
-                                            Wire Pricing
-                                          </DropdownMenuItem>
-                  <DropdownMenuItem 
-                                            onClick={() => setShowImportDialog(true)}
-                                            disabled={importProgress?.status === 'running'}
-                                            className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                                          >
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
-                                          </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = createPageUrl("DeviceManager")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Manage Devices
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = createPageUrl("WirePricing")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                    <Link2 className="w-4 h-4 mr-2" />
+                    Wire Pricing
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowImportDialog(true)} disabled={importProgress?.status === 'running'} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
+                  </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={async () => {
                       const proceed = await confirmDialog('This will search the web for actual connection ports for each product in your database. This may take a few minutes.', {
@@ -1363,99 +1113,71 @@ function AVCanvasContent() {
                     {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                      onClick={() => {
-                        if (canvasProducts.length === 0) {
-                          toast.warning('Canvas is empty. Add some devices first.');
-                          return;
-                        }
-                        setShowExportDialog(true);
-                      }}
-                      className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Export to PDF
-                    </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={clearCanvas}
-                    disabled={canvasProducts.length === 0}
-                    className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
+                    onClick={() => {
+                      if (canvasProducts.length === 0) {
+                        toast.warning('Canvas is empty. Add some devices first.');
+                        return;
+                      }
+                      setShowExportDialog(true);
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
                   >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export to PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={clearCanvas} disabled={canvasProducts.length === 0} className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Clear Canvas
                   </DropdownMenuItem>
-                  </DropdownMenuContent>
-                  </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-              {/* Persistent Status Indicator */}
-                                  {(enrichmentProgress?.status === 'running' || importProgress?.status === 'running') && (
-                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 border border-blue-500/40 rounded-lg">
-                                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                                      <span className="text-xs text-blue-300 font-medium">
-                                        {importProgress?.status === 'running' && 'Importing products...'}
-                                        {enrichmentProgress?.status === 'running' && 'Enriching connections...'}
-                                      </span>
-                                    </div>
-                                  )}
+              {(enrichmentProgress?.status === 'running' || importProgress?.status === 'running') && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 border border-blue-500/40 rounded-lg">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-blue-300 font-medium">
+                    {importProgress?.status === 'running' && 'Importing products...'}
+                    {enrichmentProgress?.status === 'running' && 'Enriching connections...'}
+                  </span>
+                </div>
+              )}
+              
               <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleZoomOut}
-                  className="h-7 w-7 text-gray-300 hover:text-white"
-                >
+                <Button size="icon" variant="ghost" onClick={handleZoomOut} className="h-7 w-7 text-gray-300 hover:text-white">
                   <ZoomOut className="w-4 h-4" />
                 </Button>
                 <span className="text-sm text-gray-400 min-w-[3rem] text-center">
                   {Math.round(zoom * 100)}%
                 </span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleZoomIn}
-                  className="h-7 w-7 text-gray-300 hover:text-white"
-                >
+                <Button size="icon" variant="ghost" onClick={handleZoomIn} className="h-7 w-7 text-gray-300 hover:text-white">
                   <ZoomIn className="w-4 h-4" />
                 </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleZoomReset}
-                  className="h-7 w-7 text-gray-300 hover:text-white"
-                >
+                <Button size="icon" variant="ghost" onClick={handleZoomReset} className="h-7 w-7 text-gray-300 hover:text-white">
                   <Maximize2 className="w-3 h-3" />
                 </Button>
               </div>
-              <Button
-                                    variant="outline"
-                                    onClick={() => setShowRoomManager(true)}
-                                    className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                                  >
-                                    <Home className="w-4 h-4 mr-2" />
-                                    Rooms ({rooms.length})
-                                  </Button>
+              
+              <Button variant="outline" onClick={() => setShowRoomManager(true)} className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                <Home className="w-4 h-4 mr-2" />
+                Rooms ({rooms.length})
+              </Button>
+              
               <Link to={createPageUrl("Settings")}>
-                <Button
-                  variant="outline"
-                  className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                >
+                <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
                   <Settings className="w-4 h-4" />
                 </Button>
               </Link>
+              
               {isAtLeast(ROLES.ADMINISTRATOR) && (
                 <Link to={createPageUrl("Admin")}>
-                  <Button
-                    variant="outline"
-                    className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                  >
+                  <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
                     <Users className="w-4 h-4" />
                   </Button>
                 </Link>
               )}
+              
               <Link to={createPageUrl("account")}>
-                <Button
-                  variant="outline"
-                  className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
-                >
+                <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
                   <User className="w-4 h-4" />
                 </Button>
               </Link>
@@ -1484,333 +1206,288 @@ function AVCanvasContent() {
               backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined
             }}
           >
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ zIndex: 1 }}
-                >
-                  <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                    {/* Render non-hovered connections first */}
-                    {connections.map((connection, index) => {
-                        if (index === hoveredConnectionIndex) return null;
-                        const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
-                        const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+              <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+                {connections.map((connection, index) => {
+                  if (index === hoveredConnectionIndex) return null;
+                  const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+                  const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+                  if (!fromProduct || !toProduct) return null;
 
-                        if (!fromProduct || !toProduct) return null;
+                  let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
 
-                        // Use pre-calculated positions and edges
-                        let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
+                  if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
+                    const fallback = getProductEdgePoint(connection.from, connection.to, index);
+                    fromPoint = fromPoint || fallback.from;
+                    toPoint = toPoint || fallback.to;
 
-                        // Fallback to edge points if port positions aren't found
-                        if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
-                          const fallback = getProductEdgePoint(connection.from, connection.to, index);
-                          fromPoint = fromPoint || fallback.from;
-                          toPoint = toPoint || fallback.to;
+                    if (!fromEdge || !toEdge) {
+                      const dx = toProduct.position.x - fromProduct.position.x;
+                      const dy = toProduct.position.y - fromProduct.position.y;
 
-                          // For fallback, determine edge from card positions
-                          if (!fromEdge || !toEdge) {
-                            const cardWidth = 320;
-                            const cardHeight = 280;
-                            const dx = toProduct.position.x - fromProduct.position.x;
-                            const dy = toProduct.position.y - fromProduct.position.y;
+                      if (Math.abs(dx) > Math.abs(dy)) {
+                        fromEdge = dx > 0 ? 'right' : 'left';
+                        toEdge = dx > 0 ? 'left' : 'right';
+                      } else {
+                        fromEdge = dy > 0 ? 'bottom' : 'top';
+                        toEdge = dy > 0 ? 'top' : 'bottom';
+                      }
+                    }
+                  }
 
-                            if (Math.abs(dx) > Math.abs(dy)) {
-                              fromEdge = dx > 0 ? 'right' : 'left';
-                              toEdge = dx > 0 ? 'left' : 'right';
-                            } else {
-                              fromEdge = dy > 0 ? 'bottom' : 'top';
-                              toEdge = dy > 0 ? 'top' : 'bottom';
-                            }
-                          }
-                        }
+                  if (!fromPoint || !toPoint) return null;
+                  const isHighlighted = highlightedConnections.includes(index);
 
-                        if (!fromPoint || !toPoint) return null;
+                  return (
+                    <ConnectionLine
+                      key={index}
+                      from={fromPoint}
+                      to={toPoint}
+                      fromEdge={fromEdge}
+                      toEdge={toEdge}
+                      connectionType={connection.type}
+                      wireId={connection.wireId}
+                      waypoints={connection.waypoints}
+                      isHighlighted={isHighlighted}
+                      offset={0}
+                      onRemove={() => handleRemoveConnection(index)}
+                      onClick={() => handleConnectionClick(connection, index)}
+                      onHover={() => handleConnectionHover(index)}
+                      onLeave={handleConnectionLeave}
+                      onWaypointsChange={(newWaypoints) => {
+                        const newConnections = [...connections];
+                        newConnections[index].waypoints = newWaypoints;
+                        setConnections(newConnections);
+                      }}
+                    />
+                  );
+                })}
 
-                        const isHighlighted = highlightedConnections.includes(index);
+                {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
+                  const index = hoveredConnectionIndex;
+                  const connection = connections[index];
+                  if (!connection) return null;
+                  const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
+                  const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+                  if (!fromProduct || !toProduct) return null;
 
-                        return (
-                          <ConnectionLine
-                            key={index}
-                            from={fromPoint}
-                            to={toPoint}
-                            fromEdge={fromEdge}
-                            toEdge={toEdge}
-                            connectionType={connection.type}
-                            wireId={connection.wireId}
-                            waypoints={connection.waypoints}
-                            isHighlighted={isHighlighted}
-                            offset={0}
-                            onRemove={() => handleRemoveConnection(index)}
-                            onClick={() => handleConnectionClick(connection, index)}
-                            onHover={() => handleConnectionHover(index)}
-                            onLeave={handleConnectionLeave}
-                            onWaypointsChange={(newWaypoints) => {
-                              const newConnections = [...connections];
-                              newConnections[index].waypoints = newWaypoints;
-                              setConnections(newConnections);
-                            }}
-                          />
-                        );
-                        })}
+                  let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
 
-                        {/* Render hovered connection last (on top) */}
-                        {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
-                        const index = hoveredConnectionIndex;
-                        const connection = connections[index];
-                        if (!connection) return null;
-                        const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
-                        const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
+                  if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
+                    const fallback = getProductEdgePoint(connection.from, connection.to, index);
+                    fromPoint = fromPoint || fallback.from;
+                    toPoint = toPoint || fallback.to;
 
-                        if (!fromProduct || !toProduct) return null;
+                    if (!fromEdge || !toEdge) {
+                      const dx = toProduct.position.x - fromProduct.position.x;
+                      const dy = toProduct.position.y - fromProduct.position.y;
 
-                        let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
+                      if (Math.abs(dx) > Math.abs(dy)) {
+                        fromEdge = dx > 0 ? 'right' : 'left';
+                        toEdge = dx > 0 ? 'left' : 'right';
+                      } else {
+                        fromEdge = dy > 0 ? 'bottom' : 'top';
+                        toEdge = dy > 0 ? 'top' : 'bottom';
+                      }
+                    }
+                  }
 
-                        if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
-                        const fallback = getProductEdgePoint(connection.from, connection.to, index);
-                        fromPoint = fromPoint || fallback.from;
-                        toPoint = toPoint || fallback.to;
+                  if (!fromPoint || !toPoint) return null;
+                  const isHighlighted = highlightedConnections.includes(index);
 
-                        if (!fromEdge || !toEdge) {
-                          const cardWidth = 320;
-                          const cardHeight = 280;
-                          const dx = toProduct.position.x - fromProduct.position.x;
-                          const dy = toProduct.position.y - fromProduct.position.y;
+                  return (
+                    <ConnectionLine
+                      key={`hovered-${index}`}
+                      from={fromPoint}
+                      to={toPoint}
+                      fromEdge={fromEdge}
+                      toEdge={toEdge}
+                      connectionType={connection.type}
+                      wireId={connection.wireId}
+                      waypoints={connection.waypoints}
+                      isHighlighted={isHighlighted}
+                      offset={0}
+                      onRemove={() => handleRemoveConnection(index)}
+                      onClick={() => handleConnectionClick(connection, index)}
+                      onHover={() => handleConnectionHover(index)}
+                      onLeave={handleConnectionLeave}
+                      onWaypointsChange={(newWaypoints) => {
+                        const newConnections = [...connections];
+                        newConnections[index].waypoints = newWaypoints;
+                        setConnections(newConnections);
+                      }}
+                    />
+                  );
+                })()}
 
-                          if (Math.abs(dx) > Math.abs(dy)) {
-                            fromEdge = dx > 0 ? 'right' : 'left';
-                            toEdge = dx > 0 ? 'left' : 'right';
-                          } else {
-                            fromEdge = dy > 0 ? 'bottom' : 'top';
-                            toEdge = dy > 0 ? 'top' : 'bottom';
-                          }
-                        }
-                        }
+                {connectingState && connectingState.mousePos && (() => {
+                  const toIsInput = connectingState.hoveredPort ? 
+                    connectingState.hoveredPort.isInput : 
+                    !connectingState.fromPort.isInput;
 
-                        if (!fromPoint || !toPoint) return null;
+                  const routePoints = generateOrthogonalPath(
+                    connectingState.startPos,
+                    connectingState.mousePos,
+                    connectingState.fromPort.isInput,
+                    toIsInput
+                  );
 
-                        const isHighlighted = highlightedConnections.includes(index);
+                  const pathData = pointsToPathData(routePoints);
+                  const isValidTarget = !!connectingState.hoveredPort;
 
-                        return (
-                        <ConnectionLine
-                          key={`hovered-${index}`}
-                          from={fromPoint}
-                          to={toPoint}
-                          fromEdge={fromEdge}
-                          toEdge={toEdge}
-                          connectionType={connection.type}
-                          wireId={connection.wireId}
-                          waypoints={connection.waypoints}
-                          isHighlighted={isHighlighted}
-                          offset={0}
-                          onRemove={() => handleRemoveConnection(index)}
-                          onClick={() => handleConnectionClick(connection, index)}
-                          onHover={() => handleConnectionHover(index)}
-                          onLeave={handleConnectionLeave}
-                          onWaypointsChange={(newWaypoints) => {
-                            const newConnections = [...connections];
-                            newConnections[index].waypoints = newWaypoints;
-                            setConnections(newConnections);
-                          }}
-                        />
-                        );
-                        })()}
-
-                    {/* Rubber-band connection line while dragging */}
-                    {connectingState && connectingState.mousePos && (() => {
-                      const toIsInput = connectingState.hoveredPort ? 
-                        connectingState.hoveredPort.isInput : 
-                        !connectingState.fromPort.isInput;
-
-                      const routePoints = generateOrthogonalPath(
-                        connectingState.startPos,
-                        connectingState.mousePos,
-                        connectingState.fromPort.isInput,
-                        toIsInput
-                      );
-
-                      const pathData = pointsToPathData(routePoints);
-                      const isValidTarget = !!connectingState.hoveredPort;
-
-                      return (
-                        <g>
-                          <path
-                            d={pathData}
-                            stroke={isValidTarget ? "#22c55e" : "#3b82f6"}
-                            strokeWidth="4"
-                            strokeDasharray="8,4"
-                            fill="none"
-                            className="pointer-events-none"
-                            opacity="0.8"
-                          />
-                          <circle
-                            cx={connectingState.startPos.x}
-                            cy={connectingState.startPos.y}
-                            r="6"
-                            fill={isValidTarget ? "#22c55e" : "#3b82f6"}
-                            className="pointer-events-none"
-                          />
-                          <circle
-                            cx={connectingState.mousePos.x}
-                            cy={connectingState.mousePos.y}
-                            r="6"
-                            fill={isValidTarget ? "#22c55e" : "#3b82f6"}
-                            className="pointer-events-none"
-                            opacity={isValidTarget ? "1" : "0.5"}
-                          />
-                        </g>
-                      );
-                    })()}
-                  </g>
-                </svg>
-
-                {!currentProject && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
-                    <div className="text-center bg-gray-900/95 border border-gray-700 rounded-xl p-8 pointer-events-auto">
-                      <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
-                        <FolderOpen className="w-8 h-8 text-blue-400" />
-                      </div>
-                      <p className="text-white text-lg font-medium mb-2">
-                        No Project Loaded
-                      </p>
-                      <p className="text-gray-400 text-sm mb-6">
-                        Create a new project or load an existing one to start designing
-                      </p>
-                      <Button
-                        onClick={() => setShowProjectManager(true)}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <FolderOpen className="w-4 h-4 mr-2" />
-                        Open Project Manager
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {currentProject && canvasProducts.length === 0 && !snapshot.isDraggingOver && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-center">
-                      <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
-                        <Plus className="w-8 h-8 text-gray-600" />
-                      </div>
-                      <p className="text-gray-500 text-lg font-medium">
-                        Drag products here to start
-                      </p>
-                      <p className="text-gray-600 text-sm mt-1">
-                        Build your AV system layout
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ 
-                  position: 'relative', 
-                  zIndex: 2, 
-                  minHeight: '100%', 
-                  minWidth: '100%',
-                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                  transformOrigin: 'top left',
-                  transition: isPanning ? 'none' : 'transform 0.1s ease-out',
-                  pointerEvents: isPanning ? 'none' : 'auto'
-                }}>
-                  {canvasProducts.map((cp) => {
-                    const isHighlighted = highlightedConnections.some(idx => {
-                      const conn = connections[idx];
-                      return conn && (conn.from === cp.instanceId || conn.to === cp.instanceId);
-                    });
-                    return (
-                      <CanvasProduct
-                        key={cp.instanceId}
-                        instanceId={cp.instanceId}
-                        product={cp.product}
-                        position={cp.position}
-                        onRemove={handleRemoveProductWithSelection}
-                        onConnect={handleConnect}
-                        onPositionChange={handlePositionChange}
-                        isConnecting={connectingFrom === cp.instanceId}
-                        isHighlighted={isHighlighted}
-                        label={cp.label}
-                        networkInfo={ensureNetworkInfo(cp).networkInfo}
-                        zoom={zoom}
-                        onClick={() => {
-                                                        setSelectedCanvasProduct(ensureNetworkInfo(cp));
-                                                        setSelectedProduct(null);
-                                                        setSelectedConnection(null);
-                                                        setPanelHistory(prev => {
-                                                          const filtered = prev.filter(p => p !== 'deviceConnections');
-                                                          return [...filtered.slice(-1), 'deviceConnections'];
-                                                        });
-                                                      }}
-                        onPortClick={handlePortClick}
-                        onPortMouseDown={handlePortMouseDown}
-                        registerPort={registerPort}
-                        getPortId={getPortId}
-                        hoveredPortId={hoveredPortId}
-                        connectingFromPortId={connectingState?.fromPort ? getPortId(
-                          connectingState.fromPort.instanceId,
-                          connectingState.fromPort.connectionType,
-                          connectingState.fromPort.portName,
-                          connectingState.fromPort.isInput
-                        ) : null}
-                        onTooltipChange={setPortTooltip}
+                  return (
+                    <g>
+                      <path
+                        d={pathData}
+                        stroke={isValidTarget ? "#22c55e" : "#3b82f6"}
+                        strokeWidth="4"
+                        strokeDasharray="8,4"
+                        fill="none"
+                        className="pointer-events-none"
+                        opacity="0.8"
                       />
-                    );
-                  })}
+                      <circle cx={connectingState.startPos.x} cy={connectingState.startPos.y} r="6" fill={isValidTarget ? "#22c55e" : "#3b82f6"} className="pointer-events-none" />
+                      <circle cx={connectingState.mousePos.x} cy={connectingState.mousePos.y} r="6" fill={isValidTarget ? "#22c55e" : "#3b82f6"} className="pointer-events-none" opacity={isValidTarget ? "1" : "0.5"} />
+                    </g>
+                  );
+                })()}
+              </g>
+            </svg>
+
+            {!currentProject && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+                <div className="text-center bg-gray-900/95 border border-gray-700 rounded-xl p-8 pointer-events-auto">
+                  <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                    <FolderOpen className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <p className="text-white text-lg font-medium mb-2">No Project Loaded</p>
+                  <p className="text-gray-400 text-sm mb-6">Create a new project or load an existing one to start designing</p>
+                  <Button onClick={() => setShowProjectManager(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Open Project Manager
+                  </Button>
                 </div>
-                {provided.placeholder}
               </div>
             )}
+
+            {currentProject && canvasProducts.length === 0 && !snapshot.isDraggingOver && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                    <Plus className="w-8 h-8 text-gray-600" />
+                  </div>
+                  <p className="text-gray-500 text-lg font-medium">Drag products here to start</p>
+                  <p className="text-gray-600 text-sm mt-1">Build your AV system layout</p>
+                </div>
+              </div>
+            )}
+
+            <div style={{ 
+              position: 'relative', 
+              zIndex: 2, 
+              minHeight: '100%', 
+              minWidth: '100%',
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              transformOrigin: 'top left',
+              transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+              pointerEvents: isPanning ? 'none' : 'auto'
+            }}>
+              {canvasProducts.map((cp) => {
+                const isHighlighted = highlightedConnections.some(idx => {
+                  const conn = connections[idx];
+                  return conn && (conn.from === cp.instanceId || conn.to === cp.instanceId);
+                });
+                return (
+                  <CanvasProduct
+                    key={cp.instanceId}
+                    instanceId={cp.instanceId}
+                    product={cp.product}
+                    position={cp.position}
+                    onRemove={handleRemoveProductWithSelection}
+                    onConnect={handleConnect}
+                    onPositionChange={handlePositionChange}
+                    isConnecting={connectingFrom === cp.instanceId}
+                    isHighlighted={isHighlighted}
+                    label={cp.label}
+                    networkInfo={ensureNetworkInfo(cp).networkInfo}
+                    zoom={zoom}
+                    onClick={() => {
+                      setSelectedCanvasProduct(ensureNetworkInfo(cp));
+                      setSelectedProduct(null);
+                      setSelectedConnection(null);
+                      setPanelHistory(prev => {
+                        const filtered = prev.filter(p => p !== 'deviceConnections');
+                        return [...filtered.slice(-1), 'deviceConnections'];
+                      });
+                    }}
+                    onPortClick={handlePortClick}
+                    onPortMouseDown={handlePortMouseDown}
+                    registerPort={registerPort}
+                    getPortId={getPortId}
+                    hoveredPortId={hoveredPortId}
+                    connectingFromPortId={connectingState?.fromPort ? getPortId(
+                      connectingState.fromPort.instanceId,
+                      connectingState.fromPort.connectionType,
+                      connectingState.fromPort.portName,
+                      connectingState.fromPort.isInput
+                    ) : null}
+                    onTooltipChange={setPortTooltip}
+                  />
+                );
+              })}
+            </div>
+            {provided.placeholder}
+          </div>
+          )}
           </Droppable>
         </div>
 
         {(() => {
-                      // Determine which panels to show based on history
-                      const showProductDetails = selectedProduct && !selectedConnection;
-                      const showDeviceConnections = selectedCanvasProduct && !selectedConnection;
+          const showProductDetails = selectedProduct && !selectedConnection;
+          const showDeviceConnections = selectedCanvasProduct && !selectedConnection;
+          const lastTwo = panelHistory.slice(-2);
 
-                      // Get last two panels from history for toggle behavior
-                      const lastTwo = panelHistory.slice(-2);
-                      const shouldShowRoomsWithOther = lastTwo.includes('rooms') && showRoomManager;
+          return (
+            <>
+              {showProductDetails && (!showDeviceConnections || lastTwo.includes('productDetails')) && (
+                <ProductDetailsPanel
+                  product={selectedProduct}
+                  onClose={() => {
+                    setSelectedProduct(null);
+                    setPanelHistory(prev => prev.filter(p => p !== 'productDetails'));
+                  }}
+                />
+              )}
 
-                      return (
-                        <>
-                          {showProductDetails && (!showDeviceConnections || lastTwo.includes('productDetails')) && (
-                            <ProductDetailsPanel
-                              product={selectedProduct}
-                              onClose={() => {
-                                setSelectedProduct(null);
-                                setPanelHistory(prev => prev.filter(p => p !== 'productDetails'));
-                              }}
-                            />
-                          )}
-
-                          {showDeviceConnections && (
-                            <DeviceConnectionsPanel
-                              product={ensureNetworkInfo(selectedCanvasProduct)}
-                              label={selectedCanvasProduct.label}
-                              networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
-                              activeConnections={connections}
-                              allProducts={canvasProducts.map(ensureNetworkInfo)}
-                              onClose={() => {
-                                setSelectedCanvasProduct(null);
-                                setPanelHistory(prev => prev.filter(p => p !== 'deviceConnections'));
-                              }}
-                              onHighlightConnections={setHighlightedConnections}
-                              onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
-                              onDeviceUpdate={(updatedProduct) => {
-                                setCanvasProducts(prev => prev.map(cp => 
-                                  cp.instanceId === selectedCanvasProduct.instanceId
-                                    ? { ...cp, product: { ...cp.product, ...updatedProduct } }
-                                    : cp
-                                ));
-                                setSelectedCanvasProduct(prev => ({
-                                  ...prev,
-                                  product: { ...prev.product, ...updatedProduct }
-                                }));
-                              }}
-                            />
-                          )}
-                        </>
-                      );
-                    })()}
+              {showDeviceConnections && (
+                <DeviceConnectionsPanel
+                  product={ensureNetworkInfo(selectedCanvasProduct)}
+                  label={selectedCanvasProduct.label}
+                  networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
+                  activeConnections={connections}
+                  allProducts={canvasProducts.map(ensureNetworkInfo)}
+                  onClose={() => {
+                    setSelectedCanvasProduct(null);
+                    setPanelHistory(prev => prev.filter(p => p !== 'deviceConnections'));
+                  }}
+                  onHighlightConnections={setHighlightedConnections}
+                  onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
+                  onDeviceUpdate={(updatedProduct) => {
+                    projectData.setCanvasProducts(prev => prev.map(cp => 
+                      cp.instanceId === selectedCanvasProduct.instanceId
+                        ? { ...cp, product: { ...cp.product, ...updatedProduct } }
+                        : cp
+                    ));
+                    setSelectedCanvasProduct(prev => ({
+                      ...prev,
+                      product: { ...prev.product, ...updatedProduct }
+                    }));
+                  }}
+                />
+              )}
+            </>
+          );
+        })()}
 
         {selectedConnection && (
           <ConnectionDetailsPanel
@@ -1860,225 +1537,217 @@ function AVCanvasContent() {
         )}
 
         {showRoomManager && (
-                      <RoomManager
-                        rooms={rooms}
-                        onAddRoom={handleAddRoom}
-                        onDeleteRoom={handleDeleteRoom}
-                        canvasProducts={canvasProducts}
-                        onClose={() => setShowRoomManager(false)}
-                        onDeviceClick={(device) => {
-                          setSelectedCanvasProduct(ensureNetworkInfo(device));
-                          setSelectedProduct(null);
-                          setSelectedConnection(null);
-                          setPanelHistory(['rooms', 'deviceConnections']);
-                        }}
-                        selectedRoom={selectedRoom}
-                        onSelectRoom={setSelectedRoom}
-                        onDeviceRoomChange={(instanceId, newRoom) => {
-                                          setCanvasProducts(prev => prev.map(cp => 
-                                            cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
-                                          ));
-                                        }}
-                                        onReorderDevices={(draggedId, targetId, room) => {
-                                          setCanvasProducts(prev => {
-                                            const roomDevices = prev.filter(cp => cp.room === room);
-                                            const otherDevices = prev.filter(cp => cp.room !== room);
+          <RoomManager
+            rooms={rooms}
+            onAddRoom={handleAddRoom}
+            onDeleteRoom={handleDeleteRoom}
+            canvasProducts={canvasProducts}
+            onClose={() => setShowRoomManager(false)}
+            onDeviceClick={(device) => {
+              setSelectedCanvasProduct(ensureNetworkInfo(device));
+              setSelectedProduct(null);
+              setSelectedConnection(null);
+              setPanelHistory(['rooms', 'deviceConnections']);
+            }}
+            selectedRoom={selectedRoom}
+            onSelectRoom={setSelectedRoom}
+            onDeviceRoomChange={(instanceId, newRoom) => {
+              projectData.setCanvasProducts(prev => prev.map(cp => 
+                cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
+              ));
+            }}
+            onReorderDevices={(draggedId, targetId, room) => {
+              projectData.setCanvasProducts(prev => {
+                const roomDevices = prev.filter(cp => cp.room === room);
+                const otherDevices = prev.filter(cp => cp.room !== room);
 
-                                            const draggedIndex = roomDevices.findIndex(cp => cp.instanceId === draggedId);
-                                            const targetIndex = roomDevices.findIndex(cp => cp.instanceId === targetId);
+                const draggedIndex = roomDevices.findIndex(cp => cp.instanceId === draggedId);
+                const targetIndex = roomDevices.findIndex(cp => cp.instanceId === targetId);
 
-                                            if (draggedIndex === -1 || targetIndex === -1) return prev;
+                if (draggedIndex === -1 || targetIndex === -1) return prev;
 
-                                            const [draggedItem] = roomDevices.splice(draggedIndex, 1);
-                                            roomDevices.splice(targetIndex, 0, draggedItem);
+                const [draggedItem] = roomDevices.splice(draggedIndex, 1);
+                roomDevices.splice(targetIndex, 0, draggedItem);
 
-                                            return [...otherDevices, ...roomDevices];
-                                          });
-                                        }}
-                                      />
-                    )}
+                return [...otherDevices, ...roomDevices];
+              });
+            }}
+          />
+        )}
 
         {showExportDialog && (
-              <ExportPDFDialog
-                open={showExportDialog}
-                onClose={() => setShowExportDialog(false)}
-                projectName={currentProject?.name}
-                isExporting={isExporting}
-                exportEngine={exportEngine}
-                onExportEngineChange={setExportEngine}
-                canvasProducts={canvasProducts}
-                connections={connections}
-                rooms={rooms}
-                onExport={async ({ clientName, location, engine, exportType }) => {
-                  setIsExporting(true);
-                  try {
-                    if (engine === 'apitemplate') {
-                      // Use APITemplate.io
-                      console.log('Calling APITemplate service...');
-                      const response = await base44.functions.invoke('apiTemplateService', {
-                        action: 'generateInstallationPackage',
-                        canvasProducts,
-                        connections,
-                        rooms,
-                        projectName: currentProject?.name || 'AV-System-Design',
-                        clientName,
-                        location,
-                        orgSettings,
-                        exportType: exportType || 'installer'
-                      });
+          <ExportPDFDialog
+            open={showExportDialog}
+            onClose={() => setShowExportDialog(false)}
+            projectName={currentProject?.name}
+            isExporting={isExporting}
+            exportEngine={exportEngine}
+            onExportEngineChange={setExportEngine}
+            canvasProducts={canvasProducts}
+            connections={connections}
+            rooms={rooms}
+            onExport={async ({ clientName, location, engine, exportType }) => {
+              setIsExporting(true);
+              try {
+                if (engine === 'apitemplate') {
+                  const response = await base44.functions.invoke('apiTemplateService', {
+                    action: 'generateInstallationPackage',
+                    canvasProducts,
+                    connections,
+                    rooms,
+                    projectName: currentProject?.name || 'AV-System-Design',
+                    clientName,
+                    location,
+                    orgSettings,
+                    exportType: exportType || 'installer'
+                  });
 
-                      console.log('APITemplate response:', response.data);
-
-                      if (response.data.download_url) {
-                        window.open(response.data.download_url, '_blank');
-                        toast.success('PDF generated successfully');
-                      } else if (response.data.error) {
-                        throw new Error(response.data.error);
-                      } else {
-                        console.error('Unexpected response:', response.data);
-                        throw new Error('No download URL returned');
-                      }
-                    } else {
-                      // Use jsPDF (existing)
-                      const response = await base44.functions.invoke('exportCanvasToPDF', {
-                        canvasProducts,
-                        connections,
-                        rooms,
-                        projectName: currentProject?.name || 'AV-System-Design',
-                        clientName,
-                        location,
-                        orgSettings,
-                        exportType: exportType || 'installer'
-                      });
-
-                      const base64 = response.data.pdf;
-                      const binaryString = atob(base64);
-                      const bytes = new Uint8Array(binaryString.length);
-                      for (let i = 0; i < binaryString.length; i++) {
-                        bytes[i] = binaryString.charCodeAt(i);
-                      }
-
-                      const exportTypeNames = { installer: 'Installer-Package', client: 'Client-Proposal', documentation: 'Full-Documentation' };
-                      const blob = new Blob([bytes], { type: 'application/pdf' });
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `${currentProject?.name || 'AV-System-Design'}-${exportTypeNames[exportType] || 'Package'}.pdf`;
-                      document.body.appendChild(a);
-                      a.click();
-                      window.URL.revokeObjectURL(url);
-                      a.remove();
-                      toast.success('PDF exported successfully');
-                    }
-                    setShowExportDialog(false);
-                  } catch (error) {
-                    console.error('Export error:', error);
-                    toast.error('Failed to export PDF');
+                  if (response.data.download_url) {
+                    window.open(response.data.download_url, '_blank');
+                    toast.success('PDF generated successfully');
+                  } else {
+                    throw new Error(response.data.error || 'No download URL returned');
                   }
-                  setIsExporting(false);
-                }}
-                onGenerateWireSchedule={async ({ canvasProducts: devices, connections: conns, projectName: pName, clientName: cName }) => {
-                  setIsExporting(true);
-                  try {
-                    const response = await base44.functions.invoke('exportCanvasToPDF', {
-                      action: 'generateWireSchedule',
-                      canvasProducts: devices,
-                      connections: conns,
-                      projectName: pName || currentProject?.name,
-                      clientName: cName,
-                      orgSettings
-                    });
+                } else {
+                  const response = await base44.functions.invoke('exportCanvasToPDF', {
+                    canvasProducts,
+                    connections,
+                    rooms,
+                    projectName: currentProject?.name || 'AV-System-Design',
+                    clientName,
+                    location,
+                    orgSettings,
+                    exportType: exportType || 'installer'
+                  });
 
-                    const base64 = response.data.pdf;
-                    const binaryString = atob(base64);
-                    const bytes = new Uint8Array(binaryString.length);
-                    for (let i = 0; i < binaryString.length; i++) {
-                      bytes[i] = binaryString.charCodeAt(i);
-                    }
-
-                    const blob = new Blob([bytes], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${currentProject?.name || 'Project'}-Wire-Schedule.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    toast.success('Wire schedule exported');
-                  } catch (error) {
-                    console.error('Wire schedule error:', error);
-                    toast.error('Failed to export wire schedule');
+                  const base64 = response.data.pdf;
+                  const binaryString = atob(base64);
+                  const bytes = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
                   }
-                  setIsExporting(false);
-                }}
-                onGenerateBOM={async ({ canvasProducts: devices, connections: conns, projectName: pName, clientName: cName }) => {
-                  setIsExporting(true);
-                  try {
-                    const response = await base44.functions.invoke('exportCanvasToPDF', {
-                      action: 'generateBOM',
-                      canvasProducts: devices,
-                      connections: conns,
-                      projectName: pName || currentProject?.name,
-                      clientName: cName,
-                      orgSettings
-                    });
 
-                    const base64 = response.data.pdf;
-                    const binaryString = atob(base64);
-                    const bytes = new Uint8Array(binaryString.length);
-                    for (let i = 0; i < binaryString.length; i++) {
-                      bytes[i] = binaryString.charCodeAt(i);
-                    }
+                  const exportTypeNames = { installer: 'Installer-Package', client: 'Client-Proposal', documentation: 'Full-Documentation' };
+                  const blob = new Blob([bytes], { type: 'application/pdf' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${currentProject?.name || 'AV-System-Design'}-${exportTypeNames[exportType] || 'Package'}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  a.remove();
+                  toast.success('PDF exported successfully');
+                }
+                setShowExportDialog(false);
+              } catch (error) {
+                console.error('Export error:', error);
+                toast.error('Failed to export PDF');
+              }
+              setIsExporting(false);
+            }}
+            onGenerateWireSchedule={async ({ canvasProducts: devices, connections: conns, projectName: pName, clientName: cName }) => {
+              setIsExporting(true);
+              try {
+                const response = await base44.functions.invoke('exportCanvasToPDF', {
+                  action: 'generateWireSchedule',
+                  canvasProducts: devices,
+                  connections: conns,
+                  projectName: pName || currentProject?.name,
+                  clientName: cName,
+                  orgSettings
+                });
 
-                    const blob = new Blob([bytes], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${currentProject?.name || 'Project'}-BOM.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    toast.success('Bill of Materials exported');
-                  } catch (error) {
-                    console.error('BOM generation error:', error);
-                    toast.error('Failed to export BOM');
-                  }
-                  setIsExporting(false);
-                }}
-              />
-            )}
+                const base64 = response.data.pdf;
+                const binaryString = atob(base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentProject?.name || 'Project'}-Wire-Schedule.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                toast.success('Wire schedule exported');
+              } catch (error) {
+                console.error('Wire schedule error:', error);
+                toast.error('Failed to export wire schedule');
+              }
+              setIsExporting(false);
+            }}
+            onGenerateBOM={async ({ canvasProducts: devices, connections: conns, projectName: pName, clientName: cName }) => {
+              setIsExporting(true);
+              try {
+                const response = await base44.functions.invoke('exportCanvasToPDF', {
+                  action: 'generateBOM',
+                  canvasProducts: devices,
+                  connections: conns,
+                  projectName: pName || currentProject?.name,
+                  clientName: cName,
+                  orgSettings
+                });
+
+                const base64 = response.data.pdf;
+                const binaryString = atob(base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentProject?.name || 'Project'}-BOM.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                toast.success('Bill of Materials exported');
+              } catch (error) {
+                console.error('BOM generation error:', error);
+                toast.error('Failed to export BOM');
+              }
+              setIsExporting(false);
+            }}
+          />
+        )}
 
         {showImportDialog && (
-                        <ImportProductsDialog
-                          open={showImportDialog}
-                          onClose={() => setShowImportDialog(false)}
-                          isImporting={importProgress?.status === 'running'}
-                          onImport={async (category) => {
-                            setShowImportDialog(false);
-                            try {
-                              setImportProgress({ status: 'running', message: 'Searching for AV products...' });
-                              const { data } = await base44.functions.invoke('scrapeSnapAV', { category });
-                              setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
-                              toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
-                              setTimeout(() => {
-                                setImportProgress(null);
-                                window.location.reload();
-                              }, 2000);
-                            } catch (error) {
-                              console.error('Import error:', error);
-                              const errorMsg = error.response?.data?.error || error.message;
-                              setImportProgress({ status: 'error', message: errorMsg });
-                              toast.error(`Failed to import products: ${errorMsg}`);
-                              setTimeout(() => setImportProgress(null), 5000);
-                            }
-                          }}
-                        />
-                      )}
+          <ImportProductsDialog
+            open={showImportDialog}
+            onClose={() => setShowImportDialog(false)}
+            isImporting={importProgress?.status === 'running'}
+            onImport={async (category) => {
+              setShowImportDialog(false);
+              try {
+                setImportProgress({ status: 'running', message: 'Searching for AV products...' });
+                const { data } = await base44.functions.invoke('scrapeSnapAV', { category });
+                setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
+                toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
+                setTimeout(() => {
+                  setImportProgress(null);
+                  window.location.reload();
+                }, 2000);
+              } catch (error) {
+                console.error('Import error:', error);
+                const errorMsg = error.response?.data?.error || error.message;
+                setImportProgress({ status: 'error', message: errorMsg });
+                toast.error(`Failed to import products: ${errorMsg}`);
+                setTimeout(() => setImportProgress(null), 5000);
+              }
+            }}
+          />
+        )}
 
-                      {pendingProductDrop && (
-                        <RoomSelectDialog
+        {pendingProductDrop && (
+          <RoomSelectDialog
             rooms={rooms}
             productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
             onSelect={(room) => {
@@ -2089,7 +1758,7 @@ function AVCanvasContent() {
             onCreateRoom={handleAddRoom}
           />
         )}
-        {/* Port Tooltip - rendered outside zoomed canvas */}
+        
         {portTooltip && portTooltip.element && (() => {
           const rect = portTooltip.element.getBoundingClientRect();
           return (
@@ -2123,17 +1792,17 @@ function AVCanvasContent() {
             </div>
           );
         })()}
-        </div>
-        </DragDropContext>
-        );
-        }
+      </div>
+    </DragDropContext>
+  );
+}
 
-        export default function AVCanvas() {
-        return (
-        <ToastProvider>
-        <ConfirmProvider>
+export default function AVCanvas() {
+  return (
+    <ToastProvider>
+      <ConfirmProvider>
         <AVCanvasContent />
-        </ConfirmProvider>
-        </ToastProvider>
-        );
-        }
+      </ConfirmProvider>
+    </ToastProvider>
+  );
+}
