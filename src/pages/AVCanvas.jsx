@@ -1722,7 +1722,7 @@ function AVCanvasContent() {
                         instanceId={cp.instanceId}
                         product={cp.product}
                         position={cp.position}
-                        onRemove={handleRemoveProduct}
+                        onRemove={handleRemoveProductWithSelection}
                         onConnect={handleConnect}
                         onPositionChange={handlePositionChange}
                         isConnecting={connectingFrom === cp.instanceId}
