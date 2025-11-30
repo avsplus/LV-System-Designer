@@ -22,7 +22,7 @@ const connectionTypeColors = {
   "IR": "#7F8C8D"
 };
 
-export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange }) {
+export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, isSelected, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
