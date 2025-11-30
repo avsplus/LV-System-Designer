@@ -207,6 +207,14 @@ function AVCanvasContent() {
     }
 
     if (source.droppableId === 'sidebar' && destination.droppableId === 'canvas') {
+      // If no project is loaded, force user to create/select one first
+      if (!currentProject) {
+        setShowProjectManager(true);
+        toast.warning('Please create or select a project first');
+        setDragMousePosition(null);
+        return;
+      }
+      
       const product = products.find(p => p.id === draggableId);
       if (product && dragMousePosition) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
