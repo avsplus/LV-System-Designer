@@ -3,7 +3,7 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save, AlertTriangle } from "lucide-react";
+import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save, AlertTriangle, Eye, Pencil, Upload } from "lucide-react";
 import { connectionTypes } from "./ConnectionsSidebar";
 import { base44 } from "@/api/base44Client";
 
@@ -35,22 +35,27 @@ export default function DeviceConnectionEditor({
   const [isSavingManuals, setIsSavingManuals] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showReplaceConfirm, setShowReplaceConfirm] = useState(false);
+  const [editingManual, setEditingManual] = useState(null); // 'installation' or 'user'
+  const [isUploadingManual, setIsUploadingManual] = useState(null); // 'installation' or 'user'
 
   useEffect(() => {
     base44.auth.me().then(user => setCurrentUser(user)).catch(() => {});
   }, []);
 
+  // Check app user role (from User entity, not Base44 platform role)
   const isAdminOrOwner = currentUser?.role === 'admin' || currentUser?.role === 'owner';
-  const hasExistingManuals = device.installation_manual_url || device.user_manual_url;
+  const hasExistingInstallationManual = !!device.installation_manual_url;
+  const hasExistingUserManual = !!device.user_manual_url;
+  const hasExistingManuals = hasExistingInstallationManual || hasExistingUserManual;
 
-  const saveManualUrls = async () => {
+  const saveManualUrl = async (type) => {
     setIsSavingManuals(true);
     try {
       const updateData = {};
-      if (installationManualUrl !== device.installation_manual_url) {
+      if (type === 'installation' && installationManualUrl !== device.installation_manual_url) {
         updateData.installation_manual_url = installationManualUrl || null;
       }
-      if (userManualUrl !== device.user_manual_url) {
+      if (type === 'user' && userManualUrl !== device.user_manual_url) {
         updateData.user_manual_url = userManualUrl || null;
       }
       
@@ -64,10 +69,41 @@ export default function DeviceConnectionEditor({
           });
         }
       }
+      setEditingManual(null);
     } catch (error) {
-      console.error('Failed to save manual URLs:', error);
+      console.error('Failed to save manual URL:', error);
     }
     setIsSavingManuals(false);
+  };
+
+  const handleUploadManual = async (type, file) => {
+    if (!file) return;
+    setIsUploadingManual(type);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const updateData = type === 'installation' 
+        ? { installation_manual_url: file_url }
+        : { user_manual_url: file_url };
+      
+      await base44.entities.AVProduct.update(device.id, updateData);
+      
+      if (type === 'installation') {
+        setInstallationManualUrl(file_url);
+      } else {
+        setUserManualUrl(file_url);
+      }
+      
+      if (onDeviceUpdate) {
+        onDeviceUpdate({
+          ...device,
+          ...updateData
+        });
+      }
+    } catch (error) {
+      console.error('Failed to upload manual:', error);
+    }
+    setIsUploadingManual(null);
   };
 
   const handleSearchClick = () => {
@@ -453,96 +489,205 @@ export default function DeviceConnectionEditor({
       <div className="flex-1 overflow-y-auto p-6">
         {/* Manuals Section */}
         <div className="mb-6 space-y-4">
-          <div className="flex items-center gap-3">
-            {(!hasExistingManuals || isAdminOrOwner) && (
-              <Button
-                onClick={handleSearchClick}
-                disabled={isSearchingManuals}
-                variant="outline"
-                className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
-              >
-                {isSearchingManuals ? (
+          {/* Search for Manuals - only show if no manuals exist OR user is admin/owner */}
+          {(!hasExistingManuals || isAdminOrOwner) && (
+            <Button
+              onClick={handleSearchClick}
+              disabled={isSearchingManuals}
+              variant="outline"
+              className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
+            >
+              {isSearchingManuals ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  Search for Manuals
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Installation Manual Row */}
+          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-orange-400">Installation Manual</label>
+              <div className="flex items-center gap-2">
+                {/* View Button - only if manual exists */}
+                {hasExistingInstallationManual && (
+                  <Button
+                    onClick={() => setPreviewManual({ type: 'installation', url: installationManualUrl })}
+                    variant="outline"
+                    size="sm"
+                    className="border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600"
+                    title="View Manual"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                )}
+                
+                {/* Edit & Upload - only for admin/owner */}
+                {isAdminOrOwner && (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4 mr-2" />
-                    Search for Manuals
+                    <Button
+                      onClick={() => setEditingManual(editingManual === 'installation' ? null : 'installation')}
+                      variant="outline"
+                      size="sm"
+                      className={`border-gray-600 ${editingManual === 'installation' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}
+                      title="Edit URL"
+                    >
+                      <Pencil className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={(e) => handleUploadManual('installation', e.target.files[0])}
+                        disabled={isUploadingManual === 'installation'}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-600 text-gray-400 hover:text-white pointer-events-none"
+                        title="Upload PDF"
+                        asChild
+                      >
+                        <span>
+                          {isUploadingManual === 'installation' ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-1" />
+                          )}
+                          Upload
+                        </span>
+                      </Button>
+                    </label>
                   </>
                 )}
-              </Button>
-            )}
-
-            <Button
-              onClick={() => installationManualUrl && setPreviewManual({ type: 'installation', url: installationManualUrl })}
-              disabled={!installationManualUrl}
-              variant="outline"
-              size="icon"
-              className={`${installationManualUrl 
-                ? 'border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600' 
-                : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
-              title="Preview Installation Manual"
-            >
-              <FileText className="w-4 h-4" />
-            </Button>
-
-            <Button
-              onClick={() => userManualUrl && setPreviewManual({ type: 'user', url: userManualUrl })}
-              disabled={!userManualUrl}
-              variant="outline"
-              size="icon"
-              className={`${userManualUrl 
-                ? 'border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600' 
-                : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
-              title="Preview User Manual"
-            >
-              <FileText className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-orange-400 mb-1 block">Installation Manual URL</label>
-              <div className="flex gap-2">
+              </div>
+            </div>
+            
+            {/* Edit URL Input - only shown when editing */}
+            {editingManual === 'installation' && isAdminOrOwner && (
+              <div className="flex gap-2 mt-3">
                 <Input
                   value={installationManualUrl}
                   onChange={(e) => setInstallationManualUrl(e.target.value)}
                   placeholder="https://example.com/installation-manual.pdf"
-                  className="bg-gray-800 border-gray-700 text-white text-sm flex-1"
+                  className="bg-gray-900 border-gray-700 text-white text-sm flex-1"
                 />
+                <Button
+                  onClick={() => saveManualUrl('installation')}
+                  disabled={isSavingManuals || installationManualUrl === device.installation_manual_url}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSavingManuals ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                </Button>
+              </div>
+            )}
+            
+            {/* Show current URL status */}
+            {!editingManual && (
+              <p className="text-xs text-gray-500 truncate">
+                {hasExistingInstallationManual ? installationManualUrl : 'No manual uploaded'}
+              </p>
+            )}
+          </div>
+
+          {/* User Manual Row */}
+          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-green-400">User Manual</label>
+              <div className="flex items-center gap-2">
+                {/* View Button - only if manual exists */}
+                {hasExistingUserManual && (
+                  <Button
+                    onClick={() => setPreviewManual({ type: 'user', url: userManualUrl })}
+                    variant="outline"
+                    size="sm"
+                    className="border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600"
+                    title="View Manual"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                )}
+                
+                {/* Edit & Upload - only for admin/owner */}
+                {isAdminOrOwner && (
+                  <>
+                    <Button
+                      onClick={() => setEditingManual(editingManual === 'user' ? null : 'user')}
+                      variant="outline"
+                      size="sm"
+                      className={`border-gray-600 ${editingManual === 'user' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}
+                      title="Edit URL"
+                    >
+                      <Pencil className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={(e) => handleUploadManual('user', e.target.files[0])}
+                        disabled={isUploadingManual === 'user'}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-600 text-gray-400 hover:text-white pointer-events-none"
+                        title="Upload PDF"
+                        asChild
+                      >
+                        <span>
+                          {isUploadingManual === 'user' ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-1" />
+                          )}
+                          Upload
+                        </span>
+                      </Button>
+                    </label>
+                  </>
+                )}
               </div>
             </div>
-            <div>
-              <label className="text-xs text-green-400 mb-1 block">User Manual URL</label>
-              <div className="flex gap-2">
+            
+            {/* Edit URL Input - only shown when editing */}
+            {editingManual === 'user' && isAdminOrOwner && (
+              <div className="flex gap-2 mt-3">
                 <Input
                   value={userManualUrl}
                   onChange={(e) => setUserManualUrl(e.target.value)}
                   placeholder="https://example.com/user-manual.pdf"
-                  className="bg-gray-800 border-gray-700 text-white text-sm flex-1"
+                  className="bg-gray-900 border-gray-700 text-white text-sm flex-1"
                 />
+                <Button
+                  onClick={() => saveManualUrl('user')}
+                  disabled={isSavingManuals || userManualUrl === device.user_manual_url}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSavingManuals ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                </Button>
               </div>
-            </div>
-            {(installationManualUrl !== device.installation_manual_url || userManualUrl !== device.user_manual_url) && (
-              <Button
-                onClick={saveManualUrls}
-                disabled={isSavingManuals}
-                className="bg-green-600 hover:bg-green-700 w-full"
-              >
-                {isSavingManuals ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Manual URLs
-                  </>
-                )}
-              </Button>
+            )}
+            
+            {/* Show current URL status */}
+            {!editingManual && (
+              <p className="text-xs text-gray-500 truncate">
+                {hasExistingUserManual ? userManualUrl : 'No manual uploaded'}
+              </p>
             )}
           </div>
         </div>
