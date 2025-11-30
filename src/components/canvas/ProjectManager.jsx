@@ -32,7 +32,7 @@ export default function ProjectManager({
   const [projectName, setProjectName] = useState(currentProject?.name || '');
   const [projectDescription, setProjectDescription] = useState(currentProject?.description || '');
   const [currentUser, setCurrentUser] = useState(null);
-  const [alertDialog, setAlertDialog] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'alert' });
+  const [alertDialog, setAlertDialog] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'alert', confirmText: 'Continue', isDanger: false });
 
   const showAlert = (message, title = 'Notice') => {
     setAlertDialog({ open: true, title, message, type: 'alert', onConfirm: null });
