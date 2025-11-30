@@ -287,6 +287,7 @@ export default function CanvasProduct({
         onPositionChange,
         isConnecting,
         isHighlighted,
+        isSelected,
         onClick,
         label,
         networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' },
