@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const { action, fileUrl, fileName, productId } = await req.json();
+    const body = await req.json();
+    const { action, fileUrl, fileName, productId, fileData, contentType } = body;
 
     if (action === 'uploadFromUrl') {
       // Download the file from external URL
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
 
     if (action === 'uploadFile') {
       // For direct file uploads, expect base64 data
-      const { fileData, contentType = 'application/pdf' } = await req.json();
+      const actualContentType = contentType || 'application/pdf';
       
       const timestamp = Date.now();
       const sanitizedName = fileName || `manual_${productId}_${timestamp}.pdf`;
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, binaryData, {
-          contentType,
+          contentType: actualContentType,
           upsert: true
         });
 
@@ -94,7 +95,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'delete') {
-      const { filePath } = await req.json();
+      const filePath = body.filePath;
       
       const { error } = await supabase.storage
         .from(bucketName)
