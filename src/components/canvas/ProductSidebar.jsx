@@ -146,19 +146,21 @@ export default function ProductSidebar({ products, onProductSelect }) {
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
       {/* Logo */}
       <div className="p-4 border-b border-gray-800 flex justify-center">
-        {settings?.logo_url ? (
-          <img 
-            src={settings.logo_url} 
-            alt={settings.organization_name || 'Logo'} 
-            className="h-14 w-auto object-contain"
-          />
-        ) : (
-          <div className="h-14 flex items-center">
-            <span className="text-xl font-bold text-white">
-              {settings?.organization_name || 'AV Design'}
-            </span>
-          </div>
-        )}
+        <a href="https://fusionlvs.com/contact-us/" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:opacity-80 transition-opacity">
+          {settings?.logo_url ? (
+            <img 
+              src={settings.logo_url} 
+              alt={settings.organization_name || 'Logo'} 
+              className="h-14 w-auto object-contain"
+            />
+          ) : (
+            <div className="h-14 flex items-center">
+              <span className="text-xl font-bold text-white">
+                {settings?.organization_name || 'AV Design'}
+              </span>
+            </div>
+          )}
+        </a>
       </div>
 
       <div className="p-4 border-b border-gray-800">
