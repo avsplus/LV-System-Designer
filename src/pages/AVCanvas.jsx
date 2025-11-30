@@ -114,6 +114,8 @@ function AVCanvasContent() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportEngine, setExportEngine] = useState('jspdf');
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showEnrichDialog, setShowEnrichDialog] = useState(false);
+  const [enrichCategory, setEnrichCategory] = useState('all');
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -1131,36 +1133,13 @@ function AVCanvasContent() {
                     {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={async () => {
-                      const proceed = await confirmDialog('This will search the web for actual connection ports for each product in your database. This may take a few minutes.', {
-                        title: 'Enrich Connections',
-                        type: 'info',
-                        confirmText: 'Start Enrichment',
-                        cancelText: 'Cancel'
-                      });
-                      if (!proceed) return;
-                      try {
-                        setEnrichmentProgress({ status: 'running', enriched: 0, total: products.length });
-                        const { data } = await base44.functions.invoke('enrichProductConnections');
-                        setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
-                        setTimeout(() => {
-                          toast.success(`Successfully enriched ${data.enriched} products with real connection data!`);
-                          window.location.reload();
-                        }, 500);
-                      } catch (error) {
-                        console.error('Enrichment error:', error);
-                        const errorMsg = error.response?.data?.error || error.message;
-                        setEnrichmentProgress({ status: 'error', message: errorMsg });
-                        toast.error(`Enrichment failed: ${errorMsg}`);
-                        setTimeout(() => setEnrichmentProgress(null), 5000);
-                      }
-                    }}
-                    disabled={enrichmentProgress?.status === 'running'}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
-                    <Link2 className="w-4 h-4 mr-2" />
-                    {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
-                  </DropdownMenuItem>
+                      onClick={() => setShowEnrichDialog(true)}
+                      disabled={enrichmentProgress?.status === 'running'}
+                      className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                    >
+                      <Link2 className="w-4 h-4 mr-2" />
+                      {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
+                    </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => {
                       if (canvasProducts.length === 0) {
