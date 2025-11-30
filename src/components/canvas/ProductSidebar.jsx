@@ -332,7 +332,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                         const IconComponent = categoryIcons[category];
                         return IconComponent ? <IconComponent className="w-4 h-4 text-gray-300" /> : null;
                       })()}
-                      <div className={`${categorySolidColors[category]} px-2 py-1 rounded text-white text-xs font-medium capitalize`}>
+                      <div className={`${categorySolidColors[category]} w-32 px-2 py-1 rounded text-white text-xs font-medium capitalize text-center`}>
                         {category.replace(/_/g, ' ')}
                       </div>
                       <span className="text-xs text-gray-500">({categoryProducts.length})</span>
