@@ -3,7 +3,8 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save, AlertTriangle, Eye, Pencil, Upload } from "lucide-react";
+import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save, AlertTriangle, Eye, Pencil, Upload, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "sonner";
 import { connectionTypes } from "./ConnectionsSidebar";
 import { base44 } from "@/api/base44Client";
 
@@ -173,23 +174,37 @@ export default function DeviceConnectionEditor({
       
       if (Object.keys(updateData).length > 0) {
         await base44.entities.AVProduct.update(device.id, updateData);
-        
+
         // Update local state
         if (updateData.installation_manual_url) setInstallationManualUrl(updateData.installation_manual_url);
         if (updateData.user_manual_url) setUserManualUrl(updateData.user_manual_url);
-        
+
         if (onDeviceUpdate) {
           onDeviceUpdate({
             ...device,
             ...updateData
           });
         }
+
+        // Show success message
+        const foundCount = (updateData.installation_manual_url ? 1 : 0) + (updateData.user_manual_url ? 1 : 0);
+        toast.success(`Found ${foundCount} manual${foundCount !== 1 ? 's' : ''}`, {
+          description: `${updateData.installation_manual_url ? '✓ Installation Manual' : ''}${updateData.installation_manual_url && updateData.user_manual_url ? ', ' : ''}${updateData.user_manual_url ? '✓ User Manual' : ''}`
+        });
+      } else {
+        // No manuals found
+        toast.error('No manuals found', {
+          description: `Could not find PDF manuals for ${device.brand} ${device.model}`
+        });
       }
-    } catch (error) {
+      } catch (error) {
       console.error('Failed to search for manuals:', error);
-    }
-    setIsSearchingManuals(false);
-  };
+      toast.error('Search failed', {
+        description: 'An error occurred while searching for manuals'
+      });
+      }
+      setIsSearchingManuals(false);
+      };
 
   const toggleExpanded = (type, isInput) => {
     if (isInput) {
