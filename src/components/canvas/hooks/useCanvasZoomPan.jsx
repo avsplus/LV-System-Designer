@@ -44,7 +44,17 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
   }, [zoom, pan]);
 
   const handlePanStart = useCallback((e, canvasElement) => {
-    if (e.button === 1 || (e.button === 0 && spacePressed) || (e.button === 0 && e.target === canvasElement)) {
+    // Check if clicking on a device card or interactive element
+    const isOnDevice = e.target.closest('[data-instance-id]');
+    const isOnButton = e.target.closest('button');
+    const isOnPort = e.target.hasAttribute('data-port-type') || e.target.hasAttribute('data-port-id');
+    
+    // Allow panning with middle mouse, space+click, or left click on empty canvas area
+    const isMiddleMouse = e.button === 1;
+    const isSpacePanning = e.button === 0 && spacePressed;
+    const isEmptyCanvasClick = e.button === 0 && !isOnDevice && !isOnButton && !isOnPort;
+    
+    if (isMiddleMouse || isSpacePanning || isEmptyCanvasClick) {
       e.preventDefault();
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
