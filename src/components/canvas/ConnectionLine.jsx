@@ -221,13 +221,13 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       <path
         d={pathData}
         stroke={color}
-        strokeWidth={isHighlighted ? "6" : isHovered ? "4" : "3"}
+        strokeWidth={isSelected ? "6" : isHighlighted ? "6" : isHovered ? "4" : "3"}
         fill="none"
         className="transition-all cursor-pointer"
         style={{ 
           pointerEvents: 'stroke',
-          filter: isHighlighted ? 'drop-shadow(0 0 8px currentColor)' : 'none',
-          opacity: isHighlighted ? 1 : isHovered ? 0.9 : 0.8
+          filter: isSelected ? 'drop-shadow(0 0 12px currentColor)' : isHighlighted ? 'drop-shadow(0 0 8px currentColor)' : 'none',
+          opacity: isSelected ? 1 : isHighlighted ? 1 : isHovered ? 0.9 : 0.8
         }}
         onClick={onClick}
         onDoubleClick={handlePathDoubleClick}
