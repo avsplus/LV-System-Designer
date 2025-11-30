@@ -1449,6 +1449,7 @@ function AVCanvasContent() {
                       onPositionChange={handlePositionChange}
                       isConnecting={connectingFrom === cp.instanceId}
                       isHighlighted={isHighlighted}
+                      isSelected={selectedCanvasProduct?.instanceId === cp.instanceId}
                       label={cp.label}
                       networkInfo={ensureNetworkInfo(cp).networkInfo}
                       zoom={zoom}
