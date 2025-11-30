@@ -1433,42 +1433,50 @@ function AVCanvasContent() {
                 });
                 return (
                   <CanvasProduct
-                      key={cp.instanceId}
-                      instanceId={cp.instanceId}
-                      product={cp.product}
-                      position={cp.position}
-                      onRemove={handleRemoveProductWithSelection}
-                      onConnect={handleConnect}
-                      onPositionChange={handlePositionChange}
-                      isConnecting={connectingFrom === cp.instanceId}
-                      isHighlighted={isHighlighted}
-                      isSelected={selectedCanvasProduct?.instanceId === cp.instanceId}
-                      label={cp.label}
-                      networkInfo={ensureNetworkInfo(cp).networkInfo}
-                      zoom={zoom}
-                      responsiveDimensions={responsiveDimensions}
-                      onClick={() => {
-                        setSelectedCanvasProduct(ensureNetworkInfo(cp));
-                        setSelectedProduct(null);
-                        setSelectedConnection(null);
-                        setPanelHistory(prev => {
-                          const filtered = prev.filter(p => p !== 'deviceConnections');
-                          return [...filtered.slice(-1), 'deviceConnections'];
-                        });
-                      }}
-                      onPortClick={handlePortClick}
-                      onPortMouseDown={handlePortMouseDown}
-                      registerPort={registerPort}
-                      getPortId={getPortId}
-                      hoveredPortId={hoveredPortId}
-                      connectingFromPortId={connectingState?.fromPort ? getPortId(
-                        connectingState.fromPort.instanceId,
-                        connectingState.fromPort.connectionType,
-                        connectingState.fromPort.portName,
-                        connectingState.fromPort.isInput
-                      ) : null}
-                      onTooltipChange={setPortTooltip}
-                    />
+                        key={cp.instanceId}
+                        instanceId={cp.instanceId}
+                        product={cp.product}
+                        position={cp.position}
+                        onRemove={handleRemoveProductWithSelection}
+                        onConnect={handleConnect}
+                        onPositionChange={handlePositionChange}
+                        isConnecting={connectingFrom === cp.instanceId}
+                        isHighlighted={isHighlighted}
+                        isSelected={selectedCanvasProduct?.instanceId === cp.instanceId}
+                        label={cp.label}
+                        networkInfo={ensureNetworkInfo(cp).networkInfo}
+                        zoom={zoom}
+                        responsiveDimensions={responsiveDimensions}
+                        onClick={() => {
+                          setSelectedCanvasProduct(ensureNetworkInfo(cp));
+                          setSelectedProduct(null);
+                          setSelectedConnection(null);
+                          setPanelHistory(prev => {
+                            const filtered = prev.filter(p => p !== 'deviceConnections');
+                            return [...filtered.slice(-1), 'deviceConnections'];
+                          });
+                        }}
+                        onPortClick={handlePortClick}
+                        onPortMouseDown={handlePortMouseDown}
+                        registerPort={registerPort}
+                        getPortId={getPortId}
+                        hoveredPortId={hoveredPortId}
+                        connectingFromPortId={connectingState?.fromPort ? getPortId(
+                          connectingState.fromPort.instanceId,
+                          connectingState.fromPort.connectionType,
+                          connectingState.fromPort.portName,
+                          connectingState.fromPort.isInput
+                        ) : null}
+                        onTooltipChange={setPortTooltip}
+                        onProductUpdate={(updatedProduct) => {
+                          projectData.setCanvasProducts(prev => prev.map(p => 
+                            p.instanceId === cp.instanceId
+                              ? { ...p, product: updatedProduct }
+                              : p
+                          ));
+                          queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                        }}
+                      />
                 );
               })}
             </div>
