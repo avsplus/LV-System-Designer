@@ -42,8 +42,8 @@ export default function DeviceConnectionEditor({
     base44.auth.me().then(user => setCurrentUser(user)).catch(() => {});
   }, []);
 
-  // Check app user role (from User entity, not Base44 platform role)
-  const isAdminOrOwner = currentUser?.role === 'admin' || currentUser?.role === 'owner';
+  // Check organization role (from User entity, not Base44 platform role)
+  const isAdminOrOwner = currentUser?.organization_role === 'administrator' || currentUser?.organization_role === 'owner';
   const hasExistingInstallationManual = !!device.installation_manual_url;
   const hasExistingUserManual = !!device.user_manual_url;
   const hasExistingManuals = hasExistingInstallationManual || hasExistingUserManual;
