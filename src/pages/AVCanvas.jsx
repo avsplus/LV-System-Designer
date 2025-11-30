@@ -1007,7 +1007,7 @@ function AVCanvasContent() {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex h-screen bg-gray-950 overflow-hidden">
+      <div className="flex h-[100dvh] w-full bg-gray-950 overflow-hidden">
         <ProductSidebar 
           products={products} 
           onProductSelect={(product) => {
