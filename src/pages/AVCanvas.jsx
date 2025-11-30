@@ -597,6 +597,17 @@ function AVCanvasContent() {
     handlePanStart(e, canvasRef.current);
   };
 
+  const handleCanvasClick = (e) => {
+    // Only trigger if clicking directly on the canvas background, not on products/connections
+    if (e.target === e.currentTarget || e.target.tagName === 'svg' || e.target.closest('[data-canvas-background]')) {
+      setSelectedProduct(null);
+      setSelectedCanvasProduct(null);
+      setSelectedConnection(null);
+      setHighlightedConnections([]);
+      setPanelHistory([]);
+    }
+  };
+
   // Touch handlers for pinch-to-zoom
   const handleCanvasTouchStart = (e) => {
     if (e.touches.length === 2) {
