@@ -52,27 +52,48 @@ export default function DeviceConnectionEditor({
   const saveManualUrl = async (type) => {
     setIsSavingManuals(true);
     try {
-      const updateData = {};
-      if (type === 'installation' && installationManualUrl !== device.installation_manual_url) {
-        updateData.installation_manual_url = installationManualUrl || null;
+      const urlToSave = type === 'installation' ? installationManualUrl : userManualUrl;
+      const originalUrl = type === 'installation' ? device.installation_manual_url : device.user_manual_url;
+
+      if (urlToSave === originalUrl) {
+        setEditingManual(null);
+        setIsSavingManuals(false);
+        return;
       }
-      if (type === 'user' && userManualUrl !== device.user_manual_url) {
-        updateData.user_manual_url = userManualUrl || null;
+
+      let finalUrl = urlToSave || null;
+
+      // If URL is external (not already on Supabase), download and re-upload
+      if (finalUrl && !finalUrl.includes('supabase')) {
+        toast.info('Downloading and saving to storage...', { duration: 2000 });
+        const uploadedUrl = await uploadToSupabase(finalUrl, device.id, type);
+        if (uploadedUrl) finalUrl = uploadedUrl;
       }
-      
-      if (Object.keys(updateData).length > 0) {
-        await base44.entities.AVProduct.update(device.id, updateData);
-        
-        if (onDeviceUpdate) {
-          onDeviceUpdate({
-            ...device,
-            ...updateData
-          });
-        }
+
+      const updateData = type === 'installation' 
+        ? { installation_manual_url: finalUrl }
+        : { user_manual_url: finalUrl };
+
+      await base44.entities.AVProduct.update(device.id, updateData);
+
+      if (type === 'installation') {
+        setInstallationManualUrl(finalUrl);
+      } else {
+        setUserManualUrl(finalUrl);
       }
+
+      if (onDeviceUpdate) {
+        onDeviceUpdate({
+          ...device,
+          ...updateData
+        });
+      }
+
+      toast.success('Manual URL saved');
       setEditingManual(null);
     } catch (error) {
       console.error('Failed to save manual URL:', error);
+      toast.error('Failed to save', { description: error.message });
     }
     setIsSavingManuals(false);
   };
@@ -81,28 +102,49 @@ export default function DeviceConnectionEditor({
     if (!file) return;
     setIsUploadingManual(type);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
+      // Convert file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve) => {
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+      });
+      const base64Data = await base64Promise;
+
+      // Upload to Supabase
+      const response = await base44.functions.invoke('uploadToSupabase', {
+        action: 'uploadFile',
+        fileData: base64Data,
+        productId: device.id,
+        fileName: `${type}_manual.pdf`,
+        contentType: file.type || 'application/pdf'
+      });
+
+      const file_url = response.data?.file_url;
+      if (!file_url) throw new Error('Upload failed');
+
       const updateData = type === 'installation' 
         ? { installation_manual_url: file_url }
         : { user_manual_url: file_url };
-      
+
       await base44.entities.AVProduct.update(device.id, updateData);
-      
+
       if (type === 'installation') {
         setInstallationManualUrl(file_url);
       } else {
         setUserManualUrl(file_url);
       }
-      
+
       if (onDeviceUpdate) {
         onDeviceUpdate({
           ...device,
           ...updateData
         });
       }
+
+      toast.success(`${type === 'installation' ? 'Installation' : 'User'} manual uploaded`);
     } catch (error) {
       console.error('Failed to upload manual:', error);
+      toast.error('Upload failed', { description: error.message });
     }
     setIsUploadingManual(null);
   };
