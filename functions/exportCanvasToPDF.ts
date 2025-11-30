@@ -1654,8 +1654,11 @@ Deno.serve(async (req) => {
       yPos = 55;
 
       // Device list for this room
-      roomDevices.forEach((cp, i) => {
-        if (yPos > pageHeight - 50) {
+      for (let i = 0; i < roomDevices.length; i++) {
+        const cp = roomDevices[i];
+        const cardHeight = 55; // Increased card height for description
+        
+        if (yPos > pageHeight - cardHeight - 15) {
           doc.addPage();
           yPos = margin;
           setFill(doc, theme.colors.accent);
@@ -1672,40 +1675,97 @@ Deno.serve(async (req) => {
 
         // Device card
         setFill(doc, theme.colors.cardBg);
-        drawRoundedRect(margin, yPos, contentWidth, 40, 3);
+        drawRoundedRect(margin, yPos, contentWidth, cardHeight, 3);
 
-        // Icon
-        drawCategoryIcon(doc, margin + 20, yPos + 20, product.category, 20);
+        // Try to load product image
+        let imageLoaded = false;
+        const imageSize = 28;
+        const imageX = margin + 6;
+        const imageY = yPos + 6;
+        
+        if (product.image_url && /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(product.image_url)) {
+          try {
+            const imgResponse = await fetch(product.image_url);
+            if (imgResponse.ok) {
+              const imgBlob = await imgResponse.blob();
+              const imgArrayBuffer = await imgBlob.arrayBuffer();
+              const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgArrayBuffer)));
+              const imgFormat = product.image_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+              
+              // Draw image with border
+              setFill(doc, theme.colors.white);
+              drawRoundedRect(imageX, imageY, imageSize, imageSize, 2);
+              doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, imageX + 1, imageY + 1, imageSize - 2, imageSize - 2);
+              imageLoaded = true;
+            }
+          } catch (e) {
+            console.log('Could not load product image:', e);
+          }
+        }
+        
+        // Fallback to category icon if no image
+        if (!imageLoaded) {
+          drawCategoryIcon(doc, imageX + imageSize / 2, imageY + imageSize / 2, product.category, 20);
+        }
 
-        // Device info
+        const textStartX = margin + imageSize + 14;
+
+        // Device label
         setColor(doc, theme.colors.dark);
         doc.setFont(undefined, 'bold');
         doc.setFontSize(12);
-        doc.text(cp.label || product.brand, margin + 42, yPos + 12);
+        doc.text(cp.label || product.brand, textStartX, yPos + 12);
 
+        // Brand and Model
         doc.setFont(undefined, 'normal');
         doc.setFontSize(9);
         setColor(doc, theme.colors.muted);
-        doc.text(`${product.brand} ${product.model}`, margin + 42, yPos + 20);
+        doc.text(`${product.brand} ${product.model}`, textStartX, yPos + 20);
+
+        // Description (truncated to fit)
+        if (product.description) {
+          doc.setFontSize(8);
+          setColor(doc, [100, 116, 139]);
+          const maxDescLength = 60;
+          const truncatedDesc = product.description.length > maxDescLength 
+            ? product.description.substring(0, maxDescLength - 3) + '...' 
+            : product.description;
+          doc.text(truncatedDesc, textStartX, yPos + 28);
+        }
 
         // Connection summary
         if (deviceConnections.length > 0) {
           const inputConns = deviceConnections.filter(c => c.to === cp.instanceId);
           const outputConns = deviceConnections.filter(c => c.from === cp.instanceId);
-          doc.text(`Inputs: ${inputConns.length} | Outputs: ${outputConns.length}`, margin + 42, yPos + 28);
+          doc.setFontSize(8);
+          setColor(doc, theme.colors.muted);
+          doc.text(`Inputs: ${inputConns.length} | Outputs: ${outputConns.length}`, textStartX, yPos + 38);
         }
 
         // Network info on right
         if (cp.networkInfo && cp.networkInfo.ip && cp.networkInfo.ip !== '000.000.000.000') {
           doc.setFontSize(8);
+          setColor(doc, theme.colors.muted);
           doc.text(`IP: ${cp.networkInfo.ip}`, pageWidth - margin - 5, yPos + 15, { align: 'right' });
           if (cp.networkInfo.mac && cp.networkInfo.mac !== '00:00:00:00:00:00') {
             doc.text(`MAC: ${cp.networkInfo.mac}`, pageWidth - margin - 5, yPos + 22, { align: 'right' });
           }
         }
 
-        yPos += 45;
-      });
+        // Category badge on right
+        const catColor = getCategoryColor(product.category);
+        const catText = product.category.replace(/_/g, ' ');
+        doc.setFontSize(7);
+        const catWidth = doc.getTextWidth(catText) + 6;
+        setFill(doc, [catColor[0], catColor[1], catColor[2]]);
+        doc.setGState(new doc.GState({ opacity: 0.15 }));
+        drawRoundedRect(pageWidth - margin - catWidth - 3, yPos + 38, catWidth, 8, 2);
+        doc.setGState(new doc.GState({ opacity: 1 }));
+        setColor(doc, catColor);
+        doc.text(catText, pageWidth - margin - catWidth, yPos + 44);
+
+        yPos += cardHeight + 5;
+      }
 
       // Room notes section
       yPos += 10;
