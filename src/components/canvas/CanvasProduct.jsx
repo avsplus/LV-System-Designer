@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Link2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 
 const connectionsByCategory = {
   control_processors: {
@@ -727,17 +727,21 @@ export default function CanvasProduct({
             )}
           </div>
         <div className="flex gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onConnect(instanceId);
-            }}
-          >
-            <Link2 className="w-3 h-3" />
-          </Button>
+          {(product.installation_manual_url || product.user_manual_url) && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                const manualUrl = product.installation_manual_url || product.user_manual_url;
+                window.open(manualUrl, '_blank');
+              }}
+              title={product.installation_manual_url ? "View Installation Manual" : "View User Manual"}
+            >
+              <FileText className="w-3 h-3" />
+            </Button>
+          )}
           <Button
             size="icon"
             variant="ghost"
