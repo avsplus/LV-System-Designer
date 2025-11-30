@@ -115,6 +115,21 @@ export default function DeviceConnectionEditor({
     }
   };
 
+  const uploadToSupabase = async (externalUrl, productId, manualType) => {
+    try {
+      const response = await base44.functions.invoke('uploadToSupabase', {
+        action: 'uploadFromUrl',
+        fileUrl: externalUrl,
+        productId: productId,
+        fileName: `${manualType}_manual.pdf`
+      });
+      return response.data?.file_url || null;
+    } catch (error) {
+      console.error(`Failed to upload ${manualType} manual to Supabase:`, error);
+      return externalUrl; // Fallback to external URL
+    }
+  };
+
   const searchForManuals = async () => {
     setShowReplaceConfirm(false);
     setIsSearchingManuals(true);
@@ -160,18 +175,28 @@ export default function DeviceConnectionEditor({
       });
 
       // Only save URLs that actually end with .pdf
-      const installManual = response.installation_manual_url?.toLowerCase().endsWith('.pdf') 
+      const installManualExternal = response.installation_manual_url?.toLowerCase().endsWith('.pdf') 
         ? response.installation_manual_url 
         : null;
-      const userManual = response.user_manual_url?.toLowerCase().endsWith('.pdf') 
+      const userManualExternal = response.user_manual_url?.toLowerCase().endsWith('.pdf') 
         ? response.user_manual_url 
         : null;
-      
-      // Always update with new search results (replace existing)
+
+      // Upload found manuals to Supabase for permanent storage
       const updateData = {};
-      if (installManual) updateData.installation_manual_url = installManual;
-      if (userManual) updateData.user_manual_url = userManual;
-      
+
+      if (installManualExternal) {
+        toast.info('Uploading installation manual...', { duration: 2000 });
+        const uploadedUrl = await uploadToSupabase(installManualExternal, device.id, 'installation');
+        if (uploadedUrl) updateData.installation_manual_url = uploadedUrl;
+      }
+
+      if (userManualExternal) {
+        toast.info('Uploading user manual...', { duration: 2000 });
+        const uploadedUrl = await uploadToSupabase(userManualExternal, device.id, 'user');
+        if (uploadedUrl) updateData.user_manual_url = uploadedUrl;
+      }
+
       if (Object.keys(updateData).length > 0) {
         await base44.entities.AVProduct.update(device.id, updateData);
 
@@ -188,7 +213,7 @@ export default function DeviceConnectionEditor({
 
         // Show success message
         const foundCount = (updateData.installation_manual_url ? 1 : 0) + (updateData.user_manual_url ? 1 : 0);
-        toast.success(`Found ${foundCount} manual${foundCount !== 1 ? 's' : ''}`, {
+        toast.success(`Found & saved ${foundCount} manual${foundCount !== 1 ? 's' : ''}`, {
           description: `${updateData.installation_manual_url ? '✓ Installation Manual' : ''}${updateData.installation_manual_url && updateData.user_manual_url ? ', ' : ''}${updateData.user_manual_url ? '✓ User Manual' : ''}`
         });
       } else {
