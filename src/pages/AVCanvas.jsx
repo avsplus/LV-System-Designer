@@ -34,18 +34,30 @@ import { ROLES } from "../components/auth/permissions";
 import { useSettings } from "../components/settings/SettingsContext";
 import useCanvasZoomPan from "../components/canvas/hooks/useCanvasZoomPan";
 import useProjectData, { ensureNetworkInfo } from "../components/canvas/hooks/useProjectData";
+import useResponsiveCanvas from "../components/canvas/hooks/useResponsiveCanvas";
 
 function AVCanvasContent() {
-  const toast = useToast();
-  const confirmDialog = useConfirm();
-  const { isAtLeast, loading: permLoading } = usePermissions();
-  const { settings: orgSettings } = useSettings();
-  
-  // Zoom and pan state from hook
-  const {
-    zoom, pan, isPanning, spacePressed,
-    handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart
-  } = useCanvasZoomPan(orgSettings?.default_zoom || 1);
+    const toast = useToast();
+    const confirmDialog = useConfirm();
+    const { isAtLeast, loading: permLoading } = usePermissions();
+    const { settings: orgSettings } = useSettings();
+
+    // Responsive canvas hook
+    const { 
+      viewport, 
+      breakpoint, 
+      dimensions: responsiveDimensions, 
+      layout,
+      handleTouchStart: handlePinchStart,
+      handleTouchMove: handlePinchMove,
+      handleTouchEnd: handlePinchEnd
+    } = useResponsiveCanvas();
+
+    // Zoom and pan state from hook
+    const {
+      zoom, setZoom, pan, isPanning, spacePressed,
+      handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart
+    } = useCanvasZoomPan(orgSettings?.default_zoom || 1);
 
   // Project and current user state
   const [currentProject, setCurrentProject] = useState(null);
@@ -574,6 +586,23 @@ function AVCanvasContent() {
 
   const handleMouseDown = (e) => {
     handlePanStart(e, canvasRef.current);
+  };
+
+  // Touch handlers for pinch-to-zoom
+  const handleCanvasTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      handlePinchStart(e, zoom);
+    }
+  };
+
+  const handleCanvasTouchMove = (e) => {
+    if (e.touches.length === 2) {
+      handlePinchMove(e, setZoom);
+    }
+  };
+
+  const handleCanvasTouchEnd = () => {
+    handlePinchEnd();
   };
 
   useEffect(() => {
@@ -1194,6 +1223,9 @@ function AVCanvasContent() {
             {...provided.droppableProps}
             onWheel={currentProject ? handleWheel : undefined}
             onMouseDown={currentProject ? handleMouseDown : undefined}
+            onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
+            onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
+            onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
             className={`flex-1 relative overflow-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
               snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
             } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
@@ -1399,40 +1431,41 @@ function AVCanvasContent() {
                 });
                 return (
                   <CanvasProduct
-                    key={cp.instanceId}
-                    instanceId={cp.instanceId}
-                    product={cp.product}
-                    position={cp.position}
-                    onRemove={handleRemoveProductWithSelection}
-                    onConnect={handleConnect}
-                    onPositionChange={handlePositionChange}
-                    isConnecting={connectingFrom === cp.instanceId}
-                    isHighlighted={isHighlighted}
-                    label={cp.label}
-                    networkInfo={ensureNetworkInfo(cp).networkInfo}
-                    zoom={zoom}
-                    onClick={() => {
-                      setSelectedCanvasProduct(ensureNetworkInfo(cp));
-                      setSelectedProduct(null);
-                      setSelectedConnection(null);
-                      setPanelHistory(prev => {
-                        const filtered = prev.filter(p => p !== 'deviceConnections');
-                        return [...filtered.slice(-1), 'deviceConnections'];
-                      });
-                    }}
-                    onPortClick={handlePortClick}
-                    onPortMouseDown={handlePortMouseDown}
-                    registerPort={registerPort}
-                    getPortId={getPortId}
-                    hoveredPortId={hoveredPortId}
-                    connectingFromPortId={connectingState?.fromPort ? getPortId(
-                      connectingState.fromPort.instanceId,
-                      connectingState.fromPort.connectionType,
-                      connectingState.fromPort.portName,
-                      connectingState.fromPort.isInput
-                    ) : null}
-                    onTooltipChange={setPortTooltip}
-                  />
+                      key={cp.instanceId}
+                      instanceId={cp.instanceId}
+                      product={cp.product}
+                      position={cp.position}
+                      onRemove={handleRemoveProductWithSelection}
+                      onConnect={handleConnect}
+                      onPositionChange={handlePositionChange}
+                      isConnecting={connectingFrom === cp.instanceId}
+                      isHighlighted={isHighlighted}
+                      label={cp.label}
+                      networkInfo={ensureNetworkInfo(cp).networkInfo}
+                      zoom={zoom}
+                      responsiveDimensions={responsiveDimensions}
+                      onClick={() => {
+                        setSelectedCanvasProduct(ensureNetworkInfo(cp));
+                        setSelectedProduct(null);
+                        setSelectedConnection(null);
+                        setPanelHistory(prev => {
+                          const filtered = prev.filter(p => p !== 'deviceConnections');
+                          return [...filtered.slice(-1), 'deviceConnections'];
+                        });
+                      }}
+                      onPortClick={handlePortClick}
+                      onPortMouseDown={handlePortMouseDown}
+                      registerPort={registerPort}
+                      getPortId={getPortId}
+                      hoveredPortId={hoveredPortId}
+                      connectingFromPortId={connectingState?.fromPort ? getPortId(
+                        connectingState.fromPort.instanceId,
+                        connectingState.fromPort.connectionType,
+                        connectingState.fromPort.portName,
+                        connectingState.fromPort.isInput
+                      ) : null}
+                      onTooltipChange={setPortTooltip}
+                    />
                 );
               })}
             </div>

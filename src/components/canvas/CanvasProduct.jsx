@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X, Link2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
@@ -221,7 +221,7 @@ const connectionsByCategory = {
 const categoryColors = {
   televisions: "bg-blue-500/10 text-blue-400 border-blue-500/50",
   projectors: "bg-purple-500/10 text-purple-400 border-purple-500/50",
-  projector_screens: "bg-indigo-500/10 text-indigo-400 border-indigo-500/50",
+  projector_screens: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/50",
   video_distribution: "bg-cyan-500/10 text-cyan-400 border-cyan-500/50",
   matrix_switchers: "bg-teal-500/10 text-teal-400 border-teal-500/50",
   audio_streamers: "bg-pink-500/10 text-pink-400 border-pink-500/50",
@@ -232,7 +232,10 @@ const categoryColors = {
   stereo_amps: "bg-orange-500/10 text-orange-400 border-orange-500/50",
   multizone_amps: "bg-amber-500/10 text-amber-400 border-amber-500/50",
   surround_processors: "bg-yellow-500/10 text-yellow-400 border-yellow-500/50",
-  av_receivers: "bg-emerald-500/10 text-emerald-400 border-emerald-500/50"
+  av_receivers: "bg-emerald-500/10 text-emerald-400 border-emerald-500/50",
+  network_switches: "bg-slate-500/10 text-slate-400 border-slate-500/50",
+  control_processors: "bg-violet-500/10 text-violet-400 border-violet-500/50",
+  hdmi_extenders: "bg-indigo-500/10 text-indigo-400 border-indigo-500/50"
 };
 
 const categorySolidColors = {
@@ -294,10 +297,22 @@ export default function CanvasProduct({
         hoveredPortId,
         connectingFromPortId,
         zoom = 1,
-        onTooltipChange
+        onTooltipChange,
+        responsiveDimensions
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+  
+  // Responsive dimensions with fallback
+  const dimensions = useMemo(() => ({
+    cardWidth: responsiveDimensions?.cardWidth || 320,
+    cardHeight: responsiveDimensions?.cardHeight || 280,
+    portDotSize: responsiveDimensions?.portDotSize || 20,
+    portGap: responsiveDimensions?.portGap || 12,
+    minTapTarget: responsiveDimensions?.minTapTarget || 32
+  }), [responsiveDimensions]);
+  
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   
   // Helper to set tooltip info at page level
   const setTooltipInfo = (info) => {
@@ -436,19 +451,97 @@ export default function CanvasProduct({
   const inputTypes = getConnectionTypes(connections, 'inputs');
   const outputTypes = getConnectionTypes(connections, 'outputs');
 
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    if (e.target.closest('button') || e.target.hasAttribute('data-port-type')) return;
+    if (e.touches.length !== 1) return;
+    
+    const touch = e.touches[0];
+    const clickTime = Date.now();
+    
+    const canvas = e.currentTarget.parentElement;
+    const canvasRect = canvas.parentElement.getBoundingClientRect();
+    const transform = canvas.style.transform;
+    const translateMatch = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+    const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+    const panX = translateMatch ? parseFloat(translateMatch[1]) : 0;
+    const panY = translateMatch ? parseFloat(translateMatch[2]) : 0;
+    const zoomLevel = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+    
+    const mouseWorld = screenToWorld(touch.clientX, touch.clientY, canvasRect, panX, panY, zoomLevel);
+    
+    setIsDragging(true);
+    dragOffset.current = {
+      offsetX: mouseWorld.x - position.x,
+      offsetY: mouseWorld.y - position.y,
+      canvasRect,
+      panX,
+      panY,
+      zoomLevel,
+      clickTime,
+      clickPos: { x: touch.clientX, y: touch.clientY }
+    };
+  };
+
+  const handleTouchMove = React.useCallback((e) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const { canvasRect, panX, panY, zoomLevel, offsetX, offsetY } = dragOffset.current;
+    const mouseWorld = screenToWorld(touch.clientX, touch.clientY, canvasRect, panX, panY, zoomLevel);
+    
+    onPositionChange(instanceId, { 
+      x: mouseWorld.x - offsetX, 
+      y: mouseWorld.y - offsetY 
+    });
+  }, [isDragging, instanceId, onPositionChange]);
+
+  const handleTouchEnd = (e) => {
+    const timeDiff = Date.now() - (dragOffset.current.clickTime || 0);
+    const touch = e.changedTouches[0];
+    const moveDist = Math.sqrt(
+      Math.pow(touch.clientX - (dragOffset.current.clickPos?.x || 0), 2) +
+      Math.pow(touch.clientY - (dragOffset.current.clickPos?.y || 0), 2)
+    );
+    
+    if (timeDiff < 300 && moveDist < 10 && onClick) {
+      onClick();
+    }
+    
+    setIsDragging(false);
+  };
+
+  // Add touch event listeners
+  React.useEffect(() => {
+    if (isDragging && isTouchDevice) {
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
+      return () => {
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isDragging, handleTouchMove, isTouchDevice]);
+
   return (
     <div
       data-instance-id={instanceId}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
       style={{
         position: 'absolute',
         left: position.x,
         top: position.y,
+        width: dimensions.cardWidth,
+        height: dimensions.cardHeight,
         userSelect: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'none',
         willChange: isDragging ? 'transform' : 'auto',
         transition: isDragging ? 'none' : 'border-color 0.15s ease'
       }}
-      className={`w-80 h-[280px] bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col ${
+      className={`bg-gray-800 border-2 rounded-xl p-3 md:p-4 cursor-move flex flex-col ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
@@ -456,21 +549,31 @@ export default function CanvasProduct({
     >
       {/* Left edge connection points (inputs) */}
       {inputTypes.length > 0 && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-3">
+        <div 
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col"
+          style={{ gap: dimensions.portGap }}
+        >
           {inputTypes.slice(0, 6).map((connType, i) => {
             const portId = getPortId(instanceId, connType.type, 'type', true);
             const isHovered = hoveredPortId === portId;
-            const isConnecting = connectingFromPortId === portId;
+            const isConnectingPort = connectingFromPortId === portId;
+            const portSize = Math.max(dimensions.portDotSize, dimensions.minTapTarget);
             return (
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', true)}
-                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
-                  isConnecting ? 'scale-150 border-blue-400' :
+                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                  isConnectingPort ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
-                  'border-gray-800 hover:scale-125'
+                  'border-gray-800 hover:scale-125 active:scale-150'
                 }`}
-                style={{ backgroundColor: connType.color }}
+                style={{ 
+                  backgroundColor: connType.color,
+                  width: portSize,
+                  height: portSize,
+                  minWidth: dimensions.minTapTarget,
+                  minHeight: dimensions.minTapTarget
+                }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="input"
@@ -483,6 +586,12 @@ export default function CanvasProduct({
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
+                  if (onPortMouseDown) {
+                    onPortMouseDown(instanceId, connType.type, 'type', true, e.currentTarget);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
                   if (onPortMouseDown) {
                     onPortMouseDown(instanceId, connType.type, 'type', true, e.currentTarget);
                   }
@@ -507,21 +616,31 @@ export default function CanvasProduct({
 
       {/* Right edge connection points (outputs) */}
       {outputTypes.length > 0 && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-3">
+        <div 
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col"
+          style={{ gap: dimensions.portGap }}
+        >
           {outputTypes.slice(0, 6).map((connType, i) => {
             const portId = getPortId(instanceId, connType.type, 'type', false);
             const isHovered = hoveredPortId === portId;
-            const isConnecting = connectingFromPortId === portId;
+            const isConnectingPort = connectingFromPortId === portId;
+            const portSize = Math.max(dimensions.portDotSize, dimensions.minTapTarget);
             return (
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', false)}
-                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
-                  isConnecting ? 'scale-150 border-blue-400' :
+                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                  isConnectingPort ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
-                  'border-gray-800 hover:scale-125'
+                  'border-gray-800 hover:scale-125 active:scale-150'
                 }`}
-                style={{ backgroundColor: connType.color }}
+                style={{ 
+                  backgroundColor: connType.color,
+                  width: portSize,
+                  height: portSize,
+                  minWidth: dimensions.minTapTarget,
+                  minHeight: dimensions.minTapTarget
+                }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="output"
@@ -534,6 +653,12 @@ export default function CanvasProduct({
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
+                  if (onPortMouseDown) {
+                    onPortMouseDown(instanceId, connType.type, 'type', false, e.currentTarget);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
                   if (onPortMouseDown) {
                     onPortMouseDown(instanceId, connType.type, 'type', false, e.currentTarget);
                   }

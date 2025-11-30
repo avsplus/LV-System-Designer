@@ -143,7 +143,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
   };
 
   return (
-    <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
+    <div className="w-60 sm:w-72 md:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full transition-all duration-200">
       {/* Logo */}
       <div className="p-4 border-b border-gray-800 flex justify-center">
         {settings?.logo_url ? (
