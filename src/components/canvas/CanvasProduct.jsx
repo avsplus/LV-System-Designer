@@ -346,9 +346,26 @@ export default function CanvasProduct({
 Brand: ${product.brand}
 Model: ${product.model}
 
-Search for:
-1. Installation manual / Quick start guide PDF - direct URL from manufacturer website
-2. User manual / Owner's manual PDF - direct URL from manufacturer website
+Search for INSTALLATION documentation (any of these terms):
+- Installation manual / Installation guide
+- Setup guide / Quick start guide
+- Assembly instructions
+
+Search for USER documentation (any of these terms):
+- User manual / User guide
+- Owner's manual / Operator's manual
+- Instruction manual
+- Technical documentation
+- Operations manual
+- Maintenance manual / Service manual
+
+Search patterns:
+- site:${product.brand.toLowerCase().replace(/\s+/g, '')}.com "${product.model}" filetype:pdf
+- "${product.brand} ${product.model}" installation guide pdf
+- "${product.brand} ${product.model}" setup guide pdf
+- "${product.brand} ${product.model}" user manual pdf
+- "${product.brand} ${product.model}" owner's manual pdf
+- "${product.brand} ${product.model}" quick start pdf
 
 Only return URLs that:
 - End in .pdf
