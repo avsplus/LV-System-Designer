@@ -1834,20 +1834,18 @@ Deno.serve(async (req) => {
     // ==========================================
     // DEVICE MANUALS PAGE
     // ==========================================
-    // Collect unique products that have manuals
-    const productsWithManuals = [];
+    // Collect ALL unique products for manuals page
+    const uniqueProducts = [];
     const seenProductIds = new Set();
     
     canvasProducts.forEach(cp => {
-      if (!seenProductIds.has(cp.product.id)) {
+      if (cp.product?.id && !seenProductIds.has(cp.product.id)) {
         seenProductIds.add(cp.product.id);
-        if (cp.product.installation_manual_url || cp.product.user_manual_url) {
-          productsWithManuals.push(cp.product);
-        }
+        uniqueProducts.push(cp.product);
       }
     });
 
-    if (productsWithManuals.length > 0) {
+    if (uniqueProducts.length > 0) {
       doc.addPage();
       yPos = margin;
 
@@ -1860,7 +1858,7 @@ Deno.serve(async (req) => {
       doc.text('Device Manuals', margin, 23);
       setColor(doc, theme.colors.muted);
       doc.setFontSize(10);
-      doc.text(`${productsWithManuals.length} Products with Documentation`, pageWidth - margin, 23, { align: 'right' });
+      doc.text(`${uniqueProducts.length} Products`, pageWidth - margin, 23, { align: 'right' });
 
       yPos = 50;
 
@@ -1872,7 +1870,7 @@ Deno.serve(async (req) => {
       yPos += 12;
 
       // Manual cards
-      productsWithManuals.forEach((product, index) => {
+      uniqueProducts.forEach((product, index) => {
         if (yPos > pageHeight - 45) {
           doc.addPage();
           yPos = margin;
@@ -1916,31 +1914,44 @@ Deno.serve(async (req) => {
         const linkY = yPos + 30;
 
         if (product.installation_manual_url) {
-          // Installation Manual link
+          // Installation Manual link - clickable button
           setFill(doc, [249, 115, 22]); // Orange
           const installText = 'Installation Manual';
+          doc.setFontSize(8);
           const installWidth = doc.getTextWidth(installText) + 12;
           doc.roundedRect(linkX, linkY - 5, installWidth, 10, 2, 2, 'F');
           
           setColor(doc, theme.colors.white);
           doc.setFont(undefined, 'bold');
-          doc.setFontSize(8);
           doc.textWithLink(installText, linkX + 6, linkY + 1, { url: product.installation_manual_url });
           
           linkX += installWidth + 8;
+        } else {
+          // Show "Not available" for missing installation manual
+          setColor(doc, theme.colors.muted);
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(8);
+          doc.text('Install: N/A', linkX, linkY + 1);
+          linkX += 35;
         }
 
         if (product.user_manual_url) {
-          // User Manual link
+          // User Manual link - clickable button
           setFill(doc, [34, 197, 94]); // Green
           const userText = 'User Manual';
+          doc.setFontSize(8);
           const userWidth = doc.getTextWidth(userText) + 12;
           doc.roundedRect(linkX, linkY - 5, userWidth, 10, 2, 2, 'F');
           
           setColor(doc, theme.colors.white);
           doc.setFont(undefined, 'bold');
-          doc.setFontSize(8);
           doc.textWithLink(userText, linkX + 6, linkY + 1, { url: product.user_manual_url });
+        } else {
+          // Show "Not available" for missing user manual
+          setColor(doc, theme.colors.muted);
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(8);
+          doc.text('User: N/A', linkX, linkY + 1);
         }
 
         yPos += cardHeight + 6;
