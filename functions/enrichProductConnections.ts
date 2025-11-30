@@ -14,8 +14,18 @@ Deno.serve(async (req) => {
             "televisions", "projectors", "projector_screens", "video_distribution", 
             "matrix_switchers", "audio_streamers", "media_streamers", "speakers", 
             "soundbars", "subwoofers", "stereo_amps", "multizone_amps", 
-            "surround_processors", "av_receivers", "network_switches", "control_processors"
+            "surround_processors", "av_receivers", "network_switches", "control_processors",
+            "hdmi_extenders"
         ];
+
+        // Get category filter from request body
+        let categoryFilter = null;
+        try {
+            const body = await req.json();
+            categoryFilter = body.category || null;
+        } catch (e) {
+            // No body or invalid JSON, proceed without filter
+        }
 
         // Normalize category function
         const normalizeCategory = (cat) => {
@@ -49,14 +59,21 @@ Deno.serve(async (req) => {
                 "surround_processors": "surround_processors",
                 "surroundprocessors": "surround_processors",
                 "control_processors": "control_processors",
-                "controlprocessors": "control_processors"
+                "controlprocessors": "control_processors",
+                "hdmi_extenders": "hdmi_extenders",
+                "hdmiextenders": "hdmi_extenders"
             };
             
             return categoryMapping[normalized] || normalized;
         };
 
-        // Get all products from database
-        const products = await base44.asServiceRole.entities.AVProduct.list();
+        // Get products from database, optionally filtered by category
+        let products;
+        if (categoryFilter && validCategories.includes(categoryFilter)) {
+            products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
+        } else {
+            products = await base44.asServiceRole.entities.AVProduct.list();
+        }
 
         let enriched = 0;
         let failed = 0;
@@ -253,7 +270,8 @@ Only include verified information. If you cannot verify a specification from mul
             enriched,
             failed,
             categoryFixed,
-            message: `Enriched ${enriched} products with connection data${categoryFixed > 0 ? `, fixed ${categoryFixed} category names` : ''}`
+            categoryFilter: categoryFilter || 'all',
+            message: `Enriched ${enriched} products with connection data${categoryFixed > 0 ? `, fixed ${categoryFixed} category names` : ''}${categoryFilter ? ` (category: ${categoryFilter})` : ''}`
         });
 
     } catch (error) {
