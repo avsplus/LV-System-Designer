@@ -1348,6 +1348,7 @@ function AVCanvasContent() {
                       wireId={connection.wireId}
                       waypoints={connection.waypoints}
                       isHighlighted={isHighlighted}
+                      isSelected={selectedConnection?.index === index}
                       offset={0}
                       onRemove={() => handleRemoveConnection(index)}
                       onClick={() => handleConnectionClick(connection, index)}
