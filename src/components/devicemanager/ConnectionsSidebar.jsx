@@ -53,7 +53,7 @@ export default function ConnectionsSidebar() {
                 <div key={category.id}>
                   <div className="flex items-center gap-2 mb-2">
                     <div 
-                      className="w-3 h-3 rounded-full" 
+                      className="w-2 h-2 rounded-full" 
                       style={{ backgroundColor: category.color }}
                     />
                     <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -83,7 +83,7 @@ export default function ConnectionsSidebar() {
                               >
                                 <Grip className="w-3 h-3 text-gray-500" />
                                 <div 
-                                  className="w-4 h-4 rounded-full flex-shrink-0"
+                                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                                   style={{ backgroundColor: conn.color }}
                                 />
                                 <span className="text-sm text-white">{conn.type}</span>
@@ -92,7 +92,7 @@ export default function ConnectionsSidebar() {
                                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 opacity-50">
                                   <Grip className="w-3 h-3 text-gray-500" />
                                   <div 
-                                    className="w-4 h-4 rounded-full flex-shrink-0"
+                                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: conn.color }}
                                   />
                                   <span className="text-sm text-white">{conn.type}</span>
