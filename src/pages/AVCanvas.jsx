@@ -201,7 +201,7 @@ function AVCanvasContent() {
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
 
-    if (!destination || !currentProject) {
+    if (!destination) {
       setDragMousePosition(null);
       return;
     }
