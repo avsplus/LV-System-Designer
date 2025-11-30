@@ -120,17 +120,23 @@ export default function ProductDetailsPanel({ product, onClose }) {
 
         <div>
           <p className="text-sm text-gray-500 mb-2">Image</p>
-          {product.image_url ? (
+          {product.image_url && /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i.test(product.image_url) ? (
             <img 
               src={product.image_url} 
               alt={`${product.brand} ${product.model}`}
               className="w-full rounded-lg border border-gray-700"
+              onError={(e) => { 
+                e.target.style.display = 'none'; 
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
-          ) : (
-            <div className="w-full h-40 rounded-lg border border-gray-700 bg-gray-800 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">No image available</span>
-            </div>
-          )}
+          ) : null}
+          <div className={`w-full h-40 rounded-lg border border-gray-700 bg-gray-800 flex-col items-center justify-center ${product.image_url && /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i.test(product.image_url) ? 'hidden' : 'flex'}`}>
+            <svg className="w-12 h-12 text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-gray-500 text-sm">No image available</span>
+          </div>
         </div>
       </div>
     </div>
