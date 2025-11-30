@@ -33,15 +33,49 @@ Deno.serve(async (req) => {
         const categoryList = categoriesToImport.join(', ');
         const productCount = selectedCategory && selectedCategory !== 'all' ? 10 : 34;
 
+        // Category definitions with examples to help LLM classify correctly
+        const categoryDefinitions = {
+            televisions: "TVs, displays, monitors - devices that DISPLAY video (Samsung QN85, LG C3, Sony Bravia)",
+            projectors: "Video projectors only - devices that PROJECT an image (Epson, JVC, Sony VPL)",
+            projector_screens: "Motorized/fixed screens for projectors (Screen Innovations, Da-Lite, Stewart)",
+            video_distribution: "HDMI splitters, distribution amplifiers - splits ONE source to MULTIPLE displays (Binary, Atlona)",
+            matrix_switchers: "Video matrices - routes MULTIPLE sources to MULTIPLE displays (Crestron DM, AVPro MXNet)",
+            audio_streamers: "Network audio players, streaming DACs - receives audio over network (Sonos Port, Bluesound Node)",
+            media_streamers: "Streaming video devices - Apple TV, Roku, NVIDIA Shield, Amazon Fire TV",
+            speakers: "Passive or active loudspeakers - requires amplification or self-powered (KEF, Klipsch, Bowers)",
+            soundbars: "All-in-one speaker bars with built-in amplification (Sonos Arc, Samsung HW, Bose)",
+            subwoofers: "Low frequency speakers only - dedicated bass (SVS, REL, Klipsch)",
+            stereo_amps: "2-channel amplifiers only (Marantz, McIntosh, NAD)",
+            multizone_amps: "Multi-room/multi-zone amplifiers with 4+ channels (Sonance, Origin, HTD)",
+            surround_processors: "Preamp/processors WITHOUT built-in amplification (Marantz AV10, Anthem AVM)",
+            av_receivers: "Receivers WITH built-in amplification - all-in-one surround (Denon AVR, Yamaha RX, Marantz)",
+            network_switches: "Ethernet switches, managed switches (Ubiquiti, Araknis, Luxul, Cisco)",
+            control_processors: "Home automation processors (Crestron, Control4, RTI, Savant)",
+            hdmi_extenders: "HDMI over Cat6/HDBaseT extenders, AVoIP encoders/decoders (AVPro Edge, Atlona, Just Add Power)"
+        };
+
+        const categoryExamples = categoriesToImport.map(cat => `${cat}: ${categoryDefinitions[cat]}`).join('\n');
+
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find ${productCount} popular professional AV products across these categories: ${categoryList}.
+            prompt: `Find ${productCount} popular professional AV products. You MUST categorize each product EXACTLY according to these definitions:
 
-Brands: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary.
+CATEGORY DEFINITIONS (use ONLY these exact category names):
+${categoryExamples}
 
-For hdmi_extenders category: include HDBaseT extender kits, AVoIP encoders/decoders, HDMI over Cat6 kits.
+CRITICAL CLASSIFICATION RULES:
+- AV Receivers have BUILT-IN amplification (Denon AVR-X3800H = av_receivers)
+- Surround Processors have NO amplification, just processing (Marantz AV10 = surround_processors)
+- Media Streamers are VIDEO streaming devices (Apple TV, Roku = media_streamers)
+- Audio Streamers are AUDIO-ONLY network players (Sonos Port = audio_streamers)
+- Video Distribution SPLITS one source to many displays
+- Matrix Switchers ROUTE multiple sources to multiple displays
+- Speakers are loudspeakers (NOT soundbars, NOT subwoofers)
+- Control Processors are automation systems (Crestron, Control4)
 
-For each: brand, model, category (use exact category name from the list), description (short), price in USD.`,
+Brands to include: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary, Screen Innovations.
+
+For each product provide: brand, model, category (EXACT name from list above), description (brief), price in USD.`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",

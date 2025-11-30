@@ -104,46 +104,82 @@ Deno.serve(async (req) => {
                         return;
                     }
 
+                    // Build manufacturer-specific search query
+                    const manufacturerUrls = {
+                        "Sony": "sony.com",
+                        "Samsung": "samsung.com",
+                        "LG": "lg.com",
+                        "Epson": "epson.com",
+                        "JVC": "jvc.com",
+                        "Denon": "denon.com",
+                        "Marantz": "marantz.com",
+                        "Yamaha": "yamaha.com",
+                        "KEF": "kef.com",
+                        "Klipsch": "klipsch.com",
+                        "SVS": "svsound.com",
+                        "Sonos": "sonos.com",
+                        "Crestron": "crestron.com",
+                        "Control4": "control4.com",
+                        "Savant": "savant.com",
+                        "RTI": "rticorp.com",
+                        "Ubiquiti": "ui.com",
+                        "Araknis": "araknisnetworks.com",
+                        "Luxul": "luxul.com",
+                        "AVPro Edge": "avproedge.com",
+                        "Atlona": "atlona.com",
+                        "Just Add Power": "justaddpower.com",
+                        "Binary": "snapav.com/binary",
+                        "Bowers & Wilkins": "bowerswilkins.com",
+                        "Bose": "bose.com",
+                        "Anthem": "anthemav.com",
+                        "NAD": "nadelectronics.com",
+                        "Bluesound": "bluesound.com",
+                        "Screen Innovations": "screeninnovations.com"
+                    };
+                    
+                    const manufacturerSite = manufacturerUrls[product.brand] || `${product.brand.toLowerCase().replace(/\s+/g, '')}.com`;
+
                     const response = await base44.integrations.Core.InvokeLLM({
-                        prompt: `You are an expert AV systems integrator. Find the EXACT connection ports, technical specifications, and control capabilities for this specific AV product.
+                        prompt: `Find the EXACT specifications for: ${product.brand} ${product.model}
 
-DATABASE CONTEXT:
-- Entity: AVProduct
-- Valid categories: televisions,control_processors, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches
+SEARCH PRIORITY (in order):
+1. Official manufacturer specs page: site:${manufacturerSite} "${product.model}" specifications
+2. Product manual/datasheet PDF from ${product.brand}
+3. Professional AV retailer specs (Crutchfield, World Wide Stereo, Audio Advice)
 
-PRODUCT TO ENRICH:
+PRODUCT INFO:
 Brand: ${product.brand}
 Model: ${product.model}
 Category: ${product.category}
 
-CRITICAL INSTRUCTIONS:
-1. Search for the official manufacturer's specification sheet, user manual, and datasheet
-2. Cross-reference with at least 2-3 authoritative sources (manufacturer site, professional AV retailers like Crutchfield, authorized dealer specs)
-3. Verify information consistency across sources before reporting
-4. If sources conflict, use the manufacturer's official documentation
+REQUIRED - Find the EXACT rear panel connections as listed by the manufacturer:
 
-Provide COMPLETE and ACCURATE information:
+FOR INPUTS - Physical ports that RECEIVE signals:
+- HDMI inputs (list each: "HDMI 1", "HDMI 2 (eARC)", etc.)
+- Audio inputs: Optical/TOSLINK, Coaxial Digital, RCA (Analog), XLR, 3.5mm
+- Network: Ethernet/LAN port
+- USB ports
+- Legacy: Component, Composite, VGA
+- Control: RS-232, IR In
 
-CONNECTION PORTS:
-- List ALL physical input/output ports with their EXACT labels as shown on the device
-- Include all connection types: HDMI, Optical/TOSLINK, RCA, XLR, Speaker Wire, Ethernet, USB, Coaxial, 3.5mm Jack, Component, Composite, VGA, RS232, HDBaseT, IR, Power, etc.
-- Be precise: "HDMI 1 (ARC)", "Optical In 1", "USB-A Front Panel", etc.
+FOR OUTPUTS - Physical ports that SEND signals:
+- HDMI outputs (e.g., "HDMI Out 1", "HDMI Out 2")
+- Audio outputs: Speaker terminals, Preamp/Line Out, Subwoofer Out, Zone 2 Out
+- Optical Out, Headphone jack
+- Control: IR Out, 12V Trigger
 
 CONTROL CAPABILITIES:
-- IP Control (network controllable via Ethernet)
-- RS232 Control
-- IR Control
-- 12V Trigger ports
-- List specific control protocols if mentioned (e.g., "Control4 certified", "Crestron compatible", "IP control via telnet port 23")
+- IP/Network control (yes/no)
+- RS-232 control (yes/no)
+- IR control (yes/no)
+- 12V Trigger (yes/no)
+- Supported protocols: Control4 SDDP, Crestron Connected, IP commands, etc.
 
-TECHNICAL SPECS:
-- Power consumption
-- Impedance (for audio equipment)
-- Frequency response
-- Dimensions and weight
-- Any other relevant technical specifications
-
-Only include verified information. If you cannot verify a specification from multiple sources, omit it.`,
+IMPORTANT:
+- Use EXACT port labels from the manufacturer's specification sheet
+- For speaker outputs, list each terminal pair (Front L/R, Center, Surround L/R, etc.)
+- Include port counts accurately (e.g., if it has 7 HDMI inputs, list all 7)
+- Do NOT guess - only include verified specifications from official sources`,
                         add_context_from_internet: true,
                         response_json_schema: {
                             type: "object",
