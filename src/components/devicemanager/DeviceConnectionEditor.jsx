@@ -3,7 +3,7 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2 } from "lucide-react";
+import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save } from "lucide-react";
 import { connectionTypes } from "./ConnectionsSidebar";
 import { base44 } from "@/api/base44Client";
 
@@ -30,6 +30,36 @@ export default function DeviceConnectionEditor({
   const [newPortOutputs, setNewPortOutputs] = useState({});
   const [isSearchingManuals, setIsSearchingManuals] = useState(false);
   const [previewManual, setPreviewManual] = useState(null);
+  const [installationManualUrl, setInstallationManualUrl] = useState(device.installation_manual_url || '');
+  const [userManualUrl, setUserManualUrl] = useState(device.user_manual_url || '');
+  const [isSavingManuals, setIsSavingManuals] = useState(false);
+
+  const saveManualUrls = async () => {
+    setIsSavingManuals(true);
+    try {
+      const updateData = {};
+      if (installationManualUrl !== device.installation_manual_url) {
+        updateData.installation_manual_url = installationManualUrl || null;
+      }
+      if (userManualUrl !== device.user_manual_url) {
+        updateData.user_manual_url = userManualUrl || null;
+      }
+      
+      if (Object.keys(updateData).length > 0) {
+        await base44.entities.AVProduct.update(device.id, updateData);
+        
+        if (onDeviceUpdate) {
+          onDeviceUpdate({
+            ...device,
+            ...updateData
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save manual URLs:', error);
+    }
+    setIsSavingManuals(false);
+  };
 
   const searchForManuals = async () => {
     setIsSearchingManuals(true);
@@ -89,6 +119,10 @@ export default function DeviceConnectionEditor({
       
       if (Object.keys(updateData).length > 0) {
         await base44.entities.AVProduct.update(device.id, updateData);
+        
+        // Update local state
+        if (updateData.installation_manual_url) setInstallationManualUrl(updateData.installation_manual_url);
+        if (updateData.user_manual_url) setUserManualUrl(updateData.user_manual_url);
         
         if (onDeviceUpdate) {
           onDeviceUpdate({
@@ -368,49 +402,97 @@ export default function DeviceConnectionEditor({
 
       <div className="flex-1 overflow-y-auto p-6">
         {/* Manuals Section */}
-        <div className="mb-6 grid grid-cols-3 gap-3">
-          <Button
-            onClick={searchForManuals}
-            disabled={isSearchingManuals}
-            variant="outline"
-            className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
-          >
-            {isSearchingManuals ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Searching...
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4 mr-2" />
-                Search for Manuals
-              </>
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={searchForManuals}
+              disabled={isSearchingManuals}
+              variant="outline"
+              className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
+            >
+              {isSearchingManuals ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  Search for Manuals
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={() => installationManualUrl && setPreviewManual({ type: 'installation', url: installationManualUrl })}
+              disabled={!installationManualUrl}
+              variant="outline"
+              size="icon"
+              className={`${installationManualUrl 
+                ? 'border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600' 
+                : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
+              title="Preview Installation Manual"
+            >
+              <FileText className="w-4 h-4" />
+            </Button>
+
+            <Button
+              onClick={() => userManualUrl && setPreviewManual({ type: 'user', url: userManualUrl })}
+              disabled={!userManualUrl}
+              variant="outline"
+              size="icon"
+              className={`${userManualUrl 
+                ? 'border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600' 
+                : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
+              title="Preview User Manual"
+            >
+              <FileText className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-orange-400 mb-1 block">Installation Manual URL</label>
+              <div className="flex gap-2">
+                <Input
+                  value={installationManualUrl}
+                  onChange={(e) => setInstallationManualUrl(e.target.value)}
+                  placeholder="https://example.com/installation-manual.pdf"
+                  className="bg-gray-800 border-gray-700 text-white text-sm flex-1"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-green-400 mb-1 block">User Manual URL</label>
+              <div className="flex gap-2">
+                <Input
+                  value={userManualUrl}
+                  onChange={(e) => setUserManualUrl(e.target.value)}
+                  placeholder="https://example.com/user-manual.pdf"
+                  className="bg-gray-800 border-gray-700 text-white text-sm flex-1"
+                />
+              </div>
+            </div>
+            {(installationManualUrl !== device.installation_manual_url || userManualUrl !== device.user_manual_url) && (
+              <Button
+                onClick={saveManualUrls}
+                disabled={isSavingManuals}
+                className="bg-green-600 hover:bg-green-700 w-full"
+              >
+                {isSavingManuals ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Manual URLs
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
-
-          <Button
-            onClick={() => device.installation_manual_url && setPreviewManual({ type: 'installation', url: device.installation_manual_url })}
-            disabled={!device.installation_manual_url}
-            variant="outline"
-            className={`whitespace-nowrap ${device.installation_manual_url 
-              ? 'border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600' 
-              : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Installation Manual
-          </Button>
-
-          <Button
-            onClick={() => device.user_manual_url && setPreviewManual({ type: 'user', url: device.user_manual_url })}
-            disabled={!device.user_manual_url}
-            variant="outline"
-            className={`whitespace-nowrap ${device.user_manual_url 
-              ? 'border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600' 
-              : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            User Manual
-          </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
