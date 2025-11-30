@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, Loader2, Wrench, User, BookOpen } from "lucide-react";
+import { FileText, Download, Loader2, Wrench, User, BookOpen, Search, CheckCircle2, AlertCircle } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import {
   Dialog,
   DialogContent,
@@ -32,10 +33,84 @@ export default function ExportPDFDialog({
   const [clientName, setClientName] = useState('');
   const [location, setLocation] = useState('');
   const [exportType, setExportType] = useState('installer'); // 'installer', 'client', 'documentation'
+  const [isCheckingManuals, setIsCheckingManuals] = useState(false);
+  const [manualSearchProgress, setManualSearchProgress] = useState(null);
 
-  const handleExport = () => {
+  // Get unique products missing manuals
+  const getProductsMissingManuals = () => {
+    const seen = new Set();
+    const missing = [];
+    canvasProducts.forEach(cp => {
+      if (!seen.has(cp.product.id)) {
+        seen.add(cp.product.id);
+        if (!cp.product.installation_manual_url && !cp.product.user_manual_url) {
+          missing.push(cp.product);
+        }
+      }
+    });
+    return missing;
+  };
+
+  const searchManualsForProducts = async (products) => {
+    setIsCheckingManuals(true);
+    setManualSearchProgress({ current: 0, total: products.length, found: 0 });
+
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      setManualSearchProgress(prev => ({ ...prev, current: i + 1, searching: `${product.brand} ${product.model}` }));
+
+      try {
+        const response = await base44.integrations.Core.InvokeLLM({
+          prompt: `Find the official PDF manuals for this AV product:
+Brand: ${product.brand}
+Model: ${product.model}
+
+Search for:
+1. Installation manual / Quick start guide PDF - direct URL from manufacturer website
+2. User manual / Owner's manual PDF - direct URL from manufacturer website
+
+Only return URLs that:
+- End in .pdf
+- Are from official manufacturer websites or authorized documentation sites
+- Are direct download links to the PDF files`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              installation_manual_url: { type: "string" },
+              user_manual_url: { type: "string" }
+            }
+          }
+        });
+
+        if (response.installation_manual_url || response.user_manual_url) {
+          await base44.entities.AVProduct.update(product.id, {
+            installation_manual_url: response.installation_manual_url || product.installation_manual_url,
+            user_manual_url: response.user_manual_url || product.user_manual_url
+          });
+          setManualSearchProgress(prev => ({ ...prev, found: prev.found + 1 }));
+        }
+      } catch (error) {
+        console.error(`Failed to search manuals for ${product.brand} ${product.model}:`, error);
+      }
+    }
+
+    setIsCheckingManuals(false);
+    setManualSearchProgress(prev => ({ ...prev, completed: true }));
+  };
+
+  const handleExport = async () => {
+    // For installer package, check for missing manuals first
+    if (exportType === 'installer' || exportType === 'documentation') {
+      const missingManuals = getProductsMissingManuals();
+      if (missingManuals.length > 0 && !manualSearchProgress?.completed) {
+        await searchManualsForProducts(missingManuals);
+      }
+    }
     onExport({ clientName, location, engine: exportEngine, exportType });
   };
+
+  const productsMissingManuals = getProductsMissingManuals();
 
   const exportTypeInfo = {
     installer: {
@@ -222,13 +297,71 @@ export default function ExportPDFDialog({
             </div>
           </div>
 
+          {/* Manual Search Status - Only show for installer/documentation */}
+          {(exportType === 'installer' || exportType === 'documentation') && (
+            <div className={`rounded-lg p-3 border ${
+              manualSearchProgress?.completed 
+                ? 'bg-green-500/10 border-green-500/30' 
+                : productsMissingManuals.length > 0 
+                  ? 'bg-orange-500/10 border-orange-500/30'
+                  : 'bg-green-500/10 border-green-500/30'
+            }`}>
+              <div className="flex items-center gap-2">
+                {isCheckingManuals ? (
+                  <>
+                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                    <div className="flex-1">
+                      <p className="text-sm text-blue-400 font-medium">Searching for manuals...</p>
+                      <p className="text-xs text-gray-400">
+                        {manualSearchProgress?.current}/{manualSearchProgress?.total} - {manualSearchProgress?.searching}
+                      </p>
+                      {manualSearchProgress?.found > 0 && (
+                        <p className="text-xs text-green-400">Found {manualSearchProgress.found} manuals</p>
+                      )}
+                    </div>
+                  </>
+                ) : manualSearchProgress?.completed ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    <div className="flex-1">
+                      <p className="text-sm text-green-400 font-medium">Manual search complete</p>
+                      <p className="text-xs text-gray-400">
+                        Found {manualSearchProgress.found} of {manualSearchProgress.total} product manuals
+                      </p>
+                    </div>
+                  </>
+                ) : productsMissingManuals.length > 0 ? (
+                  <>
+                    <AlertCircle className="w-4 h-4 text-orange-400" />
+                    <div className="flex-1">
+                      <p className="text-sm text-orange-400 font-medium">
+                        {productsMissingManuals.length} devices missing manuals
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Manuals will be searched automatically before export
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    <div className="flex-1">
+                      <p className="text-sm text-green-400 font-medium">All devices have manuals</p>
+                      <p className="text-xs text-gray-400">Ready to export with documentation links</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
             <Button
               variant="outline"
               onClick={onClose}
               className="border-gray-700 text-gray-300"
-              disabled={isExporting}
+              disabled={isExporting || isCheckingManuals}
             >
               Cancel
             </Button>
@@ -239,9 +372,14 @@ export default function ExportPDFDialog({
                 currentInfo.color === 'green' ? 'bg-green-600 hover:bg-green-700' :
                 'bg-purple-600 hover:bg-purple-700'
               }`}
-              disabled={isExporting}
+              disabled={isExporting || isCheckingManuals}
             >
-              {isExporting ? (
+              {isCheckingManuals ? (
+                <>
+                  <Search className="w-4 h-4 mr-2 animate-pulse" />
+                  Finding Manuals...
+                </>
+              ) : isExporting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Generating...
