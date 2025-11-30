@@ -751,24 +751,36 @@ export default function CanvasProduct({
       </div>
       
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-shrink-0">
-          <h3 className="font-semibold text-white text-base mb-1">
-            {product.brand}
-          </h3>
-          <p className="text-sm text-gray-300 mb-2">{product.model}</p>
-          
-          {product.description && (
-            <p className="text-xs text-gray-400 line-clamp-2 mb-2">
-              {product.description}
-            </p>
+        <div className="flex-shrink-0 flex gap-3">
+          {product.image_url && (
+            <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-700 border border-gray-600">
+              <img 
+                src={product.image_url} 
+                alt={`${product.brand} ${product.model}`}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </div>
           )}
-          
-          {product.price && (
-            <p className="text-sm font-medium text-blue-400 mb-2">
-              ${product.price.toLocaleString()}
-            </p>
-          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-white text-base mb-1">
+              {product.brand}
+            </h3>
+            <p className="text-sm text-gray-300 mb-1">{product.model}</p>
+            
+            {product.price && (
+              <p className="text-sm font-medium text-blue-400">
+                ${product.price.toLocaleString()}
+              </p>
+            )}
+          </div>
         </div>
+        
+        {product.description && (
+          <p className="text-xs text-gray-400 line-clamp-2 mt-2">
+            {product.description}
+          </p>
+        )}
 
         {(connections.inputs?.some(input => input.type === "Ethernet") || 
           connections.outputs?.some(output => output.type === "Ethernet")) && (
