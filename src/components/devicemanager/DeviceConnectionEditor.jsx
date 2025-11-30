@@ -3,7 +3,7 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink } from "lucide-react";
 import { connectionTypes } from "./ConnectionsSidebar";
 
 const getConnectionColor = (type) => {
@@ -251,6 +251,58 @@ export default function DeviceConnectionEditor({
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
+        {/* Installation Manual Section */}
+        {device.installation_manual_url && (
+          <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="w-5 h-5 text-blue-400" />
+              <h3 className="text-lg font-medium text-white">Installation Manual</h3>
+            </div>
+            <a 
+              href={device.installation_manual_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              <span className="text-sm truncate">{device.installation_manual_url}</span>
+              <ExternalLink className="w-4 h-4 flex-shrink-0" />
+            </a>
+            <div className="mt-3">
+              <iframe 
+                src={device.installation_manual_url}
+                className="w-full h-64 rounded border border-gray-600"
+                title="Installation Manual"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* User Manual Section */}
+        {device.user_manual_url && (
+          <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="w-5 h-5 text-green-400" />
+              <h3 className="text-lg font-medium text-white">User Manual</h3>
+            </div>
+            <a 
+              href={device.user_manual_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
+            >
+              <span className="text-sm truncate">{device.user_manual_url}</span>
+              <ExternalLink className="w-4 h-4 flex-shrink-0" />
+            </a>
+            <div className="mt-3">
+              <iframe 
+                src={device.user_manual_url}
+                className="w-full h-64 rounded border border-gray-600"
+                title="User Manual"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-6">
           {/* Inputs */}
           <div>

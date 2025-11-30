@@ -75,7 +75,16 @@ CRITICAL CLASSIFICATION RULES:
 
 Brands to include: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary, Screen Innovations.
 
-For each product provide: brand, model, category (EXACT name from list above), description (brief), price in USD.`,
+For each product provide: brand, model, category (EXACT name from list above), description (brief), price in USD.
+
+ALSO for each product, search for official PDF manuals:
+- installation_manual_url: Direct URL to the official installation/quick start guide PDF from the manufacturer
+- user_manual_url: Direct URL to the official user/owner's manual PDF from the manufacturer
+
+Search patterns to find manuals:
+- site:brand.com "model" filetype:pdf installation
+- site:brand.com "model" filetype:pdf manual
+- Only include URLs that end in .pdf and are from official manufacturer sites`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",
@@ -89,7 +98,9 @@ For each product provide: brand, model, category (EXACT name from list above), d
                                 model: { type: "string" },
                                 category: { type: "string" },
                                 description: { type: "string" },
-                                price: { type: "number" }
+                                price: { type: "number" },
+                                installation_manual_url: { type: "string" },
+                                user_manual_url: { type: "string" }
                             },
                             required: ["brand", "model", "category"]
                         }
