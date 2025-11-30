@@ -307,7 +307,8 @@ export default function CanvasProduct({
         zoom = 1,
         onTooltipChange,
         responsiveDimensions,
-        onProductUpdate
+        onProductUpdate,
+        onPreviewManual
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isSearchingManuals, setIsSearchingManuals] = useState(false);
@@ -801,7 +802,7 @@ Only return URLs that:
               <DropdownMenuContent className="bg-gray-800 border-gray-700">
                 {product.installation_manual_url && (
                   <DropdownMenuItem 
-                    onClick={() => window.open(product.installation_manual_url, '_blank')}
+                    onClick={() => onPreviewManual && onPreviewManual({ type: 'installation', url: product.installation_manual_url })}
                     className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 cursor-pointer"
                   >
                     <FileText className="w-4 h-4 mr-2" />
@@ -810,7 +811,7 @@ Only return URLs that:
                 )}
                 {product.user_manual_url && (
                   <DropdownMenuItem 
-                    onClick={() => window.open(product.user_manual_url, '_blank')}
+                    onClick={() => onPreviewManual && onPreviewManual({ type: 'user', url: product.user_manual_url })}
                     className="text-green-400 hover:text-green-300 hover:bg-green-500/10 cursor-pointer"
                   >
                     <FileText className="w-4 h-4 mr-2" />

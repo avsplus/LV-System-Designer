@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X } from "lucide-react";
 import { ToastProvider, useToast } from "../components/ui/Toast";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
 import {
@@ -116,6 +116,7 @@ function AVCanvasContent() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showEnrichDialog, setShowEnrichDialog] = useState(false);
   const [enrichCategory, setEnrichCategory] = useState('all');
+  const [previewManual, setPreviewManual] = useState(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -1469,14 +1470,15 @@ function AVCanvasContent() {
                         ) : null}
                         onTooltipChange={setPortTooltip}
                         onProductUpdate={(updatedProduct) => {
-                          projectData.setCanvasProducts(prev => prev.map(p => 
-                            p.instanceId === cp.instanceId
-                              ? { ...p, product: updatedProduct }
-                              : p
-                          ));
-                          queryClient.invalidateQueries({ queryKey: ['avProducts'] });
-                        }}
-                      />
+                                          projectData.setCanvasProducts(prev => prev.map(p => 
+                                            p.instanceId === cp.instanceId
+                                              ? { ...p, product: updatedProduct }
+                                              : p
+                                          ));
+                                          queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                                        }}
+                                        onPreviewManual={setPreviewManual}
+                                      />
                 );
               })}
             </div>
@@ -1879,6 +1881,45 @@ function AVCanvasContent() {
               }
             }}
           />
+        )}
+
+        {/* Manual Preview Modal */}
+        {previewManual && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-5xl h-[90vh] flex flex-col">
+              <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white">
+                  {previewManual.type === 'installation' ? 'Installation Manual' : 'User Manual'}
+                </h3>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setPreviewManual(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="flex-1 p-4">
+                <iframe 
+                  src={previewManual.url}
+                  className="w-full h-full rounded border border-gray-600"
+                  title={previewManual.type === 'installation' ? 'Installation Manual' : 'User Manual'}
+                />
+              </div>
+              <div className="p-4 border-t border-gray-700 flex justify-end">
+                <a
+                  href={previewManual.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Open in New Tab
+                </a>
+              </div>
+            </div>
+          </div>
         )}
 
         {pendingProductDrop && (
