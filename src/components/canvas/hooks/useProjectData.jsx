@@ -61,9 +61,15 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     localStorage.setItem('av_canvas_temp_rooms', JSON.stringify(rooms));
   }, [rooms]);
 
+  // Track if project has been loaded to prevent saving empty state
+  const projectLoadedRef = useRef(false);
+
   // Auto-save to database when project exists
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
+
+    // Don't save if the project hasn't been loaded yet (prevents saving empty state)
+    if (!projectLoadedRef.current) return;
 
     const isOwner = currentProject.owner_email === currentUserEmail;
     const isCollaborator = currentProject.shared_with?.includes(currentUserEmail);
