@@ -120,7 +120,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         connections: JSON.stringify(project.connections || []),
         rooms: JSON.stringify(project.rooms || [])
       };
+      // Mark that project has been loaded, safe to auto-save now
+      projectLoadedRef.current = true;
     } else {
+      projectLoadedRef.current = false;
       setCanvasProducts([]);
       setConnections([]);
       setRooms([]);
