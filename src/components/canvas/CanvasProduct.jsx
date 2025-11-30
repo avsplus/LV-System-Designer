@@ -303,14 +303,14 @@ export default function CanvasProduct({
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   
-  // Responsive dimensions with fallback
+  // Use fixed dimensions - responsive scaling caused layout issues
   const dimensions = useMemo(() => ({
-    cardWidth: responsiveDimensions?.cardWidth || 320,
-    cardHeight: responsiveDimensions?.cardHeight || 280,
-    portDotSize: responsiveDimensions?.portDotSize || 20,
-    portGap: responsiveDimensions?.portGap || 12,
-    minTapTarget: responsiveDimensions?.minTapTarget || 32
-  }), [responsiveDimensions]);
+    cardWidth: 320,
+    cardHeight: 280,
+    portDotSize: 20,
+    portGap: 12,
+    minTapTarget: 32
+  }), []);
   
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   
@@ -533,15 +533,15 @@ export default function CanvasProduct({
         position: 'absolute',
         left: position.x,
         top: position.y,
-        width: dimensions.cardWidth,
-        height: dimensions.cardHeight,
+        width: 320,
+        height: 280,
         userSelect: 'none',
         WebkitUserSelect: 'none',
         touchAction: 'none',
         willChange: isDragging ? 'transform' : 'auto',
         transition: isDragging ? 'none' : 'border-color 0.15s ease'
       }}
-      className={`bg-gray-800 border-2 rounded-xl p-3 md:p-4 cursor-move flex flex-col ${
+      className={`bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col overflow-hidden ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
@@ -549,31 +549,21 @@ export default function CanvasProduct({
     >
       {/* Left edge connection points (inputs) */}
       {inputTypes.length > 0 && (
-        <div 
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col"
-          style={{ gap: dimensions.portGap }}
-        >
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-3">
           {inputTypes.slice(0, 6).map((connType, i) => {
             const portId = getPortId(instanceId, connType.type, 'type', true);
             const isHovered = hoveredPortId === portId;
             const isConnectingPort = connectingFromPortId === portId;
-            const portSize = Math.max(dimensions.portDotSize, dimensions.minTapTarget);
             return (
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', true)}
-                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
                   isConnectingPort ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125 active:scale-150'
                 }`}
-                style={{ 
-                  backgroundColor: connType.color,
-                  width: portSize,
-                  height: portSize,
-                  minWidth: dimensions.minTapTarget,
-                  minHeight: dimensions.minTapTarget
-                }}
+                style={{ backgroundColor: connType.color }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="input"
@@ -616,31 +606,21 @@ export default function CanvasProduct({
 
       {/* Right edge connection points (outputs) */}
       {outputTypes.length > 0 && (
-        <div 
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col"
-          style={{ gap: dimensions.portGap }}
-        >
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex flex-col gap-3">
           {outputTypes.slice(0, 6).map((connType, i) => {
             const portId = getPortId(instanceId, connType.type, 'type', false);
             const isHovered = hoveredPortId === portId;
             const isConnectingPort = connectingFromPortId === portId;
-            const portSize = Math.max(dimensions.portDotSize, dimensions.minTapTarget);
             return (
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', false)}
-                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
                   isConnectingPort ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125 active:scale-150'
                 }`}
-                style={{ 
-                  backgroundColor: connType.color,
-                  width: portSize,
-                  height: portSize,
-                  minWidth: dimensions.minTapTarget,
-                  minHeight: dimensions.minTapTarget
-                }}
+                style={{ backgroundColor: connType.color }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="output"
