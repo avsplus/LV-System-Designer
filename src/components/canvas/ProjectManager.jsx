@@ -163,14 +163,15 @@ export default function ProjectManager({
       return;
     }
     showConfirm(
-      `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${project.name}"? This will permanently remove the project and all its devices, connections, and rooms. This action cannot be undone.`,
       'Delete Project',
       () => {
         deleteMutation.mutate(project.id);
         if (currentProject?.id === project.id) {
           onProjectLoad(null);
         }
-      }
+      },
+      { confirmText: 'Delete Project', isDanger: true }
     );
   };
 
