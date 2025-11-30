@@ -1153,6 +1153,38 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No devices on canvas' }, { status: 400 });
     }
 
+    // Fetch fresh product data from database to get latest manual URLs
+    const productIds = [...new Set(canvasProducts.map(cp => cp.product?.id).filter(Boolean))];
+    let freshProducts = {};
+    
+    try {
+      const allProducts = await base44.entities.AVProduct.list();
+      allProducts.forEach(p => {
+        freshProducts[p.id] = p;
+      });
+    } catch (e) {
+      console.log('Could not fetch fresh product data:', e.message);
+    }
+
+    // Merge fresh product data (especially manual URLs) into canvas products
+    const enrichedCanvasProducts = canvasProducts.map(cp => {
+      const freshProduct = freshProducts[cp.product?.id];
+      if (freshProduct) {
+        return {
+          ...cp,
+          product: {
+            ...cp.product,
+            installation_manual_url: freshProduct.installation_manual_url || cp.product?.installation_manual_url,
+            user_manual_url: freshProduct.user_manual_url || cp.product?.user_manual_url
+          }
+        };
+      }
+      return cp;
+    });
+
+    // Use enriched data for the rest of the export
+    const canvasProductsToUse = enrichedCanvasProducts;
+
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const { width: pageWidth, height: pageHeight, marginX: margin } = theme.page;
     const contentWidth = pageWidth - (margin * 2);
