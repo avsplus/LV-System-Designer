@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, Pencil } from "lucide-react";
+import DeviceQuickEditForm from "./DeviceQuickEditForm";
 
 const categorySolidColors = {
   televisions: "bg-blue-600",
@@ -20,21 +21,36 @@ const categorySolidColors = {
   av_receivers: "bg-emerald-600"
 };
 
-export default function ProductDetailsPanel({ product, onClose }) {
+export default function ProductDetailsPanel({ product, onClose, onDeviceUpdate }) {
+  const [showQuickEdit, setShowQuickEdit] = useState(false);
+  
   if (!product) return null;
 
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full overflow-hidden flex-shrink-0">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Product Details</h2>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onClose}
-          className="text-gray-400 hover:text-white"
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {onDeviceUpdate && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setShowQuickEdit(true)}
+              className="text-gray-400 hover:text-white hover:bg-gray-700"
+              title="Quick Edit Device"
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -139,6 +155,17 @@ export default function ProductDetailsPanel({ product, onClose }) {
           </div>
         </div>
       </div>
+
+      {showQuickEdit && onDeviceUpdate && (
+        <DeviceQuickEditForm
+          product={product}
+          onSave={(updatedProduct) => {
+            onDeviceUpdate(updatedProduct);
+            setShowQuickEdit(false);
+          }}
+          onClose={() => setShowQuickEdit(false)}
+        />
+      )}
     </div>
   );
 }

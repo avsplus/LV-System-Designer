@@ -344,8 +344,8 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4">
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex gap-3 flex-1 min-w-0">
               <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
               <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
             </div>
