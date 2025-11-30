@@ -1832,6 +1832,122 @@ Deno.serve(async (req) => {
     });
 
     // ==========================================
+    // DEVICE MANUALS PAGE
+    // ==========================================
+    // Collect unique products that have manuals
+    const productsWithManuals = [];
+    const seenProductIds = new Set();
+    
+    canvasProducts.forEach(cp => {
+      if (!seenProductIds.has(cp.product.id)) {
+        seenProductIds.add(cp.product.id);
+        if (cp.product.installation_manual_url || cp.product.user_manual_url) {
+          productsWithManuals.push(cp.product);
+        }
+      }
+    });
+
+    if (productsWithManuals.length > 0) {
+      doc.addPage();
+      yPos = margin;
+
+      // Page header
+      setFill(doc, theme.colors.dark);
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      setColor(doc, theme.colors.white);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(18);
+      doc.text('Device Manuals', margin, 23);
+      setColor(doc, theme.colors.muted);
+      doc.setFontSize(10);
+      doc.text(`${productsWithManuals.length} Products with Documentation`, pageWidth - margin, 23, { align: 'right' });
+
+      yPos = 50;
+
+      // Instructions
+      setColor(doc, theme.colors.muted);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.text('Click on the manual links below to download documentation for each device.', margin, yPos);
+      yPos += 12;
+
+      // Manual cards
+      productsWithManuals.forEach((product, index) => {
+        if (yPos > pageHeight - 45) {
+          doc.addPage();
+          yPos = margin;
+
+          // Page header on continuation
+          setFill(doc, theme.colors.dark);
+          doc.rect(0, 0, pageWidth, 35, 'F');
+          setColor(doc, theme.colors.white);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(18);
+          doc.text('Device Manuals (continued)', margin, 23);
+          yPos = 50;
+        }
+
+        const cardHeight = 38;
+        const catColor = getCategoryColor(product.category);
+
+        // Card background
+        setFill(doc, theme.colors.cardBg);
+        doc.roundedRect(margin, yPos, contentWidth, cardHeight, 3, 3, 'F');
+
+        // Left accent bar
+        setFill(doc, catColor);
+        doc.roundedRect(margin, yPos, 4, cardHeight, 3, 3, 'F');
+        doc.rect(margin + 2, yPos, 2, cardHeight, 'F');
+
+        // Device info
+        setColor(doc, theme.colors.dark);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(11);
+        doc.text(`${product.brand} ${product.model}`, margin + 10, yPos + 12);
+
+        // Category
+        setColor(doc, theme.colors.muted);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.text(product.category.replace(/_/g, ' '), margin + 10, yPos + 20);
+
+        // Manual links
+        let linkX = margin + 10;
+        const linkY = yPos + 30;
+
+        if (product.installation_manual_url) {
+          // Installation Manual link
+          setFill(doc, [249, 115, 22]); // Orange
+          const installText = 'Installation Manual';
+          const installWidth = doc.getTextWidth(installText) + 12;
+          doc.roundedRect(linkX, linkY - 5, installWidth, 10, 2, 2, 'F');
+          
+          setColor(doc, theme.colors.white);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8);
+          doc.textWithLink(installText, linkX + 6, linkY + 1, { url: product.installation_manual_url });
+          
+          linkX += installWidth + 8;
+        }
+
+        if (product.user_manual_url) {
+          // User Manual link
+          setFill(doc, [34, 197, 94]); // Green
+          const userText = 'User Manual';
+          const userWidth = doc.getTextWidth(userText) + 12;
+          doc.roundedRect(linkX, linkY - 5, userWidth, 10, 2, 2, 'F');
+          
+          setColor(doc, theme.colors.white);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8);
+          doc.textWithLink(userText, linkX + 6, linkY + 1, { url: product.user_manual_url });
+        }
+
+        yPos += cardHeight + 6;
+      });
+    }
+
+    // ==========================================
     // SIGN-OFF PAGE
     // ==========================================
     doc.addPage();
