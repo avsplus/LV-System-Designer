@@ -1513,6 +1513,13 @@ function AVCanvasContent() {
                     setSelectedProduct(null);
                     setPanelHistory(prev => prev.filter(p => p !== 'productDetails'));
                   }}
+                  onDeviceUpdate={(updatedProduct) => {
+                    // Update the selected product state
+                    setSelectedProduct(updatedProduct);
+                    // Invalidate products query to refresh sidebar
+                    queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                    toast.success('Device updated successfully');
+                  }}
                 />
               )}
 
