@@ -1515,9 +1515,9 @@ function AVCanvasContent() {
                   onHighlightConnections={setHighlightedConnections}
                   onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
                   onDeviceUpdate={(updatedProduct) => {
-                    // Update canvas products with new device data
+                    // Update ALL canvas products that use this product ID
                     projectData.setCanvasProducts(prev => prev.map(cp => 
-                      cp.instanceId === selectedCanvasProduct.instanceId
+                      cp.product.id === updatedProduct.id
                         ? { ...cp, product: { ...cp.product, ...updatedProduct } }
                         : cp
                     ));
@@ -1528,6 +1528,9 @@ function AVCanvasContent() {
                     }));
                     // Invalidate products query to refresh sidebar
                     queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                    // Mark local change for project sync
+                    markLocalChange();
+                    toast.success('Device updated successfully');
                   }}
                 />
               )}
