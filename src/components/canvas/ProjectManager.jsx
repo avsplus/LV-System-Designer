@@ -38,8 +38,16 @@ export default function ProjectManager({
     setAlertDialog({ open: true, title, message, type: 'alert', onConfirm: null });
   };
 
-  const showConfirm = (message, title, onConfirm) => {
-    setAlertDialog({ open: true, title, message, type: 'confirm', onConfirm });
+  const showConfirm = (message, title, onConfirm, options = {}) => {
+    setAlertDialog({ 
+      open: true, 
+      title, 
+      message, 
+      type: 'confirm', 
+      onConfirm,
+      confirmText: options.confirmText || 'Continue',
+      isDanger: options.isDanger || false
+    });
   };
   
   const queryClient = useQueryClient();
