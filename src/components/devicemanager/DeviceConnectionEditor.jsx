@@ -437,7 +437,7 @@ export default function DeviceConnectionEditor({
           </div>
           <div className="flex-1 p-4">
             <iframe 
-              src={`https://docs.google.com/viewer?url=${encodeURIComponent(previewManual.url)}&embedded=true`}
+              src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(previewManual.url)}`}
               className="w-full h-full rounded border border-gray-600"
               title={previewManual.type === 'installation' ? 'Installation Manual' : 'User Manual'}
             />
