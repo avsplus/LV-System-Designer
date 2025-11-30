@@ -39,6 +39,7 @@ import useResponsiveCanvas from "../components/canvas/hooks/useResponsiveCanvas"
 function AVCanvasContent() {
     const toast = useToast();
     const confirmDialog = useConfirm();
+    const queryClient = useQueryClient();
     const { isAtLeast, loading: permLoading } = usePermissions();
     const { settings: orgSettings } = useSettings();
 
