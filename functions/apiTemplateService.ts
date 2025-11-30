@@ -2,6 +2,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 const API_KEY = Deno.env.get('APITEMPLATE_API_KEY');
 
+// Helper to validate image URLs via HEAD request
+async function isValidImageUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const res = await fetch(url, { method: "HEAD" });
+    if (!res.ok) return false;
+    const type = res.headers.get("content-type");
+    return !!type && type.startsWith("image/");
+  } catch {
+    return false;
+  }
+}
+
 // Helper to make API requests to APITemplate.io
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
