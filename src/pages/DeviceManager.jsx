@@ -338,13 +338,12 @@ export default function DeviceManager() {
                             return (
                               <span 
                                 key={idx} 
-                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
-                                style={{ 
-                                  borderColor: color, 
-                                  color: color,
-                                  backgroundColor: `${color}15`
-                                }}
+                                className="inline-flex items-center gap-1 text-xs text-gray-400"
                               >
+                                <span 
+                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: color }}
+                                />
                                 {input.type} ({input.ports?.length || 0})
                               </span>
                             );
@@ -361,13 +360,12 @@ export default function DeviceManager() {
                             return (
                               <span 
                                 key={idx} 
-                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
-                                style={{ 
-                                  borderColor: color, 
-                                  color: color,
-                                  backgroundColor: `${color}15`
-                                }}
+                                className="inline-flex items-center gap-1 text-xs text-gray-400"
                               >
+                                <span 
+                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: color }}
+                                />
                                 {output.type} ({output.ports?.length || 0})
                               </span>
                             );
