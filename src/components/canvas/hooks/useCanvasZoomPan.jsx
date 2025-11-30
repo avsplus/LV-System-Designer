@@ -19,11 +19,29 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
     setZoom(1);
   }, []);
 
-  const handleWheel = useCallback((e) => {
+  const handleWheel = useCallback((e, canvasElement) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
-  }, []);
+    const newZoom = Math.max(0.5, Math.min(2, zoom + delta));
+    
+    if (canvasElement) {
+      const rect = canvasElement.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Calculate world position under mouse before zoom
+      const worldX = (mouseX - pan.x) / zoom;
+      const worldY = (mouseY - pan.y) / zoom;
+      
+      // Calculate new pan to keep mouse position fixed
+      const newPanX = mouseX - worldX * newZoom;
+      const newPanY = mouseY - worldY * newZoom;
+      
+      setPan({ x: newPanX, y: newPanY });
+    }
+    
+    setZoom(newZoom);
+  }, [zoom, pan]);
 
   const handlePanStart = useCallback((e, canvasElement) => {
     if (e.button === 1 || (e.button === 0 && spacePressed) || (e.button === 0 && e.target === canvasElement)) {
