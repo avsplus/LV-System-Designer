@@ -1515,20 +1515,23 @@ function AVCanvasContent() {
                   onHighlightConnections={setHighlightedConnections}
                   onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
                   onDeviceUpdate={(updatedProduct) => {
-                    // Update ALL canvas products that use this product ID
-                    projectData.setCanvasProducts(prev => prev.map(cp => 
-                      cp.product.id === updatedProduct.id
-                        ? { ...cp, product: { ...cp.product, ...updatedProduct } }
-                        : cp
-                    ));
-                    // Update selected canvas product
+                    // Update ALL canvas products that use this product ID (updates canvas visuals)
+                    projectData.setCanvasProducts(prev => {
+                      const updated = prev.map(cp => 
+                        cp.product.id === updatedProduct.id
+                          ? { ...cp, product: { ...cp.product, ...updatedProduct } }
+                          : cp
+                      );
+                      return updated;
+                    });
+                    // Update selected canvas product state
                     setSelectedCanvasProduct(prev => ({
                       ...prev,
                       product: { ...prev.product, ...updatedProduct }
                     }));
                     // Invalidate products query to refresh sidebar
                     queryClient.invalidateQueries({ queryKey: ['avProducts'] });
-                    // Mark local change for project sync
+                    // Mark local change to trigger project auto-save to database
                     markLocalChange();
                     toast.success('Device updated successfully');
                   }}
