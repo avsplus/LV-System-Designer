@@ -1514,15 +1514,19 @@ function AVCanvasContent() {
                   onHighlightConnections={setHighlightedConnections}
                   onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
                   onDeviceUpdate={(updatedProduct) => {
+                    // Update canvas products with new device data
                     projectData.setCanvasProducts(prev => prev.map(cp => 
                       cp.instanceId === selectedCanvasProduct.instanceId
                         ? { ...cp, product: { ...cp.product, ...updatedProduct } }
                         : cp
                     ));
+                    // Update selected canvas product
                     setSelectedCanvasProduct(prev => ({
                       ...prev,
                       product: { ...prev.product, ...updatedProduct }
                     }));
+                    // Invalidate products query to refresh sidebar
+                    queryClient.invalidateQueries({ queryKey: ['avProducts'] });
                   }}
                 />
               )}
