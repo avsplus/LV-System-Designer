@@ -1,7 +1,14 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { X, FileText, Download, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const connectionsByCategory = {
   control_processors: {
@@ -299,9 +306,11 @@ export default function CanvasProduct({
         connectingFromPortId,
         zoom = 1,
         onTooltipChange,
-        responsiveDimensions
+        responsiveDimensions,
+        onProductUpdate
       }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isSearchingManuals, setIsSearchingManuals] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   
   // Use fixed dimensions - responsive scaling caused layout issues
@@ -324,6 +333,55 @@ export default function CanvasProduct({
   
   // Ensure networkInfo is always defined
   const safeNetworkInfo = networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' };
+
+  const hasManuals = product.installation_manual_url || product.user_manual_url;
+
+  const searchForManuals = async (e) => {
+    e.stopPropagation();
+    setIsSearchingManuals(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find the official PDF manuals for this AV product:
+Brand: ${product.brand}
+Model: ${product.model}
+
+Search for:
+1. Installation manual / Quick start guide PDF - direct URL from manufacturer website
+2. User manual / Owner's manual PDF - direct URL from manufacturer website
+
+Only return URLs that:
+- End in .pdf
+- Are from official manufacturer websites or authorized documentation sites
+- Are direct download links to the PDF files`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            installation_manual_url: { type: "string" },
+            user_manual_url: { type: "string" }
+          }
+        }
+      });
+
+      if (response.installation_manual_url || response.user_manual_url) {
+        await base44.entities.AVProduct.update(product.id, {
+          installation_manual_url: response.installation_manual_url || product.installation_manual_url,
+          user_manual_url: response.user_manual_url || product.user_manual_url
+        });
+        
+        if (onProductUpdate) {
+          onProductUpdate({
+            ...product,
+            installation_manual_url: response.installation_manual_url || product.installation_manual_url,
+            user_manual_url: response.user_manual_url || product.user_manual_url
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to search for manuals:', error);
+    }
+    setIsSearchingManuals(false);
+  };
 
   // Convert screen coordinates to world coordinates
   const screenToWorld = (screenX, screenY, canvasRect, panX, panY, zoomLevel) => ({
@@ -727,19 +785,54 @@ export default function CanvasProduct({
             )}
           </div>
         <div className="flex gap-1">
-          {(product.installation_manual_url || product.user_manual_url) && (
+          {hasManuals ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
+                  onClick={(e) => e.stopPropagation()}
+                  title="View Manuals"
+                >
+                  <FileText className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-800 border-gray-700">
+                {product.installation_manual_url && (
+                  <DropdownMenuItem 
+                    onClick={() => window.open(product.installation_manual_url, '_blank')}
+                    className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Installation Manual
+                  </DropdownMenuItem>
+                )}
+                {product.user_manual_url && (
+                  <DropdownMenuItem 
+                    onClick={() => window.open(product.user_manual_url, '_blank')}
+                    className="text-green-400 hover:text-green-300 hover:bg-green-500/10 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    User Manual
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
             <Button
               size="icon"
               variant="ghost"
-              className="h-6 w-6 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
-              onClick={(e) => {
-                e.stopPropagation();
-                const manualUrl = product.installation_manual_url || product.user_manual_url;
-                window.open(manualUrl, '_blank');
-              }}
-              title={product.installation_manual_url ? "View Installation Manual" : "View User Manual"}
+              className="h-6 w-6 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+              onClick={searchForManuals}
+              disabled={isSearchingManuals}
+              title="Search for Manuals"
             >
-              <FileText className="w-3 h-3" />
+              {isSearchingManuals ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Download className="w-3 h-3" />
+              )}
             </Button>
           )}
           <Button
