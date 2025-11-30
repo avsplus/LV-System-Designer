@@ -1195,7 +1195,7 @@ Deno.serve(async (req) => {
     };
 
     // Get unique rooms
-    const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
+    const uniqueRooms = [...new Set(canvasProductsToUse.map(cp => cp.room).filter(Boolean))];
     if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
     // ==========================================
@@ -1866,13 +1866,13 @@ Deno.serve(async (req) => {
     // ==========================================
     // DEVICE MANUALS PAGE
     // ==========================================
-    // Collect ALL unique products for manuals page
+    // Collect ALL unique products for manuals page (using enriched data with fresh manual URLs)
     const uniqueProducts = [];
-    const seenProductIds = new Set();
+    const seenProductIds2 = new Set();
     
-    canvasProducts.forEach(cp => {
-      if (cp.product?.id && !seenProductIds.has(cp.product.id)) {
-        seenProductIds.add(cp.product.id);
+    canvasProductsToUse.forEach(cp => {
+      if (cp.product?.id && !seenProductIds2.has(cp.product.id)) {
+        seenProductIds2.add(cp.product.id);
         uniqueProducts.push(cp.product);
       }
     });
