@@ -337,10 +337,9 @@ export default function DeviceManager() {
                             {product.input_connections.map((input, idx) => {
                               const color = getConnectionColor(input.type);
                               return (
-                                <Badge 
+                                <span 
                                   key={idx} 
-                                  variant="outline" 
-                                  className="text-xs"
+                                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
                                   style={{ 
                                     borderColor: color, 
                                     color: color,
@@ -348,7 +347,7 @@ export default function DeviceManager() {
                                   }}
                                 >
                                   {input.type} ({input.ports?.length || 0})
-                                </Badge>
+                                </span>
                               );
                             })}
                           </div>
@@ -361,10 +360,9 @@ export default function DeviceManager() {
                             {product.output_connections.map((output, idx) => {
                               const color = getConnectionColor(output.type);
                               return (
-                                <Badge 
+                                <span 
                                   key={idx} 
-                                  variant="outline" 
-                                  className="text-xs"
+                                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
                                   style={{ 
                                     borderColor: color, 
                                     color: color,
@@ -372,7 +370,7 @@ export default function DeviceManager() {
                                   }}
                                 >
                                   {output.type} ({output.ports?.length || 0})
-                                </Badge>
+                                </span>
                               );
                             })}
                           </div>
