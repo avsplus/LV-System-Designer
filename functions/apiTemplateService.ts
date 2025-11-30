@@ -529,7 +529,7 @@ ${showWireSchedule && connections.length > 0 ? `
         category === 'hdmi_extenders' ? '#0ea5e9' :
         category === 'control_processors' ? '#ec4899' :
         '#64748b';
-      const hasImage = cp.product?.image_url && /\\.(jpg|jpeg|png|gif|webp)(\\?.*)?$/i.test(cp.product?.image_url);
+      const hasImage = cp.product?.image_url && cp.product.image_url.length > 0;
       const description = cp.product?.description || '';
       const truncatedDesc = description.length > 120 ? description.substring(0, 117) + '...' : description;
       
