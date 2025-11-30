@@ -24,7 +24,7 @@ export default function ProductDetailsPanel({ product, onClose }) {
   if (!product) return null;
 
   return (
-    <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full overflow-hidden">
+    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full overflow-hidden flex-shrink-0">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Product Details</h2>
         <Button

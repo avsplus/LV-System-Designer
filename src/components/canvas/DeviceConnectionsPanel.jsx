@@ -320,7 +320,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   };
 
   return (
-    <div className="w-96 bg-gray-900 border-l border-gray-800 flex flex-col h-full">
+    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full flex-shrink-0">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Device Connections</h2>
         <Button
