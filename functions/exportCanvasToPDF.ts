@@ -1283,7 +1283,7 @@ Deno.serve(async (req) => {
     const statsWidth = contentWidth / 4;
     
     [
-      { label: 'Devices', value: canvasProducts.length, color: theme.colors.accent },
+      { label: 'Devices', value: canvasProductsToUse.length, color: theme.colors.accent },
       { label: 'Connections', value: connections.length, color: theme.colors.success },
       { label: 'Rooms', value: uniqueRooms.length, color: theme.colors.warning },
       { label: 'Cable Runs', value: connections.length, color: [139, 92, 246] }
@@ -1329,7 +1329,7 @@ Deno.serve(async (req) => {
     const cardHeight = 45;
 
     [
-      { title: 'Total Devices', value: canvasProducts.length, color: theme.colors.accent },
+      { title: 'Total Devices', value: canvasProductsToUse.length, color: theme.colors.accent },
       { title: 'Connections', value: connections.length, color: theme.colors.success },
       { title: 'Rooms', value: uniqueRooms.length, color: theme.colors.warning }
     ].forEach((card, i) => {
@@ -1386,14 +1386,14 @@ Deno.serve(async (req) => {
     doc.text('Device Categories', margin, yPos);
     yPos += 10;
 
-    const categories = [...new Set(canvasProducts.map(cp => cp.product.category))];
+    const categories = [...new Set(canvasProductsToUse.map(cp => cp.product.category))];
     categories.forEach((cat, i) => {
       const col = i % 2;
       const row = Math.floor(i / 2);
       const x = margin + (col * (contentWidth / 2));
       const y = yPos + (row * 10);
 
-      const count = canvasProducts.filter(cp => cp.product.category === cat).length;
+      const count = canvasProductsToUse.filter(cp => cp.product.category === cat).length;
       setColor(doc, theme.colors.dark);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(9);
@@ -1415,7 +1415,7 @@ Deno.serve(async (req) => {
     setColor(doc, theme.colors.muted);
     doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-    doc.text(`${projectName || 'AV System'} | ${canvasProducts.length} Devices`, margin, yPos + 16);
+    doc.text(`${projectName || 'AV System'} | ${canvasProductsToUse.length} Devices`, margin, yPos + 16);
     
     // Subtle divider
     setDraw(doc, [229, 231, 235]);
@@ -1427,7 +1427,7 @@ Deno.serve(async (req) => {
     const deviceCardWidth = (contentWidth - 10) / 2;
     const deviceCardHeight = 72;
 
-    canvasProducts.forEach((cp, index) => {
+    canvasProductsToUse.forEach((cp, index) => {
       const col = index % 2;
       const cardX = margin + (col * (deviceCardWidth + 10));
 
@@ -1542,7 +1542,7 @@ Deno.serve(async (req) => {
     });
     
     // Handle odd number of devices
-    if (canvasProducts.length % 2 === 1) {
+    if (canvasProductsToUse.length % 2 === 1) {
       yPos += deviceCardHeight + 8;
     }
 
@@ -1613,8 +1613,8 @@ Deno.serve(async (req) => {
         yPos += 12;
       }
 
-      const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
-      const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+      const fromDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.from);
+      const toDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.to);
 
       if (!fromDevice || !toDevice) return;
 
@@ -1665,7 +1665,7 @@ Deno.serve(async (req) => {
     // ROOM-BY-ROOM PAGES
     // ==========================================
     uniqueRooms.forEach(room => {
-      const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+      const roomDevices = canvasProductsToUse.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
       if (roomDevices.length === 0) return;
 
       doc.addPage();
