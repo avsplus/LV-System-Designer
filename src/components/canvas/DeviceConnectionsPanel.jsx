@@ -346,41 +346,61 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
         <div className="bg-gray-800 rounded-lg p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex gap-3 flex-1 min-w-0">
-              <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
-              <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
+              <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-700 border border-gray-600 flex items-center justify-center">
+                {productData.image_url && /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i.test(productData.image_url) ? (
+                  <img 
+                    src={productData.image_url} 
+                    alt={`${productData.brand} ${productData.model}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { 
+                      e.target.style.display = 'none'; 
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`w-full h-full flex items-center justify-center text-gray-500 ${productData.image_url && /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i.test(productData.image_url) ? 'hidden' : ''}`}>
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white mb-1">{productData.brand}</h3>
+                <p className="text-sm text-gray-300 mb-2">{productData.model}</p>
+                <div className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded ${
+                    {
+                      televisions: "bg-blue-600",
+                      projectors: "bg-purple-600",
+                      projector_screens: "bg-fuchsia-600",
+                      video_distribution: "bg-cyan-500",
+                      matrix_switchers: "bg-teal-600",
+                      audio_streamers: "bg-pink-500",
+                      media_streamers: "bg-rose-600",
+                      speakers: "bg-green-600",
+                      soundbars: "bg-lime-500",
+                      subwoofers: "bg-red-600",
+                      stereo_amps: "bg-orange-600",
+                      multizone_amps: "bg-amber-600",
+                      surround_processors: "bg-yellow-400",
+                      av_receivers: "bg-emerald-600"
+                    }[productData.category]
+                  }`}></div>
+                  <span className="text-xs text-gray-400 capitalize">{productData.category.replace(/_/g, ' ')}</span>
+                </div>
+              </div>
             </div>
             {onDeviceUpdate && (
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={() => setShowQuickEdit(true)}
-                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
+                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700 flex-shrink-0"
                 title="Quick Edit Device"
               >
                 <Pencil className="w-4 h-4" />
               </Button>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className={`w-5 h-5 rounded ${
-              {
-                televisions: "bg-blue-600",
-                projectors: "bg-purple-600",
-                projector_screens: "bg-fuchsia-600",
-                video_distribution: "bg-cyan-500",
-                matrix_switchers: "bg-teal-600",
-                audio_streamers: "bg-pink-500",
-                media_streamers: "bg-rose-600",
-                speakers: "bg-green-600",
-                soundbars: "bg-lime-500",
-                subwoofers: "bg-red-600",
-                stereo_amps: "bg-orange-600",
-                multizone_amps: "bg-amber-600",
-                surround_processors: "bg-yellow-400",
-                av_receivers: "bg-emerald-600"
-              }[productData.category]
-            }`}></div>
-            <span className="text-sm text-gray-300 capitalize">{productData.category.replace(/_/g, ' ')}</span>
           </div>
         </div>
 
