@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export default function useCanvasZoomPan(defaultZoom = 1) {
   const [zoom, setZoom] = useState(defaultZoom);
