@@ -3,8 +3,9 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink } from "lucide-react";
+import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2 } from "lucide-react";
 import { connectionTypes } from "./ConnectionsSidebar";
+import { base44 } from "@/api/base44Client";
 
 const getConnectionColor = (type) => {
   const conn = connectionTypes.find(c => c.type === type);
@@ -19,6 +20,7 @@ export default function DeviceConnectionEditor({
   onOutputsChange,
   onClose,
   onFinish,
+  onDeviceUpdate,
   hasChanges,
   isSaving
 }) {
@@ -26,6 +28,59 @@ export default function DeviceConnectionEditor({
   const [expandedOutputs, setExpandedOutputs] = useState({});
   const [newPortInputs, setNewPortInputs] = useState({});
   const [newPortOutputs, setNewPortOutputs] = useState({});
+  const [isSearchingManuals, setIsSearchingManuals] = useState(false);
+
+  const searchForManuals = async () => {
+    setIsSearchingManuals(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find the official PDF manuals for this AV product:
+Brand: ${device.brand}
+Model: ${device.model}
+
+Search for:
+1. Installation manual / Quick start guide PDF - direct URL from manufacturer website
+2. User manual / Owner's manual PDF - direct URL from manufacturer website
+
+Search patterns:
+- site:${device.brand.toLowerCase().replace(/\s+/g, '')}.com "${device.model}" filetype:pdf installation
+- site:${device.brand.toLowerCase().replace(/\s+/g, '')}.com "${device.model}" filetype:pdf manual
+- "${device.brand} ${device.model}" installation manual pdf
+- "${device.brand} ${device.model}" user manual pdf
+
+Only return URLs that:
+- End in .pdf
+- Are from official manufacturer websites or authorized documentation sites
+- Are direct download links to the PDF files`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            installation_manual_url: { type: "string" },
+            user_manual_url: { type: "string" }
+          }
+        }
+      });
+
+      if (response.installation_manual_url || response.user_manual_url) {
+        await base44.entities.AVProduct.update(device.id, {
+          installation_manual_url: response.installation_manual_url || device.installation_manual_url,
+          user_manual_url: response.user_manual_url || device.user_manual_url
+        });
+        
+        if (onDeviceUpdate) {
+          onDeviceUpdate({
+            ...device,
+            installation_manual_url: response.installation_manual_url || device.installation_manual_url,
+            user_manual_url: response.user_manual_url || device.user_manual_url
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to search for manuals:', error);
+    }
+    setIsSearchingManuals(false);
+  };
 
   const toggleExpanded = (type, isInput) => {
     if (isInput) {
@@ -251,6 +306,28 @@ export default function DeviceConnectionEditor({
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
+        {/* Search Manuals Button */}
+        <div className="mb-6">
+          <Button
+            onClick={searchForManuals}
+            disabled={isSearchingManuals}
+            variant="outline"
+            className="border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800"
+          >
+            {isSearchingManuals ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Searching for manuals...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Search for Installation & User Manuals
+              </>
+            )}
+          </Button>
+        </div>
+
         {/* Installation Manual Section */}
         {device.installation_manual_url && (
           <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">

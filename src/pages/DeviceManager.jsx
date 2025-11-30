@@ -194,6 +194,10 @@ export default function DeviceManager() {
               setHasChanges(false);
             }}
             onFinish={handleFinishConnections}
+            onDeviceUpdate={(updatedDevice) => {
+              setEditingConnections(updatedDevice);
+              queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+            }}
             hasChanges={hasChanges}
             isSaving={updateMutation.isPending}
           />
