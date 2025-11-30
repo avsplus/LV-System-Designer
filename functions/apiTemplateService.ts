@@ -515,59 +515,68 @@ ${showWireSchedule && connections.length > 0 ? `
 <section>
   <h1>Room Overview</h1>
 
-  ${uniqueRooms.map(room => {
-    const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
-    if (roomDevices.length === 0) return '';
-    return `
-  <h2>${room}</h2>
-  <div style="display:flex;flex-direction:column;gap:12px;">
-    ${roomDevices.map(cp => {
-      const category = (cp.product?.category || '').toLowerCase();
-      const deviceColor = 
-        category === 'network_switches' ? '#3b82f6' :
-        category === 'media_streamers' ? '#f43f5e' :
-        category === 'audio_streamers' ? '#ec4899' :
-        category === 'av_receivers' ? '#f59e0b' :
-        category === 'surround_processors' ? '#eab308' :
-        category === 'stereo_amps' ? '#f97316' :
-        category === 'multizone_amps' ? '#f59e0b' :
-        category === 'projectors' ? '#8b5cf6' :
-        category === 'projector_screens' ? '#a855f7' :
-        category === 'televisions' ? '#6366f1' :
-        category === 'speakers' ? '#22c55e' :
-        category === 'soundbars' ? '#84cc16' :
-        category === 'subwoofers' ? '#ef4444' :
-        category === 'video_distribution' ? '#06b6d4' :
-        category === 'matrix_switchers' ? '#14b8a6' :
-        category === 'hdmi_extenders' ? '#0ea5e9' :
-        category === 'control_processors' ? '#ec4899' :
-        '#64748b';
-      const hasImage = cp.product?.image_url && cp.product.image_url.length > 0;
-      const description = cp.product?.description || '';
-      const truncatedDesc = description.length > 120 ? description.substring(0, 117) + '...' : description;
+  ${await (async () => {
+    const roomSections = [];
+    for (const room of uniqueRooms) {
+      const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+      if (roomDevices.length === 0) continue;
       
-      return `
-      <div style="display:flex;gap:12px;padding:12px;background:#f8fafc;border-radius:8px;border-left:4px solid ${deviceColor};">
-        <div style="width:60px;height:60px;flex-shrink:0;border-radius:6px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;">
-          ${hasImage 
-            ? `<img src="${cp.product.image_url}" style="width:100%;height:100%;object-fit:cover;" alt="${cp.product?.brand || ''}">`
-            : `<span style="font-size:20px;font-weight:bold;color:${deviceColor};">${(cp.product?.category || 'DV').substring(0, 2).toUpperCase()}</span>`
-          }
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <span style="font-weight:700;font-size:14px;color:#1f2937;">${cp.label || cp.product?.brand || 'Device'}</span>
-            <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${deviceColor}20;color:${deviceColor};">${(cp.product?.category || '').replace(/_/g, ' ')}</span>
+      const deviceCards = [];
+      for (const cp of roomDevices) {
+        const category = (cp.product?.category || '').toLowerCase();
+        const deviceColor = 
+          category === 'network_switches' ? '#3b82f6' :
+          category === 'media_streamers' ? '#f43f5e' :
+          category === 'audio_streamers' ? '#ec4899' :
+          category === 'av_receivers' ? '#f59e0b' :
+          category === 'surround_processors' ? '#eab308' :
+          category === 'stereo_amps' ? '#f97316' :
+          category === 'multizone_amps' ? '#f59e0b' :
+          category === 'projectors' ? '#8b5cf6' :
+          category === 'projector_screens' ? '#a855f7' :
+          category === 'televisions' ? '#6366f1' :
+          category === 'speakers' ? '#22c55e' :
+          category === 'soundbars' ? '#84cc16' :
+          category === 'subwoofers' ? '#ef4444' :
+          category === 'video_distribution' ? '#06b6d4' :
+          category === 'matrix_switchers' ? '#14b8a6' :
+          category === 'hdmi_extenders' ? '#0ea5e9' :
+          category === 'control_processors' ? '#ec4899' :
+          '#64748b';
+        
+        const hasValidImage = await isValidImageUrl(cp.product?.image_url);
+        const description = cp.product?.description || '';
+        const truncatedDesc = description.length > 120 ? description.substring(0, 117) + '...' : description;
+        
+        deviceCards.push(\`
+        <div style="display:flex;gap:12px;padding:12px;background:#f8fafc;border-radius:8px;border-left:4px solid \${deviceColor};">
+          <div style="width:60px;height:60px;flex-shrink:0;border-radius:6px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;">
+            \${hasValidImage 
+              ? \`<img src="\${cp.product.image_url}" style="width:100%;height:100%;object-fit:cover;" alt="\${cp.product?.brand || ''}">\`
+              : \`<span style="font-size:20px;font-weight:bold;color:\${deviceColor};">\${(cp.product?.category || 'DV').substring(0, 2).toUpperCase()}</span>\`
+            }
           </div>
-          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">${cp.product?.brand || ''} ${cp.product?.model || ''}</div>
-          ${truncatedDesc ? `<div style="font-size:11px;color:#94a3b8;line-height:1.4;">${truncatedDesc}</div>` : ''}
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-weight:700;font-size:14px;color:#1f2937;">\${cp.label || cp.product?.brand || 'Device'}</span>
+              <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:\${deviceColor}20;color:\${deviceColor};">\${(cp.product?.category || '').replace(/_/g, ' ')}</span>
+            </div>
+            <div style="font-size:12px;color:#64748b;margin-bottom:4px;">\${cp.product?.brand || ''} \${cp.product?.model || ''}</div>
+            \${truncatedDesc ? \`<div style="font-size:11px;color:#94a3b8;line-height:1.4;">\${truncatedDesc}</div>\` : ''}
+          </div>
         </div>
+        \`);
+      }
+      
+      roomSections.push(\`
+      <h2>\${room}</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        \${deviceCards.join('')}
       </div>
-      `;
-    }).join('')}
-  </div>
-    `;
-  }).join('')}
+      \`);
+    }
+    return roomSections.join('');
+  })()}
 </section>
 
 <div class="page-break"></div>
