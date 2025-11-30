@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DragDropContext } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2, Save, X, ArrowLeft } from "lucide-react";
+import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
+import ConnectionsSidebar, { connectionTypes } from "../components/devicemanager/ConnectionsSidebar";
+import DeviceConnectionEditor from "../components/devicemanager/DeviceConnectionEditor";
 import DeviceForm from "../components/devicemanager/DeviceForm";
 
 const categorySolidColors = {
@@ -23,7 +26,10 @@ const categorySolidColors = {
   stereo_amps: "bg-orange-600",
   multizone_amps: "bg-amber-600",
   surround_processors: "bg-yellow-400",
-  av_receivers: "bg-emerald-600"
+  av_receivers: "bg-emerald-600",
+  network_switches: "bg-slate-600",
+  control_processors: "bg-violet-600",
+  hdmi_extenders: "bg-indigo-600"
 };
 
 export default function DeviceManager() {
@@ -31,6 +37,12 @@ export default function DeviceManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingDevice, setEditingDevice] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  // Connection editor state
+  const [editingConnections, setEditingConnections] = useState(null);
+  const [localInputs, setLocalInputs] = useState([]);
+  const [localOutputs, setLocalOutputs] = useState([]);
+  const [hasChanges, setHasChanges] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -61,6 +73,8 @@ export default function DeviceManager() {
       queryClient.invalidateQueries({ queryKey: ['avProducts'] });
       setShowForm(false);
       setEditingDevice(null);
+      setEditingConnections(null);
+      setHasChanges(false);
     },
   });
 
@@ -75,11 +89,73 @@ export default function DeviceManager() {
     setShowForm(true);
   };
 
+  const handleEditConnections = (device) => {
+    setEditingConnections(device);
+    setLocalInputs(device.input_connections || []);
+    setLocalOutputs(device.output_connections || []);
+    setHasChanges(false);
+  };
+
   const handleSubmit = (data) => {
     if (editingDevice) {
       updateMutation.mutate({ id: editingDevice.id, data });
     } else {
       createMutation.mutate(data);
+    }
+  };
+
+  const handleFinishConnections = () => {
+    if (!editingConnections) return;
+    
+    updateMutation.mutate({
+      id: editingConnections.id,
+      data: {
+        input_connections: localInputs,
+        output_connections: localOutputs
+      }
+    });
+  };
+
+  const handleDragEnd = (result) => {
+    const { source, destination, draggableId } = result;
+    
+    if (!destination) return;
+    
+    // Dragging from sidebar to inputs/outputs
+    if (source.droppableId === 'connections-sidebar') {
+      const connectionType = draggableId.replace('connection-', '');
+      
+      if (destination.droppableId === 'inputs-drop') {
+        // Check if type already exists
+        if (!localInputs.find(c => c.type === connectionType)) {
+          setLocalInputs(prev => [...prev, { type: connectionType, ports: [] }]);
+          setHasChanges(true);
+        }
+      } else if (destination.droppableId === 'outputs-drop') {
+        // Check if type already exists
+        if (!localOutputs.find(c => c.type === connectionType)) {
+          setLocalOutputs(prev => [...prev, { type: connectionType, ports: [] }]);
+          setHasChanges(true);
+        }
+      }
+    }
+    
+    // Reordering within inputs
+    if (source.droppableId === 'inputs-drop' && destination.droppableId === 'inputs-drop') {
+      const items = Array.from(localInputs);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setLocalInputs(items);
+      setHasChanges(true);
+    }
+    
+    // Reordering within outputs
+    if (source.droppableId === 'outputs-drop' && destination.droppableId === 'outputs-drop') {
+      const items = Array.from(localOutputs);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setLocalOutputs(items);
+      setHasChanges(true);
     }
   };
 
@@ -94,6 +170,37 @@ export default function DeviceManager() {
     
     return matchesSearch && matchesCategory;
   });
+
+  // If editing connections, show the connection editor
+  if (editingConnections) {
+    return (
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="h-screen flex bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+          <ConnectionsSidebar />
+          <DeviceConnectionEditor
+            device={editingConnections}
+            inputConnections={localInputs}
+            outputConnections={localOutputs}
+            onInputsChange={(inputs) => {
+              setLocalInputs(inputs);
+              setHasChanges(true);
+            }}
+            onOutputsChange={(outputs) => {
+              setLocalOutputs(outputs);
+              setHasChanges(true);
+            }}
+            onClose={() => {
+              setEditingConnections(null);
+              setHasChanges(false);
+            }}
+            onFinish={handleFinishConnections}
+            hasChanges={hasChanges}
+            isSaving={updateMutation.isPending}
+          />
+        </div>
+      </DragDropContext>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
@@ -172,11 +279,11 @@ export default function DeviceManager() {
                   <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-lg ${categorySolidColors[product.category]} flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">
-                        {product.category.charAt(0).toUpperCase()}
+                        {product.category?.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <Badge className="capitalize text-xs">
-                      {product.category.replace(/_/g, ' ')}
+                      {product.category?.replace(/_/g, ' ')}
                     </Badge>
                   </div>
                   <div className="flex gap-1">
@@ -185,6 +292,7 @@ export default function DeviceManager() {
                       variant="ghost"
                       onClick={() => handleEdit(product)}
                       className="h-7 w-7 text-gray-400 hover:text-blue-400"
+                      title="Edit device info"
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
@@ -193,6 +301,7 @@ export default function DeviceManager() {
                       variant="ghost"
                       onClick={() => handleDelete(product.id, product.brand, product.model)}
                       className="h-7 w-7 text-gray-400 hover:text-red-400"
+                      title="Delete device"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -223,7 +332,7 @@ export default function DeviceManager() {
                           <div className="flex flex-wrap gap-1">
                             {product.input_connections.map((input, idx) => (
                               <Badge key={idx} variant="outline" className="text-xs border-gray-700">
-                                {input.type} ({input.ports.length})
+                                {input.type} ({input.ports?.length || 0})
                               </Badge>
                             ))}
                           </div>
@@ -235,7 +344,7 @@ export default function DeviceManager() {
                           <div className="flex flex-wrap gap-1">
                             {product.output_connections.map((output, idx) => (
                               <Badge key={idx} variant="outline" className="text-xs border-gray-700">
-                                {output.type} ({output.ports.length})
+                                {output.type} ({output.ports?.length || 0})
                               </Badge>
                             ))}
                           </div>
@@ -243,6 +352,15 @@ export default function DeviceManager() {
                       )}
                     </>
                   )}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditConnections(product)}
+                    className="w-full mt-2 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800"
+                  >
+                    Edit Connections
+                  </Button>
                 </div>
               </div>
             ))}
