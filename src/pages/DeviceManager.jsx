@@ -277,7 +277,7 @@ export default function DeviceManager() {
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-all"
+                className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-all flex flex-col h-full"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -327,57 +327,55 @@ export default function DeviceManager() {
                   </p>
                 )}
 
-                <div className="border-t border-gray-800 pt-3 space-y-2">
-                  {(product.input_connections || product.output_connections) && (
-                    <>
-                      {product.input_connections && product.input_connections.length > 0 && (
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Inputs:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {product.input_connections.map((input, idx) => {
-                              const color = getConnectionColor(input.type);
-                              return (
-                                <span 
-                                  key={idx} 
-                                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
-                                  style={{ 
-                                    borderColor: color, 
-                                    color: color,
-                                    backgroundColor: `${color}15`
-                                  }}
-                                >
-                                  {input.type} ({input.ports?.length || 0})
-                                </span>
-                              );
-                            })}
-                          </div>
+                <div className="flex-1 flex flex-col">
+                  <div className="border-t border-gray-800 pt-3 space-y-2 flex-1">
+                    {product.input_connections && product.input_connections.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Inputs:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {product.input_connections.map((input, idx) => {
+                            const color = getConnectionColor(input.type);
+                            return (
+                              <span 
+                                key={idx} 
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                                style={{ 
+                                  borderColor: color, 
+                                  color: color,
+                                  backgroundColor: `${color}15`
+                                }}
+                              >
+                                {input.type} ({input.ports?.length || 0})
+                              </span>
+                            );
+                          })}
                         </div>
-                      )}
-                      {product.output_connections && product.output_connections.length > 0 && (
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Outputs:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {product.output_connections.map((output, idx) => {
-                              const color = getConnectionColor(output.type);
-                              return (
-                                <span 
-                                  key={idx} 
-                                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
-                                  style={{ 
-                                    borderColor: color, 
-                                    color: color,
-                                    backgroundColor: `${color}15`
-                                  }}
-                                >
-                                  {output.type} ({output.ports?.length || 0})
-                                </span>
-                              );
-                            })}
-                          </div>
+                      </div>
+                    )}
+                    {product.output_connections && product.output_connections.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Outputs:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {product.output_connections.map((output, idx) => {
+                            const color = getConnectionColor(output.type);
+                            return (
+                              <span 
+                                key={idx} 
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                                style={{ 
+                                  borderColor: color, 
+                                  color: color,
+                                  backgroundColor: `${color}15`
+                                }}
+                              >
+                                {output.type} ({output.ports?.length || 0})
+                              </span>
+                            );
+                          })}
                         </div>
-                      )}
-                    </>
-                  )}
+                      </div>
+                    )}
+                  </div>
                   
                   <Button
                     variant="outline"

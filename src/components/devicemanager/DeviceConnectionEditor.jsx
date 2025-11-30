@@ -348,12 +348,12 @@ Only return URLs that:
 
       <div className="flex-1 overflow-y-auto p-6">
         {/* Manuals Section */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="mb-6 grid grid-cols-3 gap-3">
           <Button
             onClick={searchForManuals}
             disabled={isSearchingManuals}
             variant="outline"
-            className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600"
+            className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
           >
             {isSearchingManuals ? (
               <>
@@ -368,27 +368,29 @@ Only return URLs that:
             )}
           </Button>
 
-          {device.installation_manual_url && (
-            <Button
-              onClick={() => setPreviewManual({ type: 'installation', url: device.installation_manual_url })}
-              variant="outline"
-              className="border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Installation Manual
-            </Button>
-          )}
+          <Button
+            onClick={() => device.installation_manual_url && setPreviewManual({ type: 'installation', url: device.installation_manual_url })}
+            disabled={!device.installation_manual_url}
+            variant="outline"
+            className={`whitespace-nowrap ${device.installation_manual_url 
+              ? 'border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600' 
+              : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Installation Manual
+          </Button>
 
-          {device.user_manual_url && (
-            <Button
-              onClick={() => setPreviewManual({ type: 'user', url: device.user_manual_url })}
-              variant="outline"
-              className="border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              User Manual
-            </Button>
-          )}
+          <Button
+            onClick={() => device.user_manual_url && setPreviewManual({ type: 'user', url: device.user_manual_url })}
+            disabled={!device.user_manual_url}
+            variant="outline"
+            className={`whitespace-nowrap ${device.user_manual_url 
+              ? 'border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600' 
+              : 'border-gray-700 text-gray-500 cursor-not-allowed'}`}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            User Manual
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
