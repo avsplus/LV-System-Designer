@@ -364,17 +364,25 @@ Only return URLs that:
         }
       });
 
-      if (response.installation_manual_url || response.user_manual_url) {
+      // Only save URLs that actually end with .pdf
+      const installManual = response.installation_manual_url?.toLowerCase().endsWith('.pdf') 
+        ? response.installation_manual_url 
+        : null;
+      const userManual = response.user_manual_url?.toLowerCase().endsWith('.pdf') 
+        ? response.user_manual_url 
+        : null;
+      
+      if (installManual || userManual) {
         await base44.entities.AVProduct.update(product.id, {
-          installation_manual_url: response.installation_manual_url || product.installation_manual_url,
-          user_manual_url: response.user_manual_url || product.user_manual_url
+          installation_manual_url: installManual || product.installation_manual_url,
+          user_manual_url: userManual || product.user_manual_url
         });
         
         if (onProductUpdate) {
           onProductUpdate({
             ...product,
-            installation_manual_url: response.installation_manual_url || product.installation_manual_url,
-            user_manual_url: response.user_manual_url || product.user_manual_url
+            installation_manual_url: installManual || product.installation_manual_url,
+            user_manual_url: userManual || product.user_manual_url
           });
         }
       }
