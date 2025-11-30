@@ -1021,7 +1021,7 @@ function AVCanvasContent() {
           }}
         />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">AV System Design</h1>
