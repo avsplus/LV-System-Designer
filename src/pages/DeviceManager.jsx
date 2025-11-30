@@ -385,7 +385,7 @@ export default function DeviceManager() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleEditConnections(product)}
-                    className="w-full mt-2 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800"
+                    className="w-full mt-3 border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600"
                   >
                     Edit Connections
                   </Button>

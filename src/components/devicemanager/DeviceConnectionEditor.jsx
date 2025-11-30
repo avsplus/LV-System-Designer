@@ -29,6 +29,7 @@ export default function DeviceConnectionEditor({
   const [newPortInputs, setNewPortInputs] = useState({});
   const [newPortOutputs, setNewPortOutputs] = useState({});
   const [isSearchingManuals, setIsSearchingManuals] = useState(false);
+  const [previewManual, setPreviewManual] = useState(null);
 
   const searchForManuals = async () => {
     setIsSearchingManuals(true);
@@ -276,6 +277,46 @@ Only return URLs that:
   };
 
   return (
+    <>
+    {/* Manual Preview Modal */}
+    {previewManual && (
+      <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-5xl h-[90vh] flex flex-col">
+          <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white">
+              {previewManual.type === 'installation' ? 'Installation Manual' : 'User Manual'}
+            </h3>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setPreviewManual(null)}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <div className="flex-1 p-4">
+            <iframe 
+              src={previewManual.url}
+              className="w-full h-full rounded border border-gray-600"
+              title={previewManual.type === 'installation' ? 'Installation Manual' : 'User Manual'}
+            />
+          </div>
+          <div className="p-4 border-t border-gray-700 flex justify-end">
+            <a
+              href={previewManual.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open in New Tab
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <div>
@@ -306,79 +347,49 @@ Only return URLs that:
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
-        {/* Search Manuals Button */}
-        <div className="mb-6">
+        {/* Manuals Section */}
+        <div className="mb-6 flex flex-wrap items-center gap-3">
           <Button
             onClick={searchForManuals}
             disabled={isSearchingManuals}
             variant="outline"
-            className="border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800"
+            className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600"
           >
             {isSearchingManuals ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Searching for manuals...
+                Searching...
               </>
             ) : (
               <>
                 <Search className="w-4 h-4 mr-2" />
-                Search for Installation & User Manuals
+                Search for Manuals
               </>
             )}
           </Button>
+
+          {device.installation_manual_url && (
+            <Button
+              onClick={() => setPreviewManual({ type: 'installation', url: device.installation_manual_url })}
+              variant="outline"
+              className="border-orange-500/50 text-orange-400 hover:text-white hover:bg-orange-600 hover:border-orange-600"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Installation Manual
+            </Button>
+          )}
+
+          {device.user_manual_url && (
+            <Button
+              onClick={() => setPreviewManual({ type: 'user', url: device.user_manual_url })}
+              variant="outline"
+              className="border-green-500/50 text-green-400 hover:text-white hover:bg-green-600 hover:border-green-600"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              User Manual
+            </Button>
+          )}
         </div>
-
-        {/* Installation Manual Section */}
-        {device.installation_manual_url && (
-          <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-5 h-5 text-blue-400" />
-              <h3 className="text-lg font-medium text-white">Installation Manual</h3>
-            </div>
-            <a 
-              href={device.installation_manual_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-            >
-              <span className="text-sm truncate">{device.installation_manual_url}</span>
-              <ExternalLink className="w-4 h-4 flex-shrink-0" />
-            </a>
-            <div className="mt-3">
-              <iframe 
-                src={device.installation_manual_url}
-                className="w-full h-64 rounded border border-gray-600"
-                title="Installation Manual"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* User Manual Section */}
-        {device.user_manual_url && (
-          <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-5 h-5 text-green-400" />
-              <h3 className="text-lg font-medium text-white">User Manual</h3>
-            </div>
-            <a 
-              href={device.user_manual_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
-            >
-              <span className="text-sm truncate">{device.user_manual_url}</span>
-              <ExternalLink className="w-4 h-4 flex-shrink-0" />
-            </a>
-            <div className="mt-3">
-              <iframe 
-                src={device.user_manual_url}
-                className="w-full h-64 rounded border border-gray-600"
-                title="User Manual"
-              />
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-2 gap-6">
           {/* Inputs */}
@@ -407,5 +418,6 @@ Only return URLs that:
         </div>
       </div>
     </div>
+    </>
   );
 }
