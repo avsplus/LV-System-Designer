@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
-import ConnectionsSidebar, { connectionTypes } from "../components/devicemanager/ConnectionsSidebar";
+import ConnectionsSidebar, { connectionTypes, getConnectionColor } from "../components/devicemanager/ConnectionsSidebar";
 import DeviceConnectionEditor from "../components/devicemanager/DeviceConnectionEditor";
 import DeviceForm from "../components/devicemanager/DeviceForm";
 
@@ -330,11 +330,23 @@ export default function DeviceManager() {
                         <div>
                           <p className="text-xs text-gray-500 mb-1">Inputs:</p>
                           <div className="flex flex-wrap gap-1">
-                            {product.input_connections.map((input, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs border-gray-700">
-                                {input.type} ({input.ports?.length || 0})
-                              </Badge>
-                            ))}
+                            {product.input_connections.map((input, idx) => {
+                              const color = getConnectionColor(input.type);
+                              return (
+                                <Badge 
+                                  key={idx} 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  style={{ 
+                                    borderColor: color, 
+                                    color: color,
+                                    backgroundColor: `${color}15`
+                                  }}
+                                >
+                                  {input.type} ({input.ports?.length || 0})
+                                </Badge>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -342,11 +354,23 @@ export default function DeviceManager() {
                         <div>
                           <p className="text-xs text-gray-500 mb-1">Outputs:</p>
                           <div className="flex flex-wrap gap-1">
-                            {product.output_connections.map((output, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs border-gray-700">
-                                {output.type} ({output.ports?.length || 0})
-                              </Badge>
-                            ))}
+                            {product.output_connections.map((output, idx) => {
+                              const color = getConnectionColor(output.type);
+                              return (
+                                <Badge 
+                                  key={idx} 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  style={{ 
+                                    borderColor: color, 
+                                    color: color,
+                                    backgroundColor: `${color}15`
+                                  }}
+                                >
+                                  {output.type} ({output.ports?.length || 0})
+                                </Badge>
+                              );
+                            })}
                           </div>
                         </div>
                       )}

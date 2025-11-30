@@ -115,4 +115,9 @@ export default function ConnectionsSidebar() {
   );
 }
 
-export { connectionTypes };
+const getConnectionColor = (type) => {
+  const conn = connectionTypes.find(c => c.type === type);
+  return conn?.color || "#6b7280";
+};
+
+export { connectionTypes, getConnectionColor };
