@@ -585,20 +585,18 @@ ${showWireSchedule && connections.length > 0 ? `
 ${isInstaller ? `
 <!-- Device Manuals -->
 ${(() => {
-  // Collect unique products that have manuals
+  // Collect ALL unique products for manuals section
   const seenProductIds = new Set();
-  const productsWithManuals = [];
+  const uniqueProducts = [];
   
   canvasProducts.forEach(cp => {
-    if (!seenProductIds.has(cp.product?.id)) {
-      seenProductIds.add(cp.product?.id);
-      if (cp.product?.installation_manual_url || cp.product?.user_manual_url) {
-        productsWithManuals.push(cp.product);
-      }
+    if (cp.product?.id && !seenProductIds.has(cp.product.id)) {
+      seenProductIds.add(cp.product.id);
+      uniqueProducts.push(cp.product);
     }
   });
   
-  if (productsWithManuals.length === 0) return '';
+  if (uniqueProducts.length === 0) return '';
   
   return `
 <section>
@@ -606,7 +604,7 @@ ${(() => {
   
   <div class="info-box">
     <div class="info-box-title">Documentation Links</div>
-    <p>Click on the links below to download installation and user manuals for each device.</p>
+    <p>Click on the links below to download installation and user manuals for each device. Links open directly in your browser.</p>
   </div>
 
   <table>
@@ -619,16 +617,16 @@ ${(() => {
       </tr>
     </thead>
     <tbody>
-      ${productsWithManuals.map(product => `
+      ${uniqueProducts.map(product => `
       <tr>
         <td>${(product.category || '').replace(/_/g, ' ')}</td>
         <td><strong>${product.brand || ''}</strong> ${product.model || ''}</td>
         <td>${product.installation_manual_url 
-          ? `<a href="${product.installation_manual_url}" style="color:#f97316;text-decoration:underline;font-weight:600;">Download PDF</a>` 
-          : '<span style="color:#9ca3af;">Not available</span>'}</td>
+          ? `<a href="${product.installation_manual_url}" target="_blank" style="display:inline-block;padding:4px 10px;background:#f97316;color:#fff;text-decoration:none;font-weight:600;border-radius:4px;font-size:11px;">Download PDF</a>` 
+          : '<span style="color:#9ca3af;font-size:11px;">Not available</span>'}</td>
         <td>${product.user_manual_url 
-          ? `<a href="${product.user_manual_url}" style="color:#22c55e;text-decoration:underline;font-weight:600;">Download PDF</a>` 
-          : '<span style="color:#9ca3af;">Not available</span>'}</td>
+          ? `<a href="${product.user_manual_url}" target="_blank" style="display:inline-block;padding:4px 10px;background:#22c55e;color:#fff;text-decoration:none;font-weight:600;border-radius:4px;font-size:11px;">Download PDF</a>` 
+          : '<span style="color:#9ca3af;font-size:11px;">Not available</span>'}</td>
       </tr>
       `).join('')}
     </tbody>
