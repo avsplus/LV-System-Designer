@@ -544,6 +544,7 @@ export default function CanvasProduct({
       }}
       className={`bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
+        isSelected ? 'border-blue-400 shadow-lg shadow-blue-400/40' :
         isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' :
         isConnecting ? 'border-blue-500' : 'border-gray-700 hover:border-gray-600'
       }`}
