@@ -35,24 +35,35 @@ export default function DeviceConnectionEditor({
     setIsSearchingManuals(true);
     try {
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Find the official PDF manuals for this AV product:
-Brand: ${device.brand}
-Model: ${device.model}
+            prompt: `Find the official PDF manuals for this AV product:
+      Brand: ${device.brand}
+      Model: ${device.model}
 
-Search for:
-1. Installation manual / Quick start guide PDF - direct URL from manufacturer website
-2. User manual / Owner's manual PDF - direct URL from manufacturer website
+      Search for INSTALLATION documentation (any of these terms):
+      - Installation manual / Installation guide
+      - Setup guide / Quick start guide
+      - Assembly instructions
 
-Search patterns:
-- site:${device.brand.toLowerCase().replace(/\s+/g, '')}.com "${device.model}" filetype:pdf installation
-- site:${device.brand.toLowerCase().replace(/\s+/g, '')}.com "${device.model}" filetype:pdf manual
-- "${device.brand} ${device.model}" installation manual pdf
-- "${device.brand} ${device.model}" user manual pdf
+      Search for USER documentation (any of these terms):
+      - User manual / User guide
+      - Owner's manual / Operator's manual
+      - Instruction manual
+      - Technical documentation
+      - Operations manual
+      - Maintenance manual / Service manual
 
-Only return URLs that:
-- End in .pdf
-- Are from official manufacturer websites or authorized documentation sites
-- Are direct download links to the PDF files`,
+      Search patterns:
+      - site:${device.brand.toLowerCase().replace(/\s+/g, '')}.com "${device.model}" filetype:pdf
+      - "${device.brand} ${device.model}" installation guide pdf
+      - "${device.brand} ${device.model}" setup guide pdf
+      - "${device.brand} ${device.model}" user manual pdf
+      - "${device.brand} ${device.model}" owner's manual pdf
+      - "${device.brand} ${device.model}" quick start pdf
+
+      Only return URLs that:
+      - End in .pdf
+      - Are from official manufacturer websites or authorized documentation sites
+      - Are direct download links to the PDF files`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
