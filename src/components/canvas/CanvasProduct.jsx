@@ -389,17 +389,18 @@ Only return URLs that:
         ? response.user_manual_url 
         : null;
       
-      if (installManual || userManual) {
-        await base44.entities.AVProduct.update(product.id, {
-          installation_manual_url: installManual || product.installation_manual_url,
-          user_manual_url: userManual || product.user_manual_url
-        });
+      // Always update with new search results (replace existing)
+      const updateData = {};
+      if (installManual) updateData.installation_manual_url = installManual;
+      if (userManual) updateData.user_manual_url = userManual;
+      
+      if (Object.keys(updateData).length > 0) {
+        await base44.entities.AVProduct.update(product.id, updateData);
         
         if (onProductUpdate) {
           onProductUpdate({
             ...product,
-            installation_manual_url: installManual || product.installation_manual_url,
-            user_manual_url: userManual || product.user_manual_url
+            ...updateData
           });
         }
       }
