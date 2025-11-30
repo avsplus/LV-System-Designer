@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save } from "lucide-react";
+import { Trash2, Plus, X, ChevronDown, ChevronUp, FileText, ExternalLink, Search, Loader2, Save, AlertTriangle } from "lucide-react";
 import { connectionTypes } from "./ConnectionsSidebar";
 import { base44 } from "@/api/base44Client";
 
@@ -33,6 +33,15 @@ export default function DeviceConnectionEditor({
   const [installationManualUrl, setInstallationManualUrl] = useState(device.installation_manual_url || '');
   const [userManualUrl, setUserManualUrl] = useState(device.user_manual_url || '');
   const [isSavingManuals, setIsSavingManuals] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showReplaceConfirm, setShowReplaceConfirm] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(user => setCurrentUser(user)).catch(() => {});
+  }, []);
+
+  const isAdminOrOwner = currentUser?.role === 'admin' || currentUser?.role === 'owner';
+  const hasExistingManuals = device.installation_manual_url || device.user_manual_url;
 
   const saveManualUrls = async () => {
     setIsSavingManuals(true);
@@ -61,7 +70,16 @@ export default function DeviceConnectionEditor({
     setIsSavingManuals(false);
   };
 
+  const handleSearchClick = () => {
+    if (hasExistingManuals) {
+      setShowReplaceConfirm(true);
+    } else {
+      searchForManuals();
+    }
+  };
+
   const searchForManuals = async () => {
+    setShowReplaceConfirm(false);
     setIsSearchingManuals(true);
     try {
       const response = await base44.integrations.Core.InvokeLLM({
@@ -332,6 +350,38 @@ export default function DeviceConnectionEditor({
 
   return (
     <>
+    {/* Replace Manuals Confirmation Modal */}
+    {showReplaceConfirm && (
+      <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-white">Replace Existing Manuals?</h3>
+          </div>
+          <p className="text-gray-400 text-sm mb-6">
+            This device already has manual URLs saved. Searching for new manuals will replace the existing URLs with any new ones found. This action cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowReplaceConfirm(false)}
+              className="border-gray-700 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={searchForManuals}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              Replace Manuals
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
     {/* Manual Preview Modal */}
     {previewManual && (
       <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -404,24 +454,26 @@ export default function DeviceConnectionEditor({
         {/* Manuals Section */}
         <div className="mb-6 space-y-4">
           <div className="flex items-center gap-3">
-            <Button
-              onClick={searchForManuals}
-              disabled={isSearchingManuals}
-              variant="outline"
-              className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
-            >
-              {isSearchingManuals ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Searching...
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4 mr-2" />
-                  Search for Manuals
-                </>
-              )}
-            </Button>
+            {(!hasExistingManuals || isAdminOrOwner) && (
+              <Button
+                onClick={handleSearchClick}
+                disabled={isSearchingManuals}
+                variant="outline"
+                className="border-blue-500/50 text-blue-400 hover:text-white hover:bg-blue-600 hover:border-blue-600 whitespace-nowrap"
+              >
+                {isSearchingManuals ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Search for Manuals
+                  </>
+                )}
+              </Button>
+            )}
 
             <Button
               onClick={() => installationManualUrl && setPreviewManual({ type: 'installation', url: installationManualUrl })}
