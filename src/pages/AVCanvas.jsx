@@ -1243,6 +1243,7 @@ function AVCanvasContent() {
             {...provided.droppableProps}
             onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
             onMouseDown={currentProject ? handleMouseDown : undefined}
+            onClick={currentProject ? handleCanvasClick : undefined}
             onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
             onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
             onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
