@@ -1238,7 +1238,7 @@ function AVCanvasContent() {
               backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined
             }}
           >
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
