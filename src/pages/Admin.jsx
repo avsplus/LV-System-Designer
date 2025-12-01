@@ -15,7 +15,7 @@ import {
 import { 
   Users, Settings, Shield, Search, Mail, 
   Crown, Pencil, Eye, ChevronLeft, MoreVertical,
-  UserPlus, Trash2, Activity, Building2
+  UserPlus, Trash2, Activity, Building2, Database, Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
