@@ -26,7 +26,7 @@ export default function SetupOrganization({ onComplete }) {
       const user = await base44.auth.me();
       await base44.entities.User.update(user.id, {
         organization_id: org.id,
-        app_role: 'owner'
+        organization_role: 'owner'
       });
 
       toast.success('Organization created successfully!');
