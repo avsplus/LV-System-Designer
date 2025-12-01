@@ -192,6 +192,36 @@ Deno.serve(async (req) => {
 <div class="page-break"></div>
 
 ${isClient ? `
+<!-- How Your System Works -->
+<section>
+  <h1>How Your System Works</h1>
+  
+  <div class="info-box">
+    <div class="info-box-title">Your AV System Overview</div>
+    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>
+  </div>
+
+  <h2>System Overview</h2>
+  <p>Your audio/video system includes <strong>${canvasProducts.length}</strong> devices across <strong>${uniqueRooms.length}</strong> room(s), connected with <strong>${connections.length}</strong> integrated connections for seamless entertainment.</p>
+  
+  <h3>Rooms in Your System</h3>
+  <ul>
+    ${uniqueRooms.map(room => {
+      const count = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned')).length;
+      return '<li><strong>' + room + '</strong> - ' + count + ' device(s)</li>';
+    }).join('')}
+  </ul>
+  
+  <h3>Key Features</h3>
+  <ul>
+    <li>Professional installation with ${connections.length} integrated connections</li>
+    <li>Multi-room capability across ${uniqueRooms.length} spaces</li>
+    <li>${canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length} networked devices for smart home integration</li>
+  </ul>
+</section>
+
+<div class="page-break"></div>
+
 <!-- Scope of Work -->
 <section>
   <h1>Scope of Work</h1>
