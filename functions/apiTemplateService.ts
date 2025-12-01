@@ -310,13 +310,22 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
             const wireSpec = conn.wireSpec || '';
             const key = `${wireType}${wireSpec ? ' (' + wireSpec + ')' : ''}`;
             if (!wireCounts[key]) {
-              wireCounts[key] = { count: 0, type: wireType, spec: wireSpec, materialCost: 0 };
+              wireCounts[key] = { count: 0, type: wireType, spec: wireSpec, materialCost: 0, totalLength: 0 };
             }
             wireCounts[key].count++;
+
+            // Determine estimated length: use conn.length if specified, otherwise 50ft for same room, 250ft for different rooms
+            let estLength = conn.length;
+            if (!estLength) {
+              const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+              const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+              const sameRoom = fromDevice?.room && toDevice?.room && fromDevice.room === toDevice.room;
+              estLength = sameRoom ? 50 : 250;
+            }
+            wireCounts[key].totalLength += estLength;
+
             const pricing = wirePricingData.find(wp => wp.wire_type?.toLowerCase() === wireType.toLowerCase());
             if (pricing?.material_price_per_foot) {
-              // Estimate 50ft per run as default
-              const estLength = conn.length || 50;
               wireCounts[key].materialCost += pricing.material_price_per_foot * estLength;
               totalWireMaterialCost += pricing.material_price_per_foot * estLength;
             }
