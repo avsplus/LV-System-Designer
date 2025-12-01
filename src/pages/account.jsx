@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   User, Mail, Calendar, LogOut, FolderOpen, Users, 
-  Share2, ArrowLeft, Save, Crown, Clock, Activity
+  Share2, ArrowLeft, Save, Crown, Clock, Activity,
+  Download, Trash2, AlertTriangle, Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -22,6 +23,10 @@ function AccountContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then((userData) => {
@@ -72,6 +77,46 @@ function AccountContent() {
     if (proceed) {
       base44.auth.logout();
     }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      const response = await base44.functions.invoke('exportUserData', {});
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `av-system-design-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      alert('Failed to export data: ' + error.message);
+    }
+    setIsExporting(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteEmail.toLowerCase() !== user.email.toLowerCase()) {
+      alert('Email does not match. Please type your email exactly.');
+      return;
+    }
+    
+    setIsDeleting(true);
+    try {
+      const response = await base44.functions.invoke('deleteUserAccount', { confirmEmail: deleteEmail });
+      if (response.data.success) {
+        alert('Your account data has been deleted. You will now be signed out.');
+        base44.auth.logout();
+      } else {
+        alert(response.data.error || 'Failed to delete account');
+      }
+    } catch (error) {
+      alert('Failed to delete account: ' + error.message);
+    }
+    setIsDeleting(false);
   };
 
   if (!user) {
@@ -308,6 +353,122 @@ function AccountContent() {
               <ActivityFeed userEmail={user.email} limit={15} />
             </CardContent>
           </Card>
+
+          {/* Data & Privacy */}
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Download className="w-5 h-5" />
+                Data & Privacy
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <div>
+                  <h4 className="text-white font-medium">Export Your Data</h4>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Download a copy of all your data including projects, devices, and activity history.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700 flex-shrink-0"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  {isExporting ? 'Exporting...' : 'Export Data'}
+                </Button>
+              </div>
+
+              <div className="flex items-start justify-between p-4 bg-red-500/5 rounded-lg border border-red-500/20">
+                <div>
+                  <h4 className="text-red-400 font-medium flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Delete Account
+                  </h4>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Permanently delete your account and all associated data. This cannot be undone.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 flex-shrink-0"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Account
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+              <Card className="bg-gray-900 border-red-500/30 max-w-md w-full">
+                <CardHeader>
+                  <CardTitle className="text-red-400 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Delete Your Account?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300 text-sm">
+                    This will permanently delete:
+                  </p>
+                  <ul className="text-sm text-gray-400 space-y-1 list-disc list-inside">
+                    <li>All your projects and designs</li>
+                    <li>Your activity history</li>
+                    <li>Your export records</li>
+                    <li>Your organization membership</li>
+                  </ul>
+                  <p className="text-yellow-400 text-sm font-medium">
+                    This action cannot be undone.
+                  </p>
+                  <div>
+                    <label className="text-sm text-gray-400 mb-2 block">
+                      Type your email to confirm: <span className="text-white">{user.email}</span>
+                    </label>
+                    <Input
+                      value={deleteEmail}
+                      onChange={(e) => setDeleteEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteEmail('');
+                      }}
+                      className="flex-1 border-gray-700 text-gray-300"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting || deleteEmail.toLowerCase() !== user.email.toLowerCase()}
+                      className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      {isDeleting ? 'Deleting...' : 'Delete Forever'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Sign Out */}
           <Card className="bg-gray-900 border-gray-800">
