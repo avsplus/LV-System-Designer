@@ -80,6 +80,16 @@ Deno.serve(async (req) => {
                 // Generate AV installation package PDF using template ID
                 const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
                 const TEMPLATE_ID = 'c0377b23582ce40c';
+                
+                // For client exports, generate AI system explanation
+                let systemExplanation = '';
+                if (exportType === 'client' || exportType === 'documentation') {
+                  try {
+                    systemExplanation = await generateSystemExplanation(canvasProducts, connections, base44);
+                  } catch (e) {
+                    console.log('Could not generate system explanation:', e.message);
+                  }
+                }
 
                 // Export type flags
                 const isInstaller = exportType === 'installer' || exportType === 'documentation';
