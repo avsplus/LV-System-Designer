@@ -134,6 +134,7 @@ Only return URLs that:
       description: 'Professional proposal for client review',
       contents: [
         'Cover page with project details',
+        'AI-generated "How Your System Works" guide',
         'Scope of work summary',
         'Devices per room overview',
         'Bill of Materials with pricing',
