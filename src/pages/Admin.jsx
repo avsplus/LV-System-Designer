@@ -15,7 +15,7 @@ import {
 import { 
   Users, Settings, Shield, Search, Mail, 
   Crown, Pencil, Eye, ChevronLeft, MoreVertical,
-  UserPlus, Trash2, Activity
+  UserPlus, Trash2, Activity, Building2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,43 +26,43 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { usePermissions } from "../components/auth/usePermissions";
+import { useOrganization } from "../components/auth/useOrganization";
 import RoleBadge from "../components/auth/RoleBadge";
 import { ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, ROLE_COLORS } from "../components/auth/permissions";
 import ActivityFeed from "../components/activity/ActivityFeed";
+import { toast } from "sonner";
 
 export default function Admin() {
   const { user, userRole, canManage, assignableRoles, isAtLeast, loading: permLoading } = usePermissions();
+  const { organization, organizationId, refetchOrganization } = useOrganization();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState(ROLES.VIEWER);
   const queryClient = useQueryClient();
 
-  // Note: Base44 User entity has built-in security - only platform admins can list all users
-  // For non-admin users, we show them in the list if they have administrator organization_role
+  // Fetch users in this organization
   const { data: users = [], isLoading, error: usersError } = useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', organizationId],
     queryFn: async () => {
       try {
-        const userList = await base44.entities.User.list();
+        const userList = await base44.entities.User.filter({ organization_id: organizationId });
         return userList;
       } catch (error) {
-        console.error('Failed to fetch users - this may be a permissions issue:', error);
-        // If user can't list all users, at least return themselves
-        if (user) {
-          return [user];
-        }
+        console.error('Failed to fetch users:', error);
+        if (user) return [user];
         return [];
       }
     },
-    enabled: isAtLeast(ROLES.ADMINISTRATOR) && !permLoading,
+    enabled: isAtLeast(ROLES.ADMINISTRATOR) && !permLoading && !!organizationId,
     retry: 0
   });
 
+  // Fetch projects in this organization
   const { data: projects = [] } = useQuery({
-    queryKey: ['allProjects'],
-    queryFn: () => base44.entities.AVProject.list(),
-    enabled: isAtLeast(ROLES.ADMINISTRATOR)
+    queryKey: ['allProjects', organizationId],
+    queryFn: () => base44.entities.AVProject.filter({ organization_id: organizationId }),
+    enabled: isAtLeast(ROLES.ADMINISTRATOR) && !!organizationId
   });
 
   const updateRoleMutation = useMutation({
@@ -72,6 +72,16 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+    }
+  });
+
+  const updateOrgMutation = useMutation({
+    mutationFn: async (data) => {
+      await base44.entities.Organization.update(organizationId, data);
+    },
+    onSuccess: () => {
+      refetchOrganization();
+      toast.success('Organization updated');
     }
   });
 
@@ -183,6 +193,65 @@ export default function Admin() {
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
+            {/* Invite User Form */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <h3 className="text-white font-medium mb-3 flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Invite User
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  placeholder="Email address"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="flex-1 bg-gray-800 border-gray-700 text-white"
+                />
+                <Select value={inviteRole} onValueChange={setInviteRole}>
+                  <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    {assignableRoles().map((role) => (
+                      <SelectItem key={role} value={role}>
+                        <RoleBadge role={role} size="small" />
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={async () => {
+                    if (!inviteEmail) {
+                      toast.error('Please enter an email address');
+                      return;
+                    }
+                    try {
+                      // Send invitation email
+                      await base44.integrations.Core.SendEmail({
+                        to: inviteEmail,
+                        subject: `You've been invited to join ${organization?.name || 'an organization'}`,
+                        body: `
+                          <h2>You've been invited!</h2>
+                          <p>You've been invited to join <strong>${organization?.name || 'an organization'}</strong> on our AV Design platform.</p>
+                          <p>Role: <strong>${ROLE_LABELS[inviteRole]}</strong></p>
+                          <p>Click the link below to accept the invitation and create your account:</p>
+                          <p><a href="${window.location.origin}?org=${organizationId}&role=${inviteRole}">Accept Invitation</a></p>
+                        `
+                      });
+                      toast.success(`Invitation sent to ${inviteEmail}`);
+                      setInviteEmail('');
+                    } catch (error) {
+                      toast.error('Failed to send invitation');
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Send Invite
+                </Button>
+              </div>
+            </div>
+
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
@@ -334,8 +403,48 @@ export default function Admin() {
           {isAtLeast(ROLES.OWNER) && (
             <TabsContent value="settings" className="space-y-6">
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Organization Settings</h3>
-                <p className="text-gray-400">Organization and billing settings coming soon.</p>
+                <div className="flex items-center gap-3 mb-6">
+                  <Building2 className="w-6 h-6 text-blue-400" />
+                  <h3 className="text-lg font-semibold text-white">Organization Details</h3>
+                </div>
+                
+                <div className="space-y-4 max-w-md">
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Organization Name</label>
+                    <Input
+                      defaultValue={organization?.name || ''}
+                      onBlur={(e) => {
+                        if (e.target.value !== organization?.name) {
+                          updateOrgMutation.mutate({ name: e.target.value });
+                        }
+                      }}
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Organization ID</label>
+                    <Input
+                      value={organizationId || ''}
+                      disabled
+                      className="bg-gray-800/50 border-gray-700 text-gray-500"
+                    />
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-800">
+                    <h4 className="text-white font-medium mb-2">Organization Stats</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-400">Members</p>
+                        <p className="text-xl font-bold text-white">{users.length}</p>
+                      </div>
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-400">Projects</p>
+                        <p className="text-xl font-bold text-white">{projects.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           )}
