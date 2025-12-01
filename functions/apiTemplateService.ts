@@ -768,7 +768,13 @@ ${(() => {
     </tbody>
   </table>
 </section>
-        `;
+`;
+
+        // Assemble the final bodyHtml from parts
+        const bodyHtml = projectOverviewHtml + howSystemWorksHtml + clientSectionsHtml + installerSectionsHtml + deviceManualsHtml + signOffHtml;
+        
+        console.log('FINAL_ASSEMBLY: projectOverview=' + projectOverviewHtml.length + ', hsws=' + howSystemWorksHtml.length + ', client=' + clientSectionsHtml.length + ', installer=' + installerSectionsHtml.length + ', manuals=' + deviceManualsHtml.length + ', signoff=' + signOffHtml.length);
+        console.log('FINAL_BODY_HAS_HSWS:', bodyHtml.includes('How Your System Works'));
 
         // Template data payload - matches your template variables
         const templateData = {
