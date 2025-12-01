@@ -444,6 +444,9 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Data Migration */}
+                  <MigrateDataSection organizationId={organizationId} />
                 </div>
               </div>
             </TabsContent>
