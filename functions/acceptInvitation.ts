@@ -38,15 +38,17 @@ Deno.serve(async (req) => {
 
     let assignedRole = role;
     
-    // If there's a pending invite, use its role and mark it accepted
+    // If there's a pending invite, use its role and mark ALL matching invites as accepted
     if (pendingInvites && pendingInvites.length > 0) {
       const invite = pendingInvites[0];
       assignedRole = invite.organization_role;
       
-      // Mark invite as accepted
-      await base44.asServiceRole.entities.PendingInvite.update(invite.id, {
-        status: 'accepted'
-      });
+      // Mark ALL pending invites for this user as accepted (cleanup duplicates)
+      for (const inv of pendingInvites) {
+        await base44.asServiceRole.entities.PendingInvite.update(inv.id, {
+          status: 'accepted'
+        });
+      }
     }
 
     // Validate role
