@@ -77,6 +77,8 @@ Deno.serve(async (req) => {
       // ==========================================
 
       case 'generateInstallationPackage': {
+                console.log('=== GENERATE INSTALLATION PACKAGE START ===');
+                console.log('exportType received:', params.exportType);
                 // Generate AV installation package PDF using template ID
                 const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
                 const TEMPLATE_ID = 'c0377b23582ce40c';
