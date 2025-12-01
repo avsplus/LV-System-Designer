@@ -897,6 +897,43 @@ ${(() => {
 // AI SYSTEM EXPLANATION GENERATOR
 // ==========================================
 
+function generateFallbackExplanation(canvasProducts, connections) {
+  const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
+  if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
+  
+  const devicesByCategory = {};
+  canvasProducts.forEach(cp => {
+    const cat = cp.product?.category || 'other';
+    if (!devicesByCategory[cat]) devicesByCategory[cat] = [];
+    devicesByCategory[cat].push(cp);
+  });
+  
+  const hasMultiroom = devicesByCategory['multizone_amps']?.length > 0 || uniqueRooms.length > 1;
+  const hasHomeTheater = devicesByCategory['av_receivers']?.length > 0 || devicesByCategory['surround_processors']?.length > 0;
+  const hasStreaming = devicesByCategory['media_streamers']?.length > 0 || devicesByCategory['audio_streamers']?.length > 0;
+  
+  return `
+    <h2>System Overview</h2>
+    <p>Your audio/video system includes <strong>${canvasProducts.length}</strong> devices across <strong>${uniqueRooms.length}</strong> room(s), connected with <strong>${connections.length}</strong> integrated connections for seamless entertainment.</p>
+    
+    <h3>Rooms in Your System</h3>
+    <ul>
+      ${uniqueRooms.map(room => {
+        const count = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned')).length;
+        return '<li><strong>' + room + '</strong> - ' + count + ' device(s)</li>';
+      }).join('')}
+    </ul>
+    
+    <h3>Key Features</h3>
+    <ul>
+      ${hasMultiroom ? '<li>Multi-room audio capability - enjoy music throughout your home</li>' : ''}
+      ${hasHomeTheater ? '<li>Home theater setup for an immersive movie experience</li>' : ''}
+      ${hasStreaming ? '<li>Streaming devices for access to your favorite content</li>' : ''}
+      <li>Professional installation with ${connections.length} integrated connections</li>
+    </ul>
+  `;
+}
+
 async function generateSystemExplanation(canvasProducts, connections, base44) {
   // Build comprehensive system context for the AI
   const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
