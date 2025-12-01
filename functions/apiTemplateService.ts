@@ -240,33 +240,6 @@ Deno.serve(async (req) => {
         let clientSectionsHtml = '';
         if (isClient) {
           clientSectionsHtml = `
-<!-- Project Overview -->
-<section class="keep-together">
-  <h1>Project Overview</h1>
-
-  <div class="highlight">
-    <h3>Project Details</h3>
-    <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
-    <p><strong>Location:</strong> ${location || 'N/A'}</p>
-    <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
-    <p><strong>Document Type:</strong> ${exportTypeTitle}</p>
-  </div>
-
-  <div class="info-box">
-    <div class="info-box-title">System Summary</div>
-    <p>
-      <strong>${canvasProducts.length}</strong> Devices ·
-      <strong>${connections.length}</strong> Connections ·
-      <strong>${uniqueRooms.length}</strong> Rooms
-    </p>
-  </div>
-</section>
-
-<div class="page-break"></div>
-
-${howSystemWorksSection}
-
-${isClient ? `
 <!-- Scope of Work -->
 <section>
   <h1>Scope of Work</h1>
