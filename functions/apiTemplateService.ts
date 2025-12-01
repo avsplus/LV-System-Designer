@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
 
 <div class="page-break"></div>
 
-${isClient ? '<!-- CLIENT SECTION START -->' + howSystemWorksHtml + '<!-- CLIENT SECTION END -->' : '<!-- NOT CLIENT, SKIPPING HOW SYSTEM WORKS -->'}
+${howSystemWorksSection}
 
 ${isClient ? `
 <!-- Scope of Work -->
