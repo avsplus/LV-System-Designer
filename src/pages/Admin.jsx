@@ -448,6 +448,118 @@ function RolePermissionsList({ role }) {
   );
 }
 
+function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInviteRole, assignableRoles, organizationId, queryClient }) {
+  const [isSending, setIsSending] = useState(false);
+  
+  // Check if email matches existing user
+  const matchedUser = users.find(u => u.email?.toLowerCase() === inviteEmail.toLowerCase().trim());
+  const isExistingUser = !!matchedUser;
+  const hasNoRole = matchedUser && !matchedUser.organization_role;
+  
+  // Determine button state
+  let buttonText = 'Add Member';
+  let buttonIcon = UserPlus;
+  let buttonColor = 'bg-blue-600 hover:bg-blue-700';
+  
+  if (isExistingUser && hasNoRole) {
+    buttonText = 'Remove User';
+    buttonIcon = Trash2;
+    buttonColor = 'bg-red-600 hover:bg-red-700';
+  } else if (isExistingUser) {
+    buttonText = 'Send Invite';
+    buttonIcon = Mail;
+    buttonColor = 'bg-green-600 hover:bg-green-700';
+  }
+  
+  const handleAction = async () => {
+    if (!inviteEmail.trim()) {
+      toast.error('Please enter an email address');
+      return;
+    }
+    
+    setIsSending(true);
+    try {
+      if (isExistingUser && hasNoRole) {
+        // Remove user from organization
+        await base44.entities.User.update(matchedUser.id, { 
+          organization_id: null,
+          organization_role: null 
+        });
+        toast.success('User removed from organization');
+        queryClient.invalidateQueries({ queryKey: ['users'] });
+      } else if (isExistingUser) {
+        // Send invite email to existing user
+        const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
+        await base44.integrations.Core.SendEmail({
+          to: inviteEmail.trim(),
+          subject: 'You have been invited to join an organization',
+          body: `You have been invited to join an organization.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nRole: ${inviteRole}`
+        });
+        toast.success('Invitation email sent!');
+      } else {
+        // Copy invite link for non-existing user
+        const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
+        navigator.clipboard.writeText(inviteUrl);
+        toast.success('Invite link copied! Share it with the user to add them to the app.');
+      }
+      setInviteEmail('');
+    } catch (error) {
+      toast.error(error.message || 'Action failed');
+    } finally {
+      setIsSending(false);
+    }
+  };
+  
+  const ButtonIcon = buttonIcon;
+  
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+      <h3 className="text-white font-medium mb-3 flex items-center gap-2">
+        <UserPlus className="w-4 h-4" />
+        Invite User
+      </h3>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Input
+          placeholder="Email address"
+          type="email"
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+          className="flex-1 bg-gray-800 border-gray-700 text-white"
+        />
+        <Select value={inviteRole} onValueChange={setInviteRole}>
+          <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-gray-800 border-gray-700">
+            {assignableRoles().map((role) => (
+              <SelectItem key={role} value={role}>
+                <RoleBadge role={role} size="small" />
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button 
+          onClick={handleAction}
+          disabled={isSending || !inviteEmail.trim()}
+          className={buttonColor}
+        >
+          {isSending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <ButtonIcon className="w-4 h-4 mr-2" />
+          )}
+          {buttonText}
+        </Button>
+      </div>
+      {!isExistingUser && inviteEmail.trim() && (
+        <p className="text-xs text-gray-500 mt-2">
+          This email is not in the app yet. The invite link will be copied to your clipboard.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function MigrateDataSection({ organizationId }) {
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState(null);
