@@ -125,7 +125,7 @@ import { toast } from "sonner";
 import { useSettings } from "../components/settings/SettingsContext";
 import { useOrganization } from "../components/auth/useOrganization";
 import { useSubscription } from "../components/subscription/useSubscription";
-import UpgradePrompt from "../components/subscription/UpgradePrompt";
+import UpgradePrompt from "@/components/subscription/UpgradePrompt";
 
 const TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
