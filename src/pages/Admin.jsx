@@ -560,9 +560,22 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
         // Generate invite link
         const inviteUrl = `https://avsystemdesign.com?org=${organizationId}&role=${inviteRole}`;
         
+        // Send invite email
+        try {
+          await base44.functions.invoke('sendInviteEmail', {
+            email: inviteEmail.trim().toLowerCase(),
+            role: inviteRole,
+            organizationId: organizationId,
+            inviteUrl: inviteUrl
+          });
+          toast.success('Invitation email sent!');
+        } catch (emailError) {
+          console.error('Failed to send invite email:', emailError);
+          // Still show the link as fallback
+        }
+        
         // Show the invite link for manual sharing
         setShowInviteLink(inviteUrl);
-        toast.success('Invite created! Share the link below with the user.');
       }
     } catch (error) {
       toast.error(error.message || 'Action failed');
