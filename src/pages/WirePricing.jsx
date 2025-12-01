@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
+import { useOrgFilter } from "../components/auth/useOrganization";
 
 const connectionTypes = [
   "HDMI", "HDBaseT", "Ethernet", "Optical", "RCA", "XLR", 
@@ -33,19 +34,21 @@ const defaultWireSpecs = {
 export default function WirePricingPage() {
   const { isAtLeast, loading: permLoading } = usePermissions();
   const queryClient = useQueryClient();
+  const { orgFilter, organizationId, isLoading: orgLoading } = useOrgFilter();
   const [newEntry, setNewEntry] = useState({ wire_type: '', wire_spec: '', material_price_per_foot: '', labor_price_per_run: '', termination_price: '' });
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
 
   const { data: wirePricing = [], isLoading } = useQuery({
-    queryKey: ['wirePricing'],
-    queryFn: () => base44.entities.WirePricing.list()
+    queryKey: ['wirePricing', organizationId],
+    queryFn: () => base44.entities.WirePricing.filter(orgFilter),
+    enabled: !!organizationId
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.WirePricing.create(data),
+    mutationFn: (data) => base44.entities.WirePricing.create({ ...data, organization_id: organizationId }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['wirePricing']);
+      queryClient.invalidateQueries(['wirePricing', organizationId]);
       setNewEntry({ wire_type: '', wire_spec: '', material_price_per_foot: '', labor_price_per_run: '', termination_price: '' });
     }
   });
@@ -53,14 +56,14 @@ export default function WirePricingPage() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WirePricing.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['wirePricing']);
+      queryClient.invalidateQueries(['wirePricing', organizationId]);
       setEditingId(null);
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.WirePricing.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['wirePricing'])
+    onSuccess: () => queryClient.invalidateQueries(['wirePricing', organizationId])
   });
 
   const canEdit = isAtLeast(ROLES.ADMINISTRATOR);
