@@ -278,7 +278,6 @@ export default function DeviceManager() {
             </div>
           </div>
         )}
-        </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
           <div className="flex gap-4 items-center">
