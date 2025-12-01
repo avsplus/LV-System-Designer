@@ -5,9 +5,25 @@ const stripe = new Stripe(Deno.env.get('STRIPE_API_KEY'));
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
 Deno.serve(async (req) => {
-  // Handle non-POST requests (Stripe always uses POST)
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, stripe-signature'
+      }
+    });
+  }
+
+  // Stripe webhooks are always POST
   if (req.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+    console.log('Received non-POST request:', req.method);
+    return new Response(JSON.stringify({ error: 'Method not allowed', method: req.method }), { 
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   try {
