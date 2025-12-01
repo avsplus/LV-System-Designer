@@ -450,6 +450,8 @@ function RolePermissionsList({ role }) {
 
 function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInviteRole, assignableRoles, organizationId, queryClient }) {
   const [isSending, setIsSending] = useState(false);
+  const [showInviteLink, setShowInviteLink] = useState(null);
+  const [copied, setCopied] = useState(false);
   
   // Check if email matches existing user in the app
   const matchedUser = users.find(u => u.email?.toLowerCase() === inviteEmail.toLowerCase().trim());
