@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
-export default function NoOrganization() {
+export default function NoOrganization({ pendingInvite }) {
   const [isAccepting, setIsAccepting] = useState(false);
   const [inviteParams, setInviteParams] = useState(null);
 
@@ -16,8 +16,14 @@ export default function NoOrganization() {
     
     if (org) {
       setInviteParams({ organization_id: org, role: role || 'viewer' });
+    } else if (pendingInvite) {
+      // Use pending invite from database
+      setInviteParams({ 
+        organization_id: pendingInvite.organization_id, 
+        role: pendingInvite.organization_role || 'viewer' 
+      });
     }
-  }, []);
+  }, [pendingInvite]);
 
   const handleAcceptInvitation = async () => {
     if (!inviteParams) return;
