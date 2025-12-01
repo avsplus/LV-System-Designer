@@ -7,12 +7,22 @@ const SettingsContext = createContext(null);
 export function SettingsProvider({ children }) {
   const queryClient = useQueryClient();
 
+  // Get current user first
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 5 * 60 * 1000,
+    retry: false
+  });
+
   const { data: settings, isLoading, refetch } = useQuery({
-    queryKey: ['orgSettings'],
+    queryKey: ['orgSettings', user?.organization_id],
     queryFn: async () => {
-      const list = await base44.entities.OrganizationSettings.list();
-      return list[0] || getDefaultSettings();
+      if (!user?.organization_id) return getDefaultSettings();
+      const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
+      return orgs[0] || getDefaultSettings();
     },
+    enabled: !!user,
     staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true
@@ -33,7 +43,7 @@ export function SettingsProvider({ children }) {
   }, [currentSettings.primary_color, currentSettings.secondary_color, currentSettings.canvas_theme]);
 
   const refreshSettings = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
+    await queryClient.invalidateQueries({ queryKey: ['orgSettings', user?.organization_id] });
     await refetch();
   };
 
@@ -61,7 +71,7 @@ export function useSettings() {
 
 function getDefaultSettings() {
   return {
-    organization_name: '',
+    name: '',
     logo_url: '',
     primary_color: '#3b82f6',
     secondary_color: '#1e40af',
@@ -71,6 +81,11 @@ function getDefaultSettings() {
     grid_size: 20,
     default_zoom: 1,
     auto_save: true,
+    labor_rates: {
+      equipment_installation_rate: 0,
+      system_programming_rate: 0,
+      design_engineering_rate: 0
+    },
     device_custom_fields: [],
     project_metadata_fields: [],
     export_template: {
