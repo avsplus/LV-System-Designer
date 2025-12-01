@@ -173,17 +173,22 @@ SYSTEM DETAILS:
 - ${connections.length} connections
 - Rooms: ${uniqueRooms.join(', ')}
 
-DEVICES BY TYPE:
-${Object.entries(devicesByCategory).map(([cat, devices]) => `- ${cat.replace(/_/g, ' ')}: ${devices.map(d => d.label || d.product?.brand + ' ' + d.product?.model).join(', ')}`).join('\n')}
+DEVICES (use these EXACT brand names and models when referring to equipment - NEVER use labels like "AVR-K-1" or "MS-K-1"):
+${Object.entries(devicesByCategory).map(([cat, devices]) => `- ${cat.replace(/_/g, ' ')}: ${devices.map(d => d.product?.brand + ' ' + d.product?.model).join(', ')}`).join('\n')}
 
 CONNECTIONS: ${connectionDescriptions}
 
+IMPORTANT RULES:
+- ALWAYS refer to devices by their actual BRAND NAME and MODEL (e.g., "Denon AVR-X3800H receiver", "Apple TV 4K", "Samsung QN65Q80B TV")
+- NEVER use internal labels like "AVR-K-1", "MS-K-1", "TV-K-1", "SPK-K-1" etc.
+- Write for someone who doesn't know technical terms
+
 Write 3-4 paragraphs explaining:
 1. What they can DO with this system (watch movies, listen to music, etc.)
-2. How the main pieces work together in simple terms
+2. How the main pieces work together - refer to each device by its actual brand and model name
 3. Practical tips like "To watch a movie, simply..." or "To play music throughout the house..."
 
-Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful. Avoid technical jargon.`;
+Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
 
             const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
               prompt: prompt,
