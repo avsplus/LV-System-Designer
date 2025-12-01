@@ -127,23 +127,39 @@ Deno.serve(async (req) => {
         // Build HTML parts
         let bodyHtml = '';
 
+        // Build table of contents based on export type
+        let tocItems = ['Project Overview'];
+        if (isClient) {
+          tocItems.push('How Your System Works', 'Scope of Work', 'Equipment by Room', 'Bill of Materials');
+        }
+        if (isInstaller) {
+          tocItems.push('Device Documentation', 'Wire Schedule');
+        }
+        tocItems.push(isClient ? 'Proposal Acceptance' : 'Installation Sign-off');
+
+        const tocHtml = tocItems.map((item, i) => `<li>${i + 1}. ${item}</li>`).join('');
+
         // Part 1: Project Overview (always)
         bodyHtml += `
-<section class="keep-together">
-  <h1>Project Overview</h1>
-  <div class="highlight">
-    <h3>Project Details</h3>
-    <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
-    <p><strong>Location:</strong> ${location || 'N/A'}</p>
-    <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
-    <p><strong>Document Type:</strong> ${exportTypeTitle}</p>
-  </div>
-  <div class="info-box">
-    <div class="info-box-title">System Summary</div>
-    <p><strong>${canvasProducts.length}</strong> Devices · <strong>${connections.length}</strong> Connections · <strong>${uniqueRooms.length}</strong> Rooms</p>
-  </div>
-</section>
-<div class="page-break"></div>`;
+        <section class="keep-together">
+        <h1>Project Overview</h1>
+        <div class="highlight">
+        <h3>Project Details</h3>
+        <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
+        <p><strong>Location:</strong> ${location || 'N/A'}</p>
+        <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
+        <p><strong>Document Type:</strong> ${exportTypeTitle}</p>
+        </div>
+        <div class="info-box">
+        <div class="info-box-title">System Summary</div>
+        <p><strong>${canvasProducts.length}</strong> Devices · <strong>${connections.length}</strong> Connections · <strong>${uniqueRooms.length}</strong> Rooms</p>
+        </div>
+        <div style="margin-top:20px;">
+        <h3>Table of Contents</h3>
+        <ol style="margin-left:20px;">${tocHtml}</ol>
+        </div>
+        </section>
+        <div class="page-break"></div>`;
 
         // Part 2: How Your System Works (CLIENT ONLY)
         if (isClient) {
