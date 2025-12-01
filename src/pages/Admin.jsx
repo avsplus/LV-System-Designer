@@ -451,24 +451,27 @@ function RolePermissionsList({ role }) {
 function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInviteRole, assignableRoles, organizationId, queryClient }) {
   const [isSending, setIsSending] = useState(false);
   
-  // Check if email matches existing user
+  // Check if email matches existing user in the app
   const matchedUser = users.find(u => u.email?.toLowerCase() === inviteEmail.toLowerCase().trim());
   const isExistingUser = !!matchedUser;
-  const hasNoRole = matchedUser && !matchedUser.organization_role;
+  const isInOrganization = matchedUser?.organization_id === organizationId;
   
   // Determine button state
   let buttonText = 'Add Member';
   let buttonIcon = UserPlus;
   let buttonColor = 'bg-blue-600 hover:bg-blue-700';
+  let helperText = 'User not in app. First invite them via Base44 dashboard, then send org invite.';
   
-  if (isExistingUser && hasNoRole) {
+  if (isExistingUser && isInOrganization) {
     buttonText = 'Remove User';
     buttonIcon = Trash2;
     buttonColor = 'bg-red-600 hover:bg-red-700';
+    helperText = 'This user is already in your organization.';
   } else if (isExistingUser) {
     buttonText = 'Send Invite';
     buttonIcon = Mail;
     buttonColor = 'bg-green-600 hover:bg-green-700';
+    helperText = 'User exists in app. Click to send organization invite email.';
   }
   
   const handleAction = async () => {
@@ -479,7 +482,7 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
     
     setIsSending(true);
     try {
-      if (isExistingUser && hasNoRole) {
+      if (isExistingUser && isInOrganization) {
         // Remove user from organization
         await base44.entities.User.update(matchedUser.id, { 
           organization_id: null,
@@ -487,8 +490,9 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
         });
         toast.success('User removed from organization');
         queryClient.invalidateQueries({ queryKey: ['users'] });
+        setInviteEmail('');
       } else if (isExistingUser) {
-        // Send invite email to existing user
+        // Send invite email to existing app user
         const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
         await base44.integrations.Core.SendEmail({
           to: inviteEmail.trim(),
@@ -496,13 +500,11 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
           body: `You have been invited to join an organization.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nRole: ${inviteRole}`
         });
         toast.success('Invitation email sent!');
+        setInviteEmail('');
       } else {
-        // Copy invite link for non-existing user
-        const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
-        navigator.clipboard.writeText(inviteUrl);
-        toast.success('Invite link copied! Share it with the user to add them to the app.');
+        // User not in app - show instructions
+        toast.info('First add this user to the app via Base44 dashboard → Settings → Invite User, then come back to send the org invite.');
       }
-      setInviteEmail('');
     } catch (error) {
       toast.error(error.message || 'Action failed');
     } finally {
@@ -551,10 +553,8 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
           {buttonText}
         </Button>
       </div>
-      {!isExistingUser && inviteEmail.trim() && (
-        <p className="text-xs text-gray-500 mt-2">
-          This email is not in the app yet. The invite link will be copied to your clipboard.
-        </p>
+      {inviteEmail.trim() && (
+        <p className="text-xs text-gray-500 mt-2">{helperText}</p>
       )}
     </div>
   );
