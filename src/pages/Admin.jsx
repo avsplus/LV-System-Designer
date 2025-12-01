@@ -220,34 +220,15 @@ export default function Admin() {
                   </SelectContent>
                 </Select>
                 <Button 
-                  onClick={async () => {
-                    if (!inviteEmail) {
-                      toast.error('Please enter an email address');
-                      return;
-                    }
-                    try {
-                      // Send invitation email
-                      await base44.integrations.Core.SendEmail({
-                        to: inviteEmail,
-                        subject: `You've been invited to join ${organization?.name || 'an organization'}`,
-                        body: `
-                          <h2>You've been invited!</h2>
-                          <p>You've been invited to join <strong>${organization?.name || 'an organization'}</strong> on our AV Design platform.</p>
-                          <p>Role: <strong>${ROLE_LABELS[inviteRole]}</strong></p>
-                          <p>Click the link below to accept the invitation and create your account:</p>
-                          <p><a href="${window.location.origin}?org=${organizationId}&role=${inviteRole}">Accept Invitation</a></p>
-                        `
-                      });
-                      toast.success(`Invitation sent to ${inviteEmail}`);
-                      setInviteEmail('');
-                    } catch (error) {
-                      toast.error('Failed to send invitation');
-                    }
+                  onClick={() => {
+                    const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
+                    navigator.clipboard.writeText(inviteUrl);
+                    toast.success('Invite link copied to clipboard! Share it with the user.');
                   }}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <Mail className="w-4 h-4 mr-2" />
-                  Send Invite
+                  Copy Invite Link
                 </Button>
               </div>
             </div>
