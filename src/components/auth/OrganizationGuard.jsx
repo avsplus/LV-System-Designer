@@ -39,7 +39,7 @@ export default function OrganizationGuard({ children }) {
     staleTime: 30 * 1000
   });
 
-  if (isLoading || (user && !hasOrganization && (orgsLoading || invitesLoading))) {
+  if (isLoading || (user && (orgsLoading || invitesLoading))) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
@@ -47,14 +47,19 @@ export default function OrganizationGuard({ children }) {
     );
   }
 
+  // Check if user has pending invites in the database
+  const hasPendingInvite = pendingInvites && pendingInvites.length > 0;
+
+  // User has organization but is pending approval
+  if (user && hasOrganization && user.status === 'pending') {
+    return <PendingApproval />;
+  }
+
   // User exists but has no organization
   if (user && !hasOrganization) {
     // Check URL for invitation params first
     const urlParams = new URLSearchParams(window.location.search);
     const hasInviteUrl = urlParams.get('org');
-    
-    // Check if user has pending invites in the database
-    const hasPendingInvite = pendingInvites && pendingInvites.length > 0;
     
     // If no organizations exist at all and no pending invites, show setup flow
     if (!hasInviteUrl && !hasPendingInvite && (!allOrgs || allOrgs.length === 0)) {
@@ -65,10 +70,8 @@ export default function OrganizationGuard({ children }) {
     return <NoOrganization pendingInvite={hasPendingInvite ? pendingInvites[0] : null} />;
   }
 
-  // User has organization but is pending approval
-  if (user && hasOrganization && user.status === 'pending') {
-    return <PendingApproval />;
-  }
+  // User has organization but has a pending invite to a DIFFERENT org - they need to accept/decline
+  // For now, let them through since they already belong to an org
 
   return children;
 }
