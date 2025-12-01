@@ -187,6 +187,22 @@ Deno.serve(async (req) => {
 
 <div class="page-break"></div>
 
+${isClient && systemExplanation ? `
+<!-- How Your System Works -->
+<section>
+  <h1>How Your System Works</h1>
+  
+  <div class="info-box">
+    <div class="info-box-title">Your AV System Overview</div>
+    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>
+  </div>
+
+  ${systemExplanation}
+</section>
+
+<div class="page-break"></div>
+` : ''}
+
 ${isClient ? `
 <!-- Scope of Work -->
 <section>
