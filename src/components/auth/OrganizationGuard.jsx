@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Loader2 } from "lucide-react";
 import NoOrganization from "../../pages/NoOrganization";
 import SetupOrganization from "../../pages/SetupOrganization";
+import PendingApproval from "../../pages/PendingApproval";
 
 export default function OrganizationGuard({ children }) {
   const { isLoading, hasOrganization, user } = useOrganization();
@@ -38,6 +39,11 @@ export default function OrganizationGuard({ children }) {
     
     // Otherwise show the no-org/invitation page
     return <NoOrganization />;
+  }
+
+  // User has organization but is pending approval
+  if (user && hasOrganization && user.status === 'pending') {
+    return <PendingApproval />;
   }
 
   return children;
