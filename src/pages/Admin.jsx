@@ -194,44 +194,16 @@ export default function Admin() {
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
             {/* Invite User Form */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-              <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                Invite User
-              </h3>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Input
-                  placeholder="Email address"
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  className="flex-1 bg-gray-800 border-gray-700 text-white"
-                />
-                <Select value={inviteRole} onValueChange={setInviteRole}>
-                  <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    {assignableRoles().map((role) => (
-                      <SelectItem key={role} value={role}>
-                        <RoleBadge role={role} size="small" />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  onClick={() => {
-                    const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
-                    navigator.clipboard.writeText(inviteUrl);
-                    toast.success('Invite link copied to clipboard! Share it with the user.');
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Copy Invite Link
-                </Button>
-              </div>
-            </div>
+            <InviteUserForm 
+              users={users}
+              inviteEmail={inviteEmail}
+              setInviteEmail={setInviteEmail}
+              inviteRole={inviteRole}
+              setInviteRole={setInviteRole}
+              assignableRoles={assignableRoles}
+              organizationId={organizationId}
+              queryClient={queryClient}
+            />
 
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
