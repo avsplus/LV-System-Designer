@@ -481,9 +481,13 @@ ${isClient ? `
 </section>
 
 <div class="page-break"></div>
-` : ''}
+`;
+        } // end if (isClient) for clientSectionsHtml
 
-${isInstaller ? `
+        // Part 4: Installer sections (Device Documentation, Wire Schedule, Room Overview)
+        let installerSectionsHtml = '';
+        if (isInstaller) {
+          installerSectionsHtml = `
 <!-- Device Documentation -->
 <section>
   <h1>Device Documentation</h1>
