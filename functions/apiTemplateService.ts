@@ -732,9 +732,12 @@ ${(() => {
 
 <div class="page-break"></div>
 `;
-})()}
-` : ''}
+          })()}
+`;
+        } // end if (isInstaller) for deviceManualsHtml
 
+        // Part 6: Sign-off (always included)
+        const signOffHtml = `
 <!-- Sign-off -->
 <section class="keep-together">
   <h1>${isClient ? 'Proposal Acceptance' : 'Installation Sign-off'}</h1>
