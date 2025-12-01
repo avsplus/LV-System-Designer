@@ -154,10 +154,11 @@ Deno.serve(async (req) => {
         <div class="info-box-title">System Summary</div>
         <p><strong>${canvasProducts.length}</strong> Devices · <strong>${connections.length}</strong> Connections · <strong>${uniqueRooms.length}</strong> Rooms</p>
         </div>
-        <div style="margin-top:20px;">
-        <h3>Table of Contents</h3>
-        <ol style="margin-left:20px;">${tocHtml}</ol>
-        </div>
+        </section>
+        <div class="page-break"></div>
+        <section>
+        <h1>Table of Contents</h1>
+        <ol style="margin-left:20px; font-size:14px; line-height:2;">${tocHtml}</ol>
         </section>
         <div class="page-break"></div>`;
 
