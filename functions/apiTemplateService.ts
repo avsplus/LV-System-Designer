@@ -174,43 +174,40 @@ Deno.serve(async (req) => {
         const networkedCount = canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length;
         
         // Build "How Your System Works" section - only for client exports
-        console.log('=== DEBUG: Building How Your System Works ===');
-        console.log('exportType:', exportType);
-        console.log('isClient:', isClient);
+        console.log('HSWS_DEBUG: exportType=' + exportType + ', isClient=' + isClient);
         
-        // Build this section as a plain string variable BEFORE the template literal
+        // Build this section as a plain string using concatenation to avoid template issues
         let howSystemWorksSection = '';
         if (isClient) {
-          howSystemWorksSection = `
-<!-- How Your System Works -->
-<section>
-  <h1>How Your System Works</h1>
-  
-  <div class="info-box">
-    <div class="info-box-title">Your AV System Overview</div>
-    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>
-  </div>
-
-  <h2>System Overview</h2>
-  <p>Your audio/video system includes <strong>${canvasProducts.length}</strong> devices across <strong>${uniqueRooms.length}</strong> room(s), connected with <strong>${connections.length}</strong> integrated connections for seamless entertainment.</p>
-  
-  <h3>Rooms in Your System</h3>
-  <ul>
-    ${roomsList}
-  </ul>
-  
-  <h3>Key Features</h3>
-  <ul>
-    <li>Professional installation with ${connections.length} integrated connections</li>
-    <li>Multi-room capability across ${uniqueRooms.length} spaces</li>
-    <li>${networkedCount} networked devices for smart home integration</li>
-  </ul>
-</section>
-
-<div class="page-break"></div>`;
-          console.log('howSystemWorksSection built, length:', howSystemWorksSection.length);
-        } else {
-          console.log('Skipping How Your System Works - not a client export');
+          howSystemWorksSection = [
+            '<!-- How Your System Works -->',
+            '<section>',
+            '  <h1>How Your System Works</h1>',
+            '  ',
+            '  <div class="info-box">',
+            '    <div class="info-box-title">Your AV System Overview</div>',
+            '    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>',
+            '  </div>',
+            '',
+            '  <h2>System Overview</h2>',
+            '  <p>Your audio/video system includes <strong>' + canvasProducts.length + '</strong> devices across <strong>' + uniqueRooms.length + '</strong> room(s), connected with <strong>' + connections.length + '</strong> integrated connections for seamless entertainment.</p>',
+            '  ',
+            '  <h3>Rooms in Your System</h3>',
+            '  <ul>',
+            '    ' + roomsList,
+            '  </ul>',
+            '  ',
+            '  <h3>Key Features</h3>',
+            '  <ul>',
+            '    <li>Professional installation with ' + connections.length + ' integrated connections</li>',
+            '    <li>Multi-room capability across ' + uniqueRooms.length + ' spaces</li>',
+            '    <li>' + networkedCount + ' networked devices for smart home integration</li>',
+            '  </ul>',
+            '</section>',
+            '',
+            '<div class="page-break"></div>'
+          ].join('\n');
+          console.log('HSWS_DEBUG: section built, length=' + howSystemWorksSection.length);
         }
         
         const bodyHtml = `
