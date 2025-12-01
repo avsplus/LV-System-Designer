@@ -519,13 +519,18 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
         
         // Send invite email - use the published app URL
         const inviteUrl = `https://avsystemdesign.com?org=${organizationId}&role=${inviteRole}`;
-        await base44.integrations.Core.SendEmail({
-          to: inviteEmail.trim(),
-          subject: 'You have been invited to join an organization',
-          body: `You have been invited to join an organization.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nRole: ${inviteRole}\n\nThis invitation expires in 7 days.`
-        });
-        
-        toast.success('Invitation sent!');
+        try {
+          const emailResult = await base44.integrations.Core.SendEmail({
+            to: inviteEmail.trim(),
+            subject: 'You have been invited to join AV System Design',
+            body: `You have been invited to join an organization on AV System Design.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nRole: ${inviteRole}\n\nThis invitation expires in 7 days.`
+          });
+          console.log('Email result:', emailResult);
+          toast.success('Invitation sent!');
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError);
+          toast.warning('Invite created but email may not have been sent. Share this link manually: ' + inviteUrl);
+        }
         setInviteEmail('');
       }
     } catch (error) {
