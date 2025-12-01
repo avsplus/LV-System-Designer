@@ -96,6 +96,24 @@ Deno.serve(async (req) => {
         }
         break;
       }
+
+      case 'invoice.paid': {
+        const invoice = event.data.object;
+        
+        // Reactivate subscription after successful payment
+        if (invoice.subscription) {
+          const subs = await base44.asServiceRole.entities.Subscription.filter({
+            stripe_subscription_id: invoice.subscription
+          });
+
+          if (subs.length > 0 && subs[0].status === 'past_due') {
+            await base44.asServiceRole.entities.Subscription.update(subs[0].id, {
+              status: 'active'
+            });
+          }
+        }
+        break;
+      }
     }
 
     return Response.json({ received: true });

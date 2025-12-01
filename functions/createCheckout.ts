@@ -58,6 +58,12 @@ Deno.serve(async (req) => {
         user_email: user.email,
         plan: plan
       },
+      subscription_data: {
+        metadata: {
+          organization_id: user.organization_id,
+          plan: plan
+        }
+      },
       customer_email: customerId ? undefined : user.email,
       customer: customerId || undefined
     };
