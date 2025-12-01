@@ -43,20 +43,25 @@ export default function Admin() {
   const queryClient = useQueryClient();
 
   // Fetch users in this organization
+  // Note: User entity has special security rules - only admins can list other users
   const { data: users = [], isLoading, error: usersError } = useQuery({
     queryKey: ['users', organizationId],
     queryFn: async () => {
       try {
+        // Fetch all users in the organization
         const userList = await base44.entities.User.filter({ organization_id: organizationId });
-        return userList;
+        console.log('Fetched users:', userList?.length, 'for org:', organizationId);
+        return userList || [];
       } catch (error) {
         console.error('Failed to fetch users:', error);
+        // If we can't fetch users list, at least show current user
         if (user) return [user];
         return [];
       }
     },
     enabled: isAtLeast(ROLES.ADMINISTRATOR) && !permLoading && !!organizationId,
-    retry: 0
+    retry: 1,
+    staleTime: 30000 // 30 seconds
   });
 
   // Fetch projects in this organization
