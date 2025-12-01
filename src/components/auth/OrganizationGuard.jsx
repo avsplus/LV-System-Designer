@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOrganization } from './useOrganization';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -6,8 +6,16 @@ import { Loader2 } from "lucide-react";
 import NoOrganization from "../../pages/NoOrganization";
 import SetupOrganization from "../../pages/SetupOrganization";
 import PendingApproval from "../../pages/PendingApproval";
+import Landing from "../../pages/Landing";
 
 export default function OrganizationGuard({ children }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+  // Check authentication status first
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(setIsAuthenticated).catch(() => setIsAuthenticated(false));
+  }, []);
+
   const { isLoading, hasOrganization, user } = useOrganization();
 
   // Check if any organizations exist (for first-time setup)
@@ -39,8 +47,13 @@ export default function OrganizationGuard({ children }) {
     staleTime: 30 * 1000
   });
 
-  // Show loading while fetching user data
-  if (isLoading || !user) {
+  // Show landing page for non-authenticated users
+  if (isAuthenticated === false) {
+    return <Landing />;
+  }
+
+  // Show loading while checking auth or fetching user data
+  if (isAuthenticated === null || isLoading || !user) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
