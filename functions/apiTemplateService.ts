@@ -173,19 +173,45 @@ Deno.serve(async (req) => {
         }).join('');
         const networkedCount = canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length;
         
-        // Always generate "How Your System Works" HTML for client exports
+        // Build "How Your System Works" section - only for client exports
         console.log('=== DEBUG: Building How Your System Works ===');
         console.log('exportType:', exportType);
         console.log('isClient:', isClient);
-        console.log('isInstaller:', isInstaller);
-        console.log('roomsList:', roomsList);
-        console.log('networkedCount:', networkedCount);
         
-        const howSystemWorksHtml = '<!-- How Your System Works -->\n<section>\n  <h1>How Your System Works</h1>\n  \n  <div class="info-box">\n    <div class="info-box-title">Your AV System Overview</div>\n    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>\n  </div>\n\n  <h2>System Overview</h2>\n  <p>Your audio/video system includes <strong>' + canvasProducts.length + '</strong> devices across <strong>' + uniqueRooms.length + '</strong> room(s), connected with <strong>' + connections.length + '</strong> integrated connections for seamless entertainment.</p>\n  \n  <h3>Rooms in Your System</h3>\n  <ul>\n    ' + roomsList + '\n  </ul>\n  \n  <h3>Key Features</h3>\n  <ul>\n    <li>Professional installation with ' + connections.length + ' integrated connections</li>\n    <li>Multi-room capability across ' + uniqueRooms.length + ' spaces</li>\n    <li>' + networkedCount + ' networked devices for smart home integration</li>\n  </ul>\n</section>\n\n<div class="page-break"></div>';
-        
-        console.log('=== howSystemWorksHtml GENERATED ===');
-        console.log('Length:', howSystemWorksHtml.length);
-        console.log('First 200 chars:', howSystemWorksHtml.substring(0, 200));
+        // Build this section as a plain string variable BEFORE the template literal
+        let howSystemWorksSection = '';
+        if (isClient) {
+          howSystemWorksSection = `
+<!-- How Your System Works -->
+<section>
+  <h1>How Your System Works</h1>
+  
+  <div class="info-box">
+    <div class="info-box-title">Your AV System Overview</div>
+    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>
+  </div>
+
+  <h2>System Overview</h2>
+  <p>Your audio/video system includes <strong>${canvasProducts.length}</strong> devices across <strong>${uniqueRooms.length}</strong> room(s), connected with <strong>${connections.length}</strong> integrated connections for seamless entertainment.</p>
+  
+  <h3>Rooms in Your System</h3>
+  <ul>
+    ${roomsList}
+  </ul>
+  
+  <h3>Key Features</h3>
+  <ul>
+    <li>Professional installation with ${connections.length} integrated connections</li>
+    <li>Multi-room capability across ${uniqueRooms.length} spaces</li>
+    <li>${networkedCount} networked devices for smart home integration</li>
+  </ul>
+</section>
+
+<div class="page-break"></div>`;
+          console.log('howSystemWorksSection built, length:', howSystemWorksSection.length);
+        } else {
+          console.log('Skipping How Your System Works - not a client export');
+        }
         
         const bodyHtml = `
 <!-- Project Overview -->
