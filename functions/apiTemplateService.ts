@@ -302,14 +302,43 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
           
           let bomRows = Object.values(grouped).map(item => `<tr><td>${(item.product?.category || '').replace(/_/g, ' ')}</td><td><strong>${item.product?.brand || ''}</strong> ${item.product?.model || ''}</td><td style="text-align:center;">${item.count}</td><td style="text-align:right;">$${(item.product?.price || 0).toLocaleString()}</td><td style="text-align:right;">$${(((item.product?.price || 0) + (item.product?.installation_labor || 0)) * item.count).toLocaleString()}</td></tr>`).join('');
 
+          // Calculate wire/cable costs
+          const wireCounts = {};
+          let totalWireMaterialCost = 0;
+          connections.forEach(conn => {
+            const wireType = conn.type || 'Unknown';
+            const wireSpec = conn.wireSpec || '';
+            const key = `${wireType}${wireSpec ? ' (' + wireSpec + ')' : ''}`;
+            if (!wireCounts[key]) {
+              wireCounts[key] = { count: 0, type: wireType, spec: wireSpec, materialCost: 0 };
+            }
+            wireCounts[key].count++;
+            const pricing = wirePricingData.find(wp => wp.wire_type?.toLowerCase() === wireType.toLowerCase());
+            if (pricing?.material_price_per_foot) {
+              // Estimate 50ft per run as default
+              const estLength = conn.length || 50;
+              wireCounts[key].materialCost += pricing.material_price_per_foot * estLength;
+              totalWireMaterialCost += pricing.material_price_per_foot * estLength;
+            }
+          });
+
+          let wireRows = Object.entries(wireCounts).map(([key, data]) => {
+            return `<tr><td>Cable/Wire</td><td><strong>${data.type}</strong> ${data.spec}</td><td style="text-align:center;">${data.count} run${data.count > 1 ? 's' : ''}</td><td style="text-align:right;">-</td><td style="text-align:right;">${data.materialCost > 0 ? '$' + data.materialCost.toLocaleString() : 'TBD'}</td></tr>`;
+          }).join('');
+
+          const equipmentSubtotal = totalDevicePrice + totalInstallLabor;
+          const materialsSubtotal = equipmentSubtotal + totalWireMaterialCost;
+
           bodyHtml += `
-<section>
-  <h1>Bill of Materials</h1>
-  <table><thead><tr><th>Item</th><th>Brand / Model</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr></thead><tbody>${bomRows}<tr style="font-weight:bold;background-color:#f1f5f9;"><td colspan="3" style="text-align:right;">Equipment Subtotal:</td><td></td><td style="text-align:right;">$${(totalDevicePrice + totalInstallLabor).toLocaleString()}</td></tr></tbody></table>
-  ${showLabor ? `<h2>Labor & Installation</h2><table><tbody><tr><td>System Design & Engineering</td><td style="text-align:right;">${designEngineeringRate === 0 ? 'Included' : '$' + designEngineeringRate.toLocaleString()}</td></tr><tr><td>Equipment Installation</td><td style="text-align:right;">${equipmentInstallationTotal > 0 ? '$' + equipmentInstallationTotal.toLocaleString() : 'TBD'}</td></tr><tr><td>Cable Runs & Termination</td><td style="text-align:right;">${cableTerminationTotal > 0 ? '$' + cableTerminationTotal.toLocaleString() : 'TBD'}</td></tr><tr><td>System Programming</td><td style="text-align:right;">${systemProgrammingTotal > 0 ? '$' + systemProgrammingTotal.toLocaleString() : 'TBD'}</td></tr><tr style="font-weight:bold;background-color:#f1f5f9;"><td>Labor Subtotal:</td><td style="text-align:right;">${laborSubtotal > 0 ? '$' + laborSubtotal.toLocaleString() : 'TBD'}</td></tr></tbody></table>` : ''}
-  <div class="highlight" style="margin-top:20px;"><h3>Project Total</h3><p style="font-size:18px;font-weight:bold;">Equipment + Labor: $${grandTotal.toLocaleString()}</p></div>
-</section>
-<div class="page-break"></div>`;
+          <section>
+          <h1>Bill of Materials</h1>
+          <h2>Equipment</h2>
+          <table><thead><tr><th>Item</th><th>Brand / Model</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr></thead><tbody>${bomRows}<tr style="font-weight:bold;background-color:#f1f5f9;"><td colspan="3" style="text-align:right;">Equipment Subtotal:</td><td></td><td style="text-align:right;">$${equipmentSubtotal.toLocaleString()}</td></tr></tbody></table>
+          ${connections.length > 0 ? `<h2>Cabling & Infrastructure</h2><table><thead><tr><th>Item</th><th>Type / Spec</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr></thead><tbody>${wireRows}<tr style="font-weight:bold;background-color:#f1f5f9;"><td colspan="3" style="text-align:right;">Cabling Subtotal:</td><td></td><td style="text-align:right;">${totalWireMaterialCost > 0 ? '$' + totalWireMaterialCost.toLocaleString() : 'TBD'}</td></tr></tbody></table>` : ''}
+          ${showLabor ? `<h2>Labor & Installation</h2><table><tbody><tr><td>System Design & Engineering</td><td style="text-align:right;">${designEngineeringRate === 0 ? 'Included' : '$' + designEngineeringRate.toLocaleString()}</td></tr><tr><td>Equipment Installation</td><td style="text-align:right;">${equipmentInstallationTotal > 0 ? '$' + equipmentInstallationTotal.toLocaleString() : 'TBD'}</td></tr><tr><td>Cable Runs & Termination</td><td style="text-align:right;">${cableTerminationTotal > 0 ? '$' + cableTerminationTotal.toLocaleString() : 'TBD'}</td></tr><tr><td>System Programming</td><td style="text-align:right;">${systemProgrammingTotal > 0 ? '$' + systemProgrammingTotal.toLocaleString() : 'TBD'}</td></tr><tr style="font-weight:bold;background-color:#f1f5f9;"><td>Labor Subtotal:</td><td style="text-align:right;">${laborSubtotal > 0 ? '$' + laborSubtotal.toLocaleString() : 'TBD'}</td></tr></tbody></table>` : ''}
+          <div class="highlight" style="margin-top:20px;"><h3>Project Total</h3><p style="font-size:18px;font-weight:bold;">Equipment + Cabling + Labor: $${(materialsSubtotal + laborSubtotal).toLocaleString()}</p></div>
+          </section>
+          <div class="page-break"></div>`;
         }
 
         // Part 6: Device Documentation (INSTALLER ONLY)
