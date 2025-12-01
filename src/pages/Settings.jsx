@@ -124,7 +124,7 @@ import { ROLES } from "../components/auth/permissions";
 import { toast } from "sonner";
 import { useSettings } from "../components/settings/SettingsContext";
 import { useOrganization } from "../components/auth/useOrganization";
-import { useSubscription } from "../components/subscription/useSubscription";
+import { useSubscription } from "@/components/subscription/useSubscription";
 import UpgradePrompt from "@/components/subscription/UpgradePrompt";
 
 const TIMEZONES = [
