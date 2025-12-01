@@ -11,6 +11,7 @@ import { createPageUrl } from "../utils";
 import ConnectionsSidebar, { connectionTypes, getConnectionColor } from "../components/devicemanager/ConnectionsSidebar";
 import DeviceConnectionEditor from "../components/devicemanager/DeviceConnectionEditor";
 import DeviceForm from "../components/devicemanager/DeviceForm";
+import { useOrgFilter } from "../components/auth/useOrganization";
 
 const categorySolidColors = {
   televisions: "bg-blue-600",
@@ -45,23 +46,25 @@ export default function DeviceManager() {
   const [hasChanges, setHasChanges] = useState(false);
   
   const queryClient = useQueryClient();
+  const { orgFilter, organizationId, isLoading: orgLoading } = useOrgFilter();
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['avProducts'],
-    queryFn: () => base44.entities.AVProduct.list(),
+    queryKey: ['avProducts', organizationId],
+    queryFn: () => base44.entities.AVProduct.filter(orgFilter),
+    enabled: !!organizationId
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.AVProduct.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['avProducts', organizationId] });
     },
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.AVProduct.create(data),
+    mutationFn: (data) => base44.entities.AVProduct.create({ ...data, organization_id: organizationId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['avProducts', organizationId] });
       setShowForm(false);
       setEditingDevice(null);
     },
@@ -70,7 +73,7 @@ export default function DeviceManager() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.AVProduct.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['avProducts', organizationId] });
       setShowForm(false);
       setEditingDevice(null);
       setEditingConnections(null);
