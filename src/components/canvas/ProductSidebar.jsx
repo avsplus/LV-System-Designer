@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable } from "lucide-react";
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { useSettings } from "../settings/SettingsContext";
+import { useOrganization } from "../auth/useOrganization";
 
 const categorySolidColors = {
   televisions: "bg-blue-600",
@@ -48,6 +49,7 @@ const categoryIcons = {
 
 export default function ProductSidebar({ products, onProductSelect }) {
   const { settings } = useSettings();
+  const { organization } = useOrganization();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
   const [showFilters, setShowFilters] = useState(false);
@@ -146,21 +148,21 @@ export default function ProductSidebar({ products, onProductSelect }) {
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
       {/* Logo */}
       <div className="p-4 border-b border-gray-800 flex justify-center">
-        <a href="https://fusionlvs.com/contact-us/" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:opacity-80 transition-opacity">
-          {settings?.logo_url ? (
+        <div className="cursor-pointer hover:opacity-80 transition-opacity">
+          {(settings?.logo_url || organization?.logo_url) ? (
             <img 
-              src={settings.logo_url} 
-              alt={settings.organization_name || 'Logo'} 
+              src={settings?.logo_url || organization?.logo_url} 
+              alt={settings?.name || organization?.name || 'Logo'} 
               className="h-14 w-auto object-contain"
             />
           ) : (
             <div className="h-14 flex items-center">
               <span className="text-xl font-bold text-white">
-                {settings?.organization_name || 'AV Design'}
+                {settings?.name || organization?.name || 'AV Design'}
               </span>
             </div>
           )}
-        </a>
+        </div>
       </div>
 
       <div className="p-4 border-b border-gray-800">
