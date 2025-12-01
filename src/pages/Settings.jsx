@@ -126,6 +126,7 @@ import { useSettings } from "../components/settings/SettingsContext";
 import { useOrganization } from "../components/auth/useOrganization";
 import { useSubscription } from "@/components/subscription/useSubscription";
 import UpgradePrompt from "@/components/subscription/UpgradePrompt";
+import UsageStats from "@/components/subscription/UsageStats";
 
 const TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -845,19 +846,23 @@ export default function Settings() {
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-white">Subscription & Billing</h3>
-                  <p className="text-sm text-gray-400">Manage your subscription plan and billing details</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Subscription & Billing</h3>
+                    <p className="text-sm text-gray-400">Manage your subscription plan and billing details</p>
+                  </div>
                 </div>
+                <Link to={createPageUrl("Billing")}>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Manage Billing
+                  </Button>
+                </Link>
               </div>
-              <Link to={createPageUrl("Billing")}>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Manage Billing
-                </Button>
-              </Link>
+              
+              <UsageStats />
             </div>
           </TabsContent>
         </Tabs>
