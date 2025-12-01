@@ -48,6 +48,15 @@ Deno.serve(async (req) => {
 
         if (!organization_id) break;
 
+        // Fetch the full subscription to get period dates
+        let periodStart = null;
+        let periodEnd = null;
+        if (session.subscription) {
+          const stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
+          periodStart = new Date(stripeSubscription.current_period_start * 1000).toISOString();
+          periodEnd = new Date(stripeSubscription.current_period_end * 1000).toISOString();
+        }
+
         // Get or create subscription record
         const existingSubs = await base44.asServiceRole.entities.Subscription.filter({
           organization_id: organization_id
@@ -58,7 +67,9 @@ Deno.serve(async (req) => {
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           plan: plan || 'pro',
-          status: 'active'
+          status: 'active',
+          current_period_start: periodStart,
+          current_period_end: periodEnd
         };
 
         if (existingSubs.length > 0) {
