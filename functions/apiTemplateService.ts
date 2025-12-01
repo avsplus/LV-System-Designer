@@ -148,28 +148,67 @@ Deno.serve(async (req) => {
         // Part 2: How Your System Works (CLIENT ONLY)
         if (isClient) {
           console.log('ADDING_HSWS_SECTION');
-          const roomsList = uniqueRooms.map(room => {
-            const count = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned')).length;
-            return '<li><strong>' + room + '</strong> - ' + count + ' device(s)</li>';
-          }).join('');
+          
+          // Generate AI-powered system explanation
+          let systemExplanation = '';
+          try {
+            const devicesByCategory = {};
+            canvasProducts.forEach(cp => {
+              const cat = cp.product?.category || 'other';
+              if (!devicesByCategory[cat]) devicesByCategory[cat] = [];
+              devicesByCategory[cat].push(cp);
+            });
+
+            // Build connection map for context
+            const connectionDescriptions = connections.map(conn => {
+              const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+              const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+              return `${fromDevice?.label || fromDevice?.product?.brand || 'Device'} connects to ${toDevice?.label || toDevice?.product?.brand || 'Device'} via ${conn.type}`;
+            }).join('; ');
+
+            const prompt = `You are writing a friendly explanation for a homeowner about their new AV system. Write in simple terms they can understand.
+
+SYSTEM DETAILS:
+- ${canvasProducts.length} devices across ${uniqueRooms.length} room(s)
+- ${connections.length} connections
+- Rooms: ${uniqueRooms.join(', ')}
+
+DEVICES BY TYPE:
+${Object.entries(devicesByCategory).map(([cat, devices]) => `- ${cat.replace(/_/g, ' ')}: ${devices.map(d => d.label || d.product?.brand + ' ' + d.product?.model).join(', ')}`).join('\n')}
+
+CONNECTIONS: ${connectionDescriptions}
+
+Write 3-4 paragraphs explaining:
+1. What they can DO with this system (watch movies, listen to music, etc.)
+2. How the main pieces work together in simple terms
+3. Practical tips like "To watch a movie, simply..." or "To play music throughout the house..."
+
+Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful. Avoid technical jargon.`;
+
+            const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
+              prompt: prompt,
+              response_json_schema: {
+                type: "object",
+                properties: { html_content: { type: "string" } },
+                required: ["html_content"]
+              }
+            });
+            systemExplanation = response.html_content || '';
+            console.log('AI explanation generated, length:', systemExplanation.length);
+          } catch (e) {
+            console.log('AI explanation failed:', e.message);
+            // Fallback to basic explanation
+            systemExplanation = `<p>Your audio/video system is designed to provide seamless entertainment throughout your home. With ${canvasProducts.length} integrated devices, you can enjoy movies, music, and more across ${uniqueRooms.length} room(s).</p>`;
+          }
 
           bodyHtml += `
 <section>
   <h1>How Your System Works</h1>
   <div class="info-box">
-    <div class="info-box-title">Your AV System Overview</div>
-    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>
+    <div class="info-box-title">Your Entertainment System Guide</div>
+    <p>This guide explains how your audio/video system works and how to get the most out of it.</p>
   </div>
-  <h2>System Overview</h2>
-  <p>Your audio/video system includes <strong>${canvasProducts.length}</strong> devices across <strong>${uniqueRooms.length}</strong> room(s), connected with <strong>${connections.length}</strong> integrated connections for seamless entertainment.</p>
-  <h3>Rooms in Your System</h3>
-  <ul>${roomsList}</ul>
-  <h3>Key Features</h3>
-  <ul>
-    <li>Professional installation with ${connections.length} integrated connections</li>
-    <li>Multi-room capability across ${uniqueRooms.length} spaces</li>
-    <li>${networkedCount} networked devices for smart home integration</li>
-  </ul>
+  ${systemExplanation}
 </section>
 <div class="page-break"></div>`;
         }
