@@ -319,23 +319,23 @@ export default function Admin() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="bg-gray-800 border-gray-700">
-                                                                {(u.status === 'pending' || !u.status) && canEditThisUser && (
-                                                                  <DropdownMenuItem 
-                                                                    className="text-green-400 hover:bg-green-500/10"
-                                                                    onClick={async () => {
-                                                                      try {
-                                                                        await base44.entities.User.update(u.id, { status: 'approved' });
-                                                                        queryClient.invalidateQueries({ queryKey: ['users'] });
-                                                                        toast.success(`${u.full_name || u.email} has been approved`);
-                                                                      } catch (error) {
-                                                                        toast.error('Failed to approve user');
-                                                                      }
-                                                                    }}
-                                                                  >
-                                                                    <UserCheck className="w-4 h-4 mr-2" />
-                                                                    Approve User
-                                                                  </DropdownMenuItem>
-                                                                )}
+                                                                {u.status === 'pending' && canEditThisUser && (
+                                                                                    <DropdownMenuItem 
+                                                                                      className="text-green-400 hover:bg-green-500/10"
+                                                                                      onClick={async () => {
+                                                                                        try {
+                                                                                          await base44.entities.User.update(u.id, { status: 'approved' });
+                                                                                          queryClient.invalidateQueries({ queryKey: ['users'] });
+                                                                                          toast.success(`${u.full_name || u.email} has been approved`);
+                                                                                        } catch (error) {
+                                                                                          toast.error('Failed to approve user');
+                                                                                        }
+                                                                                      }}
+                                                                                    >
+                                                                                      <UserCheck className="w-4 h-4 mr-2" />
+                                                                                      Approve User
+                                                                                    </DropdownMenuItem>
+                                                                                  )}
                                                                 <DropdownMenuItem className="text-gray-300 hover:bg-gray-700">
                                                                   <Mail className="w-4 h-4 mr-2" />
                                                                   Send Email
