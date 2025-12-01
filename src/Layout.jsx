@@ -1,6 +1,7 @@
 import React from 'react';
 import { SettingsProvider } from "./components/settings/SettingsContext";
 import { Toaster } from "sonner";
+import OrganizationGuard from "./components/auth/OrganizationGuard";
 
 export default function Layout({ children }) {
   return (
@@ -28,9 +29,11 @@ export default function Layout({ children }) {
           scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
         }
       `}</style>
-      <div className="min-h-screen">
-        {children}
-      </div>
+      <OrganizationGuard>
+        <div className="min-h-screen">
+          {children}
+        </div>
+      </OrganizationGuard>
       <Toaster position="bottom-right" richColors />
     </SettingsProvider>
   );
