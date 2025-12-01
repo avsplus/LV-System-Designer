@@ -298,9 +298,11 @@ export default function Admin() {
                                     <RoleBadge role={role} size="small" />
                                   </SelectItem>
                                 ))}
-                                <SelectItem value={currentUserRole}>
-                                  <RoleBadge role={currentUserRole} size="small" />
-                                </SelectItem>
+                                {!assignableRoles().includes(currentUserRole) && (
+                                  <SelectItem value={currentUserRole}>
+                                    <RoleBadge role={currentUserRole} size="small" />
+                                  </SelectItem>
+                                )}
                               </SelectContent>
                             </Select>
                           ) : (
