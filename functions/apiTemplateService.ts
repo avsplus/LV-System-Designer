@@ -105,6 +105,7 @@ Deno.serve(async (req) => {
                 const showPricing = isClient;
                 const showLabor = isClient;
         
+        console.log('EXPORT_FLAGS: isInstaller=' + isInstaller + ', isClient=' + isClient + ', exportType=' + exportType);
         console.log('generateInstallationPackage called with:', {
           productsCount: canvasProducts?.length,
           connectionsCount: connections?.length,
