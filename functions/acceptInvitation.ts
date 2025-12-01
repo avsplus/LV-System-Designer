@@ -57,14 +57,16 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.User.update(user.id, {
       organization_id: organization_id,
-      organization_role: assignedRole
+      organization_role: assignedRole,
+      status: 'pending'
     });
 
     return Response.json({ 
       success: true, 
-      message: 'Successfully joined organization',
+      message: 'Successfully joined organization - awaiting approval',
       organization_id: organization_id,
-      role: assignedRole
+      role: assignedRole,
+      status: 'pending'
     });
 
   } catch (error) {
