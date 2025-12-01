@@ -29,13 +29,35 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Assign organization and role to user using service role
-    const validRoles = ['owner', 'admin', 'designer', 'viewer'];
-    const assignedRole = validRoles.includes(role) ? role : 'viewer';
+    // Check for pending invite for this user's email
+    const pendingInvites = await base44.asServiceRole.entities.PendingInvite.filter({
+      email: user.email,
+      organization_id: organization_id,
+      status: 'pending'
+    });
+
+    let assignedRole = role;
+    
+    // If there's a pending invite, use its role and mark it accepted
+    if (pendingInvites && pendingInvites.length > 0) {
+      const invite = pendingInvites[0];
+      assignedRole = invite.organization_role;
+      
+      // Mark invite as accepted
+      await base44.asServiceRole.entities.PendingInvite.update(invite.id, {
+        status: 'accepted'
+      });
+    }
+
+    // Validate role
+    const validRoles = ['owner', 'administrator', 'designer', 'viewer'];
+    if (!validRoles.includes(assignedRole)) {
+      assignedRole = 'viewer';
+    }
 
     await base44.asServiceRole.entities.User.update(user.id, {
       organization_id: organization_id,
-      app_role: assignedRole
+      organization_role: assignedRole
     });
 
     return Response.json({ 

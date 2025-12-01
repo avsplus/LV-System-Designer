@@ -457,10 +457,10 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
   const isInOrganization = matchedUser?.organization_id === organizationId;
   
   // Determine button state
-  let buttonText = 'Add Member';
-  let buttonIcon = UserPlus;
-  let buttonColor = 'bg-blue-600 hover:bg-blue-700';
-  let helperText = 'User not in app. First invite them via Base44 dashboard, then send org invite.';
+  let buttonText = 'Send Invite';
+  let buttonIcon = Mail;
+  let buttonColor = 'bg-green-600 hover:bg-green-700';
+  let helperText = 'An invite will be sent. When they register & login, they\'ll auto-join with this role.';
   
   if (isExistingUser && isInOrganization) {
     buttonText = 'Remove User';
@@ -468,10 +468,7 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
     buttonColor = 'bg-red-600 hover:bg-red-700';
     helperText = 'This user is already in your organization.';
   } else if (isExistingUser) {
-    buttonText = 'Send Invite';
-    buttonIcon = Mail;
-    buttonColor = 'bg-green-600 hover:bg-green-700';
-    helperText = 'User exists in app. Click to send organization invite email.';
+    helperText = 'User exists in app. They\'ll receive an email to join your organization.';
   }
   
   const handleAction = async () => {
@@ -491,19 +488,45 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
         toast.success('User removed from organization');
         queryClient.invalidateQueries({ queryKey: ['users'] });
         setInviteEmail('');
-      } else if (isExistingUser) {
-        // Send invite email to existing app user
+      } else {
+        // Create pending invite record
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // Expires in 7 days
+        
+        // Check for existing pending invite
+        const existingInvites = await base44.entities.PendingInvite.filter({
+          email: inviteEmail.trim().toLowerCase(),
+          organization_id: organizationId,
+          status: 'pending'
+        });
+        
+        if (existingInvites && existingInvites.length > 0) {
+          // Update existing invite
+          await base44.entities.PendingInvite.update(existingInvites[0].id, {
+            organization_role: inviteRole,
+            expires_at: expiresAt.toISOString()
+          });
+        } else {
+          // Create new pending invite
+          await base44.entities.PendingInvite.create({
+            email: inviteEmail.trim().toLowerCase(),
+            organization_id: organizationId,
+            organization_role: inviteRole,
+            status: 'pending',
+            expires_at: expiresAt.toISOString()
+          });
+        }
+        
+        // Send invite email
         const inviteUrl = `${window.location.origin}?org=${organizationId}&role=${inviteRole}`;
         await base44.integrations.Core.SendEmail({
           to: inviteEmail.trim(),
           subject: 'You have been invited to join an organization',
-          body: `You have been invited to join an organization.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nRole: ${inviteRole}`
+          body: `You have been invited to join an organization.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nRole: ${inviteRole}\n\nThis invitation expires in 7 days.`
         });
-        toast.success('Invitation email sent!');
+        
+        toast.success('Invitation sent!');
         setInviteEmail('');
-      } else {
-        // User not in app - show instructions
-        toast.info('First add this user to the app via Base44 dashboard → Settings → Invite User, then come back to send the org invite.');
       }
     } catch (error) {
       toast.error(error.message || 'Action failed');
