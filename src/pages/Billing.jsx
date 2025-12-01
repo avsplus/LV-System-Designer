@@ -31,7 +31,7 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$49',
+    price: '$34.99',
     period: '/month',
     description: 'For growing teams with advanced needs',
     features: [
@@ -49,7 +49,7 @@ const PLANS = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: '$199',
+    price: '$71.99',
     period: '/month',
     description: 'For large organizations with custom requirements',
     features: [

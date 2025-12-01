@@ -3,16 +3,15 @@ import Stripe from 'npm:stripe@14.5.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_API_KEY'));
 
-// Define your pricing plans - update these with your actual Stripe Price IDs
 const PLANS = {
   pro: {
     name: 'Pro',
-    priceId: 'price_pro_monthly', // Replace with actual Stripe price ID
+    priceId: 'price_1SZSFrJ8yo3KQRY06ryB1cZo',
     mode: 'subscription'
   },
   enterprise: {
     name: 'Enterprise', 
-    priceId: 'price_enterprise_monthly', // Replace with actual Stripe price ID
+    priceId: 'price_1SZSMfJ8yo3KQRY0ZEkIVBWF',
     mode: 'subscription'
   }
 };
