@@ -867,6 +867,144 @@ ${(() => {
 });
 
 // ==========================================
+// AI SYSTEM EXPLANATION GENERATOR
+// ==========================================
+
+async function generateSystemExplanation(canvasProducts, connections, base44) {
+  // Build comprehensive system context for the AI
+  const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
+  if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
+
+  // Analyze devices by category
+  const devicesByCategory = {};
+  canvasProducts.forEach(cp => {
+    const cat = cp.product?.category || 'other';
+    if (!devicesByCategory[cat]) devicesByCategory[cat] = [];
+    devicesByCategory[cat].push(cp);
+  });
+
+  // Analyze connections - what's connected to what
+  const deviceConnections = {};
+  canvasProducts.forEach(cp => {
+    deviceConnections[cp.instanceId] = {
+      device: cp,
+      inputs: [],
+      outputs: []
+    };
+  });
+
+  connections.forEach(conn => {
+    const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+    const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+    if (fromDevice && toDevice) {
+      deviceConnections[conn.from]?.outputs.push({
+        type: conn.type,
+        toDevice: toDevice,
+        toPort: conn.toPort
+      });
+      deviceConnections[conn.to]?.inputs.push({
+        type: conn.type,
+        fromDevice: fromDevice,
+        fromPort: conn.fromPort
+      });
+    }
+  });
+
+  // Build room-by-room analysis
+  const roomAnalysis = uniqueRooms.map(room => {
+    const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+    const deviceDescriptions = roomDevices.map(cp => {
+      const conns = deviceConnections[cp.instanceId];
+      const inputList = conns?.inputs.map(i => `receives ${i.type} from ${i.fromDevice.label || i.fromDevice.product?.brand}`).join(', ') || 'no inputs';
+      const outputList = conns?.outputs.map(o => `sends ${o.type} to ${o.toDevice.label || o.toDevice.product?.brand}`).join(', ') || 'no outputs';
+      return `- ${cp.label || cp.product?.brand} ${cp.product?.model} (${(cp.product?.category || '').replace(/_/g, ' ')}): ${inputList}; ${outputList}`;
+    }).join('\n');
+    return `Room: ${room}\nDevices:\n${deviceDescriptions}`;
+  }).join('\n\n');
+
+  // Identify key system components
+  const hasMultiroom = devicesByCategory['multizone_amps']?.length > 0 || uniqueRooms.length > 1;
+  const hasHomeTheater = devicesByCategory['av_receivers']?.length > 0 || devicesByCategory['surround_processors']?.length > 0;
+  const hasProjector = devicesByCategory['projectors']?.length > 0;
+  const hasTV = devicesByCategory['televisions']?.length > 0;
+  const hasStreaming = devicesByCategory['media_streamers']?.length > 0 || devicesByCategory['audio_streamers']?.length > 0;
+  const hasControlSystem = devicesByCategory['control_processors']?.length > 0;
+  const hasDistribution = devicesByCategory['video_distribution']?.length > 0 || devicesByCategory['matrix_switchers']?.length > 0;
+
+  // Build the prompt for AI
+  const prompt = `You are an AV system expert writing a friendly, non-technical explanation for a homeowner about their new audio/video system. 
+
+SYSTEM OVERVIEW:
+- Total devices: ${canvasProducts.length}
+- Total connections: ${connections.length}
+- Rooms: ${uniqueRooms.join(', ')}
+- Has multi-room audio: ${hasMultiroom}
+- Has home theater: ${hasHomeTheater}
+- Has projector: ${hasProjector}
+- Has TV: ${hasTV}
+- Has streaming devices: ${hasStreaming}
+- Has control system: ${hasControlSystem}
+- Has video distribution: ${hasDistribution}
+
+DEVICE CATEGORIES IN SYSTEM:
+${Object.entries(devicesByCategory).map(([cat, devices]) => `- ${cat.replace(/_/g, ' ')}: ${devices.length} (${devices.map(d => d.label || d.product?.brand).join(', ')})`).join('\n')}
+
+DETAILED ROOM-BY-ROOM BREAKDOWN:
+${roomAnalysis}
+
+CONNECTION TYPES USED: ${[...new Set(connections.map(c => c.type))].join(', ')}
+
+Please write a friendly, easy-to-understand explanation (4-6 paragraphs in HTML format) that explains:
+1. What the system can do for them (watching movies, listening to music, etc.)
+2. How the main components work together (in simple terms)
+3. A brief room-by-room description of what they can enjoy in each space
+4. Any special features like multi-room audio, voice control compatibility, or streaming capabilities
+5. Basic tips for everyday use (e.g., "To watch a movie in the living room...")
+
+Use simple language that a non-technical person would understand. Avoid technical jargon. Focus on benefits and user experience.
+
+Format the response as clean HTML with <h2>, <h3>, <p>, and <ul>/<li> tags. Use classes: "highlight" for important callout boxes, and inline styles sparingly. Keep it concise but informative.`;
+
+  try {
+    const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: prompt,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          html_content: { type: "string" }
+        },
+        required: ["html_content"]
+      }
+    });
+    
+    return response.html_content || '';
+  } catch (error) {
+    console.error('AI explanation generation failed:', error);
+    // Return a basic fallback explanation
+    return `
+      <h2>System Overview</h2>
+      <p>Your audio/video system includes ${canvasProducts.length} devices across ${uniqueRooms.length} room(s), connected with ${connections.length} integrated connections for seamless entertainment.</p>
+      
+      <h3>Rooms Included</h3>
+      <ul>
+        ${uniqueRooms.map(room => {
+          const count = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned')).length;
+          return `<li><strong>${room}</strong> - ${count} device(s)</li>`;
+        }).join('')}
+      </ul>
+      
+      <h3>Key Features</h3>
+      <ul>
+        ${hasMultiroom ? '<li>Multi-room audio capability - enjoy music throughout your home</li>' : ''}
+        ${hasHomeTheater ? '<li>Home theater setup for an immersive movie experience</li>' : ''}
+        ${hasStreaming ? '<li>Streaming devices for access to your favorite content</li>' : ''}
+        ${hasControlSystem ? '<li>Centralized control system for easy operation</li>' : ''}
+      </ul>
+    `;
+  }
+}
+
+// ==========================================
 // HTML GENERATORS FOR AV SYSTEM
 // ==========================================
 
