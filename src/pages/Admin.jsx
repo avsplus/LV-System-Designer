@@ -145,7 +145,7 @@ export default function Admin() {
         admins: users.filter(u => getEffectiveRole(u) === ROLES.ADMINISTRATOR).length,
         designers: users.filter(u => getEffectiveRole(u) === ROLES.DESIGNER).length,
         viewers: users.filter(u => getEffectiveRole(u) === ROLES.VIEWER).length,
-        totalProjects: projects.length
+        totalProjects: totalProjectCount || projects.length
       };
 
   return (
