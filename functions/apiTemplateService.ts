@@ -673,9 +673,13 @@ ${showWireSchedule && connections.length > 0 ? `
 </section>
 
 <div class="page-break"></div>
-` : ''}
+`;
+        } // end if (isInstaller) for installerSectionsHtml
 
-${isInstaller ? `
+        // Part 5: Device Manuals (installer only)
+        let deviceManualsHtml = '';
+        if (isInstaller) {
+          deviceManualsHtml = `
 <!-- Device Manuals -->
 ${(() => {
   // Collect ALL unique products for manuals section
