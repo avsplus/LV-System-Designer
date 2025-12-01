@@ -302,9 +302,14 @@ export default function Admin() {
                             <RoleBadge role={currentUserRole} size="small" />
                           )}
                         </div>
-                        <div className="col-span-3">
-                          <span className="text-gray-400">{userProjects.length} project{userProjects.length !== 1 ? 's' : ''}</span>
-                        </div>
+                        <div className="col-span-3 flex items-center gap-2">
+                                                        <span className="text-gray-400">{userProjects.length} project{userProjects.length !== 1 ? 's' : ''}</span>
+                                                        {(u.status === 'pending' || !u.status) && u.email !== user?.email && (
+                                                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                                                            Pending
+                                                          </Badge>
+                                                        )}
+                                                      </div>
                         <div className="col-span-2 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -313,17 +318,34 @@ export default function Admin() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="bg-gray-800 border-gray-700">
-                              <DropdownMenuItem className="text-gray-300 hover:bg-gray-700">
-                                <Mail className="w-4 h-4 mr-2" />
-                                Send Email
-                              </DropdownMenuItem>
-                              {canEditThisUser && (
-                                <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Remove User
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
+                                                                {(u.status === 'pending' || !u.status) && canEditThisUser && (
+                                                                  <DropdownMenuItem 
+                                                                    className="text-green-400 hover:bg-green-500/10"
+                                                                    onClick={async () => {
+                                                                      try {
+                                                                        await base44.entities.User.update(u.id, { status: 'approved' });
+                                                                        queryClient.invalidateQueries({ queryKey: ['users'] });
+                                                                        toast.success(`${u.full_name || u.email} has been approved`);
+                                                                      } catch (error) {
+                                                                        toast.error('Failed to approve user');
+                                                                      }
+                                                                    }}
+                                                                  >
+                                                                    <UserCheck className="w-4 h-4 mr-2" />
+                                                                    Approve User
+                                                                  </DropdownMenuItem>
+                                                                )}
+                                                                <DropdownMenuItem className="text-gray-300 hover:bg-gray-700">
+                                                                  <Mail className="w-4 h-4 mr-2" />
+                                                                  Send Email
+                                                                </DropdownMenuItem>
+                                                                {canEditThisUser && (
+                                                                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                                    Remove User
+                                                                  </DropdownMenuItem>
+                                                                )}
+                                                              </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
                       </div>
@@ -424,7 +446,8 @@ function StatCard({ label, value, icon: Icon, color = 'blue' }) {
     purple: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
     green: 'bg-green-500/10 text-green-400 border-green-500/30',
     gray: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
-    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
   };
 
   return (
