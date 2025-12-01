@@ -39,8 +39,8 @@ export default function OrganizationGuard({ children }) {
     staleTime: 30 * 1000
   });
 
-  // Show loading while fetching user or org data
-  if (isLoading) {
+  // Show loading while fetching user data
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
@@ -49,12 +49,12 @@ export default function OrganizationGuard({ children }) {
   }
 
   // User has organization but is pending approval
-  if (user && hasOrganization && user.status === 'pending') {
+  if (hasOrganization && user.status === 'pending') {
     return <PendingApproval />;
   }
 
   // User exists but has no organization - BLOCK access
-  if (user && !hasOrganization) {
+  if (!hasOrganization) {
     // Still loading org/invite data
     if (orgsLoading || invitesLoading) {
       return (
