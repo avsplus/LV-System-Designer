@@ -18,7 +18,18 @@ export default function OrganizationGuard({ children }) {
     staleTime: 60 * 1000
   });
 
-  if (isLoading || (user && !hasOrganization && orgsLoading)) {
+  // Check if user has pending invites (by their email)
+  const { data: pendingInvites, isLoading: invitesLoading } = useQuery({
+    queryKey: ['pendingInvites', user?.email],
+    queryFn: () => base44.entities.PendingInvite.filter({ 
+      email: user.email.toLowerCase(), 
+      status: 'pending' 
+    }),
+    enabled: !!user && !hasOrganization,
+    staleTime: 30 * 1000
+  });
+
+  if (isLoading || (user && !hasOrganization && (orgsLoading || invitesLoading))) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
@@ -30,15 +41,18 @@ export default function OrganizationGuard({ children }) {
   if (user && !hasOrganization) {
     // Check URL for invitation params first
     const urlParams = new URLSearchParams(window.location.search);
-    const hasInvite = urlParams.get('org');
+    const hasInviteUrl = urlParams.get('org');
     
-    // If no organizations exist at all, show setup flow
-    if (!hasInvite && (!allOrgs || allOrgs.length === 0)) {
+    // Check if user has pending invites in the database
+    const hasPendingInvite = pendingInvites && pendingInvites.length > 0;
+    
+    // If no organizations exist at all and no pending invites, show setup flow
+    if (!hasInviteUrl && !hasPendingInvite && (!allOrgs || allOrgs.length === 0)) {
       return <SetupOrganization />;
     }
     
-    // Otherwise show the no-org/invitation page
-    return <NoOrganization />;
+    // Otherwise show the no-org/invitation page (pass pending invite info)
+    return <NoOrganization pendingInvite={hasPendingInvite ? pendingInvites[0] : null} />;
   }
 
   // User has organization but is pending approval
