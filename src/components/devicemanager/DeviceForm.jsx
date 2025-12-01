@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, AlertCircle } from "lucide-react";
 
 const categories = [
   "televisions",
@@ -28,7 +28,7 @@ const commonConnectionTypes = [
   "VGA", "RS232", "HDBaseT", "Control", "Subwoofer", "IR", "Power"
 ];
 
-export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
+export default function DeviceForm({ device, onSubmit, onCancel, isLoading, categoryCounts, maxPerCategory }) {
   const [formData, setFormData] = useState(() => {
     const defaults = {
       brand: '',
@@ -222,10 +222,24 @@ export default function DeviceForm({ device, onSubmit, onCancel, isLoading }) {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
                 >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat.replace(/_/g, ' ')}</option>
-                  ))}
+                  {categories.map(cat => {
+                    const count = categoryCounts?.[cat] || 0;
+                    const isFull = maxPerCategory && count >= maxPerCategory && formData.category !== cat;
+                    return (
+                      <option key={cat} value={cat} disabled={isFull}>
+                        {cat.replace(/_/g, ' ')}
+                        {categoryCounts && ` (${count}/${maxPerCategory})`}
+                        {isFull && ' - FULL'}
+                      </option>
+                    );
+                  })}
                 </select>
+                {!device && categoryCounts && maxPerCategory && (categoryCounts[formData.category] || 0) >= maxPerCategory && (
+                  <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    This category is at its limit ({maxPerCategory} devices)
+                  </p>
+                )}
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-2 block">Price ($)</label>

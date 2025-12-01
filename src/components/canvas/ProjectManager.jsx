@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown, AlertTriangle } from "lucide-react";
+import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown, AlertTriangle, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackActivity, ActivityActions } from "../activity/activityTracker";
 import { useOrgFilter } from "../auth/useOrganization";
+import { useSubscription } from "../subscription/useSubscription";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../../utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +56,7 @@ export default function ProjectManager({
   
   const queryClient = useQueryClient();
   const { orgFilter, organizationId } = useOrgFilter();
+  const { canCreateProject, limits, currentPlan, isFree } = useSubscription();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
@@ -224,6 +228,14 @@ export default function ProjectManager({
   };
 
   const handleCreateProject = () => {
+    // Check project limit for free plan
+    if (!canCreateProject(ownProjects.length)) {
+      showAlert(
+        `You've reached the limit of ${limits.maxProjects} projects on the Free plan. Upgrade to Pro for up to 25 projects, or Enterprise for unlimited.`,
+        'Project Limit Reached'
+      );
+      return;
+    }
     setProjectName('');
     setProjectDescription('');
     setShowSaveForm(true);
@@ -333,16 +345,40 @@ export default function ProjectManager({
               )}
               {!currentProject && (
                 <Button
-                  onClick={() => {
-                    setProjectName('');
-                    setProjectDescription('');
-                    setShowSaveForm(true);
-                  }}
+                  onClick={handleCreateProject}
                   className="flex-1 bg-green-600 hover:bg-green-700"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create New Project
                 </Button>
+              )}
+              
+              {/* Show usage stats for free tier */}
+              {isFree && (
+                <div className="w-full mt-2 p-3 bg-gray-800 border border-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-400">Projects</span>
+                    <span className="text-xs text-gray-300">{ownProjects.length} / {limits.maxProjects}</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${
+                        ownProjects.length >= limits.maxProjects 
+                          ? 'bg-red-500' 
+                          : ownProjects.length >= limits.maxProjects - 1 
+                            ? 'bg-yellow-500' 
+                            : 'bg-blue-500'
+                      }`}
+                      style={{ width: `${Math.min(100, (ownProjects.length / limits.maxProjects) * 100)}%` }}
+                    />
+                  </div>
+                  {ownProjects.length >= limits.maxProjects - 1 && (
+                    <Link to={createPageUrl("Billing")} className="flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300 mt-2">
+                      <Zap className="w-3 h-3" />
+                      {ownProjects.length >= limits.maxProjects ? 'Upgrade to create more projects' : `Only ${limits.maxProjects - ownProjects.length} project left`}
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
           )}
