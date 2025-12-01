@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
 
 <div class="page-break"></div>
 
-${howSystemWorksHtml}
+${isClient ? howSystemWorksHtml : ''}
 
 ${isClient ? `
 <!-- Scope of Work -->
