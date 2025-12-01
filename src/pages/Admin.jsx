@@ -574,8 +574,45 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
           {buttonText}
         </Button>
       </div>
-      {inviteEmail.trim() && (
+      {inviteEmail.trim() && !showInviteLink && (
         <p className="text-xs text-gray-500 mt-2">{helperText}</p>
+      )}
+      
+      {showInviteLink && (
+        <div className="mt-3 p-3 bg-gray-800 rounded-lg border border-gray-700">
+          <p className="text-xs text-gray-400 mb-2">Share this invite link:</p>
+          <div className="flex gap-2">
+            <Input 
+              value={showInviteLink} 
+              readOnly 
+              className="flex-1 bg-gray-900 border-gray-600 text-white text-sm"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-gray-600"
+              onClick={() => {
+                navigator.clipboard.writeText(showInviteLink);
+                setCopied(true);
+                toast.success('Link copied!');
+                setTimeout(() => setCopied(false), 2000);
+              }}
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </Button>
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="mt-2 text-gray-400 text-xs"
+            onClick={() => {
+              setShowInviteLink(null);
+              setInviteEmail('');
+            }}
+          >
+            Done
+          </Button>
+        </div>
       )}
     </div>
   );
