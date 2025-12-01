@@ -123,6 +123,7 @@ import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
 import { toast } from "sonner";
 import { useSettings } from "../components/settings/SettingsContext";
+import { useOrganization } from "../components/auth/useOrganization";
 
 const TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -134,20 +135,23 @@ export default function Settings() {
   const { isAtLeast, userRole, loading: permLoading } = usePermissions();
   const queryClient = useQueryClient();
   const { refreshSettings } = useSettings();
+  const { organization, organizationId, isLoading: orgLoading } = useOrganization();
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: ['orgSettings'],
+    queryKey: ['orgSettings', organizationId],
     queryFn: async () => {
-      const list = await base44.entities.OrganizationSettings.list();
-      return list[0] || null;
+      if (!organizationId) return null;
+      const orgs = await base44.entities.Organization.filter({ id: organizationId });
+      return orgs[0] || null;
     },
+    enabled: !!organizationId,
     staleTime: 0
   });
 
   const [form, setForm] = useState({
-    organization_name: '',
+    name: '',
     logo_url: '',
     primary_color: '#3b82f6',
     secondary_color: '#1e40af',
@@ -187,14 +191,15 @@ export default function Settings() {
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (settings?.id) {
-        return base44.entities.OrganizationSettings.update(settings.id, data);
+        return base44.entities.Organization.update(settings.id, data);
       } else {
-        return base44.entities.OrganizationSettings.create(data);
+        // This shouldn't happen - org should exist
+        return base44.entities.Organization.create(data);
       }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
-      await refreshSettings(); // Update global settings context immediately
+      await queryClient.invalidateQueries({ queryKey: ['orgSettings', organizationId] });
+      await refreshSettings();
       setSaved(true);
       toast.success('Settings saved - changes applied immediately');
       setTimeout(() => setSaved(false), 2000);
@@ -327,8 +332,8 @@ export default function Settings() {
                 <div>
                   <Label className="text-gray-300">Organization Name</Label>
                   <Input
-                    value={form.organization_name}
-                    onChange={(e) => setForm({ ...form, organization_name: e.target.value })}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     disabled={!canEditBranding}
                     className="mt-2 bg-gray-800 border-gray-700 text-white"
                     placeholder="Your Company Name"
