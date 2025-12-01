@@ -173,7 +173,10 @@ Deno.serve(async (req) => {
         }).join('');
         const networkedCount = canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length;
         
-        const howSystemWorksHtml = isClient ? `
+        // Always generate "How Your System Works" HTML for client exports
+        console.log('Building How Your System Works section, isClient:', isClient, 'exportType:', exportType);
+        
+        const howSystemWorksHtml = `
 <!-- How Your System Works -->
 <section>
   <h1>How Your System Works</h1>
@@ -200,7 +203,9 @@ Deno.serve(async (req) => {
 </section>
 
 <div class="page-break"></div>
-` : '';
+`;
+        
+        console.log('howSystemWorksHtml length:', howSystemWorksHtml.length);
         
         const bodyHtml = `
 <!-- Project Overview -->
