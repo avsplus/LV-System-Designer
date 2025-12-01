@@ -18,14 +18,24 @@ export default function OrganizationGuard({ children }) {
     staleTime: 60 * 1000
   });
 
-  // Check if user has pending invites (by their email)
+  // Check if user has pending invites (by their email) - check both with and without organization
   const { data: pendingInvites, isLoading: invitesLoading } = useQuery({
     queryKey: ['pendingInvites', user?.email],
-    queryFn: () => base44.entities.PendingInvite.filter({ 
-      email: user.email.toLowerCase(), 
-      status: 'pending' 
-    }),
-    enabled: !!user && !hasOrganization,
+    queryFn: async () => {
+      // Try lowercase first, then original email
+      const invites = await base44.entities.PendingInvite.filter({ 
+        email: user.email.toLowerCase(), 
+        status: 'pending' 
+      });
+      if (invites && invites.length > 0) return invites;
+      
+      // Try with original case
+      return base44.entities.PendingInvite.filter({ 
+        email: user.email, 
+        status: 'pending' 
+      });
+    },
+    enabled: !!user,
     staleTime: 30 * 1000
   });
 
