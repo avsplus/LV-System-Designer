@@ -455,7 +455,9 @@ Deno.serve(async (req) => {
 
 <div class="page-break"></div>
 `;
-        } // end if (isClient) for clientSectionsHtml
+        } else {
+          clientSectionsHtml = '';
+        }
 
         // Part 4: Installer sections (Device Documentation, Wire Schedule, Room Overview)
         let installerSectionsHtml = '';
