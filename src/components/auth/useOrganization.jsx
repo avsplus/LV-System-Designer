@@ -22,11 +22,14 @@ export function useOrganization() {
     staleTime: 5 * 60 * 1000
   });
 
+  // isLoading should be true while user is loading, or while org is loading (if user has org)
+  const isLoading = userLoading || (!!user?.organization_id && orgLoading);
+
   return {
     user,
     organization,
     organizationId: user?.organization_id,
-    isLoading: userLoading || orgLoading,
+    isLoading,
     refetchOrganization: refetchOrg,
     hasOrganization: !!user?.organization_id
   };
