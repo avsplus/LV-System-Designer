@@ -15,7 +15,8 @@ import {
 import { 
   Users, Settings, Shield, Search, Mail, 
   Crown, Pencil, Eye, ChevronLeft, MoreVertical,
-  UserPlus, Trash2, Activity, Building2, Database, Loader2, Copy, Check
+  UserPlus, Trash2, Activity, Building2, Database, Loader2, Copy, Check,
+  UserCheck, Clock, XCircle
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -129,14 +130,18 @@ export default function Admin() {
     return ROLES.VIEWER;
   };
 
-  const stats = {
-    totalUsers: users.length,
-    owners: users.filter(u => getEffectiveRole(u) === ROLES.OWNER).length,
-    admins: users.filter(u => getEffectiveRole(u) === ROLES.ADMINISTRATOR).length,
-    designers: users.filter(u => getEffectiveRole(u) === ROLES.DESIGNER).length,
-    viewers: users.filter(u => getEffectiveRole(u) === ROLES.VIEWER).length,
-    totalProjects: projects.length
-  };
+  const pendingUsers = users.filter(u => u.status === 'pending' || !u.status);
+      const approvedUsers = users.filter(u => u.status === 'approved');
+
+      const stats = {
+        totalUsers: users.length,
+        pendingApproval: pendingUsers.length,
+        owners: users.filter(u => getEffectiveRole(u) === ROLES.OWNER).length,
+        admins: users.filter(u => getEffectiveRole(u) === ROLES.ADMINISTRATOR).length,
+        designers: users.filter(u => getEffectiveRole(u) === ROLES.DESIGNER).length,
+        viewers: users.filter(u => getEffectiveRole(u) === ROLES.VIEWER).length,
+        totalProjects: projects.length
+      };
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -162,7 +167,10 @@ export default function Admin() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
           <StatCard label="Total Users" value={stats.totalUsers} icon={Users} />
-          <StatCard label="Owners" value={stats.owners} icon={Crown} color="purple" />
+                          {stats.pendingApproval > 0 && (
+                            <StatCard label="Pending Approval" value={stats.pendingApproval} icon={Clock} color="yellow" />
+                          )}
+                          <StatCard label="Owners" value={stats.owners} icon={Crown} color="purple" />
           <StatCard label="Admins" value={stats.admins} icon={Shield} color="blue" />
           <StatCard label="Designers" value={stats.designers} icon={Pencil} color="green" />
           <StatCard label="Viewers" value={stats.viewers} icon={Eye} color="gray" />
