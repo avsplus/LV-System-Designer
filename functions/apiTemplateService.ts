@@ -173,44 +173,73 @@ Deno.serve(async (req) => {
         }).join('');
         const networkedCount = canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length;
         
-        // Build "How Your System Works" section - only for client exports
-        console.log('HSWS_DEBUG: exportType=' + exportType + ', isClient=' + isClient);
-        
-        // Build this section as a plain string using concatenation to avoid template issues
-        let howSystemWorksSection = '';
+        // Build body HTML in parts for cleaner assembly
+        // Part 1: Project Overview (always included)
+        const projectOverviewHtml = `
+<!-- Project Overview -->
+<section class="keep-together">
+  <h1>Project Overview</h1>
+
+  <div class="highlight">
+    <h3>Project Details</h3>
+    <p><strong>Client:</strong> ${clientName || 'N/A'}</p>
+    <p><strong>Location:</strong> ${location || 'N/A'}</p>
+    <p><strong>Prepared by:</strong> ${user.full_name || user.email}</p>
+    <p><strong>Document Type:</strong> ${exportTypeTitle}</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-box-title">System Summary</div>
+    <p>
+      <strong>${canvasProducts.length}</strong> Devices ·
+      <strong>${connections.length}</strong> Connections ·
+      <strong>${uniqueRooms.length}</strong> Rooms
+    </p>
+  </div>
+</section>
+
+<div class="page-break"></div>`;
+
+        // Part 2: How Your System Works (CLIENT ONLY)
+        let howSystemWorksHtml = '';
         if (isClient) {
-          howSystemWorksSection = [
-            '<!-- How Your System Works -->',
-            '<section>',
-            '  <h1>How Your System Works</h1>',
-            '  ',
-            '  <div class="info-box">',
-            '    <div class="info-box-title">Your AV System Overview</div>',
-            '    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>',
-            '  </div>',
-            '',
-            '  <h2>System Overview</h2>',
-            '  <p>Your audio/video system includes <strong>' + canvasProducts.length + '</strong> devices across <strong>' + uniqueRooms.length + '</strong> room(s), connected with <strong>' + connections.length + '</strong> integrated connections for seamless entertainment.</p>',
-            '  ',
-            '  <h3>Rooms in Your System</h3>',
-            '  <ul>',
-            '    ' + roomsList,
-            '  </ul>',
-            '  ',
-            '  <h3>Key Features</h3>',
-            '  <ul>',
-            '    <li>Professional installation with ' + connections.length + ' integrated connections</li>',
-            '    <li>Multi-room capability across ' + uniqueRooms.length + ' spaces</li>',
-            '    <li>' + networkedCount + ' networked devices for smart home integration</li>',
-            '  </ul>',
-            '</section>',
-            '',
-            '<div class="page-break"></div>'
-          ].join('\n');
-          console.log('HSWS_DEBUG: section built, length=' + howSystemWorksSection.length);
+          console.log('BUILDING_HSWS: isClient=true, building section...');
+          howSystemWorksHtml = `
+<!-- How Your System Works -->
+<section>
+  <h1>How Your System Works</h1>
+  
+  <div class="info-box">
+    <div class="info-box-title">Your AV System Overview</div>
+    <p>This section explains how your audio/video system is designed to work, making it easy for you to understand and enjoy all its features.</p>
+  </div>
+
+  <h2>System Overview</h2>
+  <p>Your audio/video system includes <strong>${canvasProducts.length}</strong> devices across <strong>${uniqueRooms.length}</strong> room(s), connected with <strong>${connections.length}</strong> integrated connections for seamless entertainment.</p>
+  
+  <h3>Rooms in Your System</h3>
+  <ul>
+    ${roomsList}
+  </ul>
+  
+  <h3>Key Features</h3>
+  <ul>
+    <li>Professional installation with ${connections.length} integrated connections</li>
+    <li>Multi-room capability across ${uniqueRooms.length} spaces</li>
+    <li>${networkedCount} networked devices for smart home integration</li>
+  </ul>
+</section>
+
+<div class="page-break"></div>`;
+          console.log('HSWS_BUILT: length=' + howSystemWorksHtml.length);
+        } else {
+          console.log('BUILDING_HSWS: isClient=false, skipping section');
         }
-        
-        const bodyHtml = `
+
+        // Part 3: Client-specific sections (Scope, Equipment by Room, BOM, Labor)
+        let clientSectionsHtml = '';
+        if (isClient) {
+          clientSectionsHtml = `
 <!-- Project Overview -->
 <section class="keep-together">
   <h1>Project Overview</h1>
