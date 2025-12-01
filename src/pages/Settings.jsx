@@ -139,16 +139,8 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const { data: settings, isLoading } = useQuery({
-    queryKey: ['orgSettings', organizationId],
-    queryFn: async () => {
-      if (!organizationId) return null;
-      const orgs = await base44.entities.Organization.filter({ id: organizationId });
-      return orgs[0] || null;
-    },
-    enabled: !!organizationId,
-    staleTime: 0
-  });
+  // Use organization from useOrganization hook directly instead of re-fetching
+  const settings = organization;
 
   const [form, setForm] = useState({
     name: '',
