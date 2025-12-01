@@ -1643,6 +1643,7 @@ function AVCanvasContent() {
             open={showExportDialog}
             onClose={() => setShowExportDialog(false)}
             projectName={currentProject?.name}
+            projectId={currentProject?.id}
             isExporting={isExporting}
             exportEngine={exportEngine}
             onExportEngineChange={setExportEngine}
