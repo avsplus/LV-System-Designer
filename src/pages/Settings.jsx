@@ -182,15 +182,14 @@ export default function Settings() {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      if (settings?.id) {
-        return base44.entities.Organization.update(settings.id, data);
-      } else {
-        // This shouldn't happen - org should exist
-        return base44.entities.Organization.create(data);
+      if (organizationId) {
+        return base44.entities.Organization.update(organizationId, data);
       }
+      throw new Error('No organization found');
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['orgSettings', organizationId] });
+      await queryClient.invalidateQueries({ queryKey: ['organization', organizationId] });
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       await refreshSettings();
       setSaved(true);
       toast.success('Settings saved - changes applied immediately');
