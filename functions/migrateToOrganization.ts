@@ -9,8 +9,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only owners can migrate data
-    if (user.app_role !== 'owner') {
+    // Only owners/admins can migrate data
+    const isOwner = user.role === 'admin' || user.organization_role === 'owner';
+    if (!isOwner) {
       return Response.json({ error: 'Only organization owners can migrate data' }, { status: 403 });
     }
 
@@ -28,15 +29,19 @@ Deno.serve(async (req) => {
     };
 
     // Migrate users without organization_id
-    const users = await base44.asServiceRole.entities.User.filter({});
-    for (const u of users) {
-      if (!u.organization_id) {
-        await base44.asServiceRole.entities.User.update(u.id, { 
-          organization_id: organizationId,
-          app_role: u.app_role || 'viewer'
-        });
-        stats.users++;
+    try {
+      const users = await base44.asServiceRole.entities.User.filter({});
+      for (const u of users) {
+        if (!u.organization_id) {
+          await base44.asServiceRole.entities.User.update(u.id, { 
+            organization_id: organizationId,
+            organization_role: u.organization_role || 'member'
+          });
+          stats.users++;
+        }
       }
+    } catch (e) {
+      console.log('User migration skipped:', e.message);
     }
 
     // Migrate projects without organization_id
