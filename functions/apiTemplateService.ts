@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
     }
 
     const { action, ...params } = await req.json();
+    console.log('ACTION_RECEIVED:', action);
 
     switch (action) {
       // ==========================================
