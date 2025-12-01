@@ -305,7 +305,7 @@ export default function Admin() {
                         </div>
                         <div className="col-span-3 flex items-center gap-2">
                                                         <span className="text-gray-400">{userProjects.length} project{userProjects.length !== 1 ? 's' : ''}</span>
-                                                        {(u.status === 'pending' || !u.status) && u.email !== user?.email && (
+                                                        {u.status === 'pending' && u.email !== user?.email && (
                                                           <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
                                                             Pending
                                                           </Badge>
