@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { 
   ChevronLeft, Building2, Palette, Globe, Layout, 
-  Database, FileText, Upload, Save, Plus, X, Loader2, Check, Download
+  Database, FileText, Upload, Save, Plus, X, Loader2, Check, Download, CreditCard
 } from "lucide-react";
 
 const exportDataSchema = {
@@ -124,6 +124,8 @@ import { ROLES } from "../components/auth/permissions";
 import { toast } from "sonner";
 import { useSettings } from "../components/settings/SettingsContext";
 import { useOrganization } from "../components/auth/useOrganization";
+import { useSubscription } from "../components/subscription/useSubscription";
+import UpgradePrompt from "../components/subscription/UpgradePrompt";
 
 const TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -136,8 +138,12 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const { refreshSettings } = useSettings();
   const { organization, organizationId, isLoading: orgLoading } = useOrganization();
+  const { hasFeature, isFree, isLoading: subLoading } = useSubscription();
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  
+  // Subscription checks
+  const canCustomizeBranding = hasFeature('customBranding');
 
   // Use organization from useOrganization hook directly instead of re-fetching
   const settings = organization;
@@ -238,7 +244,7 @@ export default function Settings() {
     }));
   };
 
-  if (permLoading || orgLoading) {
+  if (permLoading || orgLoading || subLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
@@ -312,6 +318,10 @@ export default function Settings() {
                 </TabsTrigger>
               </>
             )}
+            <TabsTrigger value="billing" className="data-[state=active]:bg-gray-700">
+              <CreditCard className="w-4 h-4 mr-2" />
+              Billing
+            </TabsTrigger>
           </TabsList>
 
           {/* Organization Tab */}
@@ -333,41 +343,51 @@ export default function Settings() {
 
                 <div>
                   <Label className="text-gray-300">Logo</Label>
-                  <div className="mt-2 flex items-center gap-4">
-                    {form.logo_url ? (
-                      <div className="relative">
-                        <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-lg border border-gray-700" />
-                        {canEditBranding && (
-                          <button
-                            onClick={() => setForm({ ...form, logo_url: '' })}
-                            className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full text-white"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="h-16 w-32 rounded-lg border-2 border-dashed border-gray-700 flex items-center justify-center text-gray-500">
-                        No logo
-                      </div>
-                    )}
-                    {canEditBranding && (
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleLogoUpload(e.target.files[0])}
-                        />
-                        <Button variant="outline" className="border-gray-700 text-gray-300" disabled={uploading} asChild>
-                          <span>
-                            {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                            Upload Logo
-                          </span>
-                        </Button>
-                      </label>
-                    )}
-                  </div>
+                  {!canCustomizeBranding && isFree ? (
+                    <div className="mt-2">
+                      <UpgradePrompt 
+                        feature="Custom branding" 
+                        message="Upload your company logo and customize colors"
+                        inline
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-2 flex items-center gap-4">
+                      {form.logo_url ? (
+                        <div className="relative">
+                          <img src={form.logo_url} alt="Logo" className="h-16 w-auto rounded-lg border border-gray-700" />
+                          {canEditBranding && (
+                            <button
+                              onClick={() => setForm({ ...form, logo_url: '' })}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full text-white"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="h-16 w-32 rounded-lg border-2 border-dashed border-gray-700 flex items-center justify-center text-gray-500">
+                          No logo
+                        </div>
+                      )}
+                      {canEditBranding && (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleLogoUpload(e.target.files[0])}
+                          />
+                          <Button variant="outline" className="border-gray-700 text-gray-300" disabled={uploading} asChild>
+                            <span>
+                              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                              Upload Logo
+                            </span>
+                          </Button>
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -397,57 +417,66 @@ export default function Settings() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
               <h3 className="text-lg font-semibold text-white">Brand Colors</h3>
               
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-gray-300">Primary Color</Label>
-                  <div className="mt-2 flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={form.primary_color}
-                      onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-                      disabled={!canEditBranding}
-                      className="w-12 h-10 rounded border-0 cursor-pointer"
-                    />
-                    <Input
-                      value={form.primary_color}
-                      onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-                      disabled={!canEditBranding}
-                      className="bg-gray-800 border-gray-700 text-white font-mono"
-                    />
-                  </div>
-                </div>
+              {!canCustomizeBranding && isFree ? (
+                <UpgradePrompt 
+                  feature="Custom brand colors" 
+                  message="Customize your primary and secondary brand colors for a professional look"
+                />
+              ) : (
+                <>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-gray-300">Primary Color</Label>
+                      <div className="mt-2 flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={form.primary_color}
+                          onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                          disabled={!canEditBranding}
+                          className="w-12 h-10 rounded border-0 cursor-pointer"
+                        />
+                        <Input
+                          value={form.primary_color}
+                          onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                          disabled={!canEditBranding}
+                          className="bg-gray-800 border-gray-700 text-white font-mono"
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <Label className="text-gray-300">Secondary Color</Label>
-                  <div className="mt-2 flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={form.secondary_color}
-                      onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
-                      disabled={!canEditBranding}
-                      className="w-12 h-10 rounded border-0 cursor-pointer"
-                    />
-                    <Input
-                      value={form.secondary_color}
-                      onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
-                      disabled={!canEditBranding}
-                      className="bg-gray-800 border-gray-700 text-white font-mono"
-                    />
+                    <div>
+                      <Label className="text-gray-300">Secondary Color</Label>
+                      <div className="mt-2 flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={form.secondary_color}
+                          onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                          disabled={!canEditBranding}
+                          className="w-12 h-10 rounded border-0 cursor-pointer"
+                        />
+                        <Input
+                          value={form.secondary_color}
+                          onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                          disabled={!canEditBranding}
+                          className="bg-gray-800 border-gray-700 text-white font-mono"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="pt-4 border-t border-gray-800">
-                <Label className="text-gray-300">Preview</Label>
-                <div className="mt-3 p-4 bg-gray-800 rounded-lg flex items-center gap-4">
-                  <div className="px-4 py-2 rounded-lg text-white font-medium" style={{ backgroundColor: form.primary_color }}>
-                    Primary Button
+                  <div className="pt-4 border-t border-gray-800">
+                    <Label className="text-gray-300">Preview</Label>
+                    <div className="mt-3 p-4 bg-gray-800 rounded-lg flex items-center gap-4">
+                      <div className="px-4 py-2 rounded-lg text-white font-medium" style={{ backgroundColor: form.primary_color }}>
+                        Primary Button
+                      </div>
+                      <div className="px-4 py-2 rounded-lg text-white font-medium" style={{ backgroundColor: form.secondary_color }}>
+                        Secondary Button
+                      </div>
+                    </div>
                   </div>
-                  <div className="px-4 py-2 rounded-lg text-white font-medium" style={{ backgroundColor: form.secondary_color }}>
-                    Secondary Button
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </TabsContent>
 
@@ -813,6 +842,24 @@ export default function Settings() {
               </div>
             </TabsContent>
           )}
+
+          {/* Billing Tab */}
+          <TabsContent value="billing" className="space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Subscription & Billing</h3>
+                  <p className="text-sm text-gray-400">Manage your subscription plan and billing details</p>
+                </div>
+              </div>
+              <Link to={createPageUrl("Billing")}>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Manage Billing
+                </Button>
+              </Link>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
