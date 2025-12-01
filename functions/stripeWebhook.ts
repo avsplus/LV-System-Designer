@@ -5,6 +5,11 @@ const stripe = new Stripe(Deno.env.get('STRIPE_API_KEY'));
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
 Deno.serve(async (req) => {
+  // Handle non-POST requests (Stripe always uses POST)
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
     
