@@ -130,8 +130,9 @@ export default function Admin() {
     return ROLES.VIEWER;
   };
 
-  const pendingUsers = users.filter(u => u.status === 'pending' || !u.status);
-      const approvedUsers = users.filter(u => u.status === 'approved');
+  // Only count as pending if explicitly set to 'pending', not if status is missing
+              const pendingUsers = users.filter(u => u.status === 'pending');
+              const approvedUsers = users.filter(u => u.status === 'approved' || !u.status);
 
       const stats = {
         totalUsers: users.length,
