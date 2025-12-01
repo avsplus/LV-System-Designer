@@ -494,3 +494,76 @@ function RolePermissionsList({ role }) {
     </ul>
   );
 }
+
+function MigrateDataSection({ organizationId }) {
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState(null);
+
+  const handleMigrate = async () => {
+    setIsMigrating(true);
+    setMigrationResult(null);
+    try {
+      const response = await base44.functions.invoke('migrateToOrganization', {});
+      setMigrationResult(response.data);
+      if (response.data.success) {
+        toast.success('Data migration completed!');
+      } else {
+        toast.error(response.data.error || 'Migration failed');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Migration failed');
+      setMigrationResult({ error: error.message });
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  return (
+    <div className="pt-4 border-t border-gray-800">
+      <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+        <Database className="w-4 h-4" />
+        Data Migration
+      </h4>
+      <p className="text-sm text-gray-400 mb-3">
+        Migrate existing data (users, projects, devices, etc.) without an organization to this organization.
+      </p>
+      <Button
+        onClick={handleMigrate}
+        disabled={isMigrating}
+        variant="outline"
+        className="border-gray-700 text-gray-300 hover:bg-gray-800"
+      >
+        {isMigrating ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Migrating...
+          </>
+        ) : (
+          <>
+            <Database className="w-4 h-4 mr-2" />
+            Migrate Existing Data
+          </>
+        )}
+      </Button>
+      
+      {migrationResult?.success && (
+        <div className="mt-3 bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-sm">
+          <p className="text-green-400 font-medium mb-2">Migration Complete!</p>
+          <div className="text-gray-300 space-y-1">
+            <p>Users migrated: {migrationResult.stats.users}</p>
+            <p>Projects migrated: {migrationResult.stats.projects}</p>
+            <p>Products migrated: {migrationResult.stats.products}</p>
+            <p>Wire pricing migrated: {migrationResult.stats.wirePricing}</p>
+            <p>Activities migrated: {migrationResult.stats.activities}</p>
+          </div>
+        </div>
+      )}
+      
+      {migrationResult?.error && (
+        <div className="mt-3 bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+          Error: {migrationResult.error}
+        </div>
+      )}
+    </div>
+  );
+}
