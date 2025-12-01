@@ -7,6 +7,7 @@ import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown, AlertTriangle 
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackActivity, ActivityActions } from "../activity/activityTracker";
+import { useOrgFilter } from "../auth/useOrganization";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,28 +52,32 @@ export default function ProjectManager({
   };
   
   const queryClient = useQueryClient();
+  const { orgFilter, organizationId } = useOrgFilter();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
   }, []);
 
-  // Fetch user's own projects
+  // Fetch user's own projects (filtered by organization)
   const { data: ownProjects = [], isLoading: loadingOwn } = useQuery({
-    queryKey: ['avProjects', 'own', currentUser?.email],
-    queryFn: () => base44.entities.AVProject.filter({ owner_email: currentUser?.email }, '-updated_date'),
-    enabled: !!currentUser?.email,
+    queryKey: ['avProjects', 'own', currentUser?.email, organizationId],
+    queryFn: () => base44.entities.AVProject.filter({ 
+      owner_email: currentUser?.email,
+      organization_id: organizationId 
+    }, '-updated_date'),
+    enabled: !!currentUser?.email && !!organizationId,
   });
 
-  // Fetch projects shared with user
+  // Fetch projects shared with user (filtered by organization)
   const { data: sharedProjects = [], isLoading: loadingShared } = useQuery({
-    queryKey: ['avProjects', 'shared', currentUser?.email],
+    queryKey: ['avProjects', 'shared', currentUser?.email, organizationId],
     queryFn: async () => {
-      const allProjects = await base44.entities.AVProject.list('-updated_date');
+      const allProjects = await base44.entities.AVProject.filter({ organization_id: organizationId }, '-updated_date');
       return allProjects.filter(p => 
         p.shared_with?.includes(currentUser?.email) && p.owner_email !== currentUser?.email
       );
     },
-    enabled: !!currentUser?.email,
+    enabled: !!currentUser?.email && !!organizationId,
   });
 
   const isLoading = loadingOwn || loadingShared;
@@ -81,15 +86,16 @@ export default function ProjectManager({
     mutationFn: async (data) => {
       if (currentProject && currentProject.id) {
         const updated = await base44.entities.AVProject.update(currentProject.id, data);
-        await trackActivity(ActivityActions.UPDATED_PROJECT, currentProject.id, data.name);
+        await trackActivity(ActivityActions.UPDATED_PROJECT, currentProject.id, data.name, {}, organizationId);
         return updated;
       }
       const created = await base44.entities.AVProject.create({
         ...data,
+        organization_id: organizationId,
         owner_email: currentUser?.email,
         shared_with: []
       });
-      await trackActivity(ActivityActions.CREATED_PROJECT, created.id, data.name);
+      await trackActivity(ActivityActions.CREATED_PROJECT, created.id, data.name, {}, organizationId);
       return created;
     },
     onSuccess: (savedProject) => {
