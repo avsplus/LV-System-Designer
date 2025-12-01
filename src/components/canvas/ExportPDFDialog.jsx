@@ -2,8 +2,13 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, Loader2, Wrench, User, BookOpen, Search, CheckCircle2, AlertCircle } from "lucide-react";
+import { FileText, Download, Loader2, Wrench, User, BookOpen, Search, CheckCircle2, AlertCircle, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { useOrganization } from "../auth/useOrganization";
+import { useSubscription } from "../subscription/useSubscription";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../../utils";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +28,7 @@ export default function ExportPDFDialog({
   onClose, 
   onExport, 
   projectName,
+  projectId,
   isExporting,
   exportEngine = 'jspdf',
   onExportEngineChange,
@@ -35,6 +41,28 @@ export default function ExportPDFDialog({
   const [exportType, setExportType] = useState('installer'); // 'installer', 'client', 'documentation'
   const [isCheckingManuals, setIsCheckingManuals] = useState(false);
   const [manualSearchProgress, setManualSearchProgress] = useState(null);
+
+  const { organizationId } = useOrganization();
+  const { limits, canExportPdf, isFree, currentPlan } = useSubscription();
+
+  // Fetch today's PDF exports
+  const { data: todayExports = [], refetch: refetchExports } = useQuery({
+    queryKey: ['todayExports', organizationId],
+    queryFn: async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const exports = await base44.entities.PdfExport.filter({ 
+        organization_id: organizationId 
+      });
+      return exports.filter(exp => new Date(exp.created_date) >= today);
+    },
+    enabled: !!organizationId && open
+  });
+
+  const exportCount = todayExports.length;
+  const maxExports = limits.maxPdfExportsPerDay;
+  const canExport = canExportPdf(exportCount);
+  const remainingExports = maxExports === Infinity ? '∞' : Math.max(0, maxExports - exportCount);
 
   // Get unique products missing manuals
   const getProductsMissingManuals = () => {
@@ -100,6 +128,8 @@ Only return URLs that:
   };
 
   const handleExport = async () => {
+    if (!canExport) return;
+
     // For installer package, check for missing manuals first
     if (exportType === 'installer' || exportType === 'documentation') {
       const missingManuals = getProductsMissingManuals();
@@ -107,6 +137,21 @@ Only return URLs that:
         await searchManualsForProducts(missingManuals);
       }
     }
+
+    // Track the export
+    try {
+      const user = await base44.auth.me();
+      await base44.entities.PdfExport.create({
+        organization_id: organizationId,
+        project_id: projectId,
+        export_type: exportType,
+        exported_by: user.email
+      });
+      refetchExports();
+    } catch (error) {
+      console.error('Failed to track export:', error);
+    }
+
     onExport({ clientName, location, engine: exportEngine, exportType });
   };
 
@@ -180,6 +225,42 @@ Only return URLs that:
               <span>{connections.length} Connections</span>
               <span>{rooms.length} Rooms</span>
             </div>
+          </div>
+
+          {/* Export Limit Info */}
+          <div className={`rounded-lg p-3 border ${
+            !canExport 
+              ? 'bg-red-500/10 border-red-500/30' 
+              : exportCount >= maxExports * 0.8 
+                ? 'bg-yellow-500/10 border-yellow-500/30'
+                : 'bg-gray-800 border-gray-700'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className={`w-4 h-4 ${!canExport ? 'text-red-400' : 'text-gray-400'}`} />
+                <span className={`text-sm ${!canExport ? 'text-red-400' : 'text-gray-300'}`}>
+                  {exportCount} / {maxExports === Infinity ? '∞' : maxExports} exports today
+                </span>
+              </div>
+              <span className="text-xs text-gray-500 capitalize">{currentPlan} plan</span>
+            </div>
+            {!canExport && (
+              <div className="mt-2">
+                <p className="text-xs text-red-400 mb-2">Daily export limit reached</p>
+                <Link 
+                  to={createPageUrl("Billing")} 
+                  className="inline-flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300"
+                >
+                  <Zap className="w-3 h-3" />
+                  Upgrade for more exports
+                </Link>
+              </div>
+            )}
+            {canExport && maxExports !== Infinity && exportCount >= maxExports * 0.8 && (
+              <p className="text-xs text-yellow-400 mt-1">
+                {remainingExports} exports remaining today
+              </p>
+            )}
           </div>
 
           {/* Export Type Selection */}
@@ -369,11 +450,12 @@ Only return URLs that:
             <Button
               onClick={handleExport}
               className={`${
+                !canExport ? 'bg-gray-600 cursor-not-allowed' :
                 currentInfo.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' :
                 currentInfo.color === 'green' ? 'bg-green-600 hover:bg-green-700' :
                 'bg-purple-600 hover:bg-purple-700'
               }`}
-              disabled={isExporting || isCheckingManuals}
+              disabled={isExporting || isCheckingManuals || !canExport}
             >
               {isCheckingManuals ? (
                 <>
@@ -384,6 +466,11 @@ Only return URLs that:
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Generating...
+                </>
+              ) : !canExport ? (
+                <>
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Limit Reached
                 </>
               ) : (
                 <>

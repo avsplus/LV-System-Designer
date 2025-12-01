@@ -5,13 +5,15 @@ import { DragDropContext } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { Search, Plus, Edit, Trash2, ArrowLeft, Zap, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import ConnectionsSidebar, { connectionTypes, getConnectionColor } from "../components/devicemanager/ConnectionsSidebar";
 import DeviceConnectionEditor from "../components/devicemanager/DeviceConnectionEditor";
 import DeviceForm from "../components/devicemanager/DeviceForm";
 import { useOrgFilter } from "../components/auth/useOrganization";
+import { useSubscription } from "../components/subscription/useSubscription";
+import { toast } from "sonner";
 
 const categorySolidColors = {
   televisions: "bg-blue-600",
@@ -47,6 +49,7 @@ export default function DeviceManager() {
   
   const queryClient = useQueryClient();
   const { orgFilter, organizationId, isLoading: orgLoading } = useOrgFilter();
+  const { limits, canAddDeviceInCategory, isFree, currentPlan } = useSubscription();
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['avProducts', organizationId],
@@ -164,6 +167,12 @@ export default function DeviceManager() {
 
   const categories = [...new Set(products.map(p => p.category))].sort();
 
+  // Count devices per category
+  const categoryCounts = products.reduce((acc, p) => {
+    acc[p.category] = (acc[p.category] || 0) + 1;
+    return acc;
+  }, {});
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchTerm || 
       product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -236,6 +245,39 @@ export default function DeviceManager() {
             <Plus className="w-4 h-4 mr-2" />
             Add New Device
           </Button>
+        </div>
+
+        {/* Device Library Limit Warning */}
+        {isFree && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-yellow-400 font-medium">Free Plan: Limited Device Library</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  You can add up to 5 devices per category. Upgrade to Pro for unlimited devices.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {Object.entries(categoryCounts)
+                    .filter(([_, count]) => count >= 5)
+                    .map(([cat, count]) => (
+                      <Badge key={cat} className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+                        {cat.replace(/_/g, ' ')}: {count}/5 (full)
+                      </Badge>
+                    ))
+                  }
+                </div>
+                <Link 
+                  to={createPageUrl("Billing")} 
+                  className="inline-flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300 mt-2"
+                >
+                  <Zap className="w-3 h-3" />
+                  Upgrade to Pro
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
@@ -396,12 +438,24 @@ export default function DeviceManager() {
       {showForm && (
         <DeviceForm
           device={editingDevice}
-          onSubmit={handleSubmit}
+          onSubmit={(data) => {
+            // Check category limit for new devices on free plan
+            if (!editingDevice && isFree) {
+              const categoryCount = categoryCounts[data.category] || 0;
+              if (!canAddDeviceInCategory(categoryCount)) {
+                toast.error(`Category limit reached. Free plan allows 5 devices per category. Upgrade to Pro for unlimited devices.`);
+                return;
+              }
+            }
+            handleSubmit(data);
+          }}
           onCancel={() => {
             setShowForm(false);
             setEditingDevice(null);
           }}
           isLoading={createMutation.isPending || updateMutation.isPending}
+          categoryCounts={isFree ? categoryCounts : null}
+          maxPerCategory={isFree ? limits.maxDevicesPerCategory : null}
         />
       )}
     </div>
