@@ -8,6 +8,7 @@ import NoOrganization from './pages/NoOrganization';
 import SetupOrganization from './pages/SetupOrganization';
 import PendingApproval from './pages/PendingApproval';
 import Billing from './pages/Billing';
+import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "SetupOrganization": SetupOrganization,
     "PendingApproval": PendingApproval,
     "Billing": Billing,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
