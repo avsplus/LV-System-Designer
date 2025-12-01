@@ -7,6 +7,7 @@ import WirePricing from './pages/WirePricing';
 import NoOrganization from './pages/NoOrganization';
 import SetupOrganization from './pages/SetupOrganization';
 import PendingApproval from './pages/PendingApproval';
+import Billing from './pages/Billing';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "NoOrganization": NoOrganization,
     "SetupOrganization": SetupOrganization,
     "PendingApproval": PendingApproval,
+    "Billing": Billing,
 }
 
 export const pagesConfig = {
