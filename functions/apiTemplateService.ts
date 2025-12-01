@@ -740,24 +740,9 @@ ${(() => {
           body: bodyHtml
         };
 
-        console.log('=== FINAL DEBUG ===');
-        console.log('isClient:', isClient);
-        console.log('howSystemWorksSection length:', howSystemWorksSection.length);
-        console.log('bodyHtml includes "How Your System Works":', bodyHtml.includes('How Your System Works'));
-        console.log('bodyHtml includes "Scope of Work":', bodyHtml.includes('Scope of Work'));
-        
-        // Find position of "How Your System Works" in bodyHtml
-        const hwswPos = bodyHtml.indexOf('How Your System Works');
-        const sowPos = bodyHtml.indexOf('Scope of Work');
-        console.log('Position of "How Your System Works":', hwswPos);
-        console.log('Position of "Scope of Work":', sowPos);
-        
-        // Log snippet around where section should be
-        const pageBreakPos = bodyHtml.indexOf('<div class="page-break"></div>', 100);
-        if (pageBreakPos > 0) {
-          console.log('Content after first page-break (chars 0-500):', bodyHtml.substring(pageBreakPos, pageBreakPos + 500));
-        }
-
+        // Debug: Check what's in the body
+        console.log('BODY_DEBUG_HSWS:', bodyHtml.includes('How Your System Works'));
+        console.log('BODY_DEBUG_SOW:', bodyHtml.includes('Scope of Work'));
         console.log('Sending request to APITemplate with template ID:', TEMPLATE_ID);
         
         try {
