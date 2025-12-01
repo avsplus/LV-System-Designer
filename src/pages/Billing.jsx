@@ -18,12 +18,12 @@ const PLANS = [
     name: 'Free',
     price: '$0',
     period: 'forever',
-    description: 'For individuals and small teams getting started',
+    description: 'For individuals getting started',
     features: [
       'Up to 3 projects',
-      'Basic device library',
-      'PDF exports',
-      'Community support'
+      'Limited device library (5 per category)',
+      '12 PDF exports per day',
+      'No support'
     ],
     icon: Zap,
     color: 'gray'
@@ -35,12 +35,11 @@ const PLANS = [
     period: '/month',
     description: 'For growing teams with advanced needs',
     features: [
-      'Unlimited projects',
+      'Up to 25 projects',
       'Full device library',
-      'Custom branding',
-      'Priority support',
-      'API access',
-      'Advanced exports'
+      '48 PDF exports per day',
+      'Standard support',
+      'Custom branding'
     ],
     icon: Building2,
     color: 'blue',
@@ -53,11 +52,10 @@ const PLANS = [
     period: '/month',
     description: 'For large organizations with custom requirements',
     features: [
-      'Everything in Pro',
-      'Unlimited users',
-      'SSO/SAML',
-      'Dedicated support',
-      'Custom integrations',
+      'Unlimited projects',
+      'Full device library',
+      'Unlimited PDF exports',
+      'Live support',
       'SLA guarantee'
     ],
     icon: Crown,
@@ -232,7 +230,7 @@ export default function Billing() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-gray-900 border rounded-xl p-6 ${
+                className={`relative bg-gray-900 border rounded-xl p-6 flex flex-col ${
                   plan.popular ? 'border-blue-500' : 'border-gray-800'
                 } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
               >
@@ -263,7 +261,7 @@ export default function Billing() {
                 </div>
                 <p className="text-gray-400 text-sm mb-6">{plan.description}</p>
 
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
@@ -272,6 +270,7 @@ export default function Billing() {
                   ))}
                 </ul>
 
+                <div className="mt-auto">
                 <Button
                   className={`w-full ${
                     isCurrent ? 'bg-gray-700 text-gray-400 cursor-default' :
@@ -294,6 +293,7 @@ export default function Billing() {
                     'Subscribe'
                   )}
                 </Button>
+                </div>
               </div>
             );
           })}

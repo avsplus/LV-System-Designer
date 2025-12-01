@@ -6,45 +6,41 @@ import { useOrganization } from "../auth/useOrganization";
 export const PLAN_LIMITS = {
   free: {
     maxProjects: 3,
-    maxDevicesPerProject: 20,
-    maxUsersInOrg: 2,
+    maxDevicesPerCategory: 5,
+    maxPdfExportsPerDay: 12,
     features: {
       customBranding: false,
-      advancedExports: false,
-      apiAccess: false,
-      prioritySupport: false,
-      unlimitedProjects: false,
-      fullDeviceLibrary: false
+      fullDeviceLibrary: false,
+      standardSupport: false,
+      liveSupport: false,
+      slaGuarantee: false,
+      unlimitedPdfExports: false
     }
   },
   pro: {
-    maxProjects: Infinity,
-    maxDevicesPerProject: Infinity,
-    maxUsersInOrg: 10,
+    maxProjects: 25,
+    maxDevicesPerCategory: Infinity,
+    maxPdfExportsPerDay: 48,
     features: {
       customBranding: true,
-      advancedExports: true,
-      apiAccess: true,
-      prioritySupport: true,
-      unlimitedProjects: true,
-      fullDeviceLibrary: true
+      fullDeviceLibrary: true,
+      standardSupport: true,
+      liveSupport: false,
+      slaGuarantee: false,
+      unlimitedPdfExports: false
     }
   },
   enterprise: {
     maxProjects: Infinity,
-    maxDevicesPerProject: Infinity,
-    maxUsersInOrg: Infinity,
+    maxDevicesPerCategory: Infinity,
+    maxPdfExportsPerDay: Infinity,
     features: {
       customBranding: true,
-      advancedExports: true,
-      apiAccess: true,
-      prioritySupport: true,
-      unlimitedProjects: true,
       fullDeviceLibrary: true,
-      sso: true,
-      dedicatedSupport: true,
-      customIntegrations: true,
-      slaGuarantee: true
+      standardSupport: true,
+      liveSupport: true,
+      slaGuarantee: true,
+      unlimitedPdfExports: true
     }
   }
 };
@@ -72,12 +68,12 @@ export function useSubscription() {
     return currentProjectCount < limits.maxProjects;
   };
 
-  const canAddDevice = (currentDeviceCount) => {
-    return currentDeviceCount < limits.maxDevicesPerProject;
+  const canAddDeviceInCategory = (currentDeviceCountInCategory) => {
+    return currentDeviceCountInCategory < limits.maxDevicesPerCategory;
   };
 
-  const canAddUser = (currentUserCount) => {
-    return currentUserCount < limits.maxUsersInOrg;
+  const canExportPdf = (todayExportCount) => {
+    return todayExportCount < limits.maxPdfExportsPerDay;
   };
 
   const hasFeature = (featureName) => {
@@ -97,8 +93,8 @@ export function useSubscription() {
     refetch,
     // Helper functions
     canCreateProject,
-    canAddDevice,
-    canAddUser,
+    canAddDeviceInCategory,
+    canExportPdf,
     hasFeature,
     canAccessFeature: hasFeature, // alias for backward compatibility
     // Quick checks
