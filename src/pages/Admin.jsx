@@ -517,9 +517,10 @@ function InviteUserForm({ users, inviteEmail, setInviteEmail, inviteRole, setInv
           });
         }
         
-        // Send invite email - use the published app URL
-        const appUrl = window.location.href.split('?')[0].replace(/\/+$/, '');
-        const inviteUrl = `${appUrl}?org=${organizationId}&role=${inviteRole}`;
+        // Send invite email - construct the published app URL
+        // Format: https://{app-slug}.base44.app
+        const publishedAppUrl = 'https://av-designer.base44.app';
+        const inviteUrl = `${publishedAppUrl}?org=${organizationId}&role=${inviteRole}`;
         await base44.integrations.Core.SendEmail({
           to: inviteEmail.trim(),
           subject: 'You have been invited to join an organization',
