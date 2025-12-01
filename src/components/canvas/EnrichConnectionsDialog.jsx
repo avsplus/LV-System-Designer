@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Download, Package, Search } from "lucide-react";
+import { Loader2, Link2, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -38,31 +38,49 @@ const CATEGORIES = [
   { value: 'hdmi_extenders', label: 'HDMI Extenders' },
 ];
 
-export default function ImportProductsDialog({ open, onClose, onImport, isImporting }) {
+export default function EnrichConnectionsDialog({ open, onClose, onEnrich, isEnriching, products = [] }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchMode, setSearchMode] = useState('category');
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
 
-  const handleImport = () => {
+  const handleEnrich = () => {
     if (searchMode === 'category') {
-      onImport({ mode: 'category', category: selectedCategory });
+      onEnrich({ mode: 'category', category: selectedCategory === 'all' ? null : selectedCategory });
     } else {
-      onImport({ mode: 'search', brand: brand.trim(), model: model.trim() });
+      onEnrich({ mode: 'search', brand: brand.trim(), model: model.trim() });
     }
   };
 
-  const canImport = searchMode === 'category' || brand.trim().length > 0;
+  const canEnrich = searchMode === 'category' || brand.trim().length > 0;
+
+  // Count products in selected category
+  const productCount = selectedCategory === 'all' 
+    ? products.length 
+    : products.filter(p => p.category === selectedCategory).length;
+
+  // Find matching products for brand/model search
+  const matchingProducts = products.filter(p => {
+    if (!brand.trim()) return false;
+    const brandMatch = p.brand?.toLowerCase().includes(brand.toLowerCase().trim());
+    if (!model.trim()) return brandMatch;
+    const modelMatch = p.model?.toLowerCase().includes(model.toLowerCase().trim());
+    return brandMatch && modelMatch;
+  });
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-gray-900 border-gray-700 sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
-            <Package className="w-5 h-5 text-blue-400" />
-            Import AV Products
+            <Link2 className="w-5 h-5 text-blue-400" />
+            Enrich Product Connections
           </DialogTitle>
         </DialogHeader>
+
+        <p className="text-gray-400 text-sm">
+          Search the web for actual connection ports for products in your database.
+        </p>
 
         <Tabs value={searchMode} onValueChange={setSearchMode} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800">
@@ -77,7 +95,7 @@ export default function ImportProductsDialog({ open, onClose, onImport, isImport
 
           <TabsContent value="category" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <label className="text-sm text-gray-400">Category to Import</label>
+              <label className="text-sm text-gray-400">Category to Enrich</label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="Select category" />
@@ -98,13 +116,10 @@ export default function ImportProductsDialog({ open, onClose, onImport, isImport
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
               <p className="text-blue-400 text-sm">
-                {selectedCategory === 'all' 
-                  ? 'This will search for ~34 products across all categories.'
-                  : `This will search for ~10 products in the ${CATEGORIES.find(c => c.value === selectedCategory)?.label} category.`
-                }
+                {productCount} product{productCount !== 1 ? 's' : ''} will be enriched.
               </p>
               <p className="text-gray-400 text-xs mt-1">
-                Duplicates will be automatically skipped.
+                This may take several minutes for large categories.
               </p>
             </div>
           </TabsContent>
@@ -132,16 +147,20 @@ export default function ImportProductsDialog({ open, onClose, onImport, isImport
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
               <p className="text-blue-400 text-sm">
-                {model.trim() 
-                  ? `Will search for: ${brand.trim()} ${model.trim()}`
-                  : brand.trim()
-                    ? `Will search for multiple ${brand.trim()} products.`
+                {matchingProducts.length > 0 
+                  ? `${matchingProducts.length} matching product${matchingProducts.length !== 1 ? 's' : ''} found in database.`
+                  : brand.trim() 
+                    ? 'No matching products in database.'
                     : 'Enter a brand to search.'
                 }
               </p>
-              <p className="text-gray-400 text-xs mt-1">
-                Searches web for official product specs.
-              </p>
+              {matchingProducts.length > 0 && matchingProducts.length <= 5 && (
+                <div className="text-gray-400 text-xs mt-2 space-y-1">
+                  {matchingProducts.map(p => (
+                    <div key={p.id}>{p.brand} {p.model}</div>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -151,24 +170,24 @@ export default function ImportProductsDialog({ open, onClose, onImport, isImport
             variant="outline"
             onClick={onClose}
             className="border-gray-700 text-gray-300"
-            disabled={isImporting}
+            disabled={isEnriching}
           >
             Cancel
           </Button>
           <Button
-            onClick={handleImport}
+            onClick={handleEnrich}
             className="bg-blue-600 hover:bg-blue-700"
-            disabled={isImporting || !canImport}
+            disabled={isEnriching || !canEnrich || (searchMode === 'search' && matchingProducts.length === 0)}
           >
-            {isImporting ? (
+            {isEnriching ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Importing...
+                Enriching...
               </>
             ) : (
               <>
-                <Download className="w-4 h-4 mr-2" />
-                Import Products
+                <Link2 className="w-4 h-4 mr-2" />
+                Start Enrichment
               </>
             )}
           </Button>

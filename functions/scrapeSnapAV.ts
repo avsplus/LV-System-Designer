@@ -9,11 +9,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Parse request body for category filter
+        // Parse request body for search params
         let selectedCategory = null;
+        let searchBrand = null;
+        let searchModel = null;
+        let searchMode = 'category';
         try {
             const body = await req.json();
+            searchMode = body.mode || 'category';
             selectedCategory = body.category || null;
+            searchBrand = body.brand || null;
+            searchModel = body.model || null;
         } catch (e) {
             // No body or invalid JSON, import all categories
         }
@@ -29,6 +35,106 @@ Deno.serve(async (req) => {
         const categoriesToImport = selectedCategory && selectedCategory !== 'all' 
             ? [selectedCategory] 
             : allCategories;
+
+        // Handle brand/model search mode
+        if (searchMode === 'search' && searchBrand) {
+            const searchQuery = searchModel 
+                ? `${searchBrand} ${searchModel}`
+                : `${searchBrand} AV products`;
+            
+            const productCount = searchModel ? 1 : 10;
+
+            const response = await base44.integrations.Core.InvokeLLM({
+                prompt: `Find ${productCount} ${searchQuery} product(s). Search the web for official specifications.
+
+${searchModel ? `Find the EXACT product: ${searchBrand} ${searchModel}` : `Find popular ${searchBrand} AV products from these categories: televisions, projectors, AV receivers, speakers, soundbars, control processors, etc.`}
+
+For each product provide:
+- brand: exact brand name
+- model: exact model number
+- category: one of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, control_processors, hdmi_extenders]
+- description: brief product description
+- price: estimated USD price
+- installation_manual_url: URL to official installation PDF (if found)
+- user_manual_url: URL to official user manual PDF (if found)
+
+CATEGORY RULES:
+- AV Receivers have built-in amplification (Denon AVR, Yamaha RX = av_receivers)
+- Surround Processors have NO amplification (Marantz AV10 = surround_processors)
+- Control Processors are automation systems (Crestron, Control4, RTI, Savant = control_processors)
+- Media Streamers are video devices (Apple TV, Roku = media_streamers)
+- Audio Streamers are audio-only (Sonos Port = audio_streamers)`,
+                add_context_from_internet: true,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        products: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    brand: { type: "string" },
+                                    model: { type: "string" },
+                                    category: { type: "string" },
+                                    description: { type: "string" },
+                                    price: { type: "number" },
+                                    installation_manual_url: { type: "string" },
+                                    user_manual_url: { type: "string" }
+                                },
+                                required: ["brand", "model", "category"]
+                            }
+                        }
+                    },
+                    required: ["products"]
+                }
+            });
+
+            const products = response.products || [];
+            
+            // Filter and normalize
+            const normalizeCategory = (cat) => {
+                if (!cat) return null;
+                let normalized = cat.toLowerCase().trim().replace(/[\s-]+/g, '_').replace(/[^a-z_]/g, '');
+                const mapping = {
+                    "av_receivers": "av_receivers", "avreceivers": "av_receivers",
+                    "matrix_switchers": "matrix_switchers", "matrixswitchers": "matrix_switchers",
+                    "media_streamers": "media_streamers", "mediastreamers": "media_streamers",
+                    "multizone_amps": "multizone_amps", "multizoneamps": "multizone_amps",
+                    "network_switches": "network_switches", "networkswitches": "network_switches",
+                    "projector_screens": "projector_screens", "projectorscreens": "projector_screens",
+                    "video_distribution": "video_distribution", "videodistribution": "video_distribution",
+                    "audio_streamers": "audio_streamers", "audiostreamers": "audio_streamers",
+                    "stereo_amps": "stereo_amps", "stereoamps": "stereo_amps",
+                    "surround_processors": "surround_processors", "surroundprocessors": "surround_processors",
+                    "control_processors": "control_processors", "controlprocessors": "control_processors",
+                    "hdmi_extenders": "hdmi_extenders", "hdmiextenders": "hdmi_extenders"
+                };
+                return mapping[normalized] || normalized;
+            };
+
+            const normalizedProducts = products.map(p => ({
+                ...p,
+                category: normalizeCategory(p.category),
+                organization_id: user.organization_id
+            })).filter(p => allCategories.includes(p.category));
+
+            const newProducts = normalizedProducts.filter(p => {
+                const key = `${p.brand.toLowerCase()}-${p.model.toLowerCase()}`;
+                return !existingKeys.has(key);
+            });
+
+            if (newProducts.length > 0) {
+                await base44.asServiceRole.entities.AVProduct.bulkCreate(newProducts);
+            }
+
+            return Response.json({ 
+                success: true, 
+                productsFound: newProducts.length,
+                skippedDuplicates: products.length - newProducts.length,
+                searchQuery,
+                products: newProducts 
+            });
+        }
 
         const categoryList = categoriesToImport.join(', ');
         const productCount = selectedCategory && selectedCategory !== 'all' ? 10 : 34;

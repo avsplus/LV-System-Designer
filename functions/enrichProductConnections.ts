@@ -18,11 +18,17 @@ Deno.serve(async (req) => {
             "hdmi_extenders"
         ];
 
-        // Get category filter from request body
+        // Get filter from request body
         let categoryFilter = null;
+        let searchBrand = null;
+        let searchModel = null;
+        let searchMode = 'category';
         try {
             const body = await req.json();
+            searchMode = body.mode || 'category';
             categoryFilter = body.category || null;
+            searchBrand = body.brand || null;
+            searchModel = body.model || null;
         } catch (e) {
             // No body or invalid JSON, proceed without filter
         }
@@ -67,9 +73,18 @@ Deno.serve(async (req) => {
             return categoryMapping[normalized] || normalized;
         };
 
-        // Get products from database, optionally filtered by category
+        // Get products from database, filtered by category or brand/model
         let products;
-        if (categoryFilter && validCategories.includes(categoryFilter)) {
+        if (searchMode === 'search' && searchBrand) {
+            // Filter by brand (and optionally model)
+            const allProducts = await base44.asServiceRole.entities.AVProduct.list();
+            products = allProducts.filter(p => {
+                const brandMatch = p.brand?.toLowerCase().includes(searchBrand.toLowerCase());
+                if (!searchModel) return brandMatch;
+                const modelMatch = p.model?.toLowerCase().includes(searchModel.toLowerCase());
+                return brandMatch && modelMatch;
+            });
+        } else if (categoryFilter && validCategories.includes(categoryFilter)) {
             products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
         } else {
             products = await base44.asServiceRole.entities.AVProduct.list();
