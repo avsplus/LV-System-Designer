@@ -85,9 +85,13 @@ Deno.serve(async (req) => {
                 let systemExplanation = '';
                 if (exportType === 'client' || exportType === 'documentation') {
                   try {
+                    console.log('Generating AI system explanation for client export...');
                     systemExplanation = await generateSystemExplanation(canvasProducts, connections, base44);
+                    console.log('System explanation generated, length:', systemExplanation?.length || 0);
                   } catch (e) {
                     console.log('Could not generate system explanation:', e.message);
+                    // Provide fallback content
+                    systemExplanation = generateFallbackExplanation(canvasProducts, connections);
                   }
                 }
 
