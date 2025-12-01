@@ -766,6 +766,7 @@ ${(() => {
         console.log('BODY_DEBUG_HSWS:', bodyHtml.includes('How Your System Works'));
         console.log('BODY_DEBUG_SOW:', bodyHtml.includes('Scope of Work'));
         console.log('Sending request to APITemplate with template ID:', TEMPLATE_ID);
+        console.log('Template data:', JSON.stringify(templateData).substring(0, 500));
         
         try {
           const response = await fetch(`https://rest.apitemplate.io/v2/create-pdf?template_id=${TEMPLATE_ID}&expiration=1440`, {
