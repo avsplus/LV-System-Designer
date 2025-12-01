@@ -167,6 +167,12 @@ Deno.serve(async (req) => {
         const grandTotal = totalDevicePrice + laborSubtotal;
 
         // Build "How Your System Works" section for client exports
+        const roomsList = uniqueRooms.map(room => {
+          const count = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned')).length;
+          return '<li><strong>' + room + '</strong> - ' + count + ' device(s)</li>';
+        }).join('');
+        const networkedCount = canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length;
+        
         const howSystemWorksHtml = isClient ? `
 <!-- How Your System Works -->
 <section>
@@ -182,17 +188,14 @@ Deno.serve(async (req) => {
   
   <h3>Rooms in Your System</h3>
   <ul>
-    ${uniqueRooms.map(room => {
-      const count = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned')).length;
-      return '<li><strong>' + room + '</strong> - ' + count + ' device(s)</li>';
-    }).join('')}
+    ${roomsList}
   </ul>
   
   <h3>Key Features</h3>
   <ul>
     <li>Professional installation with ${connections.length} integrated connections</li>
     <li>Multi-room capability across ${uniqueRooms.length} spaces</li>
-    <li>${canvasProducts.filter(cp => cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000').length} networked devices for smart home integration</li>
+    <li>${networkedCount} networked devices for smart home integration</li>
   </ul>
 </section>
 
