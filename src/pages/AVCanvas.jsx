@@ -1695,13 +1695,27 @@ function AVCanvasContent() {
                   const exportTypeNames = { installer: 'Installer-Package', client: 'Client-Proposal', documentation: 'Full-Documentation' };
                   const blob = new Blob([bytes], { type: 'application/pdf' });
                   const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${currentProject?.name || 'AV-System-Design'}-${exportTypeNames[exportType] || 'Package'}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  a.remove();
+                  const fileName = `${currentProject?.name || 'AV-System-Design'}-${exportTypeNames[exportType] || 'Package'}.pdf`;
+
+                  // Safari-compatible download
+                  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                  if (isSafari) {
+                    // For Safari, open in new tab and let user save
+                    const newWindow = window.open(url, '_blank');
+                    if (!newWindow) {
+                      // Popup blocked - fallback to direct navigation
+                      window.location.href = url;
+                    }
+                  } else {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                  }
+                  // Delay URL revocation to allow download to complete
+                  setTimeout(() => window.URL.revokeObjectURL(url), 5000);
                   toast.success('PDF exported successfully');
                 }
                 setShowExportDialog(false);
