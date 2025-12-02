@@ -259,10 +259,54 @@ IMPORTANT:
                     // Build update object safely, matching AVProduct schema
                     const updateData = {};
 
+                    // Port name patterns for each connection type
+                    const connectionTypePatterns = {
+                        'HDMI': /hdmi|arc|earc/i,
+                        'HDBaseT': /hdbaset|hdb/i,
+                        'Optical': /optical|toslink|spdif/i,
+                        'Coaxial': /coax/i,
+                        'RCA': /rca|analog|aux|cd|phono|zone|pre.?out|line/i,
+                        'XLR': /xlr/i,
+                        'Speaker Wire': /speaker|front|center|surround|rear|sub|lfe|height|atmos|zone/i,
+                        'Subwoofer': /sub|lfe|sw/i,
+                        'Ethernet': /lan|ethernet|network|rj.?45/i,
+                        'USB': /usb/i,
+                        'RS232': /rs.?232|serial/i,
+                        'IR': /ir|infra/i,
+                        'Control': /trigger|control|12v/i,
+                        'Component': /component|ypbpr/i,
+                        'Composite': /composite|cvbs|video/i,
+                        'VGA': /vga|d.?sub/i,
+                        '3.5mm Jack': /3\.5|headphone|aux|mini/i
+                    };
+
+                    // Validate that ports match their connection type
+                    const validateConnection = (conn) => {
+                        if (!conn.type || !conn.ports || !Array.isArray(conn.ports)) return null;
+                        
+                        const pattern = connectionTypePatterns[conn.type];
+                        if (!pattern) return conn; // Unknown type, keep as-is
+                        
+                        // Filter ports to only those matching the connection type
+                        const validPorts = conn.ports.filter(port => {
+                            if (!port || typeof port !== 'string') return false;
+                            // Port should match its type OR be a generic numbered port
+                            const isGenericNumbered = /^(in|out|input|output)?\s*\d+$/i.test(port.trim());
+                            return pattern.test(port) || isGenericNumbered;
+                        });
+                        
+                        if (validPorts.length === 0) return null;
+                        return { ...conn, ports: validPorts };
+                    };
+
                     // Always update connections if we got valid data
                     if (response.inputs || response.outputs) {
                         let inputs = Array.isArray(response.inputs) ? response.inputs : [];
                         let outputs = Array.isArray(response.outputs) ? response.outputs : [];
+                        
+                        // Validate and filter connections
+                        inputs = inputs.map(validateConnection).filter(c => c !== null);
+                        outputs = outputs.map(validateConnection).filter(c => c !== null);
                         
                         // Validation: Media streamers should not have HDMI inputs
                         if (product.category === 'media_streamers') {
