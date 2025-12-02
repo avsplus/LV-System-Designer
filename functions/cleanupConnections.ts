@@ -9,25 +9,33 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Port name patterns for each connection type
+        // Port name patterns for each connection type (as strings to avoid regex serialization issues)
         const connectionTypePatterns = {
-            'HDMI': /hdmi|arc|earc/i,
-            'HDBaseT': /hdbaset|hdb/i,
-            'Optical': /optical|toslink|spdif/i,
-            'Coaxial': /coax/i,
-            'RCA': /rca|analog|aux|cd|phono|zone|pre.?out|line/i,
-            'XLR': /xlr/i,
-            'Speaker Wire': /speaker|front|center|surround|rear|sub|lfe|height|atmos|terminal/i,
-            'Subwoofer': /sub|lfe|sw/i,
-            'Ethernet': /lan|ethernet|network|rj.?45/i,
-            'USB': /usb/i,
-            'RS232': /rs.?232|serial/i,
-            'IR': /ir|infra/i,
-            'Control': /trigger|control|12v/i,
-            'Component': /component|ypbpr/i,
-            'Composite': /composite|cvbs/i,
-            'VGA': /vga|d.?sub/i,
-            '3.5mm Jack': /3\.5|headphone|mini.?jack/i
+            'HDMI': 'hdmi|arc|earc',
+            'HDBaseT': 'hdbaset|hdb',
+            'Optical': 'optical|toslink|spdif',
+            'Coaxial': 'coax',
+            'RCA': 'rca|analog|aux|cd|phono|zone|pre.?out|line',
+            'XLR': 'xlr',
+            'Speaker Wire': 'speaker|front|center|surround|rear|sub|lfe|height|atmos|terminal',
+            'Subwoofer': 'sub|lfe|sw',
+            'Ethernet': 'lan|ethernet|network|rj.?45',
+            'USB': 'usb',
+            'RS232': 'rs.?232|serial',
+            'IR': 'ir|infra',
+            'Control': 'trigger|control|12v',
+            'Component': 'component|ypbpr',
+            'Composite': 'composite|cvbs',
+            'VGA': 'vga|d.?sub',
+            '3.5mm Jack': '3\\.5|headphone|mini.?jack'
+        };
+        
+        const testPattern = (pattern, text) => {
+            try {
+                return new RegExp(pattern, 'i').test(text);
+            } catch (e) {
+                return false;
+            }
         };
 
         // Detect correct type for a port name
@@ -37,7 +45,7 @@ Deno.serve(async (req) => {
             
             // Check each type pattern
             for (const [type, pattern] of Object.entries(connectionTypePatterns)) {
-                if (pattern.test(port)) {
+                if (testPattern(pattern, port)) {
                     return type;
                 }
             }
@@ -60,8 +68,8 @@ Deno.serve(async (req) => {
                     
                     // Check if port matches its declared type
                     const declaredPattern = connectionTypePatterns[conn.type];
-                    const matchesDeclared = declaredPattern && declaredPattern.test(port);
-                    const isGenericNumbered = /^(in|out|input|output)?\s*\d+$/i.test(port.trim());
+                    const matchesDeclared = declaredPattern && testPattern(declaredPattern, port);
+                    const isGenericNumbered = testPattern('^(in|out|input|output)?\\s*\\d+$', port.trim());
                     
                     // Use declared type if it matches, otherwise use detected type
                     const finalType = (matchesDeclared || isGenericNumbered) ? conn.type : actualType;
