@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Link2, Search } from "lucide-react";
+import { Loader2, Link2, Search, Wrench } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +45,22 @@ export default function EnrichConnectionsDialog({ open, onClose, onEnrich, isEnr
   const [searchMode, setSearchMode] = useState('category');
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
+  const [isCleaning, setIsCleaning] = useState(false);
+
+  const handleCleanup = async () => {
+    setIsCleaning(true);
+    try {
+      const { data } = await base44.functions.invoke('cleanupConnections', {});
+      toast.success(`Cleaned up ${data.fixed} products with mismatched connections`);
+      if (data.fixed > 0) {
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (error) {
+      toast.error('Cleanup failed: ' + (error.message || 'Unknown error'));
+    } finally {
+      setIsCleaning(false);
+    }
+  };
 
   const handleEnrich = () => {
     if (searchMode === 'category') {
@@ -165,32 +183,52 @@ export default function EnrichConnectionsDialog({ open, onClose, onEnrich, isEnr
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-between pt-2">
           <Button
             variant="outline"
-            onClick={onClose}
-            className="border-gray-700 text-gray-300"
-            disabled={isEnriching}
+            onClick={handleCleanup}
+            className="border-yellow-600 text-yellow-400 hover:bg-yellow-600/20"
+            disabled={isEnriching || isCleaning}
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleEnrich}
-            className="bg-blue-600 hover:bg-blue-700"
-            disabled={isEnriching || !canEnrich || (searchMode === 'search' && matchingProducts.length === 0)}
-          >
-            {isEnriching ? (
+            {isCleaning ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Enriching...
+                Cleaning...
               </>
             ) : (
               <>
-                <Link2 className="w-4 h-4 mr-2" />
-                Start Enrichment
+                <Wrench className="w-4 h-4 mr-2" />
+                Fix Mismatched
               </>
             )}
           </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="border-gray-700 text-gray-300"
+              disabled={isEnriching || isCleaning}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEnrich}
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={isEnriching || isCleaning || !canEnrich || (searchMode === 'search' && matchingProducts.length === 0)}
+            >
+              {isEnriching ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enriching...
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Start Enrichment
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
