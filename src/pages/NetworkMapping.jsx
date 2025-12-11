@@ -41,6 +41,7 @@ export default function NetworkMapping() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
+  const [showNetworkDialog, setShowNetworkDialog] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
   const [scanProgress, setScanProgress] = useState({ percent: 0, devicesFound: 0 });
   const [deviceForm, setDeviceForm] = useState({
@@ -50,6 +51,12 @@ export default function NetworkMapping() {
     mac_address: '',
     location: '',
     notes: ''
+  });
+  const [networkForm, setNetworkForm] = useState({
+    name: '',
+    description: '',
+    subnet: '',
+    location: ''
   });
 
   // Fetch devices and networks
@@ -89,6 +96,16 @@ export default function NetworkMapping() {
       queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
       toast.success('Device removed');
       setSelectedDevice(null);
+    }
+  });
+
+  const createNetworkMutation = useMutation({
+    mutationFn: (data) => base44.entities.Network.create({ ...data, organization_id: organizationId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['networks'] });
+      toast.success('Network created');
+      setShowNetworkDialog(false);
+      setNetworkForm({ name: '', description: '', subnet: '', location: '' });
     }
   });
 
@@ -205,6 +222,14 @@ export default function NetworkMapping() {
     });
   };
 
+  const handleAddNetwork = () => {
+    if (!networkForm.name || !networkForm.subnet) {
+      toast.error('Network name and subnet are required');
+      return;
+    }
+    createNetworkMutation.mutate(networkForm);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       {/* Header */}
@@ -266,16 +291,29 @@ export default function NetworkMapping() {
             </Button>
           ) : (
             <>
+              <Button 
+                onClick={() => setShowNetworkDialog(true)}
+                variant="outline"
+                className="border-gray-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Network
+              </Button>
+              
               <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Select network..." />
+                  <SelectValue placeholder={networks.length === 0 ? "No networks" : "Select network..."} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  {networks.map(network => (
-                    <SelectItem key={network.id} value={network.id}>
-                      {network.name} ({network.subnet || 'No subnet'})
-                    </SelectItem>
-                  ))}
+                  {networks.length === 0 ? (
+                    <div className="p-2 text-sm text-gray-500">No networks available</div>
+                  ) : (
+                    networks.map(network => (
+                      <SelectItem key={network.id} value={network.id}>
+                        {network.name} ({network.subnet || 'No subnet'})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               
@@ -388,6 +426,66 @@ export default function NetworkMapping() {
         devicesFound={scanProgress.devicesFound} 
         isScanning={isScanning} 
       />
+
+      {/* Add Network Dialog */}
+      <Dialog open={showNetworkDialog} onOpenChange={setShowNetworkDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-white">Create Network</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Network Name</Label>
+              <Input
+                value={networkForm.name}
+                onChange={(e) => setNetworkForm({ ...networkForm, name: e.target.value })}
+                placeholder="Office Network, Guest WiFi, etc."
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-gray-300">Subnet (CIDR)</Label>
+              <Input
+                value={networkForm.subnet}
+                onChange={(e) => setNetworkForm({ ...networkForm, subnet: e.target.value })}
+                placeholder="192.168.1.0/24"
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-gray-300">Location</Label>
+              <Input
+                value={networkForm.location}
+                onChange={(e) => setNetworkForm({ ...networkForm, location: e.target.value })}
+                placeholder="Main Office, Building A, etc."
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-gray-300">Description</Label>
+              <Textarea
+                value={networkForm.description}
+                onChange={(e) => setNetworkForm({ ...networkForm, description: e.target.value })}
+                placeholder="Network description..."
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNetworkDialog(false)} className="border-gray-700">
+              Cancel
+            </Button>
+            <Button onClick={handleAddNetwork} className="bg-cyan-600 hover:bg-cyan-700">
+              Create Network
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Device Dialog */}
       <Dialog open={showDeviceDialog} onOpenChange={setShowDeviceDialog}>
