@@ -41,6 +41,8 @@ export default function NetworkMapping() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState(null);
+  const [scanProgress, setScanProgress] = useState({ percent: 0, devicesFound: 0 });
   const [deviceForm, setDeviceForm] = useState({
     name: '',
     type: 'other',
@@ -113,29 +115,44 @@ export default function NetworkMapping() {
         mac_address: deviceData.mac_address,
         vendor: deviceData.vendor,
         status: 'online',
+        network_id: deviceData.network_id,
         position_x: 100 + col * gridSize,
         position_y: 100 + row * gridSize,
         connected_to: []
       });
+      setScanProgress(prev => ({ ...prev, devicesFound: prev.devicesFound + 1 }));
     }
   }, [devices, createDeviceMutation, updateDeviceMutation]);
 
-  const handleLinkDiscovered = useCallback((linkData) => {
-    const fromDevice = devices.find(d => d.mac_address === linkData.from_mac);
-    const toDevice = devices.find(d => d.mac_address === linkData.to_mac);
-    
-    if (fromDevice && toDevice && !fromDevice.connected_to?.includes(toDevice.id)) {
-      updateDeviceMutation.mutate({
-        id: fromDevice.id,
-        data: {
-          connected_to: [...(fromDevice.connected_to || []), toDevice.id]
-        }
-      });
-    }
-  }, [devices, updateDeviceMutation]);
+  const handleScanProgress = useCallback((progressData) => {
+    setScanProgress({
+      percent: progressData.percent || 0,
+      devicesFound: scanProgress.devicesFound
+    });
+  }, [scanProgress.devicesFound]);
 
-  const { isConnected, isScanning, progress, devicesFound, connect, disconnect, startScan } = 
-    useNetworkScanner(handleDeviceDiscovered, handleLinkDiscovered);
+  const handleScanError = useCallback((errorMessage) => {
+    toast.error(errorMessage);
+  }, []);
+
+  const { isConnected, isScanning, agentVersion, connect, disconnect, startScan } = 
+    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError);
+
+  const handleStartScan = useCallback(() => {
+    if (!selectedNetwork) {
+      toast.error('Please select a network first');
+      return;
+    }
+    
+    const network = networks.find(n => n.id === selectedNetwork);
+    if (!network?.subnet) {
+      toast.error('Selected network has no subnet defined');
+      return;
+    }
+    
+    setScanProgress({ percent: 0, devicesFound: 0 });
+    startScan(network.subnet, network.id);
+  }, [selectedNetwork, networks, startScan]);
 
   // Device drag handling
   const handleDrag = useCallback((deviceId, info) => {
@@ -229,15 +246,30 @@ export default function NetworkMapping() {
               Connect Scanner
             </Button>
           ) : (
-            <Button 
-              onClick={startScan} 
-              disabled={isScanning}
-              variant="outline"
-              className="border-green-500 text-green-400 hover:bg-green-500/10"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
-              {isScanning ? 'Scanning...' : 'Scan Network'}
-            </Button>
+            <>
+              <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
+                <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
+                  <SelectValue placeholder="Select network..." />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {networks.map(network => (
+                    <SelectItem key={network.id} value={network.id}>
+                      {network.name} ({network.subnet || 'No subnet'})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Button 
+                onClick={handleStartScan} 
+                disabled={isScanning || !selectedNetwork}
+                variant="outline"
+                className="border-green-500 text-green-400 hover:bg-green-500/10"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
+                {isScanning ? 'Scanning...' : 'Scan Network'}
+              </Button>
+            </>
           )}
           
           {selectedDevice && (
@@ -332,7 +364,11 @@ export default function NetworkMapping() {
         )}
       </div>
 
-      <ScanProgress progress={progress} devicesFound={devicesFound} isScanning={isScanning} />
+      <ScanProgress 
+        progress={scanProgress.percent} 
+        devicesFound={scanProgress.devicesFound} 
+        isScanning={isScanning} 
+      />
 
       {/* Add Device Dialog */}
       <Dialog open={showDeviceDialog} onOpenChange={setShowDeviceDialog}>

@@ -1,61 +1,108 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-export default function useNetworkScanner(onDeviceDiscovered, onLinkDiscovered) {
+export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError) {
   const [isConnected, setIsConnected] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [devicesFound, setDevicesFound] = useState(0);
+  const [agentVersion, setAgentVersion] = useState(null);
   const wsRef = useRef(null);
   const pingIntervalRef = useRef(null);
+  const currentScanRef = useRef(null);
+
+  const sendMessage = useCallback((type, requestId, payload) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type, requestId, payload }));
+    }
+  }, []);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    const ws = new WebSocket('ws://localhost:8765');
+    const ws = new WebSocket('ws://localhost:8765/ws');
     
     ws.onopen = () => {
       console.log('Connected to network scanner agent');
       setIsConnected(true);
-      ws.send(JSON.stringify({ type: 'hello' }));
       
-      // Start ping interval
+      // Send hello handshake
+      const helloRequestId = `hello-${Date.now()}`;
+      ws.send(JSON.stringify({
+        type: 'hello',
+        requestId: helloRequestId,
+        payload: {
+          frontendVersion: 'fusion-console-v1',
+          protocolVersion: 1
+        }
+      }));
+      
+      // Start ping interval (every 30 seconds)
       pingIntervalRef.current = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'ping' }));
+          ws.send(JSON.stringify({
+            type: 'ping',
+            requestId: `ping-${Date.now()}`,
+            payload: { timestamp: Date.now() }
+          }));
         }
       }, 30000);
     };
 
     ws.onmessage = (event) => {
       try {
-        const message = JSON.parse(event.data);
+        const { type, requestId, payload } = JSON.parse(event.data);
         
-        switch (message.type) {
+        switch (type) {
+          case 'hello_ack':
+            console.log('Agent handshake complete:', payload);
+            setAgentVersion(payload.agentVersion);
+            break;
+            
           case 'pong':
+            // Keep-alive acknowledged
             break;
             
           case 'device':
-            onDeviceDiscovered?.(message.data);
-            setDevicesFound(prev => prev + 1);
+            // Convert agent format to our format
+            const deviceData = {
+              ip_address: payload.ip,
+              mac_address: payload.mac,
+              hostname: payload.hostname,
+              vendor: payload.vendor,
+              latency: payload.latency,
+              network_id: payload.network_id
+            };
+            onDeviceDiscovered?.(deviceData);
             break;
             
-          case 'link':
-            onLinkDiscovered?.(message.data);
+          case 'scan_progress':
+            onScanProgress?.({
+              requestId,
+              percent: payload.percent,
+              status: payload.status,
+              network_id: payload.network_id
+            });
+            
+            if (payload.status === 'complete') {
+              setIsScanning(false);
+            }
             break;
             
-          case 'progress':
-            setProgress(message.percentage || 0);
-            setDevicesFound(message.devices_found || 0);
-            break;
-            
-          case 'complete':
+          case 'scan_complete':
             setIsScanning(false);
-            setProgress(100);
+            onScanProgress?.({
+              requestId,
+              percent: 100,
+              status: 'complete',
+              network_id: payload.network_id,
+              totalDevices: payload.totalDevices
+            });
+            currentScanRef.current = null;
             break;
             
           case 'error':
-            console.error('Scanner error:', message.error);
+            console.error('Scanner error:', payload);
+            onError?.(payload.message || 'Scan failed');
             setIsScanning(false);
+            currentScanRef.current = null;
             break;
         }
       } catch (error) {
@@ -66,18 +113,20 @@ export default function useNetworkScanner(onDeviceDiscovered, onLinkDiscovered) 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
       setIsConnected(false);
+      onError?.('Failed to connect to scanner agent');
     };
 
     ws.onclose = () => {
       console.log('Disconnected from network scanner agent');
       setIsConnected(false);
+      setIsScanning(false);
       if (pingIntervalRef.current) {
         clearInterval(pingIntervalRef.current);
       }
     };
 
     wsRef.current = ws;
-  }, [onDeviceDiscovered, onLinkDiscovered]);
+  }, [onDeviceDiscovered, onScanProgress, onError]);
 
   const disconnect = useCallback(() => {
     if (pingIntervalRef.current) {
@@ -88,17 +137,24 @@ export default function useNetworkScanner(onDeviceDiscovered, onLinkDiscovered) 
       wsRef.current = null;
     }
     setIsConnected(false);
+    setIsScanning(false);
+    currentScanRef.current = null;
   }, []);
 
-  const startScan = useCallback(() => {
-    if (!isConnected || isScanning) return;
+  const startScan = useCallback((cidr, networkId) => {
+    if (!isConnected || isScanning || !cidr || !networkId) return;
     
     setIsScanning(true);
-    setProgress(0);
-    setDevicesFound(0);
+    const requestId = `scan-${Date.now()}`;
+    currentScanRef.current = requestId;
     
-    wsRef.current?.send(JSON.stringify({ type: 'scan' }));
-  }, [isConnected, isScanning]);
+    sendMessage('start_scan', requestId, {
+      cidr,
+      network_id: networkId
+    });
+    
+    return requestId;
+  }, [isConnected, isScanning, sendMessage]);
 
   useEffect(() => {
     return () => {
@@ -109,8 +165,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onLinkDiscovered) 
   return {
     isConnected,
     isScanning,
-    progress,
-    devicesFound,
+    agentVersion,
     connect,
     disconnect,
     startScan
