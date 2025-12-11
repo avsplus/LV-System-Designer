@@ -224,7 +224,26 @@ export default function NetworkMapping() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {/* Agent Connection Status */}
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+            isConnected 
+              ? 'bg-green-500/10 border-green-500/30' 
+              : 'bg-gray-800/50 border-gray-700'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              isConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-600'
+            }`} />
+            <span className={`text-sm font-medium ${
+              isConnected ? 'text-green-400' : 'text-gray-500'
+            }`}>
+              {isConnected ? 'Agent Connected' : 'Agent Offline'}
+            </span>
+            {isConnected && agentVersion && (
+              <span className="text-xs text-gray-400">v{agentVersion}</span>
+            )}
+          </div>
+          
           <NetworkStats devices={devices} />
         </div>
       </div>
