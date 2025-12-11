@@ -9,6 +9,7 @@ import SetupOrganization from './pages/SetupOrganization';
 import PendingApproval from './pages/PendingApproval';
 import Billing from './pages/Billing';
 import Landing from './pages/Landing';
+import NetworkMapping from './pages/NetworkMapping';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "PendingApproval": PendingApproval,
     "Billing": Billing,
     "Landing": Landing,
+    "NetworkMapping": NetworkMapping,
 }
 
 export const pagesConfig = {
