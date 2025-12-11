@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 import { useOrganization } from "../components/auth/useOrganization";
-import DeviceNode from "../components/network/DeviceNode";
+import { Badge } from "@/components/ui/badge";
 import NetworkStats from "../components/network/NetworkStats";
 import ScanProgress from "../components/network/ScanProgress";
 import useNetworkScanner from "../components/network/useNetworkScanner";
