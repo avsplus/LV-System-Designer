@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  ChevronLeft, Plus, Wifi, RefreshCw, Download, Trash2, 
-  Settings, ZoomIn, ZoomOut, Maximize2, Network as NetworkIcon
+  ChevronLeft, Plus, Wifi, RefreshCw, Trash2, 
+  Network as NetworkIcon, Router, Server, Shield, 
+  Monitor, Printer, HardDrive, Cpu, Box
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -37,8 +38,7 @@ export default function NetworkMapping() {
   const queryClient = useQueryClient();
   const canvasRef = useRef(null);
   
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
   const [showNetworkDialog, setShowNetworkDialog] = useState(false);
@@ -171,24 +171,7 @@ export default function NetworkMapping() {
     startScan(network.subnet, network.id);
   }, [selectedNetwork, networks, startScan]);
 
-  // Device drag handling
-  const handleDrag = useCallback((deviceId, info) => {
-    const device = devices.find(d => d.id === deviceId);
-    if (!device) return;
-    
-    updateDeviceMutation.mutate({
-      id: deviceId,
-      data: {
-        position_x: device.position_x + info.delta.x / zoom,
-        position_y: device.position_y + info.delta.y / zoom
-      }
-    });
-  }, [devices, zoom, updateDeviceMutation]);
 
-  // Zoom controls
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
-  const handleZoomReset = () => setZoom(1);
 
   const resetForm = () => {
     setDeviceForm({
@@ -341,81 +324,120 @@ export default function NetworkMapping() {
           )}
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1">
-            <Button size="icon" variant="ghost" onClick={handleZoomOut} className="h-7 w-7">
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <span className="text-sm text-gray-400 min-w-[3rem] text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-            <Button size="icon" variant="ghost" onClick={handleZoomIn} className="h-7 w-7">
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-            <Button size="icon" variant="ghost" onClick={handleZoomReset} className="h-7 w-7">
-              <Maximize2 className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
+
       </div>
 
-      {/* Canvas */}
-      <div 
-        ref={canvasRef}
-        className="flex-1 relative overflow-hidden"
-        onClick={() => setSelectedDevice(null)}
-        style={{
-          backgroundImage: 'radial-gradient(circle, rgba(6, 182, 212, 0.05) 1px, transparent 1px)',
-          backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
-          backgroundPosition: `${pan.x}px ${pan.y}px`
-        }}
-      >
-        <div
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: 'top left'
-          }}
-          className="absolute inset-0"
-        >
-          <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
-            {devices.map(device => 
-              device.connected_to?.map(targetId => {
-                const target = devices.find(d => d.id === targetId);
-                if (!target) return null;
-                
-                return (
-                  <line
-                    key={`${device.id}-${targetId}`}
-                    x1={device.position_x + 40}
-                    y1={device.position_y + 40}
-                    x2={target.position_x + 40}
-                    y2={target.position_y + 40}
-                    stroke="rgba(6, 182, 212, 0.3)"
-                    strokeWidth="2"
-                    strokeDasharray="5,5"
-                  />
-                );
-              })
-            )}
-          </svg>
-          
-          {devices.map(device => (
-            <DeviceNode
-              key={device.id}
-              device={device}
-              onDrag={handleDrag}
-              onClick={setSelectedDevice}
-              isSelected={selectedDevice?.id === device.id}
-            />
-          ))}
-        </div>
-        
-        {devices.length === 0 && !isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <NetworkIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg mb-2">No devices yet</p>
-              <p className="text-gray-500 text-sm">Add devices manually or scan your network</p>
+      {/* Device Table */}
+      <div className="flex-1 overflow-auto p-6">
+        {devices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <NetworkIcon className="w-16 h-16 mb-4 opacity-20" />
+            <p className="text-lg font-medium">No devices yet</p>
+            <p className="text-sm">Add devices manually or scan a network</p>
+          </div>
+        ) : (
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-800/50 border-b border-gray-800">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Device</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Type</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">IP Address</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">MAC Address</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Status</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Location</th>
+                    <th className="text-right px-4 py-3 text-sm font-medium text-gray-400">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {devices.map(device => {
+                    const icons = {
+                      router: Router,
+                      switch: NetworkIcon,
+                      server: Server,
+                      firewall: Shield,
+                      access_point: Wifi,
+                      workstation: Monitor,
+                      printer: Printer,
+                      nas: HardDrive,
+                      iot: Cpu
+                    };
+                    const Icon = icons[device.type] || Box;
+                    
+                    return (
+                      <tr 
+                        key={device.id} 
+                        className="hover:bg-gray-800/30 transition-colors cursor-pointer"
+                        onClick={() => setSelectedDevice(device)}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                              device.status === 'online' ? 'bg-green-500/20' :
+                              device.status === 'warning' ? 'bg-yellow-500/20' :
+                              device.status === 'maintenance' ? 'bg-blue-500/20' :
+                              'bg-gray-700'
+                            }`}>
+                              <Icon className={`w-5 h-5 ${
+                                device.status === 'online' ? 'text-green-400' :
+                                device.status === 'warning' ? 'text-yellow-400' :
+                                device.status === 'maintenance' ? 'text-blue-400' :
+                                'text-gray-500'
+                              }`} />
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">{device.name}</p>
+                              {device.vendor && (
+                                <p className="text-xs text-gray-500">{device.vendor}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge className="bg-gray-700 text-gray-300 border-gray-600">
+                            {device.type.replace('_', ' ')}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-gray-300 font-mono text-sm">
+                          {device.ip_address || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 font-mono text-xs">
+                          {device.mac_address || '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge className={
+                            device.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                            device.status === 'warning' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                            device.status === 'maintenance' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                            'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                          }>
+                            {device.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 text-sm">
+                          {device.location || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Delete this device?')) {
+                                deleteDeviceMutation.mutate(device.id);
+                              }
+                            }}
+                            className="text-gray-400 hover:text-red-400"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
