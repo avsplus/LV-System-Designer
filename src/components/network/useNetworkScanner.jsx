@@ -4,6 +4,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
   const [isConnected, setIsConnected] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [agentVersion, setAgentVersion] = useState(null);
+  const [agentId, setAgentId] = useState(null);
   const wsRef = useRef(null);
   const pingIntervalRef = useRef(null);
   const currentScanRef = useRef(null);
@@ -54,6 +55,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           case 'hello_ack':
             console.log('Agent handshake complete:', payload);
             setAgentVersion(payload.agentVersion);
+            setAgentId(payload.agentId);
             break;
             
           case 'pong':
@@ -174,6 +176,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     isConnected,
     isScanning,
     agentVersion,
+    agentId,
     connect,
     disconnect,
     startScan,

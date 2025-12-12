@@ -207,7 +207,7 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { isConnected, isScanning, agentVersion, connect, disconnect, startScan, stopScan } = 
+  const { isConnected, isScanning, agentVersion, agentId, connect, disconnect, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError);
 
   const handleStartScan = useCallback(() => {
@@ -474,10 +474,10 @@ export default function NetworkMapping() {
             </Button>
           ) : (
             <>
-              <Link to={createPageUrl("AgentManager")}>
+              <Link to={createPageUrl("AgentManager") + (agentId && isConnected ? `?agentId=${agentId}` : '')}>
                 <Button variant="outline" className="border-gray-700">
                   <Activity className="w-4 h-4 mr-2" />
-                  Manage Agents
+                  {agentId && isConnected ? 'Register Agent' : 'Manage Agents'}
                 </Button>
               </Link>
 

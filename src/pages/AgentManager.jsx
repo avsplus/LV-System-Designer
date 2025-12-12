@@ -30,11 +30,14 @@ import {
 export default function AgentManager() {
   const { organizationId } = useOrganization();
   const queryClient = useQueryClient();
+  const location = window.location;
+  const urlParams = new URLSearchParams(location.search);
+  const prefilledAgentId = urlParams.get('agentId');
   
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(!!prefilledAgentId);
   const [editingAgent, setEditingAgent] = useState(null);
   const [agentForm, setAgentForm] = useState({
-    agent_id: '',
+    agent_id: prefilledAgentId || '',
     name: '',
     location: '',
     assigned_network_id: ''
