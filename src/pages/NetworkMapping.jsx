@@ -100,6 +100,14 @@ export default function NetworkMapping() {
       queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
       toast.success('Device removed');
       setSelectedDevice(null);
+    },
+    onError: (error) => {
+      if (error.message?.includes('not found')) {
+        queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+        setSelectedDevice(null);
+      } else {
+        toast.error('Failed to delete device');
+      }
     }
   });
 
@@ -240,12 +248,17 @@ export default function NetworkMapping() {
 
   const handleClearAllDevices = async () => {
     if (confirm('Clear all scanned devices? This cannot be undone.')) {
-      for (const device of devices) {
-        await base44.entities.Device.delete(device.id);
+      try {
+        const deletePromises = devices.map(device => 
+          base44.entities.Device.delete(device.id).catch(() => null)
+        );
+        await Promise.all(deletePromises);
+        queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+        toast.success('All devices cleared');
+        setSelectedDevice(null);
+      } catch (error) {
+        toast.error('Some devices could not be deleted');
       }
-      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
-      toast.success('All devices cleared');
-      setSelectedDevice(null);
     }
   };
 
