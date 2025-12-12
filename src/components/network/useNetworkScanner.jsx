@@ -156,6 +156,14 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     return requestId;
   }, [isConnected, isScanning, sendMessage]);
 
+  const stopScan = useCallback(() => {
+    if (!isConnected || !currentScanRef.current) return;
+    
+    sendMessage('stop_scan', currentScanRef.current, {});
+    setIsScanning(false);
+    currentScanRef.current = null;
+  }, [isConnected, sendMessage]);
+
   useEffect(() => {
     return () => {
       disconnect();
@@ -168,6 +176,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     agentVersion,
     connect,
     disconnect,
-    startScan
+    startScan,
+    stopScan
   };
 }
