@@ -48,6 +48,7 @@ export default function NetworkMapping() {
   const [sortDirection, setSortDirection] = useState('asc');
   const [editingDevice, setEditingDevice] = useState(null);
   const [editName, setEditName] = useState('');
+  const discoveredInCurrentScan = useRef(new Set());
   const [deviceForm, setDeviceForm] = useState({
     name: '',
     type: 'other',
@@ -123,9 +124,18 @@ export default function NetworkMapping() {
 
   // Network scanner hooks
   const handleDeviceDiscovered = useCallback((deviceData) => {
+    // Skip if already discovered in this scan session
+    if (discoveredInCurrentScan.current.has(deviceData.mac_address)) {
+      return;
+    }
+    
     const existingDevice = devices.find(d => d.mac_address === deviceData.mac_address);
     
+    // Mark as discovered in this scan
+    discoveredInCurrentScan.current.add(deviceData.mac_address);
+    
     if (existingDevice) {
+      // Update existing device - don't count it
       updateDeviceMutation.mutate({
         id: existingDevice.id,
         data: { 
@@ -135,6 +145,7 @@ export default function NetworkMapping() {
         }
       });
     } else {
+      // New device - count it
       createDeviceMutation.mutate({
         name: deviceData.hostname || deviceData.ip_address,
         type: 'other',
@@ -175,6 +186,8 @@ export default function NetworkMapping() {
       return;
     }
     
+    // Reset scan session tracking
+    discoveredInCurrentScan.current.clear();
     setScanProgress({ percent: 0, devicesFound: 0 });
     startScan(network.subnet, network.id);
   }, [selectedNetwork, networks, startScan]);
