@@ -24,7 +24,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     ws.onopen = () => {
       console.log('Connected to network scanner agent');
       setIsConnected(true);
-      
+
       // Send hello handshake
       const helloRequestId = `hello-${Date.now()}`;
       ws.send(JSON.stringify({
@@ -32,7 +32,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         requestId: helloRequestId,
         payload: {
           frontendVersion: 'fusion-console-v1',
-          protocolVersion: 1
+          protocolVersion: 1,
+          organizationId: organizationId
         }
       }));
       
