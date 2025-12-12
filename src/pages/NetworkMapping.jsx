@@ -749,7 +749,8 @@ export default function NetworkMapping() {
       <ScanProgress 
         progress={scanProgress.percent} 
         devicesFound={scanProgress.devicesFound} 
-        isScanning={isScanning} 
+        isScanning={isScanning}
+        onStop={stopScan}
       />
 
       {/* Add Network Dialog */}
