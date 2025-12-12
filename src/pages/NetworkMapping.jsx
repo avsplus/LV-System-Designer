@@ -170,6 +170,17 @@ export default function NetworkMapping() {
         data: updateData
       });
     } else {
+      // Double-check no device exists with this MAC (race condition protection)
+      const existingByMac = devices.find(d => {
+        const deviceMac = d.mac_address?.toLowerCase().replace(/[:-]/g, '');
+        return deviceMac === normalizedMac;
+      });
+      
+      if (existingByMac) {
+        // Device was just created by another process, skip
+        return;
+      }
+      
       // Check for stored custom name
       const deviceName = nameMapping?.custom_name || deviceData.hostname || deviceData.ip_address;
       
@@ -333,6 +344,55 @@ export default function NetworkMapping() {
     }
   };
 
+  const handleRemoveDuplicates = async () => {
+    // Group devices by normalized MAC address
+    const macGroups = {};
+    devices.forEach(device => {
+      if (!device.mac_address) return;
+      const normalizedMac = device.mac_address.toLowerCase().replace(/[:-]/g, '');
+      if (!macGroups[normalizedMac]) {
+        macGroups[normalizedMac] = [];
+      }
+      macGroups[normalizedMac].push(device);
+    });
+
+    // Find duplicates (groups with more than one device)
+    const duplicates = Object.values(macGroups).filter(group => group.length > 1);
+    
+    if (duplicates.length === 0) {
+      toast.info('No duplicates found');
+      return;
+    }
+
+    const totalDuplicates = duplicates.reduce((sum, group) => sum + (group.length - 1), 0);
+    
+    if (!confirm(`Found ${totalDuplicates} duplicate devices. Keep the most recently updated version and remove the rest?`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = [];
+      
+      // For each duplicate group, keep the most recent and delete the rest
+      duplicates.forEach(group => {
+        // Sort by updated_date descending
+        group.sort((a, b) => new Date(b.updated_date || 0) - new Date(a.updated_date || 0));
+        
+        // Delete all except the first (most recent)
+        for (let i = 1; i < group.length; i++) {
+          deletePromises.push(base44.entities.Device.delete(group[i].id).catch(() => null));
+        }
+      });
+
+      await Promise.all(deletePromises);
+      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+      toast.success(`Removed ${totalDuplicates} duplicate devices`);
+      setSelectedDevice(null);
+    } catch (error) {
+      toast.error('Failed to remove some duplicates');
+    }
+  };
+
   const sortedDevices = [...devices].sort((a, b) => {
     let aVal = a[sortField] || '';
     let bVal = b[sortField] || '';
@@ -478,14 +538,24 @@ export default function NetworkMapping() {
           )}
           
           {devices.length > 0 && (
-            <Button 
-              onClick={handleClearAllDevices}
-              variant="outline"
-              className="border-red-500 text-red-400 hover:bg-red-500/10"
-            >
-              <Eraser className="w-4 h-4 mr-2" />
-              Clear All
-            </Button>
+            <>
+              <Button 
+                onClick={handleRemoveDuplicates}
+                variant="outline"
+                className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Remove Duplicates
+              </Button>
+              <Button 
+                onClick={handleClearAllDevices}
+                variant="outline"
+                className="border-red-500 text-red-400 hover:bg-red-500/10"
+              >
+                <Eraser className="w-4 h-4 mr-2" />
+                Clear All
+              </Button>
+            </>
           )}
         </div>
         
