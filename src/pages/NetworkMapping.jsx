@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ChevronLeft, Plus, Wifi, RefreshCw, Trash2, 
   Network as NetworkIcon, Router, Server, Shield, 
-  Monitor, Printer, HardDrive, Cpu, Box
+  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -44,6 +44,10 @@ export default function NetworkMapping() {
   const [showNetworkDialog, setShowNetworkDialog] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
   const [scanProgress, setScanProgress] = useState({ percent: 0, devicesFound: 0 });
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [editingDevice, setEditingDevice] = useState(null);
+  const [editName, setEditName] = useState('');
   const [deviceForm, setDeviceForm] = useState({
     name: '',
     type: 'other',
@@ -116,15 +120,13 @@ export default function NetworkMapping() {
     if (existingDevice) {
       updateDeviceMutation.mutate({
         id: existingDevice.id,
-        data: { status: 'online', vendor: deviceData.vendor }
+        data: { 
+          status: 'online', 
+          vendor: deviceData.vendor,
+          ip_address: deviceData.ip_address
+        }
       });
     } else {
-      const gridSize = 150;
-      const cols = Math.floor(800 / gridSize);
-      const deviceCount = devices.length;
-      const row = Math.floor(deviceCount / cols);
-      const col = deviceCount % cols;
-      
       createDeviceMutation.mutate({
         name: deviceData.hostname || deviceData.ip_address,
         type: 'other',
@@ -133,20 +135,18 @@ export default function NetworkMapping() {
         vendor: deviceData.vendor,
         status: 'online',
         network_id: deviceData.network_id,
-        position_x: 100 + col * gridSize,
-        position_y: 100 + row * gridSize,
         connected_to: []
       });
-      setScanProgress(prev => ({ ...prev, devicesFound: prev.devicesFound + 1 }));
+      setScanProgress(prev => ({ percent: prev.percent, devicesFound: prev.devicesFound + 1 }));
     }
   }, [devices, createDeviceMutation, updateDeviceMutation]);
 
   const handleScanProgress = useCallback((progressData) => {
-    setScanProgress({
+    setScanProgress(prev => ({
       percent: progressData.percent || 0,
-      devicesFound: scanProgress.devicesFound
-    });
-  }, [scanProgress.devicesFound]);
+      devicesFound: prev.devicesFound
+    }));
+  }, []);
 
   const handleScanError = useCallback((errorMessage) => {
     toast.error(errorMessage);
@@ -212,6 +212,65 @@ export default function NetworkMapping() {
     }
     createNetworkMutation.mutate(networkForm);
   };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleDeviceNameEdit = (device) => {
+    setEditingDevice(device.id);
+    setEditName(device.name);
+  };
+
+  const handleDeviceNameSave = (device) => {
+    if (editName && editName !== device.name) {
+      updateDeviceMutation.mutate({
+        id: device.id,
+        data: { name: editName }
+      });
+    }
+    setEditingDevice(null);
+    setEditName('');
+  };
+
+  const handleClearAllDevices = async () => {
+    if (confirm('Clear all scanned devices? This cannot be undone.')) {
+      for (const device of devices) {
+        await base44.entities.Device.delete(device.id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+      toast.success('All devices cleared');
+      setSelectedDevice(null);
+    }
+  };
+
+  const sortedDevices = [...devices].sort((a, b) => {
+    let aVal = a[sortField] || '';
+    let bVal = b[sortField] || '';
+    
+    if (sortField === 'ip_address') {
+      const aOctets = aVal.split('.').map(n => parseInt(n) || 0);
+      const bOctets = bVal.split('.').map(n => parseInt(n) || 0);
+      for (let i = 0; i < 4; i++) {
+        if (aOctets[i] !== bOctets[i]) {
+          return sortDirection === 'asc' ? aOctets[i] - bOctets[i] : bOctets[i] - aOctets[i];
+        }
+      }
+      return 0;
+    }
+    
+    if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+    if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+    
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
@@ -322,6 +381,17 @@ export default function NetworkMapping() {
               Remove Device
             </Button>
           )}
+          
+          {devices.length > 0 && (
+            <Button 
+              onClick={handleClearAllDevices}
+              variant="outline"
+              className="border-red-500 text-red-400 hover:bg-red-500/10"
+            >
+              <Eraser className="w-4 h-4 mr-2" />
+              Clear All
+            </Button>
+          )}
         </div>
         
 
@@ -341,17 +411,47 @@ export default function NetworkMapping() {
               <table className="w-full">
                 <thead className="bg-gray-800/50 border-b border-gray-800">
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Device</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Type</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">IP Address</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">MAC Address</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Status</th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">Location</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('name')}>
+                      <div className="flex items-center gap-2">
+                        Device
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('type')}>
+                      <div className="flex items-center gap-2">
+                        Type
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('ip_address')}>
+                      <div className="flex items-center gap-2">
+                        IP Address
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('mac_address')}>
+                      <div className="flex items-center gap-2">
+                        MAC Address
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('status')}>
+                      <div className="flex items-center gap-2">
+                        Status
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('location')}>
+                      <div className="flex items-center gap-2">
+                        Location
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
                     <th className="text-right px-4 py-3 text-sm font-medium text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {devices.map(device => {
+                  {sortedDevices.map(device => {
                     const icons = {
                       router: Router,
                       switch: NetworkIcon,
@@ -386,8 +486,59 @@ export default function NetworkMapping() {
                                 'text-gray-500'
                               }`} />
                             </div>
-                            <div>
-                              <p className="text-white font-medium">{device.name}</p>
+                            <div className="flex-1">
+                              {editingDevice === device.id ? (
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    value={editName}
+                                    onChange={(e) => setEditName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleDeviceNameSave(device);
+                                      if (e.key === 'Escape') setEditingDevice(null);
+                                    }}
+                                    className="h-8 bg-gray-800 border-gray-700 text-white"
+                                    autoFocus
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-green-400"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeviceNameSave(device);
+                                    }}
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-gray-400"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingDevice(null);
+                                    }}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 group">
+                                  <p className="text-white font-medium">{device.name}</p>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeviceNameEdit(device);
+                                    }}
+                                  >
+                                    <Edit2 className="w-3 h-3 text-gray-400" />
+                                  </Button>
+                                </div>
+                              )}
                               {device.vendor && (
                                 <p className="text-xs text-gray-500">{device.vendor}</p>
                               )}
