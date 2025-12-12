@@ -129,75 +129,72 @@ export default function NetworkMapping() {
   });
 
   // Network scanner hooks
-  const handleDeviceDiscovered = useCallback((deviceData) => {
+  const handleDeviceDiscovered = useCallback(async (deviceData) => {
     // Normalize MAC address for consistent matching
     const normalizedMac = deviceData.mac_address?.toLowerCase().replace(/[:-]/g, '');
     if (!normalizedMac) return;
     
-    // Skip if already discovered in this scan session
+    // Skip if already processed in this scan session
     if (discoveredInCurrentScan.current.has(normalizedMac)) {
       return;
     }
     
-    const existingDevice = devices.find(d => {
-      const deviceMac = d.mac_address?.toLowerCase().replace(/[:-]/g, '');
-      return deviceMac === normalizedMac;
-    });
-    
-    const nameMapping = nameMappings.find(m => {
-      const mappingMac = m.mac_address?.toLowerCase().replace(/[:-]/g, '');
-      return mappingMac === normalizedMac;
-    });
-    
-    // Mark as discovered in this scan
+    // Mark as discovered immediately to prevent race conditions
     discoveredInCurrentScan.current.add(normalizedMac);
     
-    if (existingDevice) {
-      // Update existing device - restore custom name if it exists
-      const updateData = { 
-        status: 'online', 
-        vendor: deviceData.vendor,
-        ip_address: deviceData.ip_address
-      };
-      
-      // Always restore custom name if mapping exists
-      if (nameMapping?.custom_name) {
-        updateData.name = nameMapping.custom_name;
-      }
-      
-      updateDeviceMutation.mutate({
-        id: existingDevice.id,
-        data: updateData
-      });
-    } else {
-      // Double-check no device exists with this MAC (race condition protection)
-      const existingByMac = devices.find(d => {
+    try {
+      // Query database directly for most up-to-date data
+      const allDevices = await base44.entities.Device.filter({ organization_id: organizationId });
+      const existingDevice = allDevices.find(d => {
         const deviceMac = d.mac_address?.toLowerCase().replace(/[:-]/g, '');
         return deviceMac === normalizedMac;
       });
       
-      if (existingByMac) {
-        // Device was just created by another process, skip
-        return;
-      }
-      
-      // Check for stored custom name
-      const deviceName = nameMapping?.custom_name || deviceData.hostname || deviceData.ip_address;
-      
-      // New device - count it
-      createDeviceMutation.mutate({
-        name: deviceName,
-        type: 'other',
-        ip_address: deviceData.ip_address,
-        mac_address: deviceData.mac_address,
-        vendor: deviceData.vendor,
-        status: 'online',
-        network_id: deviceData.network_id,
-        connected_to: []
+      const nameMapping = nameMappings.find(m => {
+        const mappingMac = m.mac_address?.toLowerCase().replace(/[:-]/g, '');
+        return mappingMac === normalizedMac;
       });
-      setScanProgress(prev => ({ percent: prev.percent, devicesFound: prev.devicesFound + 1 }));
+      
+      if (existingDevice) {
+        // Update existing device - restore custom name if it exists
+        const updateData = { 
+          status: 'online', 
+          vendor: deviceData.vendor,
+          ip_address: deviceData.ip_address
+        };
+        
+        // Always restore custom name if mapping exists
+        if (nameMapping?.custom_name) {
+          updateData.name = nameMapping.custom_name;
+        }
+        
+        await updateDeviceMutation.mutateAsync({
+          id: existingDevice.id,
+          data: updateData
+        });
+      } else {
+        // Check for stored custom name
+        const deviceName = nameMapping?.custom_name || deviceData.hostname || deviceData.ip_address;
+        
+        // Create new device
+        await createDeviceMutation.mutateAsync({
+          name: deviceName,
+          type: 'other',
+          ip_address: deviceData.ip_address,
+          mac_address: deviceData.mac_address,
+          vendor: deviceData.vendor,
+          status: 'online',
+          network_id: deviceData.network_id,
+          connected_to: []
+        });
+        setScanProgress(prev => ({ percent: prev.percent, devicesFound: prev.devicesFound + 1 }));
+      }
+    } catch (error) {
+      console.error('Error processing device:', error);
+      // Remove from discovered set on error so it can be retried
+      discoveredInCurrentScan.current.delete(normalizedMac);
     }
-  }, [devices, nameMappings, createDeviceMutation, updateDeviceMutation]);
+  }, [organizationId, nameMappings, createDeviceMutation, updateDeviceMutation]);
 
   const handleScanProgress = useCallback((progressData) => {
     setScanProgress(prev => ({
@@ -538,24 +535,14 @@ export default function NetworkMapping() {
           )}
           
           {devices.length > 0 && (
-            <>
-              <Button 
-                onClick={handleRemoveDuplicates}
-                variant="outline"
-                className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Remove Duplicates
-              </Button>
-              <Button 
-                onClick={handleClearAllDevices}
-                variant="outline"
-                className="border-red-500 text-red-400 hover:bg-red-500/10"
-              >
-                <Eraser className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
-            </>
+            <Button 
+              onClick={handleClearAllDevices}
+              variant="outline"
+              className="border-red-500 text-red-400 hover:bg-red-500/10"
+            >
+              <Eraser className="w-4 h-4 mr-2" />
+              Clear All
+            </Button>
           )}
         </div>
         
