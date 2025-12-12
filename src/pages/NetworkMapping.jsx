@@ -136,23 +136,30 @@ export default function NetworkMapping() {
     }
     
     const existingDevice = devices.find(d => d.mac_address === deviceData.mac_address);
+    const nameMapping = nameMappings.find(m => m.mac_address === deviceData.mac_address);
     
     // Mark as discovered in this scan
     discoveredInCurrentScan.current.add(deviceData.mac_address);
     
     if (existingDevice) {
-      // Update existing device - don't count it
+      // Update existing device - restore custom name if it exists
+      const updateData = { 
+        status: 'online', 
+        vendor: deviceData.vendor,
+        ip_address: deviceData.ip_address
+      };
+      
+      // Restore custom name if mapping exists and device name doesn't match
+      if (nameMapping?.custom_name && existingDevice.name !== nameMapping.custom_name) {
+        updateData.name = nameMapping.custom_name;
+      }
+      
       updateDeviceMutation.mutate({
         id: existingDevice.id,
-        data: { 
-          status: 'online', 
-          vendor: deviceData.vendor,
-          ip_address: deviceData.ip_address
-        }
+        data: updateData
       });
     } else {
       // Check for stored custom name
-      const nameMapping = nameMappings.find(m => m.mac_address === deviceData.mac_address);
       const deviceName = nameMapping?.custom_name || deviceData.hostname || deviceData.ip_address;
       
       // New device - count it
