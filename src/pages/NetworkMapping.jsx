@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ChevronLeft, Plus, Wifi, RefreshCw, Trash2, 
   Network as NetworkIcon, Router, Server, Shield, 
-  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser
+  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -474,6 +474,13 @@ export default function NetworkMapping() {
             </Button>
           ) : (
             <>
+              <Link to={createPageUrl("AgentManager")}>
+                <Button variant="outline" className="border-gray-700">
+                  <Activity className="w-4 h-4 mr-2" />
+                  Manage Agents
+                </Button>
+              </Link>
+
               <Button 
                 onClick={() => setShowNetworkDialog(true)}
                 variant="outline"

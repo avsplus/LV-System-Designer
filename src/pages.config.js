@@ -10,6 +10,7 @@ import PendingApproval from './pages/PendingApproval';
 import Billing from './pages/Billing';
 import Landing from './pages/Landing';
 import NetworkMapping from './pages/NetworkMapping';
+import AgentManager from './pages/AgentManager';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Billing": Billing,
     "Landing": Landing,
     "NetworkMapping": NetworkMapping,
+    "AgentManager": AgentManager,
 }
 
 export const pagesConfig = {

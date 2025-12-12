@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, Wifi } from 'lucide-react';
+import { Loader2, Wifi, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
-export default function ScanProgress({ progress, devicesFound, isScanning }) {
+export default function ScanProgress({ progress, devicesFound, isScanning, onStop }) {
   if (!isScanning) return null;
 
   return (
@@ -49,6 +50,19 @@ export default function ScanProgress({ progress, devicesFound, isScanning }) {
             <span className="text-3xl font-bold text-cyan-400">{devicesFound}</span>
             <span className="text-gray-400 ml-2">devices found</span>
           </div>
+          
+          {onStop && (
+            <div className="mt-6 flex justify-center">
+              <Button
+                onClick={onStop}
+                variant="outline"
+                className="border-red-500 text-red-400 hover:bg-red-500/10"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Stop Scan
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
