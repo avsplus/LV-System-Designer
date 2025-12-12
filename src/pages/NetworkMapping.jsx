@@ -199,7 +199,7 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { isConnected, isScanning, agentVersion, connect, disconnect, startScan } = 
+  const { isConnected, isScanning, agentVersion, connect, disconnect, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError);
 
   const handleStartScan = useCallback(() => {
@@ -443,15 +443,26 @@ export default function NetworkMapping() {
                 </SelectContent>
               </Select>
               
-              <Button 
-                onClick={handleStartScan} 
-                disabled={isScanning || !selectedNetwork}
-                variant="outline"
-                className="border-green-500 text-green-400 hover:bg-green-500/10"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
-                {isScanning ? 'Scanning...' : 'Scan Network'}
-              </Button>
+              {isScanning ? (
+                <Button 
+                  onClick={stopScan} 
+                  variant="outline"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Stop Scan
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleStartScan} 
+                  disabled={!selectedNetwork}
+                  variant="outline"
+                  className="border-green-500 text-green-400 hover:bg-green-500/10"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Scan Network
+                </Button>
+              )}
             </>
           )}
           
