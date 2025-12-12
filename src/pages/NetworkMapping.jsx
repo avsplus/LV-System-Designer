@@ -208,7 +208,7 @@ export default function NetworkMapping() {
   }, []);
 
   const { isConnected, isScanning, agentVersion, agentId, connect, disconnect, startScan, stopScan } = 
-    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError);
+    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId);
 
   const handleStartScan = useCallback(() => {
     if (!selectedNetwork) {

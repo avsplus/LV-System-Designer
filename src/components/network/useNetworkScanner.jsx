@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { base44 } from "@/api/base44Client";
 
-export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError) {
+export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError, organizationId) {
   const [isConnected, setIsConnected] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [agentVersion, setAgentVersion] = useState(null);
@@ -56,6 +57,34 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
             console.log('Agent handshake complete:', payload);
             setAgentVersion(payload.agentVersion);
             setAgentId(payload.agentId);
+            
+            // Verify agent is registered to this organization
+            if (organizationId && payload.agentId) {
+              base44.entities.Agent.filter({ 
+                organization_id: organizationId,
+                agent_id: payload.agentId 
+              }).then(agents => {
+                if (agents.length === 0) {
+                  console.error('Agent not registered to this organization');
+                  onError?.('This agent is not registered to your organization. Please register it first.');
+                  ws.close();
+                  setIsConnected(false);
+                } else {
+                  // Update agent status to online
+                  const agent = agents[0];
+                  base44.entities.Agent.update(agent.id, {
+                    status: 'online',
+                    last_seen: new Date().toISOString(),
+                    version: payload.agentVersion
+                  }).catch(err => console.error('Failed to update agent status:', err));
+                }
+              }).catch(err => {
+                console.error('Failed to verify agent:', err);
+                onError?.('Failed to verify agent registration');
+                ws.close();
+                setIsConnected(false);
+              });
+            }
             break;
             
           case 'pong':
@@ -122,6 +151,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       console.log('Disconnected from network scanner agent');
       setIsConnected(false);
       setIsScanning(false);
+      setAgentVersion(null);
+      setAgentId(null);
       if (pingIntervalRef.current) {
         clearInterval(pingIntervalRef.current);
       }
