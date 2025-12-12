@@ -77,6 +77,12 @@ export default function NetworkMapping() {
     enabled: !!organizationId
   });
 
+  const { data: nameMappings = [] } = useQuery({
+    queryKey: ['deviceNameMappings', organizationId],
+    queryFn: () => base44.entities.DeviceNameMapping.filter({ organization_id: organizationId }),
+    enabled: !!organizationId
+  });
+
   // Mutations
   const createDeviceMutation = useMutation({
     mutationFn: (data) => base44.entities.Device.create({ ...data, organization_id: organizationId }),
@@ -145,9 +151,13 @@ export default function NetworkMapping() {
         }
       });
     } else {
+      // Check for stored custom name
+      const nameMapping = nameMappings.find(m => m.mac_address === deviceData.mac_address);
+      const deviceName = nameMapping?.custom_name || deviceData.hostname || deviceData.ip_address;
+      
       // New device - count it
       createDeviceMutation.mutate({
-        name: deviceData.hostname || deviceData.ip_address,
+        name: deviceName,
         type: 'other',
         ip_address: deviceData.ip_address,
         mac_address: deviceData.mac_address,
@@ -158,7 +168,7 @@ export default function NetworkMapping() {
       });
       setScanProgress(prev => ({ percent: prev.percent, devicesFound: prev.devicesFound + 1 }));
     }
-  }, [devices, createDeviceMutation, updateDeviceMutation]);
+  }, [devices, nameMappings, createDeviceMutation, updateDeviceMutation]);
 
   const handleScanProgress = useCallback((progressData) => {
     setScanProgress(prev => ({
@@ -248,12 +258,26 @@ export default function NetworkMapping() {
     setEditName(device.name);
   };
 
-  const handleDeviceNameSave = (device) => {
+  const handleDeviceNameSave = async (device) => {
     if (editName && editName !== device.name) {
+      // Update device
       updateDeviceMutation.mutate({
         id: device.id,
         data: { name: editName }
       });
+      
+      // Store/update name mapping
+      const existingMapping = nameMappings.find(m => m.mac_address === device.mac_address);
+      if (existingMapping) {
+        await base44.entities.DeviceNameMapping.update(existingMapping.id, { custom_name: editName });
+      } else if (device.mac_address) {
+        await base44.entities.DeviceNameMapping.create({
+          organization_id: organizationId,
+          mac_address: device.mac_address,
+          custom_name: editName
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['deviceNameMappings'] });
     }
     setEditingDevice(null);
     setEditName('');
