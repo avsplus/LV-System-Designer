@@ -130,16 +130,27 @@ export default function NetworkMapping() {
 
   // Network scanner hooks
   const handleDeviceDiscovered = useCallback((deviceData) => {
+    // Normalize MAC address for consistent matching
+    const normalizedMac = deviceData.mac_address?.toLowerCase().replace(/[:-]/g, '');
+    if (!normalizedMac) return;
+    
     // Skip if already discovered in this scan session
-    if (discoveredInCurrentScan.current.has(deviceData.mac_address)) {
+    if (discoveredInCurrentScan.current.has(normalizedMac)) {
       return;
     }
     
-    const existingDevice = devices.find(d => d.mac_address === deviceData.mac_address);
-    const nameMapping = nameMappings.find(m => m.mac_address === deviceData.mac_address);
+    const existingDevice = devices.find(d => {
+      const deviceMac = d.mac_address?.toLowerCase().replace(/[:-]/g, '');
+      return deviceMac === normalizedMac;
+    });
+    
+    const nameMapping = nameMappings.find(m => {
+      const mappingMac = m.mac_address?.toLowerCase().replace(/[:-]/g, '');
+      return mappingMac === normalizedMac;
+    });
     
     // Mark as discovered in this scan
-    discoveredInCurrentScan.current.add(deviceData.mac_address);
+    discoveredInCurrentScan.current.add(normalizedMac);
     
     if (existingDevice) {
       // Update existing device - restore custom name if it exists
@@ -149,8 +160,8 @@ export default function NetworkMapping() {
         ip_address: deviceData.ip_address
       };
       
-      // Restore custom name if mapping exists and device name doesn't match
-      if (nameMapping?.custom_name && existingDevice.name !== nameMapping.custom_name) {
+      // Always restore custom name if mapping exists
+      if (nameMapping?.custom_name) {
         updateData.name = nameMapping.custom_name;
       }
       
@@ -266,25 +277,41 @@ export default function NetworkMapping() {
   };
 
   const handleDeviceNameSave = async (device) => {
-    if (editName && editName !== device.name) {
-      // Update device
-      updateDeviceMutation.mutate({
-        id: device.id,
-        data: { name: editName }
-      });
-      
-      // Store/update name mapping
-      const existingMapping = nameMappings.find(m => m.mac_address === device.mac_address);
-      if (existingMapping) {
-        await base44.entities.DeviceNameMapping.update(existingMapping.id, { custom_name: editName });
-      } else if (device.mac_address) {
-        await base44.entities.DeviceNameMapping.create({
-          organization_id: organizationId,
-          mac_address: device.mac_address,
-          custom_name: editName
+    if (editName && editName !== device.name && device.mac_address) {
+      try {
+        // Normalize MAC address
+        const normalizedMac = device.mac_address.toLowerCase().replace(/[:-]/g, '');
+        
+        // Store/update name mapping first
+        const existingMapping = nameMappings.find(m => {
+          const mappingMac = m.mac_address?.toLowerCase().replace(/[:-]/g, '');
+          return mappingMac === normalizedMac;
         });
+        
+        if (existingMapping) {
+          await base44.entities.DeviceNameMapping.update(existingMapping.id, { custom_name: editName });
+        } else {
+          await base44.entities.DeviceNameMapping.create({
+            organization_id: organizationId,
+            mac_address: device.mac_address,
+            custom_name: editName
+          });
+        }
+        
+        // Then update device
+        await base44.entities.Device.update(device.id, { name: editName });
+        
+        // Refresh both queries
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['deviceNameMappings'] }),
+          queryClient.invalidateQueries({ queryKey: ['networkDevices'] })
+        ]);
+        
+        toast.success('Device name saved');
+      } catch (error) {
+        toast.error('Failed to save device name');
+        console.error('Name save error:', error);
       }
-      queryClient.invalidateQueries({ queryKey: ['deviceNameMappings'] });
     }
     setEditingDevice(null);
     setEditName('');
