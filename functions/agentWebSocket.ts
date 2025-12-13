@@ -127,10 +127,15 @@ Deno.serve(async (req) => {
             
             // Sign ack
             let ackSignature = null;
+            let sigInputB64 = null;
             if (org?.org_signing_private_key) {
               try {
                 const backendTime = Math.floor(Date.now() / 1000);
                 const messageToSign = `agent_ack:${organizationId}:${backendTime}`;
+                const messageBytes = new TextEncoder().encode(messageToSign);
+                
+                // Store sig_input as base64 for agent verification
+                sigInputB64 = btoa(String.fromCharCode(...messageBytes));
                 
                 const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
                 const cryptoKey = await crypto.subtle.importKey(
@@ -144,7 +149,7 @@ Deno.serve(async (req) => {
                 const signatureBytes = await crypto.subtle.sign(
                   "Ed25519",
                   cryptoKey,
-                  new TextEncoder().encode(messageToSign)
+                  messageBytes
                 );
                 
                 ackSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
@@ -160,6 +165,7 @@ Deno.serve(async (req) => {
               agent_name: agent.name,
               heartbeat_interval: 30,
               backend_time: Math.floor(Date.now() / 1000),
+              sig_input_b64: sigInputB64,
               signature: ackSignature
             }));
             

@@ -45,11 +45,16 @@ Deno.serve(async (req) => {
     
     // Sign command
     let signature = null;
+    let sigInputB64 = null;
     if (org.org_signing_private_key) {
       try {
         const messageToSign = `${commandId}:${command.name}:${issuedAt}:${nonce}`;
-        const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
+        const messageBytes = new TextEncoder().encode(messageToSign);
         
+        // Store sig_input as base64 for agent verification
+        sigInputB64 = btoa(String.fromCharCode(...messageBytes));
+        
+        const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
         const cryptoKey = await crypto.subtle.importKey(
           "pkcs8",
           privateKeyBytes,
@@ -61,7 +66,7 @@ Deno.serve(async (req) => {
         const signatureBytes = await crypto.subtle.sign(
           "Ed25519",
           cryptoKey,
-          new TextEncoder().encode(messageToSign)
+          messageBytes
         );
         
         signature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
@@ -77,6 +82,7 @@ Deno.serve(async (req) => {
       args: command.params || {},
       issued_at: issuedAt,
       nonce,
+      sig_input_b64: sigInputB64,
       signature
     };
     
