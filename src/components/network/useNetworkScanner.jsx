@@ -160,7 +160,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     };
 
     wsRef.current = ws;
-  }, [onDeviceDiscovered, onScanProgress, onError]);
+  }, [onDeviceDiscovered, onScanProgress, onError, organizationId]);
 
   const disconnect = useCallback(() => {
     if (pingIntervalRef.current) {
