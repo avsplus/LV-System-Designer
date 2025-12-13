@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key
+  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key, Download
 } from "lucide-react";
 import AgentRegistration from "../components/network/AgentRegistration";
 import { Link } from "react-router-dom";
@@ -158,6 +158,12 @@ export default function AgentManager() {
             <span className="text-sm text-gray-400">Total Agents:</span>
             <span className="text-lg font-bold text-cyan-400">{agents.length}</span>
           </div>
+          <a href="/agent-installer/netmap-agent-setup.exe" download>
+            <Button variant="outline" className="border-gray-700">
+              <Download className="w-4 h-4 mr-2" />
+              Download Agent
+            </Button>
+          </a>
           <Button onClick={() => setShowRegistration(true)} className="bg-cyan-600 hover:bg-cyan-700">
             <Key className="w-4 h-4 mr-2" />
             Register Agent
