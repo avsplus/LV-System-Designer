@@ -61,10 +61,13 @@ Deno.serve(async (req) => {
     });
     
     // Return registration package
+    const url = new URL(req.url);
+    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    
     return Response.json({
       reg_token: token,
       org_id: user.organization_id,
-      backend_url: `${new URL(req.url).origin}/agent/ws`,
+      backend_url: `${wsProtocol}//${url.host}/agent/ws`,
       org_public_key: orgPublicKey,
       expires_at: expiresAt.toISOString()
     });
