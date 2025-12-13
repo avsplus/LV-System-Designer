@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key, Download
+  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key, Download, Upload
 } from "lucide-react";
 import AgentRegistration from "../components/network/AgentRegistration";
+import AgentInstallerUpload from "../components/network/AgentInstallerUpload";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ export default function AgentManager() {
   
   const [showAddDialog, setShowAddDialog] = useState(!!prefilledAgentId);
   const [showRegistration, setShowRegistration] = useState(false);
+  const [showInstallerUpload, setShowInstallerUpload] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
   const [agentForm, setAgentForm] = useState({
     agent_id: prefilledAgentId || '',
@@ -49,6 +51,16 @@ export default function AgentManager() {
   const { data: agents = [], isLoading } = useQuery({
     queryKey: ['agents', organizationId],
     queryFn: () => base44.entities.Agent.filter({ organization_id: organizationId }),
+    enabled: !!organizationId
+  });
+
+  // Fetch installer URL
+  const { data: installerData } = useQuery({
+    queryKey: ['agentInstallerUrl', organizationId],
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getAgentInstallerUrl', {});
+      return data;
+    },
     enabled: !!organizationId
   });
 
@@ -158,12 +170,23 @@ export default function AgentManager() {
             <span className="text-sm text-gray-400">Total Agents:</span>
             <span className="text-lg font-bold text-cyan-400">{agents.length}</span>
           </div>
-          <a href="/agent-installer/netmap-agent-setup.exe" download>
-            <Button variant="outline" className="border-gray-700">
-              <Download className="w-4 h-4 mr-2" />
-              Download Agent
+          {installerData?.url ? (
+            <a href={installerData.url} download>
+              <Button variant="outline" className="border-gray-700">
+                <Download className="w-4 h-4 mr-2" />
+                Download Agent
+              </Button>
+            </a>
+          ) : (
+            <Button 
+              variant="outline" 
+              className="border-gray-700"
+              onClick={() => setShowInstallerUpload(true)}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Installer
             </Button>
-          </a>
+          )}
           <Button onClick={() => setShowRegistration(true)} className="bg-cyan-600 hover:bg-cyan-700">
             <Key className="w-4 h-4 mr-2" />
             Register Agent
@@ -400,6 +423,7 @@ export default function AgentManager() {
       </Dialog>
 
       <AgentRegistration open={showRegistration} onOpenChange={setShowRegistration} />
-    </div>
-  );
-}
+      <AgentInstallerUpload open={showInstallerUpload} onOpenChange={setShowInstallerUpload} />
+      </div>
+      );
+      }
