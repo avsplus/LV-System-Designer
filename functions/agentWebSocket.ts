@@ -125,16 +125,23 @@ Deno.serve(async (req) => {
             const orgs = await base44.asServiceRole.entities.Organization.filter({ id: organizationId });
             const org = orgs[0];
             
-            // Sign ack
+            // Sign ack using JSON-based signing
             let ackSignature = null;
             let sigInputB64 = null;
+            const ts = new Date().toISOString();
+            const nonce = crypto.randomUUID();
+            
             if (org?.org_signing_private_key) {
               try {
-                const backendTime = Math.floor(Date.now() / 1000);
-                const messageToSign = `agent_ack:${organizationId}:${backendTime}`;
-                const messageBytes = new TextEncoder().encode(messageToSign);
+                const sigInputJson = JSON.stringify({
+                  type: "agent_ack",
+                  agent_id: agentId,
+                  org_id: organizationId,
+                  ts,
+                  nonce
+                });
                 
-                // Store sig_input as base64 for agent verification
+                const messageBytes = new TextEncoder().encode(sigInputJson);
                 sigInputB64 = btoa(String.fromCharCode(...messageBytes));
                 
                 const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
@@ -164,7 +171,9 @@ Deno.serve(async (req) => {
               org_id: organizationId,
               agent_name: agent.name,
               heartbeat_interval: 30,
-              backend_time: Math.floor(Date.now() / 1000),
+              ts,
+              nonce,
+              sig_alg: 'ed25519',
               sig_input_b64: sigInputB64,
               signature: ackSignature
             }));

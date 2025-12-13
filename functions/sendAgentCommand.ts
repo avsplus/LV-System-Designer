@@ -43,15 +43,23 @@ Deno.serve(async (req) => {
     const issuedAt = Math.floor(Date.now() / 1000);
     const nonce = crypto.randomUUID();
     
-    // Sign command
+    // Sign command using JSON-based signing
     let signature = null;
     let sigInputB64 = null;
     if (org.org_signing_private_key) {
       try {
-        const messageToSign = `${commandId}:${command.name}:${issuedAt}:${nonce}`;
-        const messageBytes = new TextEncoder().encode(messageToSign);
+        const sigInputJson = JSON.stringify({
+          type: "command",
+          command_id: commandId,
+          command: command.name,
+          args: command.params || {},
+          issued_at: issuedAt,
+          nonce,
+          org_id: user.organization_id,
+          agent_id: agentId
+        });
         
-        // Store sig_input as base64 for agent verification
+        const messageBytes = new TextEncoder().encode(sigInputJson);
         sigInputB64 = btoa(String.fromCharCode(...messageBytes));
         
         const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
@@ -82,6 +90,8 @@ Deno.serve(async (req) => {
       args: command.params || {},
       issued_at: issuedAt,
       nonce,
+      org_id: user.organization_id,
+      sig_alg: 'ed25519',
       sig_input_b64: sigInputB64,
       signature
     };
