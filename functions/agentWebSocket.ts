@@ -26,6 +26,9 @@ Deno.serve(async (req) => {
           case 'agent_hello': {
             // Verify agent registration
             agentId = message.agent_id;
+            const publicKey = message.public_key;
+            const timestamp = message.timestamp;
+            const signature = message.signature;
             
             const agents = await base44.asServiceRole.entities.Agent.filter({ 
               agent_id: agentId 
@@ -43,25 +46,121 @@ Deno.serve(async (req) => {
             const agent = agents[0];
             organizationId = agent.organization_id;
             
-            // TODO: Verify Ed25519 signature when agent sends public_key + signature
-            // For now, trust agent_id lookup (agent will add crypto)
+            // Verify Ed25519 signature
+            if (signature && publicKey && timestamp) {
+              try {
+                // Verify timestamp freshness (within 2 minutes)
+                const now = Math.floor(Date.now() / 1000);
+                if (Math.abs(now - timestamp) > 120) {
+                  socket.send(JSON.stringify({
+                    type: 'error',
+                    message: 'Timestamp too old or in future'
+                  }));
+                  socket.close();
+                  return;
+                }
+                
+                // Verify public key matches stored key
+                if (agent.agent_public_key !== publicKey) {
+                  socket.send(JSON.stringify({
+                    type: 'error',
+                    message: 'Public key mismatch'
+                  }));
+                  socket.close();
+                  return;
+                }
+                
+                // Verify signature
+                const messageToVerify = `${agentId}:${timestamp}`;
+                const publicKeyBytes = Uint8Array.from(atob(publicKey), c => c.charCodeAt(0));
+                const signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
+                const messageBytes = new TextEncoder().encode(messageToVerify);
+                
+                const cryptoKey = await crypto.subtle.importKey(
+                  "raw",
+                  publicKeyBytes,
+                  { name: "Ed25519" },
+                  false,
+                  ["verify"]
+                );
+                
+                const isValid = await crypto.subtle.verify(
+                  "Ed25519",
+                  cryptoKey,
+                  signatureBytes,
+                  messageBytes
+                );
+                
+                if (!isValid) {
+                  socket.send(JSON.stringify({
+                    type: 'error',
+                    message: 'Invalid signature'
+                  }));
+                  socket.close();
+                  return;
+                }
+              } catch (error) {
+                console.error('[Agent WS] Signature verification failed:', error);
+                socket.send(JSON.stringify({
+                  type: 'error',
+                  message: 'Signature verification failed'
+                }));
+                socket.close();
+                return;
+              }
+            }
             
             // Update agent status
             await base44.asServiceRole.entities.Agent.update(agent.id, {
               status: 'online',
               last_seen: new Date().toISOString(),
-              version: message.version
+              version: message.version,
+              capabilities: message.capabilities || agent.capabilities
             });
             
             // Store connection
             agentConnections.set(agentId, { socket, organizationId });
+            
+            // Get org for signing ack
+            const orgs = await base44.asServiceRole.entities.Organization.filter({ id: organizationId });
+            const org = orgs[0];
+            
+            // Sign ack
+            let ackSignature = null;
+            if (org?.org_signing_private_key) {
+              try {
+                const backendTime = Math.floor(Date.now() / 1000);
+                const messageToSign = `agent_ack:${organizationId}:${backendTime}`;
+                
+                const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
+                const cryptoKey = await crypto.subtle.importKey(
+                  "pkcs8",
+                  privateKeyBytes,
+                  { name: "Ed25519" },
+                  false,
+                  ["sign"]
+                );
+                
+                const signatureBytes = await crypto.subtle.sign(
+                  "Ed25519",
+                  cryptoKey,
+                  new TextEncoder().encode(messageToSign)
+                );
+                
+                ackSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
+              } catch (error) {
+                console.error('[Agent WS] Failed to sign ack:', error);
+              }
+            }
             
             // Send ack
             socket.send(JSON.stringify({
               type: 'agent_ack',
               org_id: organizationId,
               agent_name: agent.name,
-              heartbeat_interval: 30
+              heartbeat_interval: 30,
+              backend_time: Math.floor(Date.now() / 1000),
+              signature: ackSignature
             }));
             
             // Send any queued commands

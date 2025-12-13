@@ -29,14 +29,55 @@ Deno.serve(async (req) => {
     
     const agent = agents[0];
     
+    // Get organization for signing
+    const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
+    if (orgs.length === 0) {
+      return Response.json({ error: 'Organization not found' }, { status: 404 });
+    }
+    const org = orgs[0];
+    
     // Check if agent is online and connected
     const connection = agentConnections.get(agentId);
     
+    const commandId = `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const nonce = crypto.randomUUID();
+    
+    // Sign command
+    let signature = null;
+    if (org.org_signing_private_key) {
+      try {
+        const messageToSign = `${commandId}:${command.name}:${issuedAt}:${nonce}`;
+        const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
+        
+        const cryptoKey = await crypto.subtle.importKey(
+          "pkcs8",
+          privateKeyBytes,
+          { name: "Ed25519" },
+          false,
+          ["sign"]
+        );
+        
+        const signatureBytes = await crypto.subtle.sign(
+          "Ed25519",
+          cryptoKey,
+          new TextEncoder().encode(messageToSign)
+        );
+        
+        signature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
+      } catch (error) {
+        console.error('Failed to sign command:', error);
+      }
+    }
+    
     const commandMessage = {
       type: 'command',
-      command_id: `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: command.name,
-      params: command.params || {}
+      command_id: commandId,
+      command: command.name,
+      args: command.params || {},
+      issued_at: issuedAt,
+      nonce,
+      signature
     };
     
     if (connection && connection.socket.readyState === WebSocket.OPEN) {

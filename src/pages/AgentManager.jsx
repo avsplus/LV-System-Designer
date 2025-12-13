@@ -388,8 +388,10 @@ export default function AgentManager() {
               Register Agent
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+          </DialogContent>
+          </Dialog>
+
+          <AgentRegistration open={showRegistration} onOpenChange={setShowRegistration} />
+          </div>
+          );
+          }
