@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X
+  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key
 } from "lucide-react";
+import AgentRegistration from "../components/network/AgentRegistration";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ export default function AgentManager() {
   const prefilledAgentId = urlParams.get('agentId');
   
   const [showAddDialog, setShowAddDialog] = useState(!!prefilledAgentId);
+  const [showRegistration, setShowRegistration] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
   const [agentForm, setAgentForm] = useState({
     agent_id: prefilledAgentId || '',
@@ -156,8 +158,8 @@ export default function AgentManager() {
             <span className="text-sm text-gray-400">Total Agents:</span>
             <span className="text-lg font-bold text-cyan-400">{agents.length}</span>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} className="bg-cyan-600 hover:bg-cyan-700">
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={() => setShowRegistration(true)} className="bg-cyan-600 hover:bg-cyan-700">
+            <Key className="w-4 h-4 mr-2" />
             Register Agent
           </Button>
         </div>
@@ -388,10 +390,10 @@ export default function AgentManager() {
               Register Agent
             </Button>
           </DialogFooter>
-          </DialogContent>
-          </Dialog>
+        </DialogContent>
+      </Dialog>
 
-          <AgentRegistration open={showRegistration} onOpenChange={setShowRegistration} />
-          </div>
-          );
-          }
+      <AgentRegistration open={showRegistration} onOpenChange={setShowRegistration} />
+    </div>
+  );
+}
