@@ -43,6 +43,9 @@ Deno.serve(async (req) => {
             const agent = agents[0];
             organizationId = agent.organization_id;
             
+            // TODO: Verify Ed25519 signature when agent sends public_key + signature
+            // For now, trust agent_id lookup (agent will add crypto)
+            
             // Update agent status
             await base44.asServiceRole.entities.Agent.update(agent.id, {
               status: 'online',
@@ -72,10 +75,20 @@ Deno.serve(async (req) => {
           
           case 'event': {
             // Store event in database for frontend polling
-            // Or fan out via Server-Sent Events / WebSocket to frontend
-            console.log(`[Agent WS] Event from ${agentId}:`, message);
-            
-            // For now, just log. Frontend will poll via REST API
+            if (agentId && organizationId) {
+              try {
+                await base44.asServiceRole.entities.AgentEvent.create({
+                  organization_id: organizationId,
+                  agent_id: agentId,
+                  command_id: message.command_id,
+                  event_type: message.event,
+                  data: message.data || {}
+                });
+                console.log(`[Agent WS] Event stored: ${message.event}`);
+              } catch (error) {
+                console.error('[Agent WS] Failed to store event:', error);
+              }
+            }
             break;
           }
           
