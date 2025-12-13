@@ -470,15 +470,7 @@ export default function NetworkMapping() {
       {/* Toolbar */}
       <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowDeviceDialog(true)}
-            className="bg-cyan-600 hover:bg-cyan-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Device
-          </Button>
-
-          <Link to={createPageUrl("AgentManager")}>
+            <Link to={createPageUrl("AgentManager")}>
             <Button variant="outline" className="border-gray-700">
               <Activity className="w-4 h-4 mr-2" />
               Manage Agents
