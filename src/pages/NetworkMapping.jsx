@@ -207,8 +207,17 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { isConnected, isScanning, agentVersion, agentId, connect, disconnect, startScan, stopScan } = 
+  const { agents, selectedAgent, setSelectedAgent, isScanning, loadAgents, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId);
+  
+  useEffect(() => {
+    if (organizationId) {
+      loadAgents();
+      // Refresh agents every 30 seconds
+      const interval = setInterval(loadAgents, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [organizationId, loadAgents]);
 
   const handleStartScan = useCallback(() => {
     if (!selectedNetwork) {
@@ -433,25 +442,27 @@ export default function NetworkMapping() {
         </div>
         
         <div className="flex items-center gap-4">
-          {/* Agent Connection Status */}
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-            isConnected 
-              ? 'bg-green-500/10 border-green-500/30' 
-              : 'bg-gray-800/50 border-gray-700'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-600'
-            }`} />
-            <span className={`text-sm font-medium ${
-              isConnected ? 'text-green-400' : 'text-gray-500'
+          {/* Agent Status */}
+          {selectedAgent && (
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+              selectedAgent.status === 'online'
+                ? 'bg-green-500/10 border-green-500/30' 
+                : 'bg-gray-800/50 border-gray-700'
             }`}>
-              {isConnected ? 'Agent Connected' : 'Agent Offline'}
-            </span>
-            {isConnected && agentVersion && (
-              <span className="text-xs text-gray-400">v{agentVersion}</span>
-            )}
-          </div>
-          
+              <div className={`w-2 h-2 rounded-full ${
+                selectedAgent.status === 'online' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'
+              }`} />
+              <span className={`text-sm font-medium ${
+                selectedAgent.status === 'online' ? 'text-green-400' : 'text-gray-500'
+              }`}>
+                {selectedAgent.name}
+              </span>
+              {selectedAgent.version && (
+                <span className="text-xs text-gray-400">v{selectedAgent.version}</span>
+              )}
+            </div>
+          )}
+
           <NetworkStats devices={devices} />
         </div>
       </div>
@@ -466,68 +477,77 @@ export default function NetworkMapping() {
             <Plus className="w-4 h-4 mr-2" />
             Add Device
           </Button>
-          
-          {!isConnected ? (
-            <Button onClick={connect} variant="outline" className="border-gray-700">
-              <Wifi className="w-4 h-4 mr-2" />
-              Connect Scanner
+
+          <Link to={createPageUrl("AgentManager")}>
+            <Button variant="outline" className="border-gray-700">
+              <Activity className="w-4 h-4 mr-2" />
+              Manage Agents
+            </Button>
+          </Link>
+
+          {agents.length > 0 && (
+            <Select value={selectedAgent?.id || ''} onValueChange={(id) => {
+              const agent = agents.find(a => a.id === id);
+              setSelectedAgent(agent);
+            }}>
+              <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
+                <SelectValue placeholder="Select agent..." />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700">
+                {agents.map(agent => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.name} ({agent.status})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          <Button 
+            onClick={() => setShowNetworkDialog(true)}
+            variant="outline"
+            className="border-gray-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Network
+          </Button>
+
+          <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
+            <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
+              <SelectValue placeholder={networks.length === 0 ? "No networks" : "Select network..."} />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-800 border-gray-700">
+              {networks.length === 0 ? (
+                <div className="p-2 text-sm text-gray-500">No networks available</div>
+              ) : (
+                networks.map(network => (
+                  <SelectItem key={network.id} value={network.id}>
+                    {network.name} ({network.subnet || 'No subnet'})
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+
+          {isScanning ? (
+            <Button 
+              onClick={stopScan} 
+              variant="outline"
+              className="border-red-500 text-red-400 hover:bg-red-500/10"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Stop Scan
             </Button>
           ) : (
-            <>
-              <Link to={createPageUrl("AgentManager") + (agentId && isConnected ? `?agentId=${agentId}` : '')}>
-                <Button variant="outline" className="border-gray-700">
-                  <Activity className="w-4 h-4 mr-2" />
-                  {agentId && isConnected ? 'Register Agent' : 'Manage Agents'}
-                </Button>
-              </Link>
-
-              <Button 
-                onClick={() => setShowNetworkDialog(true)}
-                variant="outline"
-                className="border-gray-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Network
-              </Button>
-              
-              <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
-                <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder={networks.length === 0 ? "No networks" : "Select network..."} />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  {networks.length === 0 ? (
-                    <div className="p-2 text-sm text-gray-500">No networks available</div>
-                  ) : (
-                    networks.map(network => (
-                      <SelectItem key={network.id} value={network.id}>
-                        {network.name} ({network.subnet || 'No subnet'})
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              
-              {isScanning ? (
-                <Button 
-                  onClick={stopScan} 
-                  variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Stop Scan
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleStartScan} 
-                  disabled={!selectedNetwork}
-                  variant="outline"
-                  className="border-green-500 text-green-400 hover:bg-green-500/10"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Scan Network
-                </Button>
-              )}
-            </>
+            <Button 
+              onClick={handleStartScan} 
+              disabled={!selectedNetwork || !selectedAgent || selectedAgent.status !== 'online'}
+              variant="outline"
+              className="border-green-500 text-green-400 hover:bg-green-500/10"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Scan Network
+            </Button>
           )}
           
           {selectedDevice && (
