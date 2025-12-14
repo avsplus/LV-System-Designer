@@ -9,17 +9,50 @@ Deno.serve(async (req) => {
     console.log("🔥 WS HANDLER FILE HIT 🔥");
     console.log("[WS] Request URL:", req.url);
     console.log("[WS] Upgrade header:", req.headers.get("upgrade"));
-    
+
+    // DEBUG: Check client creation via POST (for test_backend_function)
+    if (req.method === "POST") {
+        try {
+            const clone = req.clone();
+            const body = await clone.json().catch(() => ({}));
+            if (body.debug_client) {
+                console.log("[DEBUG] Testing client creation...");
+                const base44 = createClientFromRequest(req);
+                const isServiceRoleAvailable = !!base44.asServiceRole;
+                console.log("[DEBUG] Client created. Service role available:", isServiceRoleAvailable);
+                return Response.json({ 
+                    success: true, 
+                    service_role: isServiceRoleAvailable,
+                    env_check: {
+                        BASE44_API_URL: !!Deno.env.get("BASE44_API_URL"),
+                        // Don't log the actual key, just existence
+                        // BASE44_SERVICE_ROLE_KEY might not be in env directly if injected differently
+                    }
+                });
+            }
+        } catch (e) {
+            console.log("[DEBUG] Error checking body:", e);
+        }
+    }
+
     // Handle WebSocket upgrade for agents
     if (req.headers.get("upgrade") === "websocket") {
       console.log("[WS] Starting WebSocket upgrade...");
+
+      // Initialize client BEFORE upgrade to ensure it works
+      let base44;
+      try {
+        base44 = createClientFromRequest(req);
+        console.log("[WS] Base44 client initialized");
+      } catch (e) {
+        console.error("[WS] Failed to initialize Base44 client:", e);
+        throw new Error("Failed to initialize backend client: " + e.message);
+      }
+
       const { socket, response } = Deno.upgradeWebSocket(req);
-      
-      // Create SDK client from request (use service role for all operations)
-      const base44 = createClientFromRequest(req);
-    
-    let agentId = null;
-    let organizationId = null;
+
+      let agentId = null;
+      let organizationId = null;
 
     socket.onopen = () => {
       console.log('[Agent WS] Connection opened');
