@@ -5,8 +5,13 @@ const agentConnections = new Map();
 const commandQueues = new Map();
 
 Deno.serve(async (req) => {
+  console.log("🔥 WS HANDLER FILE HIT 🔥");
+  console.log("[WS] Request URL:", req.url);
+  console.log("[WS] Upgrade header:", req.headers.get("upgrade"));
+  
   // Handle WebSocket upgrade for agents
   if (req.headers.get("upgrade") === "websocket") {
+    console.log("[WS] Starting WebSocket upgrade...");
     const { socket, response } = Deno.upgradeWebSocket(req);
     
     // Create service-role SDK client AFTER upgrade (agents have no user auth)
