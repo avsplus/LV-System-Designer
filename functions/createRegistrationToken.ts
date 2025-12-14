@@ -76,13 +76,20 @@ Deno.serve(async (req) => {
     // Return registration package
     const url = new URL(req.url);
     const baseUrl = `${url.protocol}//${url.host}`;
-    const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    // Extract Supabase project ref from URL (e.g., qtrypzzcjebvfcihiynt from https://qtrypzzcjebvfcihiynt.supabase.co)
+    const supabaseHost = new URL(supabaseUrl).host;
+    const supabaseRealtimeUrl = `wss://${supabaseHost}/realtime/v1/websocket`;
+
     return Response.json({
       reg_token: token,
       org_id: user.organization_id,
       backend_url: baseUrl,
-      websocket_url: `${wsProtocol}//${url.host}/functions/agentWebSocket`,
+      supabase_realtime_url: supabaseRealtimeUrl,
+      supabase_anon_key: supabaseAnonKey,
+      agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
       org_public_key: orgPublicKey,
       expires_at: expiresAt.toISOString()
     });
