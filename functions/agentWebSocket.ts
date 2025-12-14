@@ -1,15 +1,19 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@base44/sdk@0.8.4';
 
 // Store active agent connections (in production, use Redis or similar)
 const agentConnections = new Map();
 const commandQueues = new Map();
 
 Deno.serve(async (req) => {
-  const base44 = createClientFromRequest(req);
-
   // Handle WebSocket upgrade for agents
   if (req.headers.get("upgrade") === "websocket") {
     const { socket, response } = Deno.upgradeWebSocket(req);
+    
+    // Create service-role SDK client AFTER upgrade (agents have no user auth)
+    const base44 = createClient({
+      baseUrl: Deno.env.get('BASE44_API_URL'),
+      serviceRoleKey: Deno.env.get('BASE44_SERVICE_ROLE_KEY')
+    });
     
     let agentId = null;
     let organizationId = null;
@@ -30,7 +34,7 @@ Deno.serve(async (req) => {
             const timestamp = message.timestamp;
             const signature = message.signature;
             
-            const agents = await base44.asServiceRole.entities.Agent.filter({ 
+            const agents = await base44.entities.Agent.filter({ 
               agent_id: agentId 
             });
             
@@ -111,7 +115,7 @@ Deno.serve(async (req) => {
             }
             
             // Update agent status
-            await base44.asServiceRole.entities.Agent.update(agent.id, {
+            await base44.entities.Agent.update(agent.id, {
               status: 'online',
               last_seen: new Date().toISOString(),
               version: message.version,
@@ -122,7 +126,7 @@ Deno.serve(async (req) => {
             agentConnections.set(agentId, { socket, organizationId });
             
             // Get org for signing ack
-            const orgs = await base44.asServiceRole.entities.Organization.filter({ id: organizationId });
+            const orgs = await base44.entities.Organization.filter({ id: organizationId });
             const org = orgs[0];
             
             // Sign ack using JSON-based signing
@@ -191,7 +195,7 @@ Deno.serve(async (req) => {
             // Store event in database for frontend polling
             if (agentId && organizationId) {
               try {
-                await base44.asServiceRole.entities.AgentEvent.create({
+                await base44.entities.AgentEvent.create({
                   organization_id: organizationId,
                   agent_id: agentId,
                   command_id: message.command_id,
@@ -208,10 +212,10 @@ Deno.serve(async (req) => {
           
           case 'heartbeat': {
             if (agentId) {
-              await base44.asServiceRole.entities.Agent.filter({ agent_id: agentId })
+              await base44.entities.Agent.filter({ agent_id: agentId })
                 .then(agents => {
                   if (agents[0]) {
-                    return base44.asServiceRole.entities.Agent.update(agents[0].id, {
+                    return base44.entities.Agent.update(agents[0].id, {
                       last_seen: new Date().toISOString()
                     });
                   }
@@ -234,10 +238,15 @@ Deno.serve(async (req) => {
         agentConnections.delete(agentId);
         
         // Update agent status to offline
-        base44.asServiceRole.entities.Agent.filter({ agent_id: agentId })
+        const base44 = createClient({
+          baseUrl: Deno.env.get('BASE44_API_URL'),
+          serviceRoleKey: Deno.env.get('BASE44_SERVICE_ROLE_KEY')
+        });
+        
+        base44.entities.Agent.filter({ agent_id: agentId })
           .then(agents => {
             if (agents[0]) {
-              return base44.asServiceRole.entities.Agent.update(agents[0].id, {
+              return base44.entities.Agent.update(agents[0].id, {
                 status: 'offline',
                 last_seen: new Date().toISOString()
               });
