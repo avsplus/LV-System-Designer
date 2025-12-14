@@ -39,17 +39,10 @@ Deno.serve(async (req) => {
     if (req.headers.get("upgrade") === "websocket") {
       console.log("[WS] Starting WebSocket upgrade...");
 
-      // Initialize client BEFORE upgrade to ensure it works
-      let base44;
-      try {
-        base44 = createClientFromRequest(req);
-        console.log("[WS] Base44 client initialized");
-      } catch (e) {
-        console.error("[WS] Failed to initialize Base44 client:", e);
-        throw new Error("Failed to initialize backend client: " + e.message);
-      }
-
       const { socket, response } = Deno.upgradeWebSocket(req);
+
+      // Create service-role client for agent operations (agents don't have user auth)
+      const base44 = createClientFromRequest(req);
 
       let agentId = null;
       let organizationId = null;
