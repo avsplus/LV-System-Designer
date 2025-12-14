@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       reg_token: token,
       org_id: user.organization_id,
       backend_url: baseUrl,
-      websocket_url: `${wsProtocol}//${url.host}/agent/ws`,
+      websocket_url: `${wsProtocol}//${url.host}/functions/agentWebSocket`,
       org_public_key: orgPublicKey,
       expires_at: expiresAt.toISOString()
     });
