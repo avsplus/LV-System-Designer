@@ -1,9 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-
-// This would need to be shared with agentWebSocket.js
-// In production, use Redis or similar
-const agentConnections = new Map();
-const commandQueues = new Map();
+import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
@@ -15,11 +11,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { agentId, command } = await req.json();
+    const { agent_id, command, data } = await req.json();
+    
+    if (!agent_id || !command) {
+      return Response.json({ error: 'agent_id and command required' }, { status: 400 });
+    }
     
     // Verify agent belongs to user's organization
     const agents = await base44.entities.Agent.filter({ 
-      agent_id: agentId,
+      agent_id,
       organization_id: user.organization_id 
     });
     
@@ -31,36 +31,37 @@ Deno.serve(async (req) => {
     
     // Get organization for signing
     const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
-    if (orgs.length === 0) {
-      return Response.json({ error: 'Organization not found' }, { status: 404 });
-    }
     const org = orgs[0];
     
-    // Check if agent is online and connected
-    const connection = agentConnections.get(agentId);
-    
-    const commandId = `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const issuedAt = Math.floor(Date.now() / 1000);
+    // Build command message
+    const commandId = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
     const nonce = crypto.randomUUID();
     
-    // Sign command using JSON-based signing
-    let signature = null;
-    let sigInputB64 = null;
-    if (org.org_signing_private_key) {
+    const commandMessage = {
+      type: 'command',
+      command_id: commandId,
+      command,
+      data: data || {},
+      org_id: user.organization_id,
+      timestamp,
+      nonce
+    };
+    
+    // Sign command if org has private key
+    if (org?.org_signing_private_key) {
       try {
         const sigInputJson = JSON.stringify({
-          type: "command",
-          command_id: commandId,
-          command: command.name,
-          args: command.params || {},
-          issued_at: issuedAt,
-          nonce,
-          org_id: user.organization_id,
-          agent_id: agentId
+          type: commandMessage.type,
+          command_id: commandMessage.command_id,
+          command: commandMessage.command,
+          org_id: commandMessage.org_id,
+          timestamp: commandMessage.timestamp,
+          nonce: commandMessage.nonce
         });
         
         const messageBytes = new TextEncoder().encode(sigInputJson);
-        sigInputB64 = btoa(String.fromCharCode(...messageBytes));
+        const sigInputB64 = btoa(String.fromCharCode(...messageBytes));
         
         const privateKeyBytes = Uint8Array.from(atob(org.org_signing_private_key), c => c.charCodeAt(0));
         const cryptoKey = await crypto.subtle.importKey(
@@ -77,50 +78,47 @@ Deno.serve(async (req) => {
           messageBytes
         );
         
-        signature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
+        commandMessage.sig_alg = 'ed25519';
+        commandMessage.sig_input_b64 = sigInputB64;
+        commandMessage.signature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
       } catch (error) {
         console.error('Failed to sign command:', error);
       }
     }
     
-    const commandMessage = {
-      type: 'command',
-      command_id: commandId,
-      command: command.name,
-      args: command.params || {},
-      issued_at: issuedAt,
-      nonce,
-      org_id: user.organization_id,
-      sig_alg: 'ed25519',
-      sig_input_b64: sigInputB64,
-      signature
-    };
+    // Publish to Supabase Realtime channel
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL'),
+      Deno.env.get('SUPABASE_SERVICE_KEY')
+    );
     
-    if (connection && connection.socket.readyState === WebSocket.OPEN) {
-      // Agent is connected, send immediately
-      connection.socket.send(JSON.stringify(commandMessage));
-      
-      return Response.json({ 
-        success: true,
-        command_id: commandMessage.command_id,
-        status: 'sent'
-      });
-    } else {
-      // Agent offline, queue command
-      if (!commandQueues.has(agentId)) {
-        commandQueues.set(agentId, []);
+    const channel = supabase.channel(`agent:${agent_id}`);
+    
+    await channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.send({
+          type: 'broadcast',
+          event: 'command',
+          payload: commandMessage
+        });
       }
-      commandQueues.get(agentId).push(commandMessage);
-      
-      return Response.json({ 
-        success: true,
-        command_id: commandMessage.command_id,
-        status: 'queued',
-        message: 'Agent offline, command will be sent when agent reconnects'
-      });
-    }
+    });
+    
+    // Wait a bit for message to be sent
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await channel.unsubscribe();
+    
+    console.log(`Command sent to agent ${agent_id} via Supabase Realtime`);
+    
+    return Response.json({ 
+      success: true,
+      command_id: commandId,
+      agent_id,
+      delivery: 'realtime'
+    });
+    
   } catch (error) {
-    console.error('Send command error:', error);
+    console.error('Send agent command error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
