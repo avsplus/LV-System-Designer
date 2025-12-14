@@ -66,53 +66,33 @@ export default function AgentRegistration({ open, onOpenChange }) {
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
                 <p className="text-yellow-400 text-sm font-medium mb-1">⚠️ Security Notice</p>
                 <p className="text-yellow-300/80 text-xs">
-                  This token expires in 30 minutes. Do not share it publicly or store it permanently.
+                  This code expires in 30 minutes. Do not share it publicly.
                 </p>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-300">Registration Token</label>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={copyToken}
-                    className="h-8 text-cyan-400 hover:text-cyan-300"
-                  >
-                    <Copy className="w-3 h-3 mr-1" />
-                    Copy
-                  </Button>
+              <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-2 border-cyan-500/30 rounded-xl p-8">
+                <p className="text-sm text-gray-400 text-center mb-3">Registration Code</p>
+                <div className="bg-gray-900 rounded-lg p-6 mb-4">
+                  <p className="text-4xl font-bold text-center text-cyan-400 tracking-wider font-mono">
+                    {regData.reg_token}
+                  </p>
                 </div>
-                <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 font-mono text-xs text-gray-300 break-all">
-                  {regData.reg_token}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-300 mb-2 block">Full Configuration (JSON)</label>
-                <div className="relative">
-                  <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-xs text-gray-300 overflow-x-auto max-h-64">
-                    {JSON.stringify(regData, null, 2)}
-                  </pre>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={copyToClipboard}
-                    className="absolute top-2 right-2 h-8 text-cyan-400 hover:text-cyan-300"
-                  >
-                    <Copy className="w-3 h-3 mr-1" />
-                    Copy All
-                  </Button>
-                </div>
+                <Button
+                  onClick={copyToken}
+                  className="w-full bg-cyan-600 hover:bg-cyan-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Code
+                </Button>
               </div>
 
               <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 space-y-2">
                 <p className="text-sm font-medium text-white">Instructions:</p>
-                <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside">
-                  <li>Copy the JSON configuration above</li>
-                  <li>Open the Fusion LVS Agent GUI on your Windows machine</li>
-                  <li>Click "Register Agent" and paste the configuration</li>
-                  <li>The agent will connect and appear in your agent list</li>
+                <ol className="text-sm text-gray-300 space-y-2 list-decimal list-inside">
+                  <li>Copy the registration code above</li>
+                  <li>Open the Fusion Network Agent on your Windows machine</li>
+                  <li>Enter the code and click "Register"</li>
+                  <li>The agent will automatically configure and connect</li>
                 </ol>
               </div>
 
