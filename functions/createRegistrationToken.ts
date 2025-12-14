@@ -48,8 +48,21 @@ Deno.serve(async (req) => {
       });
     }
     
-    // Generate registration token
-    const token = crypto.randomUUID();
+    // Generate short registration code (e.g., REG-A7X9-K2M4)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed ambiguous chars
+    const generateCode = () => {
+      const segments = [];
+      for (let i = 0; i < 3; i++) {
+        let segment = '';
+        for (let j = 0; j < 4; j++) {
+          segment += chars[Math.floor(Math.random() * chars.length)];
+        }
+        segments.push(segment);
+      }
+      return `REG-${segments.join('-')}`;
+    };
+    
+    const token = generateCode();
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
     
     await base44.asServiceRole.entities.RegistrationToken.create({
