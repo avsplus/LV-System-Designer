@@ -5,17 +5,18 @@ const agentConnections = new Map();
 const commandQueues = new Map();
 
 Deno.serve(async (req) => {
-  console.log("🔥 WS HANDLER FILE HIT 🔥");
-  console.log("[WS] Request URL:", req.url);
-  console.log("[WS] Upgrade header:", req.headers.get("upgrade"));
-  
-  // Handle WebSocket upgrade for agents
-  if (req.headers.get("upgrade") === "websocket") {
-    console.log("[WS] Starting WebSocket upgrade...");
-    const { socket, response } = Deno.upgradeWebSocket(req);
+  try {
+    console.log("🔥 WS HANDLER FILE HIT 🔥");
+    console.log("[WS] Request URL:", req.url);
+    console.log("[WS] Upgrade header:", req.headers.get("upgrade"));
     
-    // Create SDK client from request (use service role for all operations)
-    const base44 = createClientFromRequest(req);
+    // Handle WebSocket upgrade for agents
+    if (req.headers.get("upgrade") === "websocket") {
+      console.log("[WS] Starting WebSocket upgrade...");
+      const { socket, response } = Deno.upgradeWebSocket(req);
+      
+      // Create SDK client from request (use service role for all operations)
+      const base44 = createClientFromRequest(req);
     
     let agentId = null;
     let organizationId = null;
@@ -257,8 +258,12 @@ Deno.serve(async (req) => {
       console.error('[Agent WS] Error:', error);
     };
 
-    return response;
-  }
+      return response;
+    }
 
-  return Response.json({ error: 'WebSocket upgrade required' }, { status: 400 });
+    return Response.json({ error: 'WebSocket upgrade required' }, { status: 400 });
+  } catch (error) {
+    console.error('[Agent WS] Fatal error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 });
