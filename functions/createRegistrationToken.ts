@@ -73,20 +73,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to create token' }, { status: 500 });
     }
 
-    const url = new URL(req.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     const supabaseHost = new URL(supabaseUrl).host;
     const supabaseRealtimeUrl = `wss://${supabaseHost}/realtime/v1/websocket`;
 
+    // Use Supabase Edge Functions (no auth required)
+    const supabaseFunctionsUrl = `https://${supabaseHost.split('.')[0]}.supabase.co/functions/v1`;
+
     return Response.json({
       reg_token: token,
       org_id: user.organization_id,
-      backend_url: baseUrl,
-      register_agent_url: `${baseUrl}/functions/registerAgent`,
+      backend_url: supabaseFunctionsUrl,
+      register_agent_url: `${supabaseFunctionsUrl}/register-agent`,
       supabase_realtime_url: supabaseRealtimeUrl,
       supabase_anon_key: supabaseAnonKey,
-      agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
+      agent_event_post_url: `${supabaseFunctionsUrl}/agent-post-event`,
       org_public_key: orgPublicKey,
       expires_at: expiresAt
     });
