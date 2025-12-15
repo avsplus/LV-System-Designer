@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
         return Response.json({
           success: true,
           org_id: tokens.organization_id,
-          org_public_key: org.org_signing_public_key,
+          org_public_key: orgPublicKey,
           message: 'Agent re-registered successfully'
         });
       }
@@ -82,22 +82,12 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
     
-    // Get organization public key from Base44 (without auth since this is called by external agent)
-    const baseUrl = new URL(req.url);
-    const base44Url = `${baseUrl.protocol}//${baseUrl.host}`;
-    const appId = Deno.env.get('BASE44_APP_ID');
+    // Get org public key from registration token (no Base44 dependency)
+    const orgPublicKey = tokens.org_signing_public_key;
 
-    const orgResponse = await fetch(`${base44Url}/api/data/Organization/${tokens.organization_id}`, {
-      headers: {
-        'Base44-App-Id': appId
-      }
-    });
-
-    if (!orgResponse.ok) {
-      return Response.json({ error: 'Organization not found' }, { status: 404 });
+    if (!orgPublicKey) {
+      return Response.json({ error: 'Invalid registration token configuration' }, { status: 500 });
     }
-
-    const org = await orgResponse.json();
     
     // Register agent in Supabase
     const { error: insertError } = await supabase
@@ -129,7 +119,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       org_id: tokens.organization_id,
-      org_public_key: org.org_signing_public_key,
+      org_public_key: orgPublicKey,
       message: 'Agent registered successfully'
     });
   } catch (error) {

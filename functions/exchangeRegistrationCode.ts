@@ -33,22 +33,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Registration code has expired' }, { status: 410 });
     }
     
-    // Get organization details from Base44 (without auth since this is called by external agent)
-    const baseUrl = new URL(req.url);
-    const base44Url = `${baseUrl.protocol}//${baseUrl.host}`;
-    const appId = Deno.env.get('BASE44_APP_ID');
+    // Get org public key from registration token (no Base44 dependency)
+    const orgPublicKey = regToken.org_signing_public_key;
 
-    const orgResponse = await fetch(`${base44Url}/api/data/Organization/${regToken.organization_id}`, {
-      headers: {
-        'Base44-App-Id': appId
-      }
-    });
-
-    if (!orgResponse.ok) {
-      return Response.json({ error: 'Organization not found' }, { status: 404 });
+    if (!orgPublicKey) {
+      return Response.json({ error: 'Invalid registration token configuration' }, { status: 500 });
     }
-
-    const org = await orgResponse.json();
     
     // Build full configuration
     const url = new URL(req.url);
@@ -67,7 +57,7 @@ Deno.serve(async (req) => {
       supabase_realtime_url: supabaseRealtimeUrl,
       supabase_anon_key: supabaseAnonKey,
       agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
-      org_public_key: org.org_signing_public_key,
+      org_public_key: orgPublicKey,
       expires_at: regToken.expires_at
     });
   } catch (error) {
