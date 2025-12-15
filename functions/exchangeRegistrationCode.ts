@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
       reg_token: code,
       org_id: regToken.organization_id,
       backend_url: baseUrl,
+      register_agent_url: `${baseUrl}/functions/registerAgent`,
       supabase_realtime_url: supabaseRealtimeUrl,
       supabase_anon_key: supabaseAnonKey,
       agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
