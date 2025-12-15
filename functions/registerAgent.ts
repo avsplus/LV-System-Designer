@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
       org_id: token.organization_id,
       org_public_key: org.org_signing_public_key,
       base44_app_id: Deno.env.get('BASE44_APP_ID'),
+      base44_service_token: Deno.env.get('BASE44_SERVICE_ROLE_KEY'),
       message: 'Agent registered successfully'
     });
   } catch (error) {
