@@ -54,10 +54,12 @@ Deno.serve(async (req) => {
       reg_token: code,
       org_id: regToken.organization_id,
       backend_url: baseUrl,
+      register_agent_url: `${baseUrl}/functions/registerAgent`,
       supabase_realtime_url: supabaseRealtimeUrl,
       supabase_anon_key: supabaseAnonKey,
       agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
       org_public_key: org.org_signing_public_key,
+      base44_app_id: Deno.env.get('BASE44_APP_ID'),
       expires_at: regToken.expires_at
     });
   } catch (error) {
