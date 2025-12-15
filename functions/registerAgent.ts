@@ -2,6 +2,17 @@ import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
+    // Allow CORS for external agent access
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
+      });
+    }
+
     const { reg_token, agent_id, agent_public_key, machine_info } = await req.json();
     
     if (!reg_token || !agent_id || !agent_public_key) {
@@ -121,6 +132,10 @@ Deno.serve(async (req) => {
       org_id: tokens.organization_id,
       org_public_key: orgPublicKey,
       message: 'Agent registered successfully'
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   } catch (error) {
     console.error('Register agent error:', error);

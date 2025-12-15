@@ -2,6 +2,17 @@ import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
+    // Allow CORS for external agent access
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
+      });
+    }
+
     const { code } = await req.json();
     
     if (!code) {
@@ -59,6 +70,10 @@ Deno.serve(async (req) => {
       agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
       org_public_key: orgPublicKey,
       expires_at: regToken.expires_at
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   } catch (error) {
     console.error('Exchange registration code error:', error);
