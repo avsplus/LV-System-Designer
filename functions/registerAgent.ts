@@ -82,18 +82,22 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
     
-    // Get organization public key from Base44
-    const { createClientFromRequest } = await import('npm:@base44/sdk@0.8.4');
-    const base44 = createClientFromRequest(req);
-    const orgs = await base44.asServiceRole.entities.Organization.filter({ 
-      id: tokens.organization_id 
+    // Get organization public key from Base44 (without auth since this is called by external agent)
+    const baseUrl = new URL(req.url);
+    const base44Url = `${baseUrl.protocol}//${baseUrl.host}`;
+    const appId = Deno.env.get('BASE44_APP_ID');
+
+    const orgResponse = await fetch(`${base44Url}/api/data/Organization/${tokens.organization_id}`, {
+      headers: {
+        'Base44-App-Id': appId
+      }
     });
-    
-    if (orgs.length === 0) {
+
+    if (!orgResponse.ok) {
       return Response.json({ error: 'Organization not found' }, { status: 404 });
     }
-    
-    const org = orgs[0];
+
+    const org = await orgResponse.json();
     
     // Register agent in Supabase
     const { error: insertError } = await supabase
