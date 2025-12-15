@@ -71,7 +71,7 @@ function AVCanvasContent() {
   }, []);
 
   // Project sync callback
-  const handleProjectUpdatedFromSyncCallback = React.useCallback((updatedProject) => {
+  const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
     setCurrentProject(updatedProject);
     projectData.handleProjectUpdatedFromSync(updatedProject);
   }, []);
