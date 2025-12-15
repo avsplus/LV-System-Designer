@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
       .from('registration_tokens')
       .insert({
         organization_id: user.organization_id,
+        org_signing_public_key: orgPublicKey,
         token,
         status: 'active',
         expires_at: expiresAt,

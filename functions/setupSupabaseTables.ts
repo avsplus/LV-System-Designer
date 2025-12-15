@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS agents (
 CREATE TABLE IF NOT EXISTS registration_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id TEXT NOT NULL,
+  org_signing_public_key TEXT NOT NULL,
   token TEXT UNIQUE NOT NULL,
   status TEXT DEFAULT 'active',
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
