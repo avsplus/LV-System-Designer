@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
       agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
       org_public_key: org.org_signing_public_key,
       base44_app_id: Deno.env.get('BASE44_APP_ID'),
+      base44_service_token: Deno.env.get('BASE44_SERVICE_ROLE_KEY'),
       expires_at: regToken.expires_at
     });
   } catch (error) {
