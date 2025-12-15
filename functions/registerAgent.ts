@@ -1,13 +1,8 @@
-import { createClient } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
   try {
-    // Initialize SDK with service role directly (no auth headers required from agent)
-    const base44 = createClient({
-      supabaseUrl: Deno.env.get('SUPABASE_URL'),
-      supabaseKey: Deno.env.get('SUPABASE_SERVICE_KEY'),
-      appId: Deno.env.get('BASE44_APP_ID')
-    });
+    const base44 = createClientFromRequest(req);
     
     const { reg_token, agent_id, agent_public_key, machine_info } = await req.json();
     
@@ -18,7 +13,7 @@ Deno.serve(async (req) => {
     }
     
     // Validate registration token
-    const tokens = await base44.entities.RegistrationToken.filter({ 
+    const tokens = await base44.asServiceRole.entities.RegistrationToken.filter({ 
       token: reg_token,
       status: 'active'
     });
@@ -31,12 +26,12 @@ Deno.serve(async (req) => {
     
     // Check token expiration
     if (new Date(token.expires_at) < new Date()) {
-      await base44.entities.RegistrationToken.update(token.id, { status: 'expired' });
+      await base44.asServiceRole.entities.RegistrationToken.update(token.id, { status: 'expired' });
       return Response.json({ error: 'Registration token expired' }, { status: 401 });
     }
     
     // Check if agent already registered
-    const existingAgents = await base44.entities.Agent.filter({ agent_id });
+    const existingAgents = await base44.asServiceRole.entities.Agent.filter({ agent_id });
     if (existingAgents.length > 0) {
       return Response.json({ 
         error: 'Agent already registered. Unregister first to move to another org.' 
@@ -44,7 +39,7 @@ Deno.serve(async (req) => {
     }
     
     // Get organization
-    const orgs = await base44.entities.Organization.filter({ id: token.organization_id });
+    const orgs = await base44.asServiceRole.entities.Organization.filter({ id: token.organization_id });
     if (orgs.length === 0) {
       return Response.json({ error: 'Organization not found' }, { status: 404 });
     }
@@ -52,7 +47,7 @@ Deno.serve(async (req) => {
     const org = orgs[0];
     
     // Register agent
-    await base44.entities.Agent.create({
+    await base44.asServiceRole.entities.Agent.create({
       organization_id: token.organization_id,
       agent_id,
       agent_public_key,
@@ -63,7 +58,7 @@ Deno.serve(async (req) => {
     });
     
     // Mark token as used
-    await base44.entities.RegistrationToken.update(token.id, {
+    await base44.asServiceRole.entities.RegistrationToken.update(token.id, {
       status: 'used',
       used_by_agent_id: agent_id
     });
