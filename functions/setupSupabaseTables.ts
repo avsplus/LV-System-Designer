@@ -13,8 +13,13 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
 
     const sqlStatements = `
+-- Drop existing tables (clean slate)
+DROP TABLE IF EXISTS agent_events CASCADE;
+DROP TABLE IF EXISTS registration_tokens CASCADE;
+DROP TABLE IF EXISTS agents CASCADE;
+
 -- Agents table
-CREATE TABLE IF NOT EXISTS agents (
+CREATE TABLE agents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id TEXT NOT NULL,
   agent_id TEXT UNIQUE NOT NULL,
@@ -31,7 +36,7 @@ CREATE TABLE IF NOT EXISTS agents (
 );
 
 -- Registration tokens table
-CREATE TABLE IF NOT EXISTS registration_tokens (
+CREATE TABLE registration_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id TEXT NOT NULL,
   org_signing_public_key TEXT NOT NULL,
@@ -44,7 +49,7 @@ CREATE TABLE IF NOT EXISTS registration_tokens (
 );
 
 -- Agent events table
-CREATE TABLE IF NOT EXISTS agent_events (
+CREATE TABLE agent_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id TEXT NOT NULL,
   agent_id TEXT NOT NULL,
@@ -55,12 +60,12 @@ CREATE TABLE IF NOT EXISTS agent_events (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_agents_org ON agents(organization_id);
-CREATE INDEX IF NOT EXISTS idx_agents_agent_id ON agents(agent_id);
-CREATE INDEX IF NOT EXISTS idx_tokens_token ON registration_tokens(token);
-CREATE INDEX IF NOT EXISTS idx_tokens_org ON registration_tokens(organization_id);
-CREATE INDEX IF NOT EXISTS idx_events_agent ON agent_events(agent_id);
-CREATE INDEX IF NOT EXISTS idx_events_org ON agent_events(organization_id);
+CREATE INDEX idx_agents_org ON agents(organization_id);
+CREATE INDEX idx_agents_agent_id ON agents(agent_id);
+CREATE INDEX idx_tokens_token ON registration_tokens(token);
+CREATE INDEX idx_tokens_org ON registration_tokens(organization_id);
+CREATE INDEX idx_events_agent ON agent_events(agent_id);
+CREATE INDEX idx_events_org ON agent_events(organization_id);
 
 -- Enable RLS
 ALTER TABLE agents ENABLE ROW LEVEL SECURITY;
@@ -68,13 +73,8 @@ ALTER TABLE registration_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_events ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (allow service role full access)
-DROP POLICY IF EXISTS "Service role full access" ON agents;
 CREATE POLICY "Service role full access" ON agents FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Service role full access" ON registration_tokens;
 CREATE POLICY "Service role full access" ON registration_tokens FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Service role full access" ON agent_events;
 CREATE POLICY "Service role full access" ON agent_events FOR ALL USING (true);
 
 -- Enable Realtime
