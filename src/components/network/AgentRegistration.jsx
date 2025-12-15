@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
+import { useOrganization } from "../auth/useOrganization";
 
 export default function AgentRegistration({ open, onOpenChange }) {
+  const { organizationId } = useOrganization();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [regData, setRegData] = useState(null);
+  const [polling, setPolling] = useState(false);
 
   const generateToken = async () => {
     setLoading(true);
@@ -32,6 +37,38 @@ export default function AgentRegistration({ open, onOpenChange }) {
     await navigator.clipboard.writeText(regData.reg_token);
     toast.success('Token copied');
   };
+
+  // Poll for agent registration
+  useEffect(() => {
+    if (!regData?.reg_token || !open) return;
+
+    setPolling(true);
+    const pollInterval = setInterval(async () => {
+      try {
+        const tokens = await base44.entities.RegistrationToken.filter({ 
+          token: regData.reg_token 
+        });
+        
+        if (tokens.length > 0 && tokens[0].status === 'used') {
+          toast.success('Agent registered successfully!');
+          queryClient.invalidateQueries({ queryKey: ['agents', organizationId] });
+          setPolling(false);
+          clearInterval(pollInterval);
+          setTimeout(() => {
+            setRegData(null);
+            onOpenChange(false);
+          }, 1500);
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(pollInterval);
+      setPolling(false);
+    };
+  }, [regData?.reg_token, open, organizationId, queryClient, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,8 +133,16 @@ export default function AgentRegistration({ open, onOpenChange }) {
                 </ol>
               </div>
 
-              <div className="text-xs text-gray-500 text-center">
-                Expires: {new Date(regData.expires_at).toLocaleString()}
+              <div className="text-xs text-center space-y-2">
+                <div className="text-gray-500">
+                  Expires: {new Date(regData.expires_at).toLocaleString()}
+                </div>
+                {polling && (
+                  <div className="flex items-center justify-center gap-2 text-cyan-400">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    <span>Waiting for agent to register...</span>
+                  </div>
+                )}
               </div>
             </>
           )}
