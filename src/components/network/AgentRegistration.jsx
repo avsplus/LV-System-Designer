@@ -45,11 +45,11 @@ export default function AgentRegistration({ open, onOpenChange }) {
     setPolling(true);
     const pollInterval = setInterval(async () => {
       try {
-        const tokens = await base44.entities.RegistrationToken.filter({ 
+        const { data } = await base44.functions.invoke('checkRegistrationStatus', { 
           token: regData.reg_token 
         });
         
-        if (tokens.length > 0 && tokens[0].status === 'used') {
+        if (data.status === 'used') {
           toast.success('Agent registered successfully!');
           queryClient.invalidateQueries({ queryKey: ['agents', organizationId] });
           setPolling(false);
