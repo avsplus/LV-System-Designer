@@ -1,0 +1,74 @@
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+let supabaseClient = null;
+
+if (supabaseUrl && supabaseAnonKey) {
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+}
+
+export function useSupabaseAgents(organizationId) {
+  const [agents, setAgents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!supabaseClient || !organizationId) return;
+
+    // Initial fetch
+    const fetchAgents = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabaseClient
+          .from('agents')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setAgents(data || []);
+      } catch (err) {
+        console.error('Fetch agents error:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
+
+    // Subscribe to realtime updates
+    const channel = supabaseClient
+      .channel('agents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agents',
+          filter: `organization_id=eq.${organizationId}`
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setAgents(prev => [payload.new, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setAgents(prev => prev.map(agent => 
+              agent.id === payload.new.id ? payload.new : agent
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setAgents(prev => prev.filter(agent => agent.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseClient.removeChannel(channel);
+    };
+  }, [organizationId]);
+
+  return { agents, loading, error, supabase: supabaseClient };
+}

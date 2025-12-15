@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
-import { useQueryClient } from "@tanstack/react-query";
+import { createClient } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import { useOrganization } from "../auth/useOrganization";
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
 export default function AgentRegistration({ open, onOpenChange }) {
   const { organizationId } = useOrganization();
-  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [regData, setRegData] = useState(null);
-  const [polling, setPolling] = useState(false);
+  const [waiting, setWaiting] = useState(false);
 
   const generateToken = async () => {
     setLoading(true);
@@ -38,37 +41,40 @@ export default function AgentRegistration({ open, onOpenChange }) {
     toast.success('Token copied');
   };
 
-  // Poll for agent registration
+  // Listen for registration completion via Supabase Realtime
   useEffect(() => {
-    if (!regData?.reg_token || !open) return;
+    if (!supabase || !regData?.reg_token || !open) return;
 
-    setPolling(true);
-    const pollInterval = setInterval(async () => {
-      try {
-        const { data } = await base44.functions.invoke('checkRegistrationStatus', { 
-          token: regData.reg_token 
-        });
-        
-        if (data.status === 'used') {
-          toast.success('Agent registered successfully!');
-          queryClient.invalidateQueries({ queryKey: ['agents', organizationId] });
-          setPolling(false);
-          clearInterval(pollInterval);
-          setTimeout(() => {
-            setRegData(null);
-            onOpenChange(false);
-          }, 1500);
+    setWaiting(true);
+    
+    const channel = supabase
+      .channel('registration-token-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'registration_tokens',
+          filter: `token=eq.${regData.reg_token}`
+        },
+        (payload) => {
+          if (payload.new.status === 'used') {
+            toast.success('Agent registered successfully!');
+            setWaiting(false);
+            setTimeout(() => {
+              setRegData(null);
+              onOpenChange(false);
+            }, 1500);
+          }
         }
-      } catch (error) {
-        console.error('Polling error:', error);
-      }
-    }, 2000);
+      )
+      .subscribe();
 
     return () => {
-      clearInterval(pollInterval);
-      setPolling(false);
+      supabase.removeChannel(channel);
+      setWaiting(false);
     };
-  }, [regData?.reg_token, open, organizationId, queryClient, onOpenChange]);
+  }, [regData?.reg_token, open, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -137,7 +143,7 @@ export default function AgentRegistration({ open, onOpenChange }) {
                 <div className="text-gray-500">
                   Expires: {new Date(regData.expires_at).toLocaleString()}
                 </div>
-                {polling && (
+                {waiting && (
                   <div className="flex items-center justify-center gap-2 text-cyan-400">
                     <RefreshCw className="w-3 h-3 animate-spin" />
                     <span>Waiting for agent to register...</span>

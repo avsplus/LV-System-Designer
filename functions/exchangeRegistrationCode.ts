@@ -1,35 +1,41 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
     const { code } = await req.json();
     
     if (!code) {
       return Response.json({ error: 'Registration code required' }, { status: 400 });
     }
     
-    // Look up registration token
-    const tokens = await base44.asServiceRole.entities.RegistrationToken.filter({ 
-      token: code,
-      status: 'active'
-    });
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    if (tokens.length === 0) {
+    // Look up registration token
+    const { data: regToken, error: tokenError } = await supabase
+      .from('registration_tokens')
+      .select('*')
+      .eq('token', code)
+      .eq('status', 'active')
+      .single();
+    
+    if (tokenError || !regToken) {
       return Response.json({ error: 'Invalid or expired registration code' }, { status: 404 });
     }
     
-    const regToken = tokens[0];
-    
     // Check expiration
     if (new Date(regToken.expires_at) < new Date()) {
-      await base44.asServiceRole.entities.RegistrationToken.update(regToken.id, {
-        status: 'expired'
-      });
+      await supabase
+        .from('registration_tokens')
+        .update({ status: 'expired' })
+        .eq('id', regToken.id);
       return Response.json({ error: 'Registration code has expired' }, { status: 410 });
     }
     
-    // Get organization details
+    // Get organization details from Base44
+    const { createClientFromRequest } = await import('npm:@base44/sdk@0.8.4');
+    const base44 = createClientFromRequest(req);
     const orgs = await base44.asServiceRole.entities.Organization.filter({ 
       id: regToken.organization_id 
     });
@@ -43,7 +49,6 @@ Deno.serve(async (req) => {
     // Build full configuration
     const url = new URL(req.url);
     const baseUrl = `${url.protocol}//${url.host}`;
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
     // Extract Supabase project ref from URL

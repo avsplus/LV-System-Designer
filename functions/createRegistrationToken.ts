@@ -1,85 +1,80 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Authenticate user
     const user = await base44.auth.me();
+
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Check if user is admin
+
     if (user.role !== 'admin') {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
-    
-    // Get user's organization
+
     const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
     if (orgs.length === 0) {
       return Response.json({ error: 'Organization not found' }, { status: 404 });
     }
-    
+
     const org = orgs[0];
-    
-    // Generate org signing keypair if not exists
+
+    // Generate or retrieve organization signing keys
     let orgPublicKey = org.org_signing_public_key;
     let orgPrivateKey = org.org_signing_private_key;
-    
+
     if (!orgPublicKey || !orgPrivateKey) {
-      // Generate Ed25519 keypair for organization
-      const keypair = await crypto.subtle.generateKey(
-        { name: "Ed25519" },
+      const { subtle } = globalThis.crypto;
+      const keyPair = await subtle.generateKey(
+        { name: 'Ed25519' },
         true,
-        ["sign", "verify"]
+        ['sign', 'verify']
       );
-      
-      const publicKeyBytes = await crypto.subtle.exportKey("raw", keypair.publicKey);
-      const privateKeyBytes = await crypto.subtle.exportKey("pkcs8", keypair.privateKey);
-      
-      orgPublicKey = btoa(String.fromCharCode(...new Uint8Array(publicKeyBytes)));
-      orgPrivateKey = btoa(String.fromCharCode(...new Uint8Array(privateKeyBytes)));
-      
-      // Store keypair in organization
-      await base44.asServiceRole.entities.Organization.update(org.id, {
+
+      const publicKeyRaw = await subtle.exportKey('raw', keyPair.publicKey);
+      const privateKeyRaw = await subtle.exportKey('pkcs8', keyPair.privateKey);
+
+      orgPublicKey = btoa(String.fromCharCode(...new Uint8Array(publicKeyRaw)));
+      orgPrivateKey = btoa(String.fromCharCode(...new Uint8Array(privateKeyRaw)));
+
+      await base44.entities.Organization.update(org.id, {
         org_signing_public_key: orgPublicKey,
         org_signing_private_key: orgPrivateKey
       });
     }
-    
-    // Generate short registration code (e.g., REG-A7X9-K2M4)
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed ambiguous chars
-    const generateCode = () => {
-      const segments = [];
-      for (let i = 0; i < 3; i++) {
-        let segment = '';
-        for (let j = 0; j < 4; j++) {
-          segment += chars[Math.floor(Math.random() * chars.length)];
-        }
-        segments.push(segment);
-      }
-      return `REG-${segments.join('-')}`;
-    };
-    
-    const token = generateCode();
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
-    
-    await base44.asServiceRole.entities.RegistrationToken.create({
-      organization_id: user.organization_id,
-      token,
-      status: 'active',
-      expires_at: expiresAt.toISOString(),
-      created_by: user.email
-    });
-    
-    // Return registration package
+
+    // Generate short token
+    const token = Array.from({ length: 4 }, () =>
+      Math.random().toString(36).substring(2, 6).toUpperCase()
+    ).join('-');
+
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    // Store token in Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { error: insertError } = await supabase
+      .from('registration_tokens')
+      .insert({
+        organization_id: user.organization_id,
+        token,
+        status: 'active',
+        expires_at: expiresAt,
+        created_by: user.email
+      });
+
+    if (insertError) {
+      console.error('Insert token error:', insertError);
+      return Response.json({ error: 'Failed to create token' }, { status: 500 });
+    }
+
     const url = new URL(req.url);
     const baseUrl = `${url.protocol}//${url.host}`;
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-
-    // Extract Supabase project ref from URL (e.g., qtrypzzcjebvfcihiynt from https://qtrypzzcjebvfcihiynt.supabase.co)
     const supabaseHost = new URL(supabaseUrl).host;
     const supabaseRealtimeUrl = `wss://${supabaseHost}/realtime/v1/websocket`;
 
@@ -92,7 +87,7 @@ Deno.serve(async (req) => {
       supabase_anon_key: supabaseAnonKey,
       agent_event_post_url: `${baseUrl}/functions/agentPostEvent`,
       org_public_key: orgPublicKey,
-      expires_at: expiresAt.toISOString()
+      expires_at: expiresAt
     });
   } catch (error) {
     console.error('Create registration token error:', error);

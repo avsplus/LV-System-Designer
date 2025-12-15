@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import AgentRegistration from "../components/network/AgentRegistration";
 import AgentInstallerUpload from "../components/network/AgentInstallerUpload";
+import { useSupabaseAgents } from "../components/network/useSupabaseAgents";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
@@ -31,7 +32,6 @@ import {
 
 export default function AgentManager() {
   const { organizationId } = useOrganization();
-  const queryClient = useQueryClient();
   const location = window.location;
   const urlParams = new URLSearchParams(location.search);
   const prefilledAgentId = urlParams.get('agentId');
@@ -47,12 +47,8 @@ export default function AgentManager() {
     assigned_network_id: ''
   });
 
-  // Fetch agents
-  const { data: agents = [], isLoading } = useQuery({
-    queryKey: ['agents', organizationId],
-    queryFn: () => base44.entities.Agent.filter({ organization_id: organizationId }),
-    enabled: !!organizationId
-  });
+  // Fetch agents from Supabase with realtime updates
+  const { agents, loading: isLoading, supabase } = useSupabaseAgents(organizationId);
 
   // Fetch installer URL
   const { data: installerData } = useQuery({
@@ -71,30 +67,30 @@ export default function AgentManager() {
     enabled: !!organizationId
   });
 
-  // Mutations
-  const createAgentMutation = useMutation({
-    mutationFn: (data) => base44.entities.Agent.create({ ...data, organization_id: organizationId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] });
-      toast.success('Agent registered');
-      setShowAddDialog(false);
-      resetForm();
-    }
-  });
-
+  // Mutations for Supabase
   const updateAgentMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Agent.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const { error } = await supabase
+        .from('agents')
+        .update(data)
+        .eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] });
       toast.success('Agent updated');
       setEditingAgent(null);
     }
   });
 
   const deleteAgentMutation = useMutation({
-    mutationFn: (id) => base44.entities.Agent.delete(id),
+    mutationFn: async (id) => {
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] });
       toast.success('Agent removed');
     }
   });
@@ -108,23 +104,14 @@ export default function AgentManager() {
     });
   };
 
-  const handleAddAgent = () => {
-    if (!agentForm.agent_id || !agentForm.name) {
-      toast.error('Agent ID and name are required');
-      return;
-    }
-    createAgentMutation.mutate({
-      ...agentForm,
-      status: 'offline',
-      version: 'unknown'
-    });
-  };
+
 
   const handleUpdateAgent = (agent) => {
     if (!editingAgent) return;
+    const { id, created_at, updated_at, ...updateData } = editingAgent;
     updateAgentMutation.mutate({
       id: agent.id,
-      data: editingAgent
+      data: updateData
     });
   };
 
@@ -350,77 +337,6 @@ export default function AgentManager() {
           </div>
         )}
       </div>
-
-      {/* Add Agent Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-gray-900 border-gray-800">
-          <DialogHeader>
-            <DialogTitle className="text-white">Register Network Agent</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label className="text-gray-300">Agent ID</Label>
-              <Input
-                value={agentForm.agent_id}
-                onChange={(e) => setAgentForm({ ...agentForm, agent_id: e.target.value })}
-                placeholder="unique-agent-id"
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-              <p className="text-xs text-gray-500 mt-1">Unique identifier for this agent</p>
-            </div>
-            
-            <div>
-              <Label className="text-gray-300">Agent Name</Label>
-              <Input
-                value={agentForm.name}
-                onChange={(e) => setAgentForm({ ...agentForm, name: e.target.value })}
-                placeholder="Main Office Scanner"
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-gray-300">Location</Label>
-              <Input
-                value={agentForm.location}
-                onChange={(e) => setAgentForm({ ...agentForm, location: e.target.value })}
-                placeholder="Office, Warehouse, etc."
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-gray-300">Assigned Network (Optional)</Label>
-              <Select 
-                value={agentForm.assigned_network_id} 
-                onValueChange={(v) => setAgentForm({ ...agentForm, assigned_network_id: v })}
-              >
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Select network..." />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value={null}>None</SelectItem>
-                  {networks.map(network => (
-                    <SelectItem key={network.id} value={network.id}>
-                      {network.name} ({network.subnet})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)} className="border-gray-700">
-              Cancel
-            </Button>
-            <Button onClick={handleAddAgent} className="bg-cyan-600 hover:bg-cyan-700">
-              Register Agent
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <AgentRegistration open={showRegistration} onOpenChange={setShowRegistration} />
       <AgentInstallerUpload open={showInstallerUpload} onOpenChange={setShowInstallerUpload} />

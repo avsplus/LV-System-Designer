@@ -1,84 +1,48 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    const { agent_id, organization_id, command_id, event_type, data, signature } = await req.json();
+    const { agent_id, organization_id, command_id, event_type, data } = await req.json();
     
     if (!agent_id || !organization_id || !event_type) {
-      return Response.json({ error: 'agent_id, organization_id, and event_type required' }, { status: 400 });
+      return Response.json({ 
+        error: 'Missing required fields: agent_id, organization_id, event_type' 
+      }, { status: 400 });
     }
     
-    // Verify agent exists and belongs to organization
-    const agents = await base44.asServiceRole.entities.Agent.filter({ 
-      agent_id,
-      organization_id 
-    });
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    if (agents.length === 0) {
-      return Response.json({ error: 'Agent not found' }, { status: 404 });
-    }
-    
-    const agent = agents[0];
-    
-    // Optional: Verify signature if provided
-    if (signature) {
-      try {
-        const messageToVerify = JSON.stringify({
-          agent_id,
-          organization_id,
-          event_type,
-          command_id,
-          timestamp: data?.timestamp
-        });
-        
-        const publicKeyBytes = Uint8Array.from(atob(agent.agent_public_key), c => c.charCodeAt(0));
-        const signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
-        const messageBytes = new TextEncoder().encode(messageToVerify);
-        
-        const cryptoKey = await crypto.subtle.importKey(
-          "raw",
-          publicKeyBytes,
-          { name: "Ed25519" },
-          false,
-          ["verify"]
-        );
-        
-        const isValid = await crypto.subtle.verify(
-          "Ed25519",
-          cryptoKey,
-          signatureBytes,
-          messageBytes
-        );
-        
-        if (!isValid) {
-          return Response.json({ error: 'Invalid signature' }, { status: 403 });
-        }
-      } catch (error) {
-        console.error('Signature verification failed:', error);
-        return Response.json({ error: 'Signature verification failed' }, { status: 403 });
-      }
+    // Update agent status if it's a heartbeat or status change
+    if (event_type === 'heartbeat' || event_type === 'status_change') {
+      const status = data?.status || 'online';
+      await supabase
+        .from('agents')
+        .update({ 
+          status,
+          last_seen: new Date().toISOString()
+        })
+        .eq('agent_id', agent_id);
     }
     
     // Store event
-    await base44.asServiceRole.entities.AgentEvent.create({
-      organization_id,
-      agent_id,
-      command_id: command_id || null,
-      event_type,
-      data: data || {}
-    });
+    const { error: insertError } = await supabase
+      .from('agent_events')
+      .insert({
+        organization_id,
+        agent_id,
+        command_id,
+        event_type,
+        data
+      });
     
-    // Update agent last_seen
-    await base44.asServiceRole.entities.Agent.update(agent.id, {
-      last_seen: new Date().toISOString()
-    });
-    
-    console.log(`Event received from agent ${agent_id}: ${event_type}`);
+    if (insertError) {
+      console.error('Insert event error:', insertError);
+      return Response.json({ error: 'Failed to store event' }, { status: 500 });
+    }
     
     return Response.json({ success: true });
-    
   } catch (error) {
     console.error('Agent post event error:', error);
     return Response.json({ error: error.message }, { status: 500 });
