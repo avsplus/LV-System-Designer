@@ -35,15 +35,50 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Registration token expired' }, { status: 401 });
     }
     
-    // Check if agent already registered
+    // Check if agent already registered in THIS organization
     const { data: existingAgents } = await supabase
       .from('agents')
       .select('*')
       .eq('agent_id', agent_id);
-    
+
     if (existingAgents && existingAgents.length > 0) {
+      const existingAgent = existingAgents[0];
+
+      // If already in this org, allow re-registration (update)
+      if (existingAgent.organization_id === tokens.organization_id) {
+        const { error: updateError } = await supabase
+          .from('agents')
+          .update({
+            agent_public_key,
+            name: machine_info?.hostname || existingAgent.name,
+            status: 'registered',
+            capabilities: machine_info?.capabilities || existingAgent.capabilities,
+            location: machine_info?.location || existingAgent.location
+          })
+          .eq('agent_id', agent_id);
+
+        if (updateError) {
+          console.error('Update agent error:', updateError);
+          return Response.json({ error: 'Failed to update agent' }, { status: 500 });
+        }
+
+        // Mark token as used
+        await supabase
+          .from('registration_tokens')
+          .update({ status: 'used', used_by_agent_id: agent_id })
+          .eq('id', tokens.id);
+
+        return Response.json({
+          success: true,
+          org_id: tokens.organization_id,
+          org_public_key: org.org_signing_public_key,
+          message: 'Agent re-registered successfully'
+        });
+      }
+
+      // Different org - require unregister first
       return Response.json({ 
-        error: 'Agent already registered. Unregister first to move to another org.' 
+        error: 'Agent already registered to another organization. Unregister first.' 
       }, { status: 409 });
     }
     
