@@ -84,6 +84,10 @@ Deno.serve(async (req) => {
           org_id: tokens.organization_id,
           org_public_key: orgPublicKey,
           message: 'Agent re-registered successfully'
+        }, {
+          headers: {
+            'Access-Control-Allow-Origin': '*'
+          }
         });
       }
 
@@ -139,6 +143,11 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Register agent error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
   }
 });

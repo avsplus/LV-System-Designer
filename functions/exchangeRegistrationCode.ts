@@ -77,6 +77,11 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Exchange registration code error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
   }
 });
