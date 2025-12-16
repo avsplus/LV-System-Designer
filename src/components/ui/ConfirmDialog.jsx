@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useCallback } from 'react';
+import { useState, createContext, useContext, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Info, HelpCircle } from 'lucide-react';
 
