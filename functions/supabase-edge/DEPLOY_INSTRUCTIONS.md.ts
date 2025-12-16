@@ -25,9 +25,9 @@ Deploy all three functions:
 
 ```bash
 # From your project root
-supabase functions deploy exchange-registration-code --no-verify-jwt
-supabase functions deploy register-agent --no-verify-jwt
-supabase functions deploy agent-post-event --no-verify-jwt
+supabase functions deploy exchange_registration_code --no-verify-jwt
+supabase functions deploy register_agent --no-verify-jwt
+supabase functions deploy agent_post_event --no-verify-jwt
 ```
 
 The `--no-verify-jwt` flag is critical - it allows these functions to be called without Supabase auth.
