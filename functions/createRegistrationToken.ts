@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     const supabaseRealtimeUrl = `wss://${supabaseHost}/realtime/v1/websocket`;
 
     // Use Supabase Edge Functions (no auth required)
-    const supabaseFunctionsUrl = `https://${supabaseHost.split('.')[0]}.supabase.co/functions/v1`;
+    const supabaseFunctionsUrl = `${supabaseUrl}/functions/v1`;
 
     return Response.json({
       reg_token: token,
