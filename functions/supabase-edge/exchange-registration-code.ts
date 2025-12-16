@@ -72,10 +72,10 @@ Deno.serve(async (req) => {
       reg_token: code,
       org_id: regToken.organization_id,
       backend_url: functionsBaseUrl,
-      register_agent_url: `${functionsBaseUrl}/register-agent`,
+      register_agent_url: `${functionsBaseUrl}/register_agent`,
       supabase_realtime_url: supabaseRealtimeUrl,
       supabase_anon_key: supabaseAnonKey,
-      agent_event_post_url: `${functionsBaseUrl}/agent-post-event`,
+      agent_event_post_url: `${functionsBaseUrl}/agent_post_event`,
       org_public_key: orgPublicKey,
       expires_at: regToken.expires_at
     }, {
