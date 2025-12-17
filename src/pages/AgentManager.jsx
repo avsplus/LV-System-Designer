@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key, Download, Upload
+  ChevronLeft, Plus, Activity, Circle, RefreshCw, Trash2, Edit2, Check, X, Key, Download, Upload, ShieldOff
 } from "lucide-react";
 import AgentRegistration from "../components/network/AgentRegistration";
 import AgentInstallerUpload from "../components/network/AgentInstallerUpload";
@@ -39,6 +39,9 @@ export default function AgentManager() {
   const [showAddDialog, setShowAddDialog] = useState(!!prefilledAgentId);
   const [showRegistration, setShowRegistration] = useState(false);
   const [showInstallerUpload, setShowInstallerUpload] = useState(false);
+  const [showUnregisterDialog, setShowUnregisterDialog] = useState(false);
+  const [selectedAgentForUnregister, setSelectedAgentForUnregister] = useState(null);
+  const [unregisterToken, setUnregisterToken] = useState('');
   const [editingAgent, setEditingAgent] = useState(null);
   const [agentForm, setAgentForm] = useState({
     agent_id: prefilledAgentId || '',
@@ -92,6 +95,17 @@ export default function AgentManager() {
     },
     onSuccess: () => {
       toast.success('Agent removed');
+    }
+  });
+
+  const generateUnregisterTokenMutation = useMutation({
+    mutationFn: async (agent_id) => {
+      const { data } = await base44.functions.invoke('generateUnregisterToken', { agent_id });
+      return data;
+    },
+    onSuccess: (data) => {
+      setUnregisterToken(data.token);
+      toast.success('Unregister code generated');
     }
   });
 
@@ -248,7 +262,20 @@ export default function AgentManager() {
                             size="icon"
                             variant="ghost"
                             onClick={() => {
-                              if (confirm('Remove this agent?')) {
+                              setSelectedAgentForUnregister(agent);
+                              setShowUnregisterDialog(true);
+                              generateUnregisterTokenMutation.mutate(agent.agent_id);
+                            }}
+                            className="h-8 w-8 text-gray-400 hover:text-yellow-400"
+                            title="Generate Unregister Code"
+                          >
+                            <ShieldOff className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              if (confirm('Remove this agent from database?')) {
                                 deleteAgentMutation.mutate(agent.id);
                               }
                             }}
@@ -340,6 +367,67 @@ export default function AgentManager() {
 
       <AgentRegistration open={showRegistration} onOpenChange={setShowRegistration} />
       <AgentInstallerUpload open={showInstallerUpload} onOpenChange={setShowInstallerUpload} />
+      
+      {/* Unregister Dialog */}
+      <Dialog open={showUnregisterDialog} onOpenChange={setShowUnregisterDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldOff className="w-5 h-5 text-yellow-400" />
+              Unregister Agent
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <p className="text-sm text-gray-400 mb-2">Agent:</p>
+              <p className="font-mono text-cyan-400">{selectedAgentForUnregister?.name}</p>
+              <p className="text-xs text-gray-500 font-mono">{selectedAgentForUnregister?.agent_id}</p>
+            </div>
+
+            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+              <p className="text-sm text-yellow-300 font-semibold mb-2">
+                ⚠️ Unregister Confirmation Code
+              </p>
+              <div className="bg-gray-950 border border-gray-700 rounded-lg p-4 text-center">
+                <p className="text-2xl font-mono font-bold text-yellow-400 tracking-wider">
+                  {unregisterToken || 'Generating...'}
+                </p>
+              </div>
+              <p className="text-xs text-gray-400 mt-3">
+                Provide this code to the agent. The agent must sign the unregister request with its private key.
+              </p>
+              <p className="text-xs text-yellow-500 mt-2">
+                Expires in 15 minutes
+              </p>
+            </div>
+
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+              <p className="text-xs text-gray-400">
+                <strong>Two-Factor Unregister:</strong><br/>
+                1. Copy this code to the agent<br/>
+                2. Agent signs: agent_id + org_id + token + timestamp<br/>
+                3. Agent sends signed request to backend<br/>
+                4. Backend validates signature + token → unregisters
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowUnregisterDialog(false);
+                setUnregisterToken('');
+                setSelectedAgentForUnregister(null);
+              }}
+              className="border-gray-700"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
       );
       }
