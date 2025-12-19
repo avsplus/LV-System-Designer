@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
     }
     
     const orgPublicKey = regToken.org_signing_public_key;
+    const orgName = regToken.organization_name || 'Unknown Organization';
 
     if (!orgPublicKey) {
       return Response.json({ error: 'Invalid registration token configuration' }, { 
@@ -71,6 +72,7 @@ Deno.serve(async (req) => {
     return Response.json({
       reg_token: code,
       org_id: regToken.organization_id,
+      org_name: orgName,
       backend_url: functionsBaseUrl,
       register_agent_url: `${functionsBaseUrl}/register-agent`,
       supabase_realtime_url: supabaseRealtimeUrl,

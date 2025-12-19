@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
     return Response.json({
       reg_token: token,
       org_id: user.organization_id,
+      org_name: org.name,
       backend_url: supabaseFunctionsUrl,
       register_agent_url: `${supabaseFunctionsUrl}/register-agent`,
       supabase_realtime_url: supabaseRealtimeUrl,
