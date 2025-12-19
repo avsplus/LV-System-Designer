@@ -55,7 +55,8 @@ Deno.serve(async (req) => {
     
     const orgPublicKey = regToken.org_signing_public_key;
     const orgName = regToken.organization_name || 'Unknown Organization';
-    const orgLogoUrl = regToken.organization_logo_url;
+    const defaultLogoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/fusion-logo.png';
+    const orgLogoUrl = regToken.organization_logo_url || defaultLogoUrl;
 
     if (!orgPublicKey) {
       return Response.json({ error: 'Invalid registration token configuration' }, { 

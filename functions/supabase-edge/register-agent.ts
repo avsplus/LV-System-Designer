@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
     }
     
     const orgPublicKey = tokens.org_signing_public_key;
+    const defaultLogoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/fusion-logo.png';
 
     if (!orgPublicKey) {
       return Response.json({ error: 'Invalid registration token configuration' }, { 
@@ -100,7 +101,7 @@ Deno.serve(async (req) => {
           success: true,
           org_id: tokens.organization_id,
           org_name: tokens.organization_name || 'Unknown Organization',
-          org_logo_url: tokens.organization_logo_url,
+          org_logo_url: tokens.organization_logo_url || defaultLogoUrl,
           org_public_key: orgPublicKey,
           message: 'Agent re-registered successfully'
         }, {
@@ -144,7 +145,7 @@ Deno.serve(async (req) => {
       success: true,
       org_id: tokens.organization_id,
       org_name: tokens.organization_name || 'Unknown Organization',
-      org_logo_url: tokens.organization_logo_url,
+      org_logo_url: tokens.organization_logo_url || defaultLogoUrl,
       org_public_key: orgPublicKey,
       message: 'Agent registered successfully'
     }, {
