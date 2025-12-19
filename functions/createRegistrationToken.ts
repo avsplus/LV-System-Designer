@@ -61,6 +61,8 @@ Deno.serve(async (req) => {
       .from('registration_tokens')
       .insert({
         organization_id: user.organization_id,
+        organization_name: org.name,
+        organization_logo_url: org.logo_url,
         org_signing_public_key: orgPublicKey,
         token,
         status: 'active',
@@ -84,6 +86,7 @@ Deno.serve(async (req) => {
       reg_token: token,
       org_id: user.organization_id,
       org_name: org.name,
+      org_logo_url: org.logo_url,
       backend_url: supabaseFunctionsUrl,
       register_agent_url: `${supabaseFunctionsUrl}/register-agent`,
       supabase_realtime_url: supabaseRealtimeUrl,

@@ -100,6 +100,7 @@ Deno.serve(async (req) => {
           success: true,
           org_id: tokens.organization_id,
           org_name: tokens.organization_name || 'Unknown Organization',
+          org_logo_url: tokens.organization_logo_url,
           org_public_key: orgPublicKey,
           message: 'Agent re-registered successfully'
         }, {
@@ -143,6 +144,7 @@ Deno.serve(async (req) => {
       success: true,
       org_id: tokens.organization_id,
       org_name: tokens.organization_name || 'Unknown Organization',
+      org_logo_url: tokens.organization_logo_url,
       org_public_key: orgPublicKey,
       message: 'Agent registered successfully'
     }, {
