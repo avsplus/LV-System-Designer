@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
     }
 
     const org = orgs[0];
+    const defaultLogoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/fusion-logo.png';
 
     // Generate or retrieve organization signing keys
     let orgPublicKey = org.org_signing_public_key;
@@ -82,8 +83,6 @@ Deno.serve(async (req) => {
     // Use Supabase Edge Functions (no auth required)
     const supabaseFunctionsUrl = `${supabaseUrl}/functions/v1`;
 
-    const defaultLogoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/fusion-logo.png';
-    
     return Response.json({
       reg_token: token,
       org_id: user.organization_id,
