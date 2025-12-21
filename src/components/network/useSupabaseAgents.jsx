@@ -16,16 +16,24 @@ export function useSupabaseAgents(organizationId) {
   const [error, setError] = useState(null);
 
   const fetchAgents = async () => {
-    if (!supabaseClient || !organizationId) return;
+    if (!supabaseClient || !organizationId) {
+      console.log('useSupabaseAgents: Missing supabase client or org ID', { supabaseClient: !!supabaseClient, organizationId });
+      return;
+    }
     try {
       setLoading(true);
+      console.log('Fetching agents for organization:', organizationId);
       const { data, error } = await supabaseClient
         .from('agents')
         .select('*')
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
+      console.log('Fetched agents:', data);
       setAgents(data || []);
     } catch (err) {
       console.error('Fetch agents error:', err);
