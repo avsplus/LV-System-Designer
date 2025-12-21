@@ -470,114 +470,187 @@ export default function NetworkMapping() {
       {/* Toolbar */}
       <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex gap-2">
-            <Link to={createPageUrl("AgentManager")}>
+          <Link to={createPageUrl("AgentManager")}>
             <Button variant="outline" className="border-gray-700">
               <Activity className="w-4 h-4 mr-2" />
               Manage Agents
             </Button>
           </Link>
 
-          {agents.length > 0 && (
-            <Select value={selectedAgent?.id || ''} onValueChange={(id) => {
-              const agent = agents.find(a => a.id === id);
-              setSelectedAgent(agent);
-            }}>
-              <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
-                <SelectValue placeholder="Select agent..." />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                {agents.map(agent => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name} ({agent.status})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          <Button 
-            onClick={() => {
-              if (!selectedAgent) {
-                toast.error('Please select an agent first');
-                return;
-              }
-              setShowNetworkDialog(true);
-            }}
-            disabled={!selectedAgent}
-            variant="outline"
-            className="border-gray-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Network
-          </Button>
-
-          <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
-            <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder={networks.length === 0 ? "No networks" : "Select network..."} />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
-              {networks.length === 0 ? (
-                <div className="p-2 text-sm text-gray-500">No networks available</div>
-              ) : (
-                networks.map(network => (
-                  <SelectItem key={network.id} value={network.id}>
-                    {network.name} ({network.subnet || 'No subnet'})
-                  </SelectItem>
-                ))
+          {selectedAgent && (
+            <>
+              {agents.length > 0 && (
+                <Select value={selectedAgent?.id || ''} onValueChange={(id) => {
+                  const agent = agents.find(a => a.id === id);
+                  setSelectedAgent(agent);
+                }}>
+                  <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="Select agent..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    {agents.map(agent => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name} ({agent.status})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </SelectContent>
-          </Select>
 
-          {isScanning ? (
-            <Button 
-              onClick={stopScan} 
-              variant="outline"
-              className="border-red-500 text-red-400 hover:bg-red-500/10"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Stop Scan
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleStartScan} 
-              disabled={!selectedNetwork || !selectedAgent || selectedAgent.status !== 'online'}
-              variant="outline"
-              className="border-green-500 text-green-400 hover:bg-green-500/10"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Scan Network
-            </Button>
-          )}
-          
-          {selectedDevice && (
-            <Button 
-              onClick={() => deleteDeviceMutation.mutate(selectedDevice.id)}
-              variant="outline"
-              className="border-red-500 text-red-400 hover:bg-red-500/10"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Remove Device
-            </Button>
-          )}
-          
-          {devices.length > 0 && (
-            <Button 
-              onClick={handleClearAllDevices}
-              variant="outline"
-              className="border-red-500 text-red-400 hover:bg-red-500/10"
-            >
-              <Eraser className="w-4 h-4 mr-2" />
-              Clear All
-            </Button>
+              <Button 
+                onClick={() => setShowNetworkDialog(true)}
+                variant="outline"
+                className="border-gray-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Network
+              </Button>
+
+              <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
+                <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
+                  <SelectValue placeholder={networks.length === 0 ? "No networks" : "Select network..."} />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {networks.length === 0 ? (
+                    <div className="p-2 text-sm text-gray-500">No networks available</div>
+                  ) : (
+                    networks.map(network => (
+                      <SelectItem key={network.id} value={network.id}>
+                        {network.name} ({network.subnet || 'No subnet'})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+
+              {isScanning ? (
+                <Button 
+                  onClick={stopScan} 
+                  variant="outline"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Stop Scan
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleStartScan} 
+                  disabled={!selectedNetwork || selectedAgent.status !== 'online'}
+                  variant="outline"
+                  className="border-green-500 text-green-400 hover:bg-green-500/10"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Scan Network
+                </Button>
+              )}
+              
+              {selectedDevice && (
+                <Button 
+                  onClick={() => deleteDeviceMutation.mutate(selectedDevice.id)}
+                  variant="outline"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove Device
+                </Button>
+              )}
+              
+              {devices.length > 0 && (
+                <Button 
+                  onClick={handleClearAllDevices}
+                  variant="outline"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                >
+                  <Eraser className="w-4 h-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </>
           )}
         </div>
-        
-
       </div>
 
-      {/* Device Table */}
+      {/* Main Content */}
       <div className="flex-1 overflow-auto p-6">
-        {devices.length === 0 ? (
+        {!selectedAgent ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-center mb-8">
+              <Activity className="w-16 h-16 mx-auto mb-4 text-cyan-400/50" />
+              <h2 className="text-2xl font-bold text-white mb-2">Select an Agent</h2>
+              <p className="text-gray-400">Choose an agent to start scanning and mapping your network</p>
+            </div>
+            
+            {agents.length === 0 ? (
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
+                <p className="text-gray-400 mb-4">No agents registered yet</p>
+                <Link to={createPageUrl("AgentManager")}>
+                  <Button className="bg-cyan-600 hover:bg-cyan-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Register Your First Agent
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
+                {agents.map(agent => (
+                  <button
+                    key={agent.id}
+                    onClick={() => setSelectedAgent(agent)}
+                    className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 hover:bg-gray-800/50 transition-all text-left"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-1">{agent.name}</h3>
+                        <p className="text-xs text-gray-500 font-mono">{agent.agent_id}</p>
+                      </div>
+                      <div className={`w-3 h-3 rounded-full ${
+                        agent.status === 'online' ? 'bg-green-400 animate-pulse' : 
+                        agent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
+                        'bg-gray-600'
+                      }`} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Status</span>
+                        <Badge className={
+                          agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                          agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                          'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                        }>
+                          {agent.status}
+                        </Badge>
+                      </div>
+                      
+                      {agent.version && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">Version</span>
+                          <span className="text-sm text-white">{agent.version}</span>
+                        </div>
+                      )}
+                      
+                      {agent.location && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">Location</span>
+                          <span className="text-sm text-white">{agent.location}</span>
+                        </div>
+                      )}
+                      
+                      {agent.last_seen && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">Last Seen</span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(agent.last_seen).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : devices.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <NetworkIcon className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-lg font-medium">No devices yet</p>
