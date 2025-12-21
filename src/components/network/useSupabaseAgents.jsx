@@ -11,6 +11,8 @@ if (supabaseUrl && supabaseAnonKey) {
 }
 
 export function useSupabaseAgents(organizationId) {
+  console.log('🔧 useSupabaseAgents hook called with org:', organizationId);
+  console.log('🔧 Supabase client exists:', !!supabaseClient);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

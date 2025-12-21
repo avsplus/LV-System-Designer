@@ -31,7 +31,9 @@ import {
 } from "@/components/ui/select";
 
 export default function AgentManager() {
+  console.log('🚀 AgentManager component mounted');
   const { organizationId } = useOrganization();
+  console.log('🔍 organizationId from hook:', organizationId);
   const location = window.location;
   const urlParams = new URLSearchParams(location.search);
   const prefilledAgentId = urlParams.get('agentId');
