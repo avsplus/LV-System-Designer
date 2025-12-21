@@ -15,30 +15,32 @@ export function useSupabaseAgents(organizationId) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const fetchAgents = async () => {
     if (!supabaseClient || !organizationId) return;
+    try {
+      setLoading(true);
+      const { data, error } = await supabaseClient
+        .from('agents')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false });
 
-    // Initial fetch
-    const fetchAgents = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabaseClient
-          .from('agents')
-          .select('*')
-          .eq('organization_id', organizationId)
-          .order('created_at', { ascending: false });
+      if (error) throw error;
+      setAgents(data || []);
+    } catch (err) {
+      console.error('Fetch agents error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (error) throw error;
-        setAgents(data || []);
-      } catch (err) {
-        console.error('Fetch agents error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchAgents();
+
+    // Listen for custom event to refresh
+    const handleRefresh = () => fetchAgents();
+    window.addEventListener('agent-registered', handleRefresh);
 
     // Subscribe to realtime updates
     const channel = supabaseClient
@@ -66,9 +68,10 @@ export function useSupabaseAgents(organizationId) {
       .subscribe();
 
     return () => {
-      supabaseClient.removeChannel(channel);
+      window.removeEventListener('agent-registered', handleRefresh);
+      if (channel) supabaseClient.removeChannel(channel);
     };
   }, [organizationId]);
 
-  return { agents, loading, error, supabase: supabaseClient };
+  return { agents, loading, error, supabase: supabaseClient, refresh: fetchAgents };
 }

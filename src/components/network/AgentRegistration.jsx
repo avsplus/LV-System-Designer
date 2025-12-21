@@ -63,14 +63,13 @@ export default function AgentRegistration({ open, onOpenChange }) {
           if (payload.new.status === 'used') {
             toast.success('Agent registered successfully!');
             setWaiting(false);
-            // Force refresh of agents list
-            setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ['agents'] });
-            }, 500);
+            // Close dialog and let parent refresh
             setTimeout(() => {
               setRegData(null);
               onOpenChange(false);
-            }, 1500);
+              // Notify parent to refresh
+              window.dispatchEvent(new CustomEvent('agent-registered'));
+            }, 1000);
           }
         }
       )
@@ -80,7 +79,7 @@ export default function AgentRegistration({ open, onOpenChange }) {
       supabase.removeChannel(channel);
       setWaiting(false);
     };
-  }, [regData?.reg_token, open, onOpenChange]);
+  }, [regData?.reg_token, open, onOpenChange, queryClient]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
