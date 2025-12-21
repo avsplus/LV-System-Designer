@@ -43,12 +43,42 @@ export default function AgentRegistration({ open, onOpenChange }) {
     toast.success('Token copied');
   };
 
-  // Listen for registration completion via Supabase Realtime
+  // Listen for registration completion via Supabase Realtime + Polling fallback
   useEffect(() => {
     if (!supabase || !regData?.reg_token || !open) return;
 
     setWaiting(true);
+    let pollInterval;
     
+    // Polling fallback - check every 2 seconds
+    const checkRegistration = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('registration_tokens')
+          .select('status')
+          .eq('token', regData.reg_token)
+          .single();
+        
+        if (!error && data?.status === 'used') {
+          toast.success('Agent registered successfully!');
+          setWaiting(false);
+          clearInterval(pollInterval);
+          // Close dialog and notify
+          setTimeout(() => {
+            setRegData(null);
+            onOpenChange(false);
+            window.dispatchEvent(new CustomEvent('agent-registered'));
+          }, 1000);
+        }
+      } catch (err) {
+        console.error('Registration check error:', err);
+      }
+    };
+
+    // Start polling every 2 seconds
+    pollInterval = setInterval(checkRegistration, 2000);
+    
+    // Also subscribe to realtime updates as primary method
     const channel = supabase
       .channel('registration-token-updates')
       .on(
@@ -63,11 +93,10 @@ export default function AgentRegistration({ open, onOpenChange }) {
           if (payload.new.status === 'used') {
             toast.success('Agent registered successfully!');
             setWaiting(false);
-            // Close dialog and let parent refresh
+            clearInterval(pollInterval);
             setTimeout(() => {
               setRegData(null);
               onOpenChange(false);
-              // Notify parent to refresh
               window.dispatchEvent(new CustomEvent('agent-registered'));
             }, 1000);
           }
@@ -76,10 +105,11 @@ export default function AgentRegistration({ open, onOpenChange }) {
       .subscribe();
 
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
       setWaiting(false);
     };
-  }, [regData?.reg_token, open, onOpenChange, queryClient]);
+  }, [regData?.reg_token, open, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
