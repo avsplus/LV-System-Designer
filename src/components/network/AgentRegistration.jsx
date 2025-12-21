@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { createClient } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 
 export default function AgentRegistration({ open, onOpenChange }) {
   const { organizationId } = useOrganization();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [regData, setRegData] = useState(null);
   const [waiting, setWaiting] = useState(false);
@@ -61,6 +63,10 @@ export default function AgentRegistration({ open, onOpenChange }) {
           if (payload.new.status === 'used') {
             toast.success('Agent registered successfully!');
             setWaiting(false);
+            // Force refresh of agents list
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: ['agents'] });
+            }, 500);
             setTimeout(() => {
               setRegData(null);
               onOpenChange(false);
