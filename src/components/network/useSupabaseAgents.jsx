@@ -9,18 +9,22 @@ export function useSupabaseAgents(organizationId) {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
     
-    console.log('🔑 VITE_SUPABASE_URL:', supabaseUrl ? 'SET ✓' : 'MISSING ✗');
-    console.log('🔑 VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET ✓' : 'MISSING ✗');
+    console.log('🔑 URL:', supabaseUrl);
+    console.log('🔑 KEY:', supabaseAnonKey ? supabaseAnonKey.substring(0, 20) + '...' : 'MISSING');
     
     if (supabaseUrl && supabaseAnonKey) {
       console.log('✅ Creating Supabase client...');
-      return createClient(supabaseUrl, supabaseAnonKey);
+      const client = createClient(supabaseUrl, supabaseAnonKey);
+      console.log('📦 Client created:', client);
+      console.log('📦 Client type:', typeof client);
+      return client;
     }
     
     console.error('❌ Cannot create Supabase client - missing credentials');
     return null;
   }, []);
   
+  console.log('🔧 Supabase client:', supabaseClient);
   console.log('🔧 Supabase client exists:', !!supabaseClient);
   
   const [agents, setAgents] = useState([]);
