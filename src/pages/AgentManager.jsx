@@ -53,6 +53,14 @@ export default function AgentManager() {
   // Fetch agents from Supabase with realtime updates
   const { agents, loading: isLoading, supabase, refresh } = useSupabaseAgents(organizationId);
   
+  // Debug logging
+  React.useEffect(() => {
+    console.log('AgentManager - organizationId:', organizationId);
+    console.log('AgentManager - supabase client exists:', !!supabase);
+    console.log('AgentManager - agents:', agents);
+    console.log('AgentManager - loading:', isLoading);
+  }, [organizationId, supabase, agents, isLoading]);
+  
   // Listen for agent registration events
   React.useEffect(() => {
     const handleAgentRegistered = () => {
