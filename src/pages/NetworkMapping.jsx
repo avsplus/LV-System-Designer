@@ -496,7 +496,14 @@ export default function NetworkMapping() {
           )}
 
           <Button 
-            onClick={() => setShowNetworkDialog(true)}
+            onClick={() => {
+              if (!selectedAgent) {
+                toast.error('Please select an agent first');
+                return;
+              }
+              setShowNetworkDialog(true);
+            }}
+            disabled={!selectedAgent}
             variant="outline"
             className="border-gray-700"
           >
