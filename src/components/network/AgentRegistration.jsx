@@ -8,16 +8,28 @@ import { toast } from "sonner";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import { useOrganization } from "../auth/useOrganization";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
-
 export default function AgentRegistration({ open, onOpenChange }) {
   const { organizationId } = useOrganization();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [regData, setRegData] = useState(null);
   const [waiting, setWaiting] = useState(false);
+  const [supabase, setSupabase] = useState(null);
+
+  // Initialize Supabase client
+  useEffect(() => {
+    const initSupabase = async () => {
+      try {
+        const { data } = await base44.functions.invoke('getSupabaseConfig', {});
+        if (data?.url && data?.anonKey) {
+          setSupabase(createClient(data.url, data.anonKey));
+        }
+      } catch (err) {
+        console.error('Failed to initialize Supabase:', err);
+      }
+    };
+    initSupabase();
+  }, []);
 
   const generateToken = async () => {
     setLoading(true);

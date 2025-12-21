@@ -1,60 +1,48 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { base44 } from '@/api/base44Client';
 
 export function useSupabaseAgents(organizationId) {
-  console.log('🔧 useSupabaseAgents hook called with org:', organizationId);
-  console.log('🔧 import.meta.env:', import.meta.env);
-  console.log('🔧 All env keys:', Object.keys(import.meta.env));
-  
-  // Create Supabase client inside the hook
-  const supabaseClient = useMemo(() => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-    
-    console.log('🔑 FULL URL VALUE:', supabaseUrl);
-    console.log('🔑 FULL KEY VALUE:', supabaseAnonKey);
-    console.log('🔑 URL length:', supabaseUrl?.length);
-    console.log('🔑 KEY length:', supabaseAnonKey?.length);
-    
-    if (supabaseUrl && supabaseAnonKey) {
-      console.log('✅ Creating Supabase client...');
-      const client = createClient(supabaseUrl, supabaseAnonKey);
-      console.log('📦 Client created:', client);
-      return client;
-    }
-    
-    console.error('❌ Cannot create Supabase client - missing credentials');
-    return null;
-  }, []);
-  
-  console.log('🔧 Final supabase client exists:', !!supabaseClient);
+  const [supabaseClient, setSupabaseClient] = useState(null);
+  const [configLoading, setConfigLoading] = useState(true);
   
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch Supabase config from backend and initialize client
+  useEffect(() => {
+    const initSupabase = async () => {
+      try {
+        const { data } = await base44.functions.invoke('getSupabaseConfig', {});
+        if (data?.url && data?.anonKey) {
+          const client = createClient(data.url, data.anonKey);
+          setSupabaseClient(client);
+        }
+      } catch (err) {
+        console.error('Failed to initialize Supabase:', err);
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+    initSupabase();
+  }, []);
+
   const fetchAgents = async () => {
     if (!supabaseClient || !organizationId) {
-      console.log('useSupabaseAgents: Missing supabase client or org ID', { supabaseClient: !!supabaseClient, organizationId });
       return;
     }
     try {
       setLoading(true);
-      console.log('Fetching agents for organization:', organizationId);
       const { data, error } = await supabaseClient
         .from('agents')
         .select('*')
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Supabase query error:', error);
-        throw error;
-      }
-      console.log('Fetched agents:', data);
+      if (error) throw error;
       setAgents(data || []);
     } catch (err) {
-      console.error('Fetch agents error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -101,5 +89,11 @@ export function useSupabaseAgents(organizationId) {
     };
   }, [organizationId]);
 
-  return { agents, loading, error, supabase: supabaseClient, refresh: fetchAgents };
+  return { 
+    agents, 
+    loading: loading || configLoading, 
+    error, 
+    supabase: supabaseClient, 
+    refresh: fetchAgents 
+  };
 }
