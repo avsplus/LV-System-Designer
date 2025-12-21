@@ -36,6 +36,8 @@ export function useSupabaseAgents(organizationId) {
   };
 
   useEffect(() => {
+    if (!supabaseClient || !organizationId) return;
+
     fetchAgents();
 
     // Listen for custom event to refresh
