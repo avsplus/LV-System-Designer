@@ -1,24 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-console.log('🔑 VITE_SUPABASE_URL:', supabaseUrl ? 'SET' : 'MISSING');
-console.log('🔑 VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'MISSING');
-
-let supabaseClient = null;
-
-if (supabaseUrl && supabaseAnonKey) {
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-  console.log('✅ Supabase client created successfully');
-} else {
-  console.error('❌ Cannot create Supabase client - missing credentials');
-}
 
 export function useSupabaseAgents(organizationId) {
   console.log('🔧 useSupabaseAgents hook called with org:', organizationId);
+  
+  // Create Supabase client inside the hook
+  const supabaseClient = useMemo(() => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+    
+    console.log('🔑 VITE_SUPABASE_URL:', supabaseUrl ? 'SET ✓' : 'MISSING ✗');
+    console.log('🔑 VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET ✓' : 'MISSING ✗');
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      console.log('✅ Creating Supabase client...');
+      return createClient(supabaseUrl, supabaseAnonKey);
+    }
+    
+    console.error('❌ Cannot create Supabase client - missing credentials');
+    return null;
+  }, []);
+  
   console.log('🔧 Supabase client exists:', !!supabaseClient);
+  
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
