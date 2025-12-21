@@ -1,26 +1,8 @@
 import { useState, useCallback } from 'react';
 import { base44 } from "@/api/base44Client";
 
-export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError, organizationId) {
+export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError, organizationId, selectedAgent) {
   const [isScanning, setIsScanning] = useState(false);
-  const [agents, setAgents] = useState([]);
-  const [selectedAgent, setSelectedAgent] = useState(null);
-
-  const loadAgents = useCallback(async () => {
-    try {
-      const { data } = await base44.functions.invoke('listAgents', {});
-      setAgents(data || []);
-      
-      // Auto-select first online agent
-      const onlineAgent = data?.find(a => a.status === 'online');
-      if (onlineAgent) {
-        setSelectedAgent(onlineAgent);
-      }
-    } catch (error) {
-      console.error('Failed to load agents:', error);
-      onError?.('Failed to load agents');
-    }
-  }, [onError]);
 
   const startScan = useCallback(async (cidr, networkId) => {
     if (!selectedAgent) {
@@ -120,11 +102,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
   }, [selectedAgent]);
 
   return {
-    agents,
-    selectedAgent,
-    setSelectedAgent,
     isScanning,
-    loadAgents,
     startScan,
     stopScan
   };

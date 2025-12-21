@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import NetworkStats from "../components/network/NetworkStats";
 import ScanProgress from "../components/network/ScanProgress";
 import useNetworkScanner from "../components/network/useNetworkScanner";
+import { useSupabaseAgents } from "../components/network/useSupabaseAgents";
 import {
   Select,
   SelectContent,
@@ -207,17 +208,10 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { agents, selectedAgent, setSelectedAgent, isScanning, loadAgents, startScan, stopScan } = 
-    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId);
-  
-  useEffect(() => {
-    if (organizationId) {
-      loadAgents();
-      // Refresh agents every 30 seconds
-      const interval = setInterval(loadAgents, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [organizationId, loadAgents]);
+  const { agents } = useSupabaseAgents(organizationId);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const { isScanning, startScan, stopScan } = 
+    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent);
 
   const handleStartScan = useCallback(() => {
     if (!selectedNetwork) {
