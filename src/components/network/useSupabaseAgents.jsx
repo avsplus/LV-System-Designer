@@ -3,20 +3,23 @@ import { createClient } from '@supabase/supabase-js';
 
 export function useSupabaseAgents(organizationId) {
   console.log('🔧 useSupabaseAgents hook called with org:', organizationId);
+  console.log('🔧 import.meta.env:', import.meta.env);
+  console.log('🔧 All env keys:', Object.keys(import.meta.env));
   
   // Create Supabase client inside the hook
   const supabaseClient = useMemo(() => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
     
-    console.log('🔑 URL:', supabaseUrl);
-    console.log('🔑 KEY:', supabaseAnonKey ? supabaseAnonKey.substring(0, 20) + '...' : 'MISSING');
+    console.log('🔑 FULL URL VALUE:', supabaseUrl);
+    console.log('🔑 FULL KEY VALUE:', supabaseAnonKey);
+    console.log('🔑 URL length:', supabaseUrl?.length);
+    console.log('🔑 KEY length:', supabaseAnonKey?.length);
     
     if (supabaseUrl && supabaseAnonKey) {
       console.log('✅ Creating Supabase client...');
       const client = createClient(supabaseUrl, supabaseAnonKey);
       console.log('📦 Client created:', client);
-      console.log('📦 Client type:', typeof client);
       return client;
     }
     
@@ -24,8 +27,7 @@ export function useSupabaseAgents(organizationId) {
     return null;
   }, []);
   
-  console.log('🔧 Supabase client:', supabaseClient);
-  console.log('🔧 Supabase client exists:', !!supabaseClient);
+  console.log('🔧 Final supabase client exists:', !!supabaseClient);
   
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
