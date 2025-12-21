@@ -51,7 +51,18 @@ export default function AgentManager() {
   });
 
   // Fetch agents from Supabase with realtime updates
-  const { agents, loading: isLoading, supabase } = useSupabaseAgents(organizationId);
+  const { agents, loading: isLoading, supabase, refresh } = useSupabaseAgents(organizationId);
+  
+  // Listen for agent registration events
+  React.useEffect(() => {
+    const handleAgentRegistered = () => {
+      refresh();
+    };
+    window.addEventListener('agent-registered', handleAgentRegistered);
+    return () => {
+      window.removeEventListener('agent-registered', handleAgentRegistered);
+    };
+  }, [refresh]);
 
   // Fetch installer URL
   const { data: installerData } = useQuery({

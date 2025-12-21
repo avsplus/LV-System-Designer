@@ -1,33 +1,35 @@
 import AVCanvas from './pages/AVCanvas';
-import DeviceManager from './pages/DeviceManager';
-import account from './pages/account';
 import Admin from './pages/Admin';
-import Settings from './pages/Settings';
-import WirePricing from './pages/WirePricing';
-import NoOrganization from './pages/NoOrganization';
-import SetupOrganization from './pages/SetupOrganization';
-import PendingApproval from './pages/PendingApproval';
+import AgentManager from './pages/AgentManager';
 import Billing from './pages/Billing';
+import DeviceManager from './pages/DeviceManager';
+import Home from './pages/Home';
 import Landing from './pages/Landing';
 import NetworkMapping from './pages/NetworkMapping';
-import AgentManager from './pages/AgentManager';
+import NoOrganization from './pages/NoOrganization';
+import PendingApproval from './pages/PendingApproval';
+import Settings from './pages/Settings';
+import SetupOrganization from './pages/SetupOrganization';
+import WirePricing from './pages/WirePricing';
+import account from './pages/account';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AVCanvas": AVCanvas,
-    "DeviceManager": DeviceManager,
-    "account": account,
     "Admin": Admin,
-    "Settings": Settings,
-    "WirePricing": WirePricing,
-    "NoOrganization": NoOrganization,
-    "SetupOrganization": SetupOrganization,
-    "PendingApproval": PendingApproval,
+    "AgentManager": AgentManager,
     "Billing": Billing,
+    "DeviceManager": DeviceManager,
+    "Home": Home,
     "Landing": Landing,
     "NetworkMapping": NetworkMapping,
-    "AgentManager": AgentManager,
+    "NoOrganization": NoOrganization,
+    "PendingApproval": PendingApproval,
+    "Settings": Settings,
+    "SetupOrganization": SetupOrganization,
+    "WirePricing": WirePricing,
+    "account": account,
 }
 
 export const pagesConfig = {
