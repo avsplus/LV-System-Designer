@@ -87,7 +87,7 @@ export function useSupabaseAgents(organizationId) {
       window.removeEventListener('agent-registered', handleRefresh);
       if (channel) supabaseClient.removeChannel(channel);
     };
-  }, [organizationId]);
+  }, [organizationId, supabaseClient]);
 
   return { 
     agents, 
