@@ -17,13 +17,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'agent_id and command required' }, { status: 400 });
     }
     
-    // Verify agent belongs to user's organization
-    const agents = await base44.entities.Agent.filter({ 
-      agent_id,
-      organization_id: user.organization_id 
-    });
+    // Verify agent belongs to user's organization via Supabase
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL'),
+      Deno.env.get('SUPABASE_SERVICE_KEY')
+    );
     
-    if (agents.length === 0) {
+    const { data: agents, error: agentError } = await supabase
+      .from('agents')
+      .select('*')
+      .eq('agent_id', agent_id)
+      .eq('organization_id', user.organization_id);
+    
+    if (agentError || !agents || agents.length === 0) {
       return Response.json({ error: 'Agent not found or access denied' }, { status: 404 });
     }
     
@@ -87,11 +93,6 @@ Deno.serve(async (req) => {
     }
     
     // Publish to Supabase Realtime channel
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL'),
-      Deno.env.get('SUPABASE_SERVICE_KEY')
-    );
-    
     const channel = supabase.channel(`agent:${agent_id}`);
     
     await channel.subscribe(async (status) => {
