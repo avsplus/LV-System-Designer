@@ -10,7 +10,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       return;
     }
     
-    if (selectedAgent.status !== 'online') {
+    if (selectedAgent.status !== 'online' && selectedAgent.status !== 'registered') {
       onError?.('Selected agent is offline');
       return;
     }
