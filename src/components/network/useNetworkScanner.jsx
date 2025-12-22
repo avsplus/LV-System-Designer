@@ -19,11 +19,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     
     try {
       const { data } = await base44.functions.invoke('sendAgentCommand', {
-        agentId: selectedAgent.agent_id,
-        command: {
-          name: 'start_scan',
-          params: { cidr, network_id: networkId }
-        }
+        agent_id: selectedAgent.agent_id,
+        command: 'start_scan',
+        data: { cidr, network_id: networkId }
       });
       
       if (data.status === 'queued') {
@@ -44,8 +42,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     const pollInterval = setInterval(async () => {
       try {
         const { data: events } = await base44.functions.invoke('getAgentEvents', {
-          agentId: selectedAgent.agent_id,
-          commandId,
+          agent_id: selectedAgent.agent_id,
+          command_id: commandId,
           limit: 10
         });
         
@@ -92,8 +90,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     
     try {
       await base44.functions.invoke('sendAgentCommand', {
-        agentId: selectedAgent.agent_id,
-        command: { name: 'stop_scan', params: {} }
+        agent_id: selectedAgent.agent_id,
+        command: 'stop_scan',
+        data: {}
       });
       setIsScanning(false);
     } catch (error) {
