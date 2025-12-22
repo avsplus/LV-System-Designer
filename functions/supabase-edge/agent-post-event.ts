@@ -1,73 +1,70 @@
-// Deploy this to Supabase Edge Functions: supabase functions deploy agent-post-event
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+// Supabase Edge Function: agent-post-event
+// Purpose: Receive and store agent events (scan progress, device found, etc.)
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+
+type AgentEvent = {
+  agent_id: string;
+  org_id: string;
+  command_id?: string;
+  event_type: string;
+  data: unknown;
 };
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+serve(async (req) => {
+  if (req.method !== "POST") {
+    return json({ code: "METHOD_NOT_ALLOWED" }, 405);
   }
 
+  let body: AgentEvent;
   try {
-    const { agent_id, organization_id, event_type, command_id, data } = await req.json();
-    
-    if (!agent_id || !organization_id || !event_type) {
-      return Response.json({ 
-        error: 'Missing required fields: agent_id, organization_id, event_type' 
-      }, { status: 400, headers: corsHeaders });
-    }
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Update agent status for heartbeats
-    if (event_type === 'heartbeat' || event_type === 'status_change') {
-      const updateData: any = { last_seen: new Date().toISOString() };
-      if (data?.status) {
-        updateData.status = data.status;
-      }
-      
-      await supabase
-        .from('agents')
-        .update(updateData)
-        .eq('agent_id', agent_id);
-    }
-    
-    // Insert event
-    const { error: insertError } = await supabase
-      .from('agent_events')
-      .insert({
-        organization_id,
-        agent_id,
-        command_id,
-        event_type,
-        data
-      });
-    
-    if (insertError) {
-      console.error('Insert event error:', insertError);
-      return Response.json({ error: 'Failed to insert event' }, { 
-        status: 500,
-        headers: corsHeaders 
-      });
-    }
-    
-    return Response.json({ 
-      success: true,
-      message: 'Event received' 
-    }, {
-      headers: corsHeaders
-    });
-  } catch (error) {
-    console.error('Agent post event error:', error);
-    return Response.json({ error: error.message }, { 
-      status: 500,
-      headers: corsHeaders
-    });
+    body = await req.json();
+  } catch {
+    return json({ code: "BAD_REQUEST", message: "Invalid JSON" }, 400);
   }
+
+  const { agent_id, org_id, event_type, data, command_id } = body;
+
+  if (!agent_id || !org_id || !event_type) {
+    return json({ code: "BAD_REQUEST", message: "Missing required fields" }, 400);
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  // Store event
+  const resp = await fetch(
+    `${supabaseUrl}/rest/v1/agent_events`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": serviceKey,
+        "Authorization": `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        agent_id,
+        org_id,
+        command_id: command_id || null,
+        event_type,
+        data,
+        created_at: new Date().toISOString()
+      })
+    }
+  );
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    console.error("Failed to store event:", err);
+    return json({ code: "DB_ERROR", message: err }, 500);
+  }
+
+  return json({ ok: true }, 201);
 });
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" }
+  });
+}
