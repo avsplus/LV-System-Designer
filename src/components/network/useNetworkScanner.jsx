@@ -41,19 +41,11 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
   const pollScanProgress = useCallback(async (commandId) => {
     const pollInterval = setInterval(async () => {
       try {
-        // getAgentEvents uses URL params, not request body
-        const response = await fetch(`${window.location.origin}/api/functions/getAgentEvents?agentId=${selectedAgent.agent_id}&commandId=${commandId}&limit=10`, {
-          headers: {
-            'Authorization': `Bearer ${await base44.auth.getToken()}`
-          }
+        const { data: events } = await base44.functions.invoke('getAgentEvents', {
+          agent_id: selectedAgent.agent_id,
+          command_id: commandId,
+          limit: 10
         });
-        
-        if (!response.ok) {
-          console.error('Failed to fetch events:', response.status);
-          return;
-        }
-        
-        const events = await response.json();
         
         if (!events || events.length === 0) return;
         

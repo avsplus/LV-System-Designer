@@ -9,18 +9,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const url = new URL(req.url);
-    const agentId = url.searchParams.get('agentId');
-    const commandId = url.searchParams.get('commandId');
-    const limit = parseInt(url.searchParams.get('limit') || '50');
+    const { agent_id, command_id, limit = 50 } = await req.json();
     
-    if (!agentId) {
-      return Response.json({ error: 'agentId required' }, { status: 400 });
+    if (!agent_id) {
+      return Response.json({ error: 'agent_id required' }, { status: 400 });
     }
     
     // Verify agent belongs to user's org
     const agents = await base44.entities.Agent.filter({
-      agent_id: agentId,
+      agent_id,
       organization_id: user.organization_id
     });
     
@@ -31,11 +28,11 @@ Deno.serve(async (req) => {
     // Fetch events
     const filter = {
       organization_id: user.organization_id,
-      agent_id: agentId
+      agent_id
     };
     
-    if (commandId) {
-      filter.command_id = commandId;
+    if (command_id) {
+      filter.command_id = command_id;
     }
     
     const events = await base44.entities.AgentEvent.filter(filter);
