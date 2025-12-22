@@ -14,6 +14,8 @@ import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 import { useOrganization } from "../components/auth/useOrganization";
 import { Badge } from "@/components/ui/badge";
+import AgentHealthMonitor from "../components/network/AgentHealthMonitor";
+import AgentHealthAlerts from "../components/network/AgentHealthAlerts";
 import {
   Dialog,
   DialogContent,
@@ -216,6 +218,9 @@ export default function AgentManager() {
         </div>
       </div>
 
+      {/* Health Alerts */}
+      <AgentHealthAlerts agents={agents} />
+
       {/* Agents List */}
       <div className="flex-1 overflow-auto p-6">
         {agents.length === 0 ? (
@@ -310,13 +315,7 @@ export default function AgentManager() {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Status</span>
-                      <Badge className={`flex items-center gap-1 ${getStatusColor(agent.status)}`}>
-                        {getStatusIcon(agent.status)}
-                        {agent.status}
-                      </Badge>
-                    </div>
+                      <AgentHealthMonitor agent={agent} compact />
 
                     {agent.version && (
                       <div className="flex items-center justify-between">

@@ -17,6 +17,8 @@ import NetworkStats from "../components/network/NetworkStats";
 import ScanProgress from "../components/network/ScanProgress";
 import useNetworkScanner from "../components/network/useNetworkScanner";
 import { useSupabaseAgents } from "../components/network/useSupabaseAgents";
+import AgentHealthMonitor from "../components/network/AgentHealthMonitor";
+import AgentHealthAlerts from "../components/network/AgentHealthAlerts";
 import {
   Select,
   SelectContent,
@@ -212,6 +214,9 @@ export default function NetworkMapping() {
   const [selectedAgent, setSelectedAgent] = useState(null);
   const { isScanning, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent);
+  
+  // Health monitoring
+  const [showHealthPanel, setShowHealthPanel] = useState(false);
 
   const handleStartScan = useCallback(() => {
     if (!selectedNetwork) {
@@ -436,25 +441,14 @@ export default function NetworkMapping() {
         </div>
         
         <div className="flex items-center gap-4">
-          {/* Agent Status */}
+          {/* Agent Health Status */}
           {selectedAgent && (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-              selectedAgent.status === 'online'
-                ? 'bg-green-500/10 border-green-500/30' 
-                : 'bg-gray-800/50 border-gray-700'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                selectedAgent.status === 'online' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'
-              }`} />
-              <span className={`text-sm font-medium ${
-                selectedAgent.status === 'online' ? 'text-green-400' : 'text-gray-500'
-              }`}>
-                {selectedAgent.name}
-              </span>
-              {selectedAgent.version && (
-                <span className="text-xs text-gray-400">v{selectedAgent.version}</span>
-              )}
-            </div>
+            <button
+              onClick={() => setShowHealthPanel(!showHealthPanel)}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <AgentHealthMonitor agent={selectedAgent} compact />
+            </button>
           )}
 
           <NetworkStats devices={devices} />
@@ -564,8 +558,29 @@ export default function NetworkMapping() {
         </div>
       </div>
 
+      {/* Health Alerts */}
+      <AgentHealthAlerts agents={agents} />
+
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-6 relative">
+        {/* Health Panel Sidebar */}
+        {showHealthPanel && selectedAgent && (
+          <div className="absolute top-6 right-6 w-80 bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-2xl z-10">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Agent Health</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowHealthPanel(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <AgentHealthMonitor agent={selectedAgent} />
+          </div>
+        )}
+
         {!selectedAgent ? (
           <div className="flex flex-col items-center justify-center h-full">
             <div className="text-center mb-8">
@@ -600,6 +615,7 @@ export default function NetworkMapping() {
                       <div className={`w-3 h-3 rounded-full ${
                         agent.status === 'online' ? 'bg-green-400 animate-pulse' : 
                         agent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
+                        agent.status === 'error' ? 'bg-red-400 animate-pulse' :
                         'bg-gray-600'
                       }`} />
                     </div>
@@ -610,6 +626,7 @@ export default function NetworkMapping() {
                         <Badge className={
                           agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
                           agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                          agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
                           'bg-gray-500/20 text-gray-400 border-gray-500/30'
                         }>
                           {agent.status}
@@ -635,6 +652,33 @@ export default function NetworkMapping() {
                           <span className="text-sm text-gray-400">Last Seen</span>
                           <span className="text-xs text-gray-500">
                             {new Date(agent.last_seen).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Health indicators */}
+                      {agent.health?.cpu_percent !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">CPU</span>
+                          <span className={`text-sm font-medium ${
+                            agent.health.cpu_percent > 90 ? 'text-red-400' :
+                            agent.health.cpu_percent > 70 ? 'text-yellow-400' :
+                            'text-green-400'
+                          }`}>
+                            {agent.health.cpu_percent.toFixed(0)}%
+                          </span>
+                        </div>
+                      )}
+                      
+                      {agent.health?.memory_percent !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">Memory</span>
+                          <span className={`text-sm font-medium ${
+                            agent.health.memory_percent > 90 ? 'text-red-400' :
+                            agent.health.memory_percent > 70 ? 'text-yellow-400' :
+                            'text-green-400'
+                          }`}>
+                            {agent.health.memory_percent.toFixed(0)}%
                           </span>
                         </div>
                       )}
