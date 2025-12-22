@@ -18,7 +18,7 @@ export default function AgentHealthMonitor({ agent, compact = false }) {
     
     const health = agent.health || {};
     if (health.cpu_percent > 90 || health.memory_percent > 90) return 'warning';
-    if (agent.status === 'online' || agent.status === 'scanning') return 'healthy';
+    if (agent.status === 'online' || agent.status === 'scanning' || agent.status === 'registered') return 'healthy';
     return 'unknown';
   };
 
