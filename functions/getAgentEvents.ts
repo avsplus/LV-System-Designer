@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
@@ -15,34 +16,44 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'agent_id required' }, { status: 400 });
     }
     
-    // Verify agent belongs to user's org
-    const agents = await base44.entities.Agent.filter({
-      agent_id,
-      organization_id: user.organization_id
-    });
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL'),
+      Deno.env.get('SUPABASE_SERVICE_KEY')
+    );
     
-    if (agents.length === 0) {
+    // Verify agent belongs to user's org
+    const { data: agents } = await supabase
+      .from('agents')
+      .select('*')
+      .eq('agent_id', agent_id)
+      .eq('organization_id', user.organization_id);
+    
+    if (!agents || agents.length === 0) {
       return Response.json({ error: 'Agent not found' }, { status: 404 });
     }
     
-    // Fetch events
-    const filter = {
-      organization_id: user.organization_id,
-      agent_id
-    };
+    // Fetch events from Supabase
+    let query = supabase
+      .from('agent_events')
+      .select('*')
+      .eq('organization_id', user.organization_id)
+      .eq('agent_id', agent_id)
+      .order('created_at', { ascending: false })
+      .limit(limit);
     
     if (command_id) {
-      filter.command_id = command_id;
+      query = query.eq('command_id', command_id);
     }
     
-    const events = await base44.entities.AgentEvent.filter(filter);
+    const { data: events, error: eventsError } = await query;
     
-    // Sort by created_date descending and limit
-    const sortedEvents = events
-      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-      .slice(0, limit);
+    if (eventsError) {
+      console.error('Supabase events error:', eventsError);
+      return Response.json({ error: eventsError.message }, { status: 500 });
+    }
     
-    return Response.json(sortedEvents);
+    return Response.json(events || []);
   } catch (error) {
     console.error('Get events error:', error);
     return Response.json({ error: error.message }, { status: 500 });
