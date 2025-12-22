@@ -523,7 +523,7 @@ export default function NetworkMapping() {
               ) : (
                 <Button 
                   onClick={handleStartScan} 
-                  disabled={!selectedNetwork || selectedAgent.status !== 'online'}
+                  disabled={!selectedNetwork || (selectedAgent.status !== 'online' && selectedAgent.status !== 'registered')}
                   variant="outline"
                   className="border-green-500 text-green-400 hover:bg-green-500/10"
                 >
