@@ -1274,28 +1274,39 @@ function AVCanvasContent() {
             }}
           >
             {/* Floorplans Layer */}
-            {floorplans.filter(fp => fp.visible).map((fp) => (
-              <div
-                key={fp.id}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                  transformOrigin: 'top left',
-                  opacity: fp.opacity,
-                  pointerEvents: 'none',
-                  zIndex: 0,
-                  willChange: 'transform'
-                }}
-              >
-                <img 
-                  src={fp.url} 
-                  alt={fp.name}
-                  style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
-                />
-              </div>
-            ))}
+            {floorplans.filter(fp => fp.visible).map((fp) => {
+              // Calculate scale to fit canvas at 100% zoom
+              const canvasRect = canvasRef.current?.getBoundingClientRect();
+              const canvasWidth = canvasRect?.width || 1920;
+              const canvasHeight = canvasRect?.height || 1080;
+
+              const scaleX = canvasWidth / (fp.imageWidth || 1000);
+              const scaleY = canvasHeight / (fp.imageHeight || 1000);
+              const fitScale = Math.min(scaleX, scaleY);
+
+              return (
+                <div
+                  key={fp.id}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom * fitScale})`,
+                    transformOrigin: 'top left',
+                    opacity: fp.opacity,
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    willChange: 'transform'
+                  }}
+                >
+                  <img 
+                    src={fp.url} 
+                    alt={fp.name}
+                    style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
+                  />
+                </div>
+              );
+            })}
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>

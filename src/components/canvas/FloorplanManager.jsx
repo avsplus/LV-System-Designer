@@ -113,6 +113,11 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     // Store as pixels per inch for distance calculations
     const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
 
+    // Get image dimensions
+    const img = imageRef.current;
+    const imageWidth = img.naturalWidth;
+    const imageHeight = img.naturalHeight;
+
     const newFloorplan = {
       id: calibrating.id,
       name: calibrating.name,
@@ -120,6 +125,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       originalUrl: calibrating.originalUrl || calibrating.url,
       isPdf: calibrating.isPdf,
       pixelsPerInch: pixelsPerInch,
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
       visible: true,
       opacity: 0.3
     };
