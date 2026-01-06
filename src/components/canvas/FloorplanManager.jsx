@@ -42,7 +42,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
         const pdf = await loadingTask.promise;
         const page = await pdf.getPage(1);
         
-        const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale: 2 });
         const tempCanvas = document.createElement('canvas');
         const context = tempCanvas.getContext('2d');
         tempCanvas.height = viewport.height;
