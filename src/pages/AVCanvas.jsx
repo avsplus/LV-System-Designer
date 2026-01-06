@@ -1286,8 +1286,9 @@ function AVCanvasContent() {
             }}>
               {floorplans.filter(fp => fp.visible).map((fp) => {
                 // Calculate display size: 1px = 1 inch at 100% zoom
-                const displayWidth = fp.imageWidth / fp.pixelsPerInch; // width in inches (displayed as pixels)
-                const displayHeight = fp.imageHeight / fp.pixelsPerInch; // height in inches (displayed as pixels)
+                const displayWidth = fp.imageWidth / fp.pixelsPerInch;
+                const displayHeight = fp.imageHeight / fp.pixelsPerInch;
+                const position = fp.position || { x: 0, y: 0 };
 
                 return (
                   <img 
@@ -1296,8 +1297,8 @@ function AVCanvasContent() {
                     alt={fp.name}
                     style={{
                       position: 'absolute',
-                      top: 0,
-                      left: 0,
+                      top: `${position.y}px`,
+                      left: `${position.x}px`,
                       width: `${displayWidth}px`,
                       height: `${displayHeight}px`,
                       opacity: fp.opacity,
