@@ -1285,13 +1285,14 @@ function AVCanvasContent() {
                   transformOrigin: 'top left',
                   opacity: fp.opacity,
                   pointerEvents: 'none',
-                  zIndex: 0
+                  zIndex: 0,
+                  willChange: 'transform'
                 }}
               >
                 <img 
                   src={fp.url} 
                   alt={fp.name}
-                  style={{ display: 'block' }}
+                  style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
                 />
               </div>
             ))}
