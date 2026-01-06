@@ -1193,10 +1193,12 @@ function AVCanvasContent() {
                 </Button>
               </div>
               
-              <Button variant="outline" onClick={() => setShowRoomManager(true)} className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                <Home className="w-4 h-4 mr-2" />
-                Rooms ({rooms.length})
-              </Button>
+              {currentProject && (
+                <Button variant="outline" onClick={() => setShowRoomManager(true)} className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                  <Home className="w-4 h-4 mr-2" />
+                  Rooms ({rooms.length})
+                </Button>
+              )}
               
               <Link to={createPageUrl("Settings")}>
                 <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
