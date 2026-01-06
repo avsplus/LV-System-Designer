@@ -122,6 +122,8 @@ function AVCanvasContent() {
   const [previewManual, setPreviewManual] = useState(null);
   const [showFloorplanManager, setShowFloorplanManager] = useState(false);
   const [floorplans, setFloorplans] = useState([]);
+  const [draggingFloorplan, setDraggingFloorplan] = useState(null);
+  const [floorplanDragStart, setFloorplanDragStart] = useState(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -617,6 +619,47 @@ function AVCanvasContent() {
     }
   };
 
+  const handleFloorplanMouseDown = (e, floorplanId) => {
+    e.stopPropagation();
+    const floorplan = floorplans.find(fp => fp.id === floorplanId);
+    if (!floorplan) return;
+
+    setDraggingFloorplan(floorplanId);
+    setFloorplanDragStart({
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      startX: floorplan.position?.x || 0,
+      startY: floorplan.position?.y || 0
+    });
+  };
+
+  const handleFloorplanMouseMove = useCallback((e) => {
+    if (!draggingFloorplan || !floorplanDragStart) return;
+
+    const dx = (e.clientX - floorplanDragStart.mouseX) / zoom;
+    const dy = (e.clientY - floorplanDragStart.mouseY) / zoom;
+
+    setFloorplans(prev => prev.map(fp => 
+      fp.id === draggingFloorplan
+        ? { ...fp, position: { 
+            x: floorplanDragStart.startX + dx, 
+            y: floorplanDragStart.startY + dy 
+          }}
+        : fp
+    ));
+  }, [draggingFloorplan, floorplanDragStart, zoom]);
+
+  const handleFloorplanMouseUp = useCallback(() => {
+    if (draggingFloorplan && currentProject?.id) {
+      base44.entities.AVProject.update(currentProject.id, {
+        floorplans: floorplans
+      }).catch(error => console.error('Failed to save floorplan position:', error));
+      markLocalChange();
+    }
+    setDraggingFloorplan(null);
+    setFloorplanDragStart(null);
+  }, [draggingFloorplan, floorplans, currentProject]);
+
   const handleMouseDown = (e) => {
     handlePanStart(e, canvasRef.current);
   };
@@ -653,16 +696,20 @@ function AVCanvasContent() {
     const handleDragMouseMove = (e) => {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
     };
-    
+
     window.addEventListener('mousemove', handleDragMouseMove);
     window.addEventListener('mousemove', handleGlobalMouseMove);
     window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('mousemove', handleFloorplanMouseMove);
+    window.addEventListener('mouseup', handleFloorplanMouseUp);
     return () => {
       window.removeEventListener('mousemove', handleDragMouseMove);
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('mousemove', handleFloorplanMouseMove);
+      window.removeEventListener('mouseup', handleFloorplanMouseUp);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleFloorplanMouseMove, handleFloorplanMouseUp]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -1295,6 +1342,7 @@ function AVCanvasContent() {
                     key={fp.id}
                     src={fp.url} 
                     alt={fp.name}
+                    onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
                     style={{
                       position: 'absolute',
                       top: `${position.y}px`,
@@ -1302,7 +1350,8 @@ function AVCanvasContent() {
                       width: `${displayWidth}px`,
                       height: `${displayHeight}px`,
                       opacity: fp.opacity,
-                      pointerEvents: 'none'
+                      pointerEvents: 'auto',
+                      cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
                     }}
                   />
                 );
