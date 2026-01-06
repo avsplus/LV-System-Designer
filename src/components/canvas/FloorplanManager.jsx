@@ -198,20 +198,25 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
             </Button>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4 mb-4 overflow-auto max-h-[60vh]">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="text-sm text-gray-400">Zoom:</span>
-              <Slider
-                value={[calibrationZoom * 100]}
-                onValueChange={(val) => setCalibrationZoom(val[0] / 100)}
-                min={10}
-                max={200}
-                step={10}
-                className="flex-1"
-              />
-              <span className="text-sm text-white w-12">{Math.round(calibrationZoom * 100)}%</span>
-            </div>
-            <div className="relative inline-block">
+          <div className="mb-3 flex items-center gap-3 px-2">
+            <span className="text-sm text-gray-400">Zoom:</span>
+            <Slider
+              value={[calibrationZoom * 100]}
+              onValueChange={(val) => setCalibrationZoom(val[0] / 100)}
+              min={10}
+              max={200}
+              step={10}
+              className="flex-1"
+            />
+            <span className="text-sm text-white w-12">{Math.round(calibrationZoom * 100)}%</span>
+          </div>
+          
+          <div className="bg-gray-800 rounded-lg overflow-auto max-h-[60vh]" style={{ padding: '16px' }}>
+            <div style={{ 
+              transform: `scale(${calibrationZoom})`, 
+              transformOrigin: 'top left',
+              width: 'fit-content'
+            }}>
               <img
                 ref={imageRef}
                 src={calibrating.url}
@@ -222,7 +227,6 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 ref={canvasRef}
                 onClick={handleCanvasClick}
                 className="cursor-crosshair border border-gray-700 rounded"
-                style={{ transform: `scale(${calibrationZoom})`, transformOrigin: 'top left' }}
               />
             </div>
           </div>
