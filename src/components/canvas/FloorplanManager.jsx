@@ -130,7 +130,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     
     // Calculate position offset for new floorplan (200px right of last one)
     const lastFloorplan = floorplans[floorplans.length - 1];
-    const position = lastFloorplan 
+    const position = lastFloorplan && lastFloorplan.position
       ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
       : { x: 0, y: 0 };
 
