@@ -15,6 +15,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
   const [calibrating, setCalibrating] = React.useState(null);
   const [calibrationPoints, setCalibrationPoints] = React.useState([]);
   const [knownDistance, setKnownDistance] = React.useState('');
+  const [calibrationZoom, setCalibrationZoom] = React.useState(0.5);
   const fileInputRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const imageRef = React.useRef(null);
@@ -41,7 +42,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
         const pdf = await loadingTask.promise;
         const page = await pdf.getPage(1);
         
-        const viewport = page.getViewport({ scale: 2 });
+        const viewport = page.getViewport({ scale: 1.5 });
         const tempCanvas = document.createElement('canvas');
         const context = tempCanvas.getContext('2d');
         tempCanvas.height = viewport.height;
@@ -60,6 +61,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       });
       setCalibrationPoints([]);
       setKnownDistance('');
+      setCalibrationZoom(0.5);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       console.error('Upload error:', error);
@@ -91,8 +93,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) / calibrationZoom;
+    const y = (e.clientY - rect.top) / calibrationZoom;
 
     setCalibrationPoints([...calibrationPoints, { x, y }]);
   };
@@ -175,7 +177,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     } else {
       img.onload = draw;
     }
-  }, [calibrating, calibrationPoints]);
+  }, [calibrating, calibrationPoints, calibrationZoom]);
 
   if (calibrating) {
     return (
@@ -197,6 +199,18 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
           </div>
 
           <div className="bg-gray-800 rounded-lg p-4 mb-4 overflow-auto max-h-[60vh]">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="text-sm text-gray-400">Zoom:</span>
+              <Slider
+                value={[calibrationZoom * 100]}
+                onValueChange={(val) => setCalibrationZoom(val[0] / 100)}
+                min={10}
+                max={200}
+                step={10}
+                className="flex-1"
+              />
+              <span className="text-sm text-white w-12">{Math.round(calibrationZoom * 100)}%</span>
+            </div>
             <div className="relative inline-block">
               <img
                 ref={imageRef}
@@ -208,6 +222,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 ref={canvasRef}
                 onClick={handleCanvasClick}
                 className="cursor-crosshair border border-gray-700 rounded"
+                style={{ transform: `scale(${calibrationZoom})`, transformOrigin: 'top left' }}
               />
             </div>
           </div>
