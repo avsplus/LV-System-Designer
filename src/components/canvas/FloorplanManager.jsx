@@ -16,6 +16,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
   const [calibrationPoints, setCalibrationPoints] = useState([]);
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationZoom, setCalibrationZoom] = useState(0.25);
+  const [resizeScale, setResizeScale] = useState(1);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -62,6 +63,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       setCalibrationPoints([]);
       setKnownDistance('');
       setCalibrationZoom(0.25);
+      setResizeScale(1);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       console.error('Upload error:', error);
@@ -113,10 +115,10 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     // Store as pixels per inch for distance calculations
     const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
 
-    // Get image dimensions
+    // Get image dimensions with resize scale applied
     const img = imageRef.current;
-    const imageWidth = img.naturalWidth;
-    const imageHeight = img.naturalHeight;
+    const imageWidth = img.naturalWidth * resizeScale;
+    const imageHeight = img.naturalHeight * resizeScale;
 
     const newFloorplan = {
       id: calibrating.id,
@@ -207,21 +209,39 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
             </Button>
           </div>
 
-          <div className="mb-3 flex items-center gap-3 px-2">
-            <span className="text-sm text-gray-400">Zoom:</span>
-            <input
-              type="range"
-              value={calibrationZoom * 100}
-              onChange={(e) => setCalibrationZoom(parseFloat(e.target.value) / 100)}
-              min={10}
-              max={200}
-              step={5}
-              className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-              style={{
-                accentColor: '#3b82f6'
-              }}
-            />
-            <span className="text-sm text-white w-12">{Math.round(calibrationZoom * 100)}%</span>
+          <div className="mb-3 space-y-2 px-2">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-400 w-16">Zoom:</span>
+              <input
+                type="range"
+                value={calibrationZoom * 100}
+                onChange={(e) => setCalibrationZoom(parseFloat(e.target.value) / 100)}
+                min={10}
+                max={200}
+                step={5}
+                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  accentColor: '#3b82f6'
+                }}
+              />
+              <span className="text-sm text-white w-12">{Math.round(calibrationZoom * 100)}%</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-400 w-16">Size:</span>
+              <input
+                type="range"
+                value={resizeScale * 100}
+                onChange={(e) => setResizeScale(parseFloat(e.target.value) / 100)}
+                min={10}
+                max={300}
+                step={5}
+                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  accentColor: '#22c55e'
+                }}
+              />
+              <span className="text-sm text-white w-12">{Math.round(resizeScale * 100)}%</span>
+            </div>
           </div>
           
           <div className="bg-gray-800 rounded-lg overflow-auto max-h-[60vh]" style={{ padding: '16px' }}>
