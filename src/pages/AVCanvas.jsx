@@ -1143,12 +1143,18 @@ function AVCanvasContent() {
                     <FileText className="w-4 h-4 mr-2" />
                     Export to PDF
                   </DropdownMenuItem>
+                  {currentProject && (
+                    <DropdownMenuItem onClick={() => setShowFloorplanManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Manage Floorplans
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={clearCanvas} disabled={canvasProducts.length === 0} className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Clear Canvas
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                  </DropdownMenu>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1172,12 +1178,6 @@ function AVCanvasContent() {
                     Network Agent
                     <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] px-1.5 py-0">Coming Soon</Badge>
                   </DropdownMenuItem>
-                  {currentProject && (
-                    <DropdownMenuItem onClick={() => setShowFloorplanManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Manage Floorplans
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuItem onClick={() => setShowImportDialog(true)} disabled={importProgress?.status === 'running'} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Plus className="w-4 h-4 mr-2" />
                     {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
