@@ -251,7 +251,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                   type="number"
                   value={knownDistance}
                   onChange={(e) => setKnownDistance(e.target.value)}
-                  placeholder="Known distance (e.g., 10 feet)"
+                  placeholder="Distance in inches (e.g., 120)"
                   className="bg-gray-800 border-gray-700 text-white"
                   autoFocus
                 />
