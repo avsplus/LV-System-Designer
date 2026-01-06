@@ -15,7 +15,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
   const [calibrating, setCalibrating] = React.useState(null);
   const [calibrationPoints, setCalibrationPoints] = React.useState([]);
   const [knownDistance, setKnownDistance] = React.useState('');
-  const [calibrationZoom, setCalibrationZoom] = React.useState(0.5);
+  const [calibrationZoom, setCalibrationZoom] = React.useState(0.25);
   const fileInputRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const imageRef = React.useRef(null);
@@ -61,7 +61,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       });
       setCalibrationPoints([]);
       setKnownDistance('');
-      setCalibrationZoom(0.5);
+      setCalibrationZoom(0.25);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       console.error('Upload error:', error);
