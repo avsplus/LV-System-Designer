@@ -1281,7 +1281,7 @@ function AVCanvasContent() {
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom * fp.scale})`,
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                   transformOrigin: 'top left',
                   opacity: fp.opacity,
                   pointerEvents: 'none',

@@ -109,7 +109,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     const pixelDistance = Math.sqrt(
       Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
     );
-    const scale = pixelDistance / parseFloat(knownDistance);
+    
+    // Store as pixels per inch for distance calculations
+    const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
 
     const newFloorplan = {
       id: calibrating.id,
@@ -117,7 +119,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       url: calibrating.url,
       originalUrl: calibrating.originalUrl || calibrating.url,
       isPdf: calibrating.isPdf,
-      scale: scale * 0.1,
+      pixelsPerInch: pixelsPerInch,
       visible: true,
       opacity: 0.3
     };
@@ -334,9 +336,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
               <div key={fp.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h4 className="text-sm font-medium text-white">{fp.name}</h4>
-                    <p className="text-xs text-gray-500">Scale: {fp.scale.toFixed(2)} px/unit</p>
-                  </div>
+                      <h4 className="text-sm font-medium text-white">{fp.name}</h4>
+                      <p className="text-xs text-gray-500">Scale: {fp.pixelsPerInch?.toFixed(2) || 'N/A'} px/inch</p>
+                    </div>
                   <div className="flex gap-1">
                     <Button
                       size="icon"
