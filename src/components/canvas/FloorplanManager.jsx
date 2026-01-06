@@ -198,7 +198,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     } else {
       img.onload = draw;
     }
-  }, [calibrating, calibrationPoints, calibrationZoom]);
+  }, [calibrating, calibrationPoints, calibrationZoom, resizeScale]);
 
   if (calibrating) {
     return (
