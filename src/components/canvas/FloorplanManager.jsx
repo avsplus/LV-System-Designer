@@ -2,14 +2,19 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 export default function FloorplanManager({ floorplans = [], onUpdate, onClose }) {
   const [uploading, setUploading] = React.useState(false);
-  const [uploadForm, setUploadForm] = React.useState({ name: '', scale: 1 });
+  const [uploadForm, setUploadForm] = React.useState({ name: '' });
+  const [calibrating, setCalibrating] = React.useState(null);
+  const [calibrationPoints, setCalibrationPoints] = React.useState([]);
+  const [knownDistance, setKnownDistance] = React.useState('');
   const fileInputRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
+  const imageRef = React.useRef(null);
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -20,26 +25,27 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       return;
     }
 
-    if (!uploadForm.scale || uploadForm.scale <= 0) {
-      toast.error('Please enter a valid scale factor');
-      return;
-    }
-
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const newFloorplan = {
+      
+      // If PDF, convert first page to image for calibration
+      let imageUrl = file_url;
+      if (file.type === 'application/pdf') {
+        // For now, we'll use the PDF directly and render it as an image
+        // In production, you might want to convert PDF to image on backend
+        imageUrl = file_url;
+      }
+
+      setCalibrating({
         id: Date.now().toString(),
         name: uploadForm.name,
-        url: file_url,
-        scale: parseFloat(uploadForm.scale),
-        visible: true,
-        opacity: 0.3
-      };
-      onUpdate([...floorplans, newFloorplan]);
-      setUploadForm({ name: '', scale: 1 });
+        url: imageUrl,
+        isPdf: file.type === 'application/pdf'
+      });
+      setCalibrationPoints([]);
+      setKnownDistance('');
       if (fileInputRef.current) fileInputRef.current.value = '';
-      toast.success('Floorplan uploaded');
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload floorplan');
@@ -64,6 +70,172 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       onUpdate(floorplans.filter(fp => fp.id !== id));
     }
   };
+
+  const handleCanvasClick = (e) => {
+    if (!calibrating || calibrationPoints.length >= 2) return;
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setCalibrationPoints([...calibrationPoints, { x, y }]);
+  };
+
+  const handleCalibrationComplete = () => {
+    if (calibrationPoints.length !== 2 || !knownDistance || parseFloat(knownDistance) <= 0) {
+      toast.error('Please draw a line and enter a valid distance');
+      return;
+    }
+
+    const [p1, p2] = calibrationPoints;
+    const pixelDistance = Math.sqrt(
+      Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+    );
+    const scale = pixelDistance / parseFloat(knownDistance);
+
+    const newFloorplan = {
+      ...calibrating,
+      scale: scale,
+      visible: true,
+      opacity: 0.3
+    };
+
+    onUpdate([...floorplans, newFloorplan]);
+    setCalibrating(null);
+    setCalibrationPoints([]);
+    setKnownDistance('');
+    setUploadForm({ name: '' });
+    toast.success('Floorplan calibrated and added');
+  };
+
+  const handleCancelCalibration = () => {
+    setCalibrating(null);
+    setCalibrationPoints([]);
+    setKnownDistance('');
+  };
+
+  React.useEffect(() => {
+    if (!calibrating || !canvasRef.current || !imageRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const img = imageRef.current;
+
+    const draw = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // Draw calibration points and line
+      if (calibrationPoints.length > 0) {
+        calibrationPoints.forEach((point, i) => {
+          ctx.fillStyle = '#3b82f6';
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          ctx.fillStyle = 'white';
+          ctx.font = '12px sans-serif';
+          ctx.fillText(i === 0 ? 'A' : 'B', point.x + 8, point.y - 8);
+        });
+
+        if (calibrationPoints.length === 2) {
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(calibrationPoints[0].x, calibrationPoints[0].y);
+          ctx.lineTo(calibrationPoints[1].x, calibrationPoints[1].y);
+          ctx.stroke();
+        }
+      }
+    };
+
+    if (img.complete) {
+      draw();
+    } else {
+      img.onload = draw;
+    }
+  }, [calibrating, calibrationPoints]);
+
+  if (calibrating) {
+    return (
+      <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Calibrate Scale</h3>
+              <p className="text-sm text-gray-400">Click two points with a known distance</p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleCancelCalibration}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg p-4 mb-4 overflow-auto max-h-[60vh]">
+            <div className="relative inline-block">
+              <img
+                ref={imageRef}
+                src={calibrating.url}
+                alt="Floorplan"
+                className="hidden"
+              />
+              <canvas
+                ref={canvasRef}
+                onClick={handleCanvasClick}
+                className="cursor-crosshair border border-gray-700 rounded"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Ruler className="w-4 h-4" />
+              <span>
+                {calibrationPoints.length === 0 && 'Click point A'}
+                {calibrationPoints.length === 1 && 'Click point B'}
+                {calibrationPoints.length === 2 && 'Enter the known distance'}
+              </span>
+            </div>
+
+            {calibrationPoints.length === 2 && (
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={knownDistance}
+                  onChange={(e) => setKnownDistance(e.target.value)}
+                  placeholder="Known distance (e.g., 10 feet)"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  autoFocus
+                />
+                <Button
+                  onClick={handleCalibrationComplete}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Complete
+                </Button>
+              </div>
+            )}
+
+            {calibrationPoints.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setCalibrationPoints([])}
+                className="w-full border-gray-700"
+              >
+                Reset Points
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed right-0 top-[72px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 overflow-y-auto">
@@ -93,23 +265,10 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 className="bg-gray-900 border-gray-700 text-white text-sm"
               />
             </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Scale Factor</label>
-              <Input
-                type="number"
-                value={uploadForm.scale}
-                onChange={(e) => setUploadForm({ ...uploadForm, scale: e.target.value })}
-                placeholder="e.g., 1 = 100%"
-                step="0.1"
-                min="0.1"
-                className="bg-gray-900 border-gray-700 text-white text-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">1 = actual size, 2 = double size</p>
-            </div>
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,application/pdf"
               onChange={handleUpload}
               className="hidden"
             />
@@ -134,7 +293,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <h4 className="text-sm font-medium text-white">{fp.name}</h4>
-                    <p className="text-xs text-gray-500">Scale: {fp.scale}x</p>
+                    <p className="text-xs text-gray-500">Scale: {fp.scale.toFixed(2)} px/unit</p>
                   </div>
                   <div className="flex gap-1">
                     <Button
