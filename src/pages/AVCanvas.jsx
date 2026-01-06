@@ -1111,6 +1111,23 @@ function AVCanvasContent() {
                     <Plus className="w-4 h-4 mr-2" />
                     Create New Project
                   </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      if (canvasProducts.length === 0) {
+                        toast.warning('Canvas is empty. Add some devices first.');
+                        return;
+                      }
+                      setShowExportDialog(true);
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export to PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={clearCanvas} disabled={canvasProducts.length === 0} className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Canvas
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -1148,23 +1165,6 @@ function AVCanvasContent() {
                       <Link2 className="w-4 h-4 mr-2" />
                       {enrichmentProgress?.status === 'running' ? 'Enriching...' : 'Enrich Connections'}
                     </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => {
-                      if (canvasProducts.length === 0) {
-                        toast.warning('Canvas is empty. Add some devices first.');
-                        return;
-                      }
-                      setShowExportDialog(true);
-                    }}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Export to PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={clearCanvas} disabled={canvasProducts.length === 0} className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear Canvas
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
