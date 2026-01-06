@@ -1274,30 +1274,39 @@ function AVCanvasContent() {
             }}
           >
             {/* Floorplans Layer */}
-            {floorplans.filter(fp => fp.visible).map((fp) => {
-              // Calculate display size: 1px = 1 inch at 100% zoom
-              const displayWidth = fp.imageWidth / fp.pixelsPerInch; // width in inches (displayed as pixels)
-              const displayHeight = fp.imageHeight / fp.pixelsPerInch; // height in inches (displayed as pixels)
+            <div style={{ 
+              position: 'relative', 
+              zIndex: 0,
+              minHeight: '100%', 
+              minWidth: '100%',
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              transformOrigin: 'top left',
+              transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+              pointerEvents: 'none'
+            }}>
+              {floorplans.filter(fp => fp.visible).map((fp) => {
+                // Calculate display size: 1px = 1 inch at 100% zoom
+                const displayWidth = fp.imageWidth / fp.pixelsPerInch; // width in inches (displayed as pixels)
+                const displayHeight = fp.imageHeight / fp.pixelsPerInch; // height in inches (displayed as pixels)
 
-              return (
-                <img 
-                  key={fp.id}
-                  src={fp.url} 
-                  alt={fp.name}
-                  style={{
-                    position: 'absolute',
-                    top: `${pan.y}px`,
-                    left: `${pan.x}px`,
-                    width: `${displayWidth * zoom}px`,
-                    height: `${displayHeight * zoom}px`,
-                    transformOrigin: 'top left',
-                    opacity: fp.opacity,
-                    pointerEvents: 'none',
-                    zIndex: 0
-                  }}
-                />
-              );
-            })}
+                return (
+                  <img 
+                    key={fp.id}
+                    src={fp.url} 
+                    alt={fp.name}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: `${displayWidth}px`,
+                      height: `${displayHeight}px`,
+                      opacity: fp.opacity,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                );
+              })}
+            </div>
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
