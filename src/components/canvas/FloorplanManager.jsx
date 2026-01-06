@@ -200,13 +200,17 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
 
           <div className="mb-3 flex items-center gap-3 px-2">
             <span className="text-sm text-gray-400">Zoom:</span>
-            <Slider
-              value={[calibrationZoom * 100]}
-              onValueChange={(val) => setCalibrationZoom(val[0] / 100)}
+            <input
+              type="range"
+              value={calibrationZoom * 100}
+              onChange={(e) => setCalibrationZoom(parseFloat(e.target.value) / 100)}
               min={10}
               max={200}
-              step={10}
-              className="flex-1"
+              step={5}
+              className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              style={{
+                accentColor: '#3b82f6'
+              }}
             />
             <span className="text-sm text-white w-12">{Math.round(calibrationZoom * 100)}%</span>
           </div>
