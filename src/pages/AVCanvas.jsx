@@ -1286,17 +1286,15 @@ function AVCanvasContent() {
                   alt={fp.name}
                   style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: `${canvasWidth}px`,
-                    height: `${canvasHeight}px`,
+                    top: `${pan.y}px`,
+                    left: `${pan.x}px`,
+                    width: `${canvasWidth * zoom}px`,
+                    height: `${canvasHeight * zoom}px`,
                     objectFit: 'contain',
-                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                     transformOrigin: 'top left',
                     opacity: fp.opacity,
                     pointerEvents: 'none',
-                    zIndex: 0,
-                    willChange: 'transform'
+                    zIndex: 0
                   }}
                 />
               );
