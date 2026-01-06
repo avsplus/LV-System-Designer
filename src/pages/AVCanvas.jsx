@@ -1303,6 +1303,18 @@ function AVCanvasContent() {
                     src={fp.url} 
                     alt={fp.name}
                     style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
+                    onLoad={(e) => {
+                      // Update floorplan with actual image dimensions if missing
+                      if (!fp.imageWidth || !fp.imageHeight) {
+                        const img = e.target;
+                        const updatedFloorplans = floorplans.map(f => 
+                          f.id === fp.id 
+                            ? { ...f, imageWidth: img.naturalWidth, imageHeight: img.naturalHeight }
+                            : f
+                        );
+                        handleFloorplansUpdate(updatedFloorplans);
+                      }
+                    }}
                   />
                 </div>
               );
