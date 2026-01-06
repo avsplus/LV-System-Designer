@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ChevronLeft, Plus, Wifi, RefreshCw, Trash2, 
   Network as NetworkIcon, Router, Server, Shield, 
-  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity
+  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity, AlertTriangle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -434,7 +434,8 @@ export default function NetworkMapping() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <NetworkIcon className="w-6 h-6 text-cyan-400" />
-              Network Mapping
+              Network Agent
+              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Coming Soon</Badge>
             </h1>
             <p className="text-sm text-gray-400">Visualize and manage your network topology</p>
           </div>
@@ -452,6 +453,17 @@ export default function NetworkMapping() {
           )}
 
           <NetworkStats devices={devices} />
+        </div>
+      </div>
+
+      {/* Warning Banner */}
+      <div className="bg-yellow-500/10 border-y border-yellow-500/30 px-6 py-3">
+        <div className="flex items-center gap-3 text-yellow-400">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Tool Under Active Development</p>
+            <p className="text-xs text-yellow-400/80">This feature is currently being developed and may not work as intended. Some features may be incomplete or unstable.</p>
+          </div>
         </div>
       </div>
 

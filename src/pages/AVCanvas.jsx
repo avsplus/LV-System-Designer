@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X } from "lucide-react";
 import { ToastProvider, useToast } from "../components/ui/Toast";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
@@ -1132,7 +1133,8 @@ function AVCanvasContent() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => window.location.href = createPageUrl("NetworkMapping")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Settings className="w-4 h-4 mr-2" />
-                    Network Mapping
+                    Network Agent
+                    <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] px-1.5 py-0">Coming Soon</Badge>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowImportDialog(true)} disabled={importProgress?.status === 'running'} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Plus className="w-4 h-4 mr-2" />
