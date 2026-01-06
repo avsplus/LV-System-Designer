@@ -1320,42 +1320,45 @@ function AVCanvasContent() {
               backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined
             }}
           >
-            {/* Floorplans Layer */}
+            {/* Unified Canvas Container - All elements share same transform */}
             <div style={{ 
-              position: 'relative', 
-              zIndex: 0,
-              minHeight: '100%', 
-              minWidth: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
-              transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+              transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
               pointerEvents: 'none'
             }}>
-              {floorplans.filter(fp => fp.visible).map((fp) => {
-                // Calculate display size: 1px = 1 inch at 100% zoom
-                const displayWidth = fp.imageWidth / fp.pixelsPerInch;
-                const displayHeight = fp.imageHeight / fp.pixelsPerInch;
-                const position = fp.position || { x: 0, y: 0 };
+              {/* Floorplans Layer */}
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                {floorplans.filter(fp => fp.visible).map((fp) => {
+                  const displayWidth = fp.imageWidth / fp.pixelsPerInch;
+                  const displayHeight = fp.imageHeight / fp.pixelsPerInch;
+                  const position = fp.position || { x: 0, y: 0 };
 
-                return (
-                  <img 
-                    key={fp.id}
-                    src={fp.url} 
-                    alt={fp.name}
-                    onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
-                    style={{
-                      position: 'absolute',
-                      top: `${position.y}px`,
-                      left: `${position.x}px`,
-                      width: `${displayWidth}px`,
-                      height: `${displayHeight}px`,
-                      opacity: fp.opacity,
-                      pointerEvents: 'auto',
-                      cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
-                    }}
-                  />
-                );
-              })}
+                  return (
+                    <img 
+                      key={fp.id}
+                      src={fp.url} 
+                      alt={fp.name}
+                      onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
+                      style={{
+                        position: 'absolute',
+                        top: `${position.y}px`,
+                        left: `${position.x}px`,
+                        width: `${displayWidth}px`,
+                        height: `${displayHeight}px`,
+                        opacity: fp.opacity,
+                        pointerEvents: 'auto',
+                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
+                      }}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
@@ -1537,13 +1540,15 @@ function AVCanvasContent() {
             )}
 
             <div style={{ 
-              position: 'relative', 
-              zIndex: 2, 
-              minHeight: '100%', 
-              minWidth: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: 2,
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
-              transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+              transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
               pointerEvents: isPanning ? 'none' : 'auto'
             }}>
               {canvasProducts.map((cp) => {
