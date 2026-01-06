@@ -5,6 +5,9 @@ import { Slider } from "@/components/ui/slider";
 import { X, Eye, EyeOff, Trash2, Upload, Ruler } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import * as pdfjsLib from 'pdfjs-dist';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function FloorplanManager({ floorplans = [], onUpdate, onClose }) {
   const [uploading, setUploading] = React.useState(false);
@@ -29,19 +32,31 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      // If PDF, convert first page to image for calibration
       let imageUrl = file_url;
-      if (file.type === 'application/pdf') {
-        // For now, we'll use the PDF directly and render it as an image
-        // In production, you might want to convert PDF to image on backend
-        imageUrl = file_url;
+      let isPdf = file.type === 'application/pdf';
+
+      // If PDF, render first page to canvas and convert to image
+      if (isPdf) {
+        const loadingTask = pdfjsLib.getDocument(file_url);
+        const pdf = await loadingTask.promise;
+        const page = await pdf.getPage(1);
+        
+        const viewport = page.getViewport({ scale: 2 });
+        const tempCanvas = document.createElement('canvas');
+        const context = tempCanvas.getContext('2d');
+        tempCanvas.height = viewport.height;
+        tempCanvas.width = viewport.width;
+
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        imageUrl = tempCanvas.toDataURL('image/png');
       }
 
       setCalibrating({
         id: Date.now().toString(),
         name: uploadForm.name,
         url: imageUrl,
-        isPdf: file.type === 'application/pdf'
+        originalUrl: file_url,
+        isPdf: isPdf
       });
       setCalibrationPoints([]);
       setKnownDistance('');
@@ -95,7 +110,11 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     const scale = pixelDistance / parseFloat(knownDistance);
 
     const newFloorplan = {
-      ...calibrating,
+      id: calibrating.id,
+      name: calibrating.name,
+      url: calibrating.url,
+      originalUrl: calibrating.originalUrl || calibrating.url,
+      isPdf: calibrating.isPdf,
       scale: scale,
       visible: true,
       opacity: 0.3
