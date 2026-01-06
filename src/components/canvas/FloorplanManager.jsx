@@ -117,7 +117,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       url: calibrating.url,
       originalUrl: calibrating.originalUrl || calibrating.url,
       isPdf: calibrating.isPdf,
-      scale: scale,
+      scale: scale * 0.1,
       visible: true,
       opacity: 0.3
     };
