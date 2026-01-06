@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -10,15 +10,15 @@ import * as pdfjsLib from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function FloorplanManager({ floorplans = [], onUpdate, onClose }) {
-  const [uploading, setUploading] = React.useState(false);
-  const [uploadForm, setUploadForm] = React.useState({ name: '' });
-  const [calibrating, setCalibrating] = React.useState(null);
-  const [calibrationPoints, setCalibrationPoints] = React.useState([]);
-  const [knownDistance, setKnownDistance] = React.useState('');
-  const [calibrationZoom, setCalibrationZoom] = React.useState(0.25);
-  const fileInputRef = React.useRef(null);
-  const canvasRef = React.useRef(null);
-  const imageRef = React.useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ name: '' });
+  const [calibrating, setCalibrating] = useState(null);
+  const [calibrationPoints, setCalibrationPoints] = useState([]);
+  const [knownDistance, setKnownDistance] = useState('');
+  const [calibrationZoom, setCalibrationZoom] = useState(0.25);
+  const fileInputRef = useRef(null);
+  const canvasRef = useRef(null);
+  const imageRef = useRef(null);
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -136,7 +136,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     setKnownDistance('');
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!calibrating || !canvasRef.current || !imageRef.current) return;
 
     const canvas = canvasRef.current;
