@@ -1275,9 +1275,9 @@ function AVCanvasContent() {
           >
             {/* Floorplans Layer */}
             {floorplans.filter(fp => fp.visible).map((fp) => {
-              const canvasRect = canvasRef.current?.getBoundingClientRect();
-              const canvasWidth = canvasRect?.width || 1920;
-              const canvasHeight = canvasRect?.height || 1080;
+              // Calculate display size: 1px = 1 inch at 100% zoom
+              const displayWidth = fp.imageWidth / fp.pixelsPerInch; // width in inches (displayed as pixels)
+              const displayHeight = fp.imageHeight / fp.pixelsPerInch; // height in inches (displayed as pixels)
 
               return (
                 <img 
@@ -1288,9 +1288,8 @@ function AVCanvasContent() {
                     position: 'absolute',
                     top: `${pan.y}px`,
                     left: `${pan.x}px`,
-                    width: `${canvasWidth * zoom}px`,
-                    height: `${canvasHeight * zoom}px`,
-                    objectFit: 'contain',
+                    width: `${displayWidth * zoom}px`,
+                    height: `${displayHeight * zoom}px`,
                     transformOrigin: 'top left',
                     opacity: fp.opacity,
                     pointerEvents: 'none',
