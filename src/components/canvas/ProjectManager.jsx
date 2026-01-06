@@ -27,6 +27,7 @@ export default function ProjectManager({
   canvasProducts, 
   connections,
   rooms = [],
+  floorplans = [],
   onProjectLoad,
   onClose 
 }) {
@@ -147,7 +148,8 @@ export default function ProjectManager({
       description: projectDescription,
       canvas_products: canvasProducts,
       connections: connections,
-      rooms: rooms
+      rooms: rooms,
+      floorplans: floorplans
     });
   };
 

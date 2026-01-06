@@ -119,6 +119,8 @@ function AVCanvasContent() {
   const [showEnrichDialog, setShowEnrichDialog] = useState(false);
   const [enrichCategory, setEnrichCategory] = useState('all');
   const [previewManual, setPreviewManual] = useState(null);
+  const [showFloorplanManager, setShowFloorplanManager] = useState(false);
+  const [floorplans, setFloorplans] = useState([]);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -198,6 +200,7 @@ function AVCanvasContent() {
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
     loadProject(project);
+    setFloorplans(project?.floorplans || []);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -594,7 +597,22 @@ function AVCanvasContent() {
       setSelectedConnection(null);
       setSelectedRoom(null);
       setCurrentProject(null);
+      setFloorplans([]);
       toast.success('Canvas cleared');
+    }
+  };
+
+  const handleFloorplansUpdate = async (updatedFloorplans) => {
+    setFloorplans(updatedFloorplans);
+    if (currentProject?.id) {
+      try {
+        await base44.entities.AVProject.update(currentProject.id, {
+          floorplans: updatedFloorplans
+        });
+        markLocalChange();
+      } catch (error) {
+        console.error('Failed to save floorplans:', error);
+      }
     }
   };
 
@@ -1153,6 +1171,12 @@ function AVCanvasContent() {
                     Network Agent
                     <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] px-1.5 py-0">Coming Soon</Badge>
                   </DropdownMenuItem>
+                  {currentProject && (
+                    <DropdownMenuItem onClick={() => setShowFloorplanManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Manage Floorplans
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => setShowImportDialog(true)} disabled={importProgress?.status === 'running'} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Plus className="w-4 h-4 mr-2" />
                     {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
@@ -1248,6 +1272,29 @@ function AVCanvasContent() {
               backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined
             }}
           >
+            {/* Floorplans Layer */}
+            {floorplans.filter(fp => fp.visible).map((fp) => (
+              <div
+                key={fp.id}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom * fp.scale})`,
+                  transformOrigin: 'top left',
+                  opacity: fp.opacity,
+                  pointerEvents: 'none',
+                  zIndex: 0
+                }}
+              >
+                <img 
+                  src={fp.url} 
+                  alt={fp.name}
+                  style={{ display: 'block' }}
+                />
+              </div>
+            ))}
+
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
@@ -1603,8 +1650,17 @@ function AVCanvasContent() {
             canvasProducts={canvasProducts}
             connections={connections}
             rooms={rooms}
+            floorplans={floorplans}
             onProjectLoad={handleProjectLoad}
             onClose={() => setShowProjectManager(false)}
+          />
+        )}
+
+        {showFloorplanManager && (
+          <FloorplanManager
+            floorplans={floorplans}
+            onUpdate={handleFloorplansUpdate}
+            onClose={() => setShowFloorplanManager(false)}
           />
         )}
 
