@@ -53,12 +53,22 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
         imageUrl = tempCanvas.toDataURL('image/png');
       }
 
-      setCalibrating({
-        id: Date.now().toString(),
-        name: uploadForm.name,
-        url: imageUrl,
-        originalUrl: file_url,
-        isPdf: isPdf
+      // Get natural dimensions
+      const tempImg = new Image();
+      tempImg.src = imageUrl;
+      await new Promise(resolve => {
+        tempImg.onload = () => {
+          setCalibrating({
+            id: Date.now().toString(),
+            name: uploadForm.name,
+            url: imageUrl,
+            originalUrl: file_url,
+            isPdf: isPdf,
+            naturalWidth: tempImg.naturalWidth,
+            naturalHeight: tempImg.naturalHeight
+          });
+          resolve();
+        };
       });
       setCalibrationPoints([]);
       setKnownDistance('');
@@ -255,6 +265,10 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 src={calibrating.url}
                 alt="Floorplan"
                 className="hidden"
+                style={{
+                  width: `${calibrating.naturalWidth ? calibrating.naturalWidth * resizeScale : 'auto'}px`,
+                  height: `${calibrating.naturalHeight ? calibrating.naturalHeight * resizeScale : 'auto'}px`
+                }}
               />
               <canvas
                 ref={canvasRef}
