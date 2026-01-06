@@ -1275,16 +1275,18 @@ function AVCanvasContent() {
           >
             {/* Floorplans Layer */}
             {floorplans.filter(fp => fp.visible).map((fp) => {
-              if (!fp.imageWidth || !fp.imageHeight) return null;
-
               // Calculate scale to fit canvas at 100% zoom
               const canvasRect = canvasRef.current?.getBoundingClientRect();
               const canvasWidth = canvasRect?.width || 1920;
               const canvasHeight = canvasRect?.height || 1080;
 
+              // Use stored dimensions or fallback
+              const imgWidth = fp.imageWidth || 1000;
+              const imgHeight = fp.imageHeight || 1000;
+
               // Calculate how much to scale to fit the canvas
-              const scaleX = canvasWidth / fp.imageWidth;
-              const scaleY = canvasHeight / fp.imageHeight;
+              const scaleX = canvasWidth / imgWidth;
+              const scaleY = canvasHeight / imgHeight;
               const fitScale = Math.min(scaleX, scaleY);
 
               return (
@@ -1306,6 +1308,18 @@ function AVCanvasContent() {
                     src={fp.url} 
                     alt={fp.name}
                     style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
+                    onLoad={(e) => {
+                      // Update floorplan with actual image dimensions if missing
+                      if (!fp.imageWidth || !fp.imageHeight) {
+                        const img = e.target;
+                        const updatedFloorplans = floorplans.map(f => 
+                          f.id === fp.id 
+                            ? { ...f, imageWidth: img.naturalWidth, imageHeight: img.naturalHeight }
+                            : f
+                        );
+                        handleFloorplansUpdate(updatedFloorplans);
+                      }
+                    }}
                   />
                 </div>
               );
