@@ -544,6 +544,8 @@ Only return URLs that:
     if (e.target.closest('button') || e.target.hasAttribute('data-port-type')) return;
     if (e.touches.length !== 1) return;
     
+    e.stopPropagation(); // Prevent canvas pan when dragging product
+    
     const touch = e.touches[0];
     const clickTime = Date.now();
     
