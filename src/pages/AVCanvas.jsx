@@ -1335,12 +1335,20 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                 {floorplans.filter(fp => fp.visible).map((fp) => {
-                  // Scale floorplan to canvas workspace scale
-                  // Using 600 pixels per inch on canvas for practical device placement
-                  const targetCanvasScale = 600;
+                  // Scale floorplan: device cards are ~320px wide representing ~17" devices
+                  // So canvas scale is roughly 20 pixels per real-world inch
+                  const targetCanvasScale = 20; // pixels per inch on canvas
                   const scaleFactor = targetCanvasScale / fp.pixelsPerInch;
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const position = fp.position || { x: 100, y: 100 };
+
+                  console.log('Floorplan scaling:', {
+                    imageWidth: fp.imageWidth,
+                    pixelsPerInch: fp.pixelsPerInch,
+                    targetCanvasScale,
+                    scaleFactor,
+                    displayWidth
+                  });
 
                   return (
                     <img 
