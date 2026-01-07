@@ -419,6 +419,8 @@ Only return URLs that:
   const handleMouseDown = (e) => {
     if (e.target.closest('button') || e.target.hasAttribute('data-port-type')) return;
     
+    e.stopPropagation(); // Prevent canvas pan when dragging product
+    
     const clickTime = Date.now();
     const clickPos = { x: e.clientX, y: e.clientY };
     
