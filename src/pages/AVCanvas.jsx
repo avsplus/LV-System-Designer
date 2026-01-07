@@ -620,21 +620,24 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
-    // Only allow left click (button 0) to drag floorplans
-    if (e.button !== 0) return;
+      // Only allow left click (button 0) to drag floorplans
+      if (e.button !== 0) return;
 
-    e.stopPropagation();
-    const floorplan = floorplans.find(fp => fp.id === floorplanId);
-    if (!floorplan) return;
+      e.stopPropagation();
+      const floorplan = floorplans.find(fp => fp.id === floorplanId);
+      if (!floorplan) return;
 
-    setDraggingFloorplan(floorplanId);
-    setFloorplanDragStart({
-      mouseX: e.clientX,
-      mouseY: e.clientY,
-      startX: floorplan.position?.x || 0,
-      startY: floorplan.position?.y || 0
-    });
-  };
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+      const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+      setDraggingFloorplan(floorplanId);
+      setFloorplanDragStart({
+        offsetX: mouseWorldX - (floorplan.position?.x || 0),
+        offsetY: mouseWorldY - (floorplan.position?.y || 0),
+        canvasRect
+      });
+    };
 
   const handleFloorplanMouseMove = useCallback((e) => {
     if (!draggingFloorplan || !floorplanDragStart) return;
