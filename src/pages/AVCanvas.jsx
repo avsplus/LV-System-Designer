@@ -1367,17 +1367,16 @@ function AVCanvasContent() {
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-                {floorplans.filter(fp => fp.visible).map((fp) => {
+                {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Scale floorplan so 1 canvas pixel = 1 inch in real world
-                  // This makes the calibration meaningful and consistent
                   const scaleFactor = 1 / (fp.pixelsPerInch || 1);
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const position = fp.position || { x: 100, y: 100 };
 
-                  const isDragging = draggingFloorplan === fp.id;
-                  const dragTransform = isDragging 
-                    ? `translate(${floorplanDragOffset.x}px, ${floorplanDragOffset.y}px)`
-                    : 'none';
+                  // Only this specific floorplan gets the drag offset applied
+                  const isThisOneDragging = draggingFloorplan === fp.id;
+                  const currentX = isThisOneDragging ? position.x + floorplanDragOffset.x : position.x;
+                  const currentY = isThisOneDragging ? position.y + floorplanDragOffset.y : position.y;
 
                   return (
                     <div
@@ -1388,18 +1387,17 @@ function AVCanvasContent() {
                       onMouseDownCapture={(e) => e.stopPropagation()}
                       style={{
                         position: 'absolute',
-                        top: `${position.y}px`,
-                        left: `${position.x}px`,
+                        top: `${currentY}px`,
+                        left: `${currentX}px`,
                         width: `${displayWidth}px`,
                         pointerEvents: 'auto',
-                        cursor: fp.locked ? 'not-allowed' : (isDragging ? 'grabbing' : 'grab'),
+                        cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: selectedFloorplanId === fp.id ? '4px' : '0',
                         border: selectedFloorplanId === fp.id ? '3px solid #3b82f6' : 'none',
                         borderRadius: selectedFloorplanId === fp.id ? '4px' : '0',
                         boxShadow: selectedFloorplanId === fp.id ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
-                        transform: isDragging && fp.id === draggingFloorplan ? dragTransform : 'none',
-                        transition: isDragging ? 'none' : 'all 0.2s ease',
-                        willChange: isDragging ? 'transform' : 'auto'
+                        zIndex: selectedFloorplanId === fp.id ? 1000 : index,
+                        transition: isThisOneDragging ? 'none' : 'all 0.2s ease'
                       }}
                     >
                       <img 
