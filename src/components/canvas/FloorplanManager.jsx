@@ -9,7 +9,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -17,7 +17,6 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationZoom, setCalibrationZoom] = useState(0.25);
   const [editingScale, setEditingScale] = useState(null);
-  const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -427,7 +426,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
             floorplans.map((fp) => (
               <div 
                 key={fp.id} 
-                onClick={() => setSelectedFloorplanId(fp.id)}
+                onClick={() => onSelectFloorplan?.(fp.id)}
                 className={`bg-gray-800 border rounded-lg p-3 cursor-pointer transition-all ${
                   selectedFloorplanId === fp.id 
                     ? 'border-blue-500 ring-2 ring-blue-500/50' 

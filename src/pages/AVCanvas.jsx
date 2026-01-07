@@ -124,6 +124,7 @@ function AVCanvasContent() {
   const [floorplans, setFloorplans] = useState([]);
   const [draggingFloorplan, setDraggingFloorplan] = useState(null);
   const [floorplanDragStart, setFloorplanDragStart] = useState(null);
+  const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -626,6 +627,8 @@ function AVCanvasContent() {
       e.stopPropagation();
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
+
+      setSelectedFloorplanId(floorplanId);
 
       const canvasRect = canvasRef.current.getBoundingClientRect();
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
@@ -1349,23 +1352,35 @@ function AVCanvasContent() {
                   const position = fp.position || { x: 100, y: 100 };
 
                   return (
-                    <img 
+                    <div
                       key={fp.id}
-                      src={fp.url} 
-                      alt={fp.name}
                       onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
                       style={{
                         position: 'absolute',
                         top: `${position.y}px`,
                         left: `${position.x}px`,
                         width: `${displayWidth}px`,
-                        height: 'auto',
-                        opacity: fp.opacity,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (draggingFloorplan === fp.id ? 'grabbing' : 'grab'),
-                        filter: fp.locked ? 'brightness(0.8)' : 'none'
+                        padding: selectedFloorplanId === fp.id ? '4px' : '0',
+                        border: selectedFloorplanId === fp.id ? '3px solid #3b82f6' : 'none',
+                        borderRadius: selectedFloorplanId === fp.id ? '4px' : '0',
+                        boxShadow: selectedFloorplanId === fp.id ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
+                        transition: 'all 0.2s ease'
                       }}
-                    />
+                    >
+                      <img 
+                        src={fp.url} 
+                        alt={fp.name}
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          opacity: fp.opacity,
+                          filter: fp.locked ? 'brightness(0.8)' : 'none',
+                          display: 'block'
+                        }}
+                      />
+                    </div>
                   );
                 })}
               </div>
@@ -1739,6 +1754,8 @@ function AVCanvasContent() {
             floorplans={floorplans}
             onUpdate={handleFloorplansUpdate}
             onClose={() => setShowFloorplanManager(false)}
+            selectedFloorplanId={selectedFloorplanId}
+            onSelectFloorplan={setSelectedFloorplanId}
           />
         )}
 
