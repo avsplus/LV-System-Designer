@@ -675,7 +675,8 @@ function AVCanvasContent() {
 
   const handleFloorplanMouseMove = useCallback((e) => {
       if (draggingFloorplan && floorplanDragStart) {
-        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        if (!canvasRect) return;
         const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
         const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
@@ -686,7 +687,8 @@ function AVCanvasContent() {
       }
 
       if (resizingFloorplan) {
-        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        if (!canvasRect) return;
         const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
 
         const deltaX = mouseWorldX - resizingFloorplan.startMouseX;
@@ -722,47 +724,52 @@ function AVCanvasContent() {
             : fp
         ));
       }
-    }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan, zoom]);
+    }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan.x, pan.y, zoom]);
 
   const handleFloorplanMouseUp = useCallback(() => {
-    if (draggingFloorplan && floorplanDragOffset.x !== 0 && floorplanDragOffset.y !== 0) {
-      const updatedFloorplans = floorplans.map(fp => {
-        if (fp.id === draggingFloorplan) {
-          return {
-            ...fp,
-            position: {
-              x: floorplanDragOffset.x,
-              y: floorplanDragOffset.y
-            }
-          };
+    if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
+      setFloorplans(prev => {
+        const updatedFloorplans = prev.map(fp => {
+          if (fp.id === draggingFloorplan) {
+            return {
+              ...fp,
+              position: {
+                x: floorplanDragOffset.x,
+                y: floorplanDragOffset.y
+              }
+            };
+          }
+          return fp;
+        });
+
+        if (currentProject?.id) {
+          base44.entities.AVProject.update(currentProject.id, {
+            floorplans: updatedFloorplans
+          }).catch(error => console.error('Failed to save floorplan position:', error));
+          markLocalChange();
         }
-        return fp;
+
+        return updatedFloorplans;
       });
-
-      setFloorplans(updatedFloorplans);
-
-      if (currentProject?.id) {
-        base44.entities.AVProject.update(currentProject.id, {
-          floorplans: updatedFloorplans
-        }).catch(error => console.error('Failed to save floorplan position:', error));
-        markLocalChange();
-      }
     }
 
     if (resizingFloorplan) {
-      if (currentProject?.id) {
-        base44.entities.AVProject.update(currentProject.id, {
-          floorplans
-        }).catch(error => console.error('Failed to save floorplan scale:', error));
-        markLocalChange();
-      }
+      setFloorplans(prev => {
+        if (currentProject?.id) {
+          base44.entities.AVProject.update(currentProject.id, {
+            floorplans: prev
+          }).catch(error => console.error('Failed to save floorplan scale:', error));
+          markLocalChange();
+        }
+        return prev;
+      });
       setResizingFloorplan(null);
     }
 
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragOffset, floorplans, currentProject, resizingFloorplan]);
+  }, [draggingFloorplan, floorplanDragOffset, currentProject, resizingFloorplan, markLocalChange]);
 
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
