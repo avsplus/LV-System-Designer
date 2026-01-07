@@ -1507,7 +1507,8 @@ function AVCanvasContent() {
                               border: '2px solid white',
                               borderRadius: '50%',
                               cursor: 'nw-resize',
-                              zIndex: 1001
+                              zIndex: 1001,
+                              pointerEvents: 'auto'
                             }}
                           />
                           <div
@@ -1523,7 +1524,8 @@ function AVCanvasContent() {
                               border: '2px solid white',
                               borderRadius: '50%',
                               cursor: 'ne-resize',
-                              zIndex: 1001
+                              zIndex: 1001,
+                              pointerEvents: 'auto'
                             }}
                           />
                           <div
@@ -1539,7 +1541,8 @@ function AVCanvasContent() {
                               border: '2px solid white',
                               borderRadius: '50%',
                               cursor: 'sw-resize',
-                              zIndex: 1001
+                              zIndex: 1001,
+                              pointerEvents: 'auto'
                             }}
                           />
                           <div
@@ -1555,7 +1558,8 @@ function AVCanvasContent() {
                               border: '2px solid white',
                               borderRadius: '50%',
                               cursor: 'se-resize',
-                              zIndex: 1001
+                              zIndex: 1001,
+                              pointerEvents: 'auto'
                             }}
                           />
                         </>
