@@ -1406,7 +1406,8 @@ function AVCanvasContent() {
                           height: 'auto',
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
-                          display: 'block'
+                          display: 'block',
+                          pointerEvents: 'none'
                         }}
                       />
                     </div>
