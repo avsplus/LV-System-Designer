@@ -1335,8 +1335,10 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                 {floorplans.filter(fp => fp.visible).map((fp) => {
-                  const displayWidth = (fp.imageWidth / fp.pixelsPerInch) * 72;
-                  const displayHeight = (fp.imageHeight / fp.pixelsPerInch) * 72;
+                  // Calculate scale factor: original pixels to display pixels (72 ppi standard)
+                  const scaleFactor = 72 / fp.pixelsPerInch;
+                  const displayWidth = fp.imageWidth * scaleFactor;
+                  const displayHeight = fp.imageHeight * scaleFactor;
                   const position = fp.position || { x: 0, y: 0 };
 
                   return (
