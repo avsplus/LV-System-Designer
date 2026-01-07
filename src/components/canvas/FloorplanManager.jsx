@@ -529,15 +529,6 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                     />
                   </div>
                 )}
-
-                {/* Preview */}
-                <div className="mt-2 rounded overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                  <img 
-                    src={fp.url} 
-                    alt={fp.name}
-                    className="w-full h-20 object-cover"
-                  />
-                </div>
               </div>
             ))
           )}
