@@ -649,40 +649,37 @@ function AVCanvasContent() {
       });
     };
 
-  const handleResizeMouseDown = useCallback((e, floorplanId, corner) => {
+  const handleResizeStart = useCallback((e, floorplanId, corner) => {
       e.preventDefault();
       e.stopPropagation();
-      
-      console.log('Resize mousedown triggered:', corner, floorplanId);
 
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
-      if (!floorplan || floorplan.locked) {
-        console.log('Floorplan locked or not found');
-        return;
-      }
+      if (!floorplan || floorplan.locked) return;
 
       const canvasRect = canvasRef.current?.getBoundingClientRect();
       if (!canvasRect) return;
       
-      const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-      const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-
-      console.log('Starting resize:', { corner, mouseWorldX, mouseWorldY, scale: floorplan.scale });
+      const startClientX = e.clientX;
+      const startClientY = e.clientY;
 
       setResizingFloorplan({
         id: floorplanId,
         corner,
-        startMouseX: mouseWorldX,
-        startMouseY: mouseWorldY,
+        startClientX,
+        startClientY,
         startScale: floorplan.scale || 1,
-        startPosition: floorplan.position || { x: 0, y: 0 },
+        startPosition: { ...(floorplan.position || { x: 0, y: 0 }) },
         originalWidth: floorplan.imageWidth,
         aspectRatio: floorplan.imageHeight / floorplan.imageWidth,
         pixelsPerInch: floorplan.pixelsPerInch || 1
       });
-    }, [floorplans, pan.x, pan.y, zoom]);
 
-  const handleFloorplanMouseMove = useCallback((e) => {
+      if (e.target.setPointerCapture && e.pointerId !== undefined) {
+        e.target.setPointerCapture(e.pointerId);
+      }
+    }, [floorplans]);
+
+  const handleResizeMove = useCallback((e) => {
       if (draggingFloorplan && floorplanDragStart) {
         const canvasRect = canvasRef.current?.getBoundingClientRect();
         if (!canvasRect) return;
@@ -696,38 +693,31 @@ function AVCanvasContent() {
       }
 
       if (resizingFloorplan) {
-        const canvasRect = canvasRef.current?.getBoundingClientRect();
-        if (!canvasRect) return;
-        const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-
-        const deltaX = mouseWorldX - resizingFloorplan.startMouseX;
+        const dx = (e.clientX - resizingFloorplan.startClientX) / zoom;
+        const dy = (e.clientY - resizingFloorplan.startClientY) / zoom;
 
         let newScale = resizingFloorplan.startScale;
         let newPosition = { ...resizingFloorplan.startPosition };
 
-        const scaleFactor = 0.003;
+        const scaleFactor = 0.005;
 
         if (resizingFloorplan.corner === 'se') {
-          newScale = Math.max(0.1, resizingFloorplan.startScale + deltaX * scaleFactor);
+          newScale = Math.max(0.1, resizingFloorplan.startScale + dx * scaleFactor);
         } else if (resizingFloorplan.corner === 'sw') {
-          const scaleChange = -deltaX * scaleFactor;
-          newScale = Math.max(0.1, resizingFloorplan.startScale + scaleChange);
+          newScale = Math.max(0.1, resizingFloorplan.startScale - dx * scaleFactor);
           const widthChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth / resizingFloorplan.pixelsPerInch;
           newPosition.x = resizingFloorplan.startPosition.x - widthChange;
         } else if (resizingFloorplan.corner === 'ne') {
-          newScale = Math.max(0.1, resizingFloorplan.startScale + deltaX * scaleFactor);
+          newScale = Math.max(0.1, resizingFloorplan.startScale + dx * scaleFactor);
           const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
           newPosition.y = resizingFloorplan.startPosition.y - heightChange;
         } else if (resizingFloorplan.corner === 'nw') {
-          const scaleChange = -deltaX * scaleFactor;
-          newScale = Math.max(0.1, resizingFloorplan.startScale + scaleChange);
+          newScale = Math.max(0.1, resizingFloorplan.startScale - dx * scaleFactor);
           const widthChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth / resizingFloorplan.pixelsPerInch;
           newPosition.x = resizingFloorplan.startPosition.x - widthChange;
           const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
           newPosition.y = resizingFloorplan.startPosition.y - heightChange;
         }
-
-        console.log('Resizing:', { corner: resizingFloorplan.corner, deltaX, newScale });
 
         setFloorplans(prev => prev.map(fp => 
           fp.id === resizingFloorplan.id 
@@ -737,7 +727,7 @@ function AVCanvasContent() {
       }
     }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan.x, pan.y, zoom]);
 
-  const handleFloorplanMouseUp = useCallback(() => {
+  const handleResizeEnd = useCallback(() => {
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
@@ -822,28 +812,24 @@ function AVCanvasContent() {
   };
 
   useEffect(() => {
-    const handleDragMouseMove = (e) => {
+    const handleDragMove = (e) => {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleAllMouseMove = (e) => {
-      handleDragMouseMove(e);
       handleGlobalMouseMove(e);
-      handleFloorplanMouseMove(e);
+      handleResizeMove(e);
     };
 
-    const handleAllMouseUp = (e) => {
+    const handleDragEnd = (e) => {
       handleGlobalMouseUp(e);
-      handleFloorplanMouseUp();
+      handleResizeEnd();
     };
 
-    window.addEventListener('mousemove', handleAllMouseMove);
-    window.addEventListener('mouseup', handleAllMouseUp);
+    window.addEventListener('pointermove', handleDragMove);
+    window.addEventListener('pointerup', handleDragEnd);
     return () => {
-      window.removeEventListener('mousemove', handleAllMouseMove);
-      window.removeEventListener('mouseup', handleAllMouseUp);
+      window.removeEventListener('pointermove', handleDragMove);
+      window.removeEventListener('pointerup', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleFloorplanMouseMove, handleFloorplanMouseUp]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -1516,13 +1502,10 @@ function AVCanvasContent() {
                       />
                       {isSelected && !fp.locked && (
                         <>
-                          {/* Corner resize handles with larger hit areas */}
+                          {/* Corner resize handles */}
                           <div
                             data-resize-handle="nw"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              handleResizeMouseDown(e, fp.id, 'nw');
-                            }}
+                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'nw')}
                             style={{
                               position: 'absolute',
                               top: '-15px',
@@ -1533,7 +1516,8 @@ function AVCanvasContent() {
                               zIndex: 1003,
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              touchAction: 'none'
                             }}
                           >
                             <div style={{
@@ -1547,10 +1531,7 @@ function AVCanvasContent() {
                           </div>
                           <div
                             data-resize-handle="ne"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              handleResizeMouseDown(e, fp.id, 'ne');
-                            }}
+                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'ne')}
                             style={{
                               position: 'absolute',
                               top: '-15px',
@@ -1561,7 +1542,8 @@ function AVCanvasContent() {
                               zIndex: 1003,
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              touchAction: 'none'
                             }}
                           >
                             <div style={{
@@ -1575,10 +1557,7 @@ function AVCanvasContent() {
                           </div>
                           <div
                             data-resize-handle="sw"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              handleResizeMouseDown(e, fp.id, 'sw');
-                            }}
+                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'sw')}
                             style={{
                               position: 'absolute',
                               bottom: '-15px',
@@ -1589,7 +1568,8 @@ function AVCanvasContent() {
                               zIndex: 1003,
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              touchAction: 'none'
                             }}
                           >
                             <div style={{
@@ -1603,10 +1583,7 @@ function AVCanvasContent() {
                           </div>
                           <div
                             data-resize-handle="se"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              handleResizeMouseDown(e, fp.id, 'se');
-                            }}
+                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'se')}
                             style={{
                               position: 'absolute',
                               bottom: '-15px',
@@ -1617,7 +1594,8 @@ function AVCanvasContent() {
                               zIndex: 1003,
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              touchAction: 'none'
                             }}
                           >
                             <div style={{
