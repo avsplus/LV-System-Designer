@@ -665,7 +665,8 @@ function AVCanvasContent() {
         startScale: floorplan.scale || 1,
         startPosition: floorplan.position || { x: 0, y: 0 },
         originalWidth: floorplan.imageWidth,
-        aspectRatio: floorplan.imageHeight / floorplan.imageWidth
+        aspectRatio: floorplan.imageHeight / floorplan.imageWidth,
+        pixelsPerInch: floorplan.pixelsPerInch || 1
       });
     };
 
@@ -684,31 +685,31 @@ function AVCanvasContent() {
       if (resizingFloorplan) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
         const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-        const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
         const deltaX = mouseWorldX - resizingFloorplan.startMouseX;
-        const deltaY = mouseWorldY - resizingFloorplan.startMouseY;
 
         let newScale = resizingFloorplan.startScale;
         let newPosition = { ...resizingFloorplan.startPosition };
 
-        const scaleFactor = 1 / (resizingFloorplan.originalWidth / (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1)));
+        const scaleFactor = 0.003;
 
         if (resizingFloorplan.corner === 'se') {
           newScale = Math.max(0.1, resizingFloorplan.startScale + deltaX * scaleFactor);
         } else if (resizingFloorplan.corner === 'sw') {
           const scaleChange = -deltaX * scaleFactor;
           newScale = Math.max(0.1, resizingFloorplan.startScale + scaleChange);
-          newPosition.x = resizingFloorplan.startPosition.x - (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+          const widthChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth / resizingFloorplan.pixelsPerInch;
+          newPosition.x = resizingFloorplan.startPosition.x - widthChange;
         } else if (resizingFloorplan.corner === 'ne') {
           newScale = Math.max(0.1, resizingFloorplan.startScale + deltaX * scaleFactor);
-          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
           newPosition.y = resizingFloorplan.startPosition.y - heightChange;
         } else if (resizingFloorplan.corner === 'nw') {
           const scaleChange = -deltaX * scaleFactor;
           newScale = Math.max(0.1, resizingFloorplan.startScale + scaleChange);
-          newPosition.x = resizingFloorplan.startPosition.x - (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
-          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+          const widthChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth / resizingFloorplan.pixelsPerInch;
+          newPosition.x = resizingFloorplan.startPosition.x - widthChange;
+          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
           newPosition.y = resizingFloorplan.startPosition.y - heightChange;
         }
 
@@ -718,7 +719,7 @@ function AVCanvasContent() {
             : fp
         ));
       }
-    }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan, zoom, floorplans]);
+    }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan, zoom]);
 
   const handleFloorplanMouseUp = useCallback(() => {
     if (draggingFloorplan && floorplanDragOffset.x !== 0 && floorplanDragOffset.y !== 0) {
