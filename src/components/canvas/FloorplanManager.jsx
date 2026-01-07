@@ -360,7 +360,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                       <h4 className="text-sm font-medium text-white">{fp.name}</h4>
-                      <p className="text-xs text-gray-500">Scale: {fp.pixelsPerInch?.toFixed(2) || 'N/A'} px/inch</p>
+                      <p className="text-xs text-gray-500">
+                        Scale: {fp.pixelsPerInch ? `${fp.pixelsPerInch.toFixed(2)} px/inch` : 'Not calibrated'}
+                      </p>
                     </div>
                   <div className="flex gap-1">
                     <Button
