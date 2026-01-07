@@ -620,6 +620,9 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
+    // Only allow left click (button 0) to drag floorplans
+    if (e.button !== 0) return;
+
     e.stopPropagation();
     const floorplan = floorplans.find(fp => fp.id === floorplanId);
     if (!floorplan) return;
