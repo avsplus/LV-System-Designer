@@ -1385,7 +1385,6 @@ function AVCanvasContent() {
                       data-floorplan="true"
                       data-floorplan-id={fp.id}
                       onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
-                      onMouseDownCapture={(e) => e.stopPropagation()}
                       style={{
                         position: 'absolute',
                         top: `${currentY}px`,
