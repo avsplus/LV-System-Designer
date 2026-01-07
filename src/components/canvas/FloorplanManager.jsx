@@ -17,6 +17,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationZoom, setCalibrationZoom] = useState(0.25);
   const [editingScale, setEditingScale] = useState(null);
+  const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -424,7 +425,15 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
             <p className="text-sm text-gray-500 text-center py-4">No floorplans yet</p>
           ) : (
             floorplans.map((fp) => (
-              <div key={fp.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+              <div 
+                key={fp.id} 
+                onClick={() => setSelectedFloorplanId(fp.id)}
+                className={`bg-gray-800 border rounded-lg p-3 cursor-pointer transition-all ${
+                  selectedFloorplanId === fp.id 
+                    ? 'border-blue-500 ring-2 ring-blue-500/50' 
+                    : 'border-gray-700 hover:border-gray-600'
+                }`}
+              >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                       <h4 className="text-sm font-medium text-white">{fp.name}</h4>
@@ -451,14 +460,17 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                           </Button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <p className="text-xs text-gray-500">
                             Scale: {fp.pixelsPerInch ? `${fp.pixelsPerInch.toFixed(2)} px/inch` : 'Not calibrated'}
                           </p>
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => handleRecalibrate(fp)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRecalibrate(fp);
+                            }}
                             className="h-5 w-5 text-blue-400 hover:text-blue-300"
                             title="Recalibrate"
                           >
@@ -467,11 +479,14 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleToggleLock(fp.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleLock(fp.id);
+                        }}
                         className={`h-7 w-7 ${fp.locked ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
                         title={fp.locked ? 'Unlock' : 'Lock'}
                       >
@@ -480,7 +495,10 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleToggleVisibility(fp.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleVisibility(fp.id);
+                        }}
                         className="h-7 w-7 text-orange-400 hover:text-orange-300"
                       >
                         {fp.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -488,7 +506,10 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleDelete(fp.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(fp.id);
+                        }}
                         className="h-7 w-7 text-red-500 hover:text-red-400"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -497,7 +518,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 </div>
                 
                 {fp.visible && (
-                  <div className="space-y-1">
+                  <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
                     <label className="text-xs text-gray-400">Opacity: {Math.round(fp.opacity * 100)}%</label>
                     <Slider
                       value={[fp.opacity]}
@@ -511,7 +532,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 )}
 
                 {/* Preview */}
-                <div className="mt-2 rounded overflow-hidden">
+                <div className="mt-2 rounded overflow-hidden" onClick={(e) => e.stopPropagation()}>
                   <img 
                     src={fp.url} 
                     alt={fp.name}
