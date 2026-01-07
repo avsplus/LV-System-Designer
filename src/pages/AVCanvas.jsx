@@ -1381,6 +1381,7 @@ function AVCanvasContent() {
                     <div
                       key={fp.id}
                       data-floorplan="true"
+                      data-floorplan-id={fp.id}
                       onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
                       onMouseDownCapture={(e) => e.stopPropagation()}
                       style={{
@@ -1394,8 +1395,9 @@ function AVCanvasContent() {
                         border: selectedFloorplanId === fp.id ? '3px solid #3b82f6' : 'none',
                         borderRadius: selectedFloorplanId === fp.id ? '4px' : '0',
                         boxShadow: selectedFloorplanId === fp.id ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
-                        transform: dragTransform,
-                        transition: isDragging ? 'none' : 'all 0.2s ease'
+                        transform: isDragging && fp.id === draggingFloorplan ? dragTransform : 'none',
+                        transition: isDragging ? 'none' : 'all 0.2s ease',
+                        willChange: isDragging ? 'transform' : 'auto'
                       }}
                     >
                       <img 
