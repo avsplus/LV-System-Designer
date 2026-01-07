@@ -423,7 +423,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                             size="icon"
                             variant="ghost"
                             onClick={() => handleRecalibrate(fp)}
-                            className="h-5 w-5 text-gray-500 hover:text-blue-400"
+                            className="h-5 w-5 text-blue-400 hover:text-blue-300"
                             title="Recalibrate"
                           >
                             <Ruler className="w-3 h-3" />
@@ -436,7 +436,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                       size="icon"
                       variant="ghost"
                       onClick={() => handleToggleVisibility(fp.id)}
-                      className="h-7 w-7 text-gray-400 hover:text-orange-400"
+                      className="h-7 w-7 text-orange-400 hover:text-orange-300"
                     >
                       {fp.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                     </Button>
@@ -444,7 +444,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                       size="icon"
                       variant="ghost"
                       onClick={() => handleDelete(fp.id)}
-                      className="h-7 w-7 text-gray-400 hover:text-red-500"
+                      className="h-7 w-7 text-red-500 hover:text-red-400"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
