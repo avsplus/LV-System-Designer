@@ -826,17 +826,22 @@ function AVCanvasContent() {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
     };
 
-    window.addEventListener('mousemove', handleDragMouseMove);
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    window.addEventListener('mousemove', handleFloorplanMouseMove);
-    window.addEventListener('mouseup', handleFloorplanMouseUp);
+    const handleAllMouseMove = (e) => {
+      handleDragMouseMove(e);
+      handleGlobalMouseMove(e);
+      handleFloorplanMouseMove(e);
+    };
+
+    const handleAllMouseUp = (e) => {
+      handleGlobalMouseUp(e);
+      handleFloorplanMouseUp();
+    };
+
+    window.addEventListener('mousemove', handleAllMouseMove);
+    window.addEventListener('mouseup', handleAllMouseUp);
     return () => {
-      window.removeEventListener('mousemove', handleDragMouseMove);
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
-      window.removeEventListener('mouseup', handleGlobalMouseUp);
-      window.removeEventListener('mousemove', handleFloorplanMouseMove);
-      window.removeEventListener('mouseup', handleFloorplanMouseUp);
+      window.removeEventListener('mousemove', handleAllMouseMove);
+      window.removeEventListener('mouseup', handleAllMouseUp);
     };
   }, [handleGlobalMouseMove, handleGlobalMouseUp, handleFloorplanMouseMove, handleFloorplanMouseUp]);
 
