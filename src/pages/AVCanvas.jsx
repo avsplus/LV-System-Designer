@@ -622,11 +622,11 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
-      // Only allow left click (button 0) to drag floorplans
-      if (e.button !== 0) return;
-
       e.preventDefault();
       e.stopPropagation();
+
+      // Only allow left click (button 0) to drag floorplans
+      if (e.button !== 0) return;
 
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
@@ -1382,6 +1382,7 @@ function AVCanvasContent() {
                       key={fp.id}
                       data-floorplan="true"
                       onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
+                      onMouseDownCapture={(e) => e.stopPropagation()}
                       style={{
                         position: 'absolute',
                         top: `${position.y}px`,
