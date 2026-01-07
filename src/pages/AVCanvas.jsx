@@ -1352,11 +1352,9 @@ function AVCanvasContent() {
                         top: `${position.y}px`,
                         left: `${position.x}px`,
                         width: `${displayWidth}px`,
-                        height: `${displayHeight}px`,
                         opacity: fp.opacity,
                         pointerEvents: 'auto',
-                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab',
-                        objectFit: 'fill'
+                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
                       }}
                     />
                   );
