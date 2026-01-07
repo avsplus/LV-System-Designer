@@ -126,6 +126,7 @@ function AVCanvasContent() {
   const [floorplanDragStart, setFloorplanDragStart] = useState(null);
   const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
   const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
+  const [resizingFloorplan, setResizingFloorplan] = useState(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -645,18 +646,79 @@ function AVCanvasContent() {
       });
     };
 
-  const handleFloorplanMouseMove = useCallback((e) => {
-      if (!draggingFloorplan || !floorplanDragStart) return;
+  const handleResizeMouseDown = (e, floorplanId, corner) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const floorplan = floorplans.find(fp => fp.id === floorplanId);
+      if (!floorplan || floorplan.locked) return;
 
       const canvasRect = canvasRef.current.getBoundingClientRect();
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
       const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
-      const newX = mouseWorldX - floorplanDragStart.offsetX;
-      const newY = mouseWorldY - floorplanDragStart.offsetY;
+      setResizingFloorplan({
+        id: floorplanId,
+        corner,
+        startMouseX: mouseWorldX,
+        startMouseY: mouseWorldY,
+        startScale: floorplan.scale || 1,
+        startPosition: floorplan.position || { x: 0, y: 0 },
+        originalWidth: floorplan.imageWidth,
+        aspectRatio: floorplan.imageHeight / floorplan.imageWidth
+      });
+    };
 
-      setFloorplanDragOffset({ x: newX, y: newY });
-    }, [draggingFloorplan, floorplanDragStart, pan, zoom]);
+  const handleFloorplanMouseMove = useCallback((e) => {
+      if (draggingFloorplan && floorplanDragStart) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+        const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+        const newX = mouseWorldX - floorplanDragStart.offsetX;
+        const newY = mouseWorldY - floorplanDragStart.offsetY;
+
+        setFloorplanDragOffset({ x: newX, y: newY });
+      }
+
+      if (resizingFloorplan) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+        const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+        const deltaX = mouseWorldX - resizingFloorplan.startMouseX;
+        const deltaY = mouseWorldY - resizingFloorplan.startMouseY;
+
+        let newScale = resizingFloorplan.startScale;
+        let newPosition = { ...resizingFloorplan.startPosition };
+
+        const scaleFactor = 1 / (resizingFloorplan.originalWidth / (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1)));
+
+        if (resizingFloorplan.corner === 'se') {
+          newScale = Math.max(0.1, resizingFloorplan.startScale + deltaX * scaleFactor);
+        } else if (resizingFloorplan.corner === 'sw') {
+          const scaleChange = -deltaX * scaleFactor;
+          newScale = Math.max(0.1, resizingFloorplan.startScale + scaleChange);
+          newPosition.x = resizingFloorplan.startPosition.x - (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+        } else if (resizingFloorplan.corner === 'ne') {
+          newScale = Math.max(0.1, resizingFloorplan.startScale + deltaX * scaleFactor);
+          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+          newPosition.y = resizingFloorplan.startPosition.y - heightChange;
+        } else if (resizingFloorplan.corner === 'nw') {
+          const scaleChange = -deltaX * scaleFactor;
+          newScale = Math.max(0.1, resizingFloorplan.startScale + scaleChange);
+          newPosition.x = resizingFloorplan.startPosition.x - (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio * (1 / (floorplans.find(fp => fp.id === resizingFloorplan.id)?.pixelsPerInch || 1));
+          newPosition.y = resizingFloorplan.startPosition.y - heightChange;
+        }
+
+        setFloorplans(prev => prev.map(fp => 
+          fp.id === resizingFloorplan.id 
+            ? { ...fp, scale: newScale, position: newPosition }
+            : fp
+        ));
+      }
+    }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan, zoom, floorplans]);
 
   const handleFloorplanMouseUp = useCallback(() => {
     if (draggingFloorplan && floorplanDragOffset.x !== 0 && floorplanDragOffset.y !== 0) {
@@ -682,10 +744,21 @@ function AVCanvasContent() {
         markLocalChange();
       }
     }
+
+    if (resizingFloorplan) {
+      if (currentProject?.id) {
+        base44.entities.AVProject.update(currentProject.id, {
+          floorplans
+        }).catch(error => console.error('Failed to save floorplan scale:', error));
+        markLocalChange();
+      }
+      setResizingFloorplan(null);
+    }
+
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragOffset, floorplans, currentProject]);
+  }, [draggingFloorplan, floorplanDragOffset, floorplans, currentProject, resizingFloorplan]);
 
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
@@ -1370,7 +1443,7 @@ function AVCanvasContent() {
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Scale floorplan so 1 canvas pixel = 1 inch in real world
-                  const scaleFactor = 1 / (fp.pixelsPerInch || 1);
+                  const scaleFactor = (1 / (fp.pixelsPerInch || 1)) * (fp.scale || 1);
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const position = fp.position || { x: 100, y: 100 };
 
@@ -1378,6 +1451,7 @@ function AVCanvasContent() {
                   const isThisOneDragging = draggingFloorplan === fp.id;
                   const currentX = isThisOneDragging && floorplanDragOffset.x !== 0 ? floorplanDragOffset.x : position.x;
                   const currentY = isThisOneDragging && floorplanDragOffset.y !== 0 ? floorplanDragOffset.y : position.y;
+                  const isSelected = selectedFloorplanId === fp.id;
 
                   return (
                     <div
@@ -1392,12 +1466,12 @@ function AVCanvasContent() {
                         width: `${displayWidth}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
-                        padding: selectedFloorplanId === fp.id ? '4px' : '0',
-                        border: selectedFloorplanId === fp.id ? '3px solid #3b82f6' : 'none',
-                        borderRadius: selectedFloorplanId === fp.id ? '4px' : '0',
-                        boxShadow: selectedFloorplanId === fp.id ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
-                        zIndex: selectedFloorplanId === fp.id ? 1000 : index,
-                        transition: isThisOneDragging ? 'none' : 'all 0.2s ease',
+                        padding: isSelected ? '4px' : '0',
+                        border: isSelected ? '3px solid #3b82f6' : 'none',
+                        borderRadius: isSelected ? '4px' : '0',
+                        boxShadow: isSelected ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
+                        zIndex: isSelected ? 1000 : index,
+                        transition: isThisOneDragging || resizingFloorplan?.id === fp.id ? 'none' : 'all 0.2s ease',
                         flexShrink: 0
                       }}
                     >
@@ -1413,6 +1487,71 @@ function AVCanvasContent() {
                           pointerEvents: 'none'
                         }}
                       />
+                      {isSelected && !fp.locked && (
+                        <>
+                          {/* Corner resize handles */}
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'nw')}
+                            style={{
+                              position: 'absolute',
+                              top: '-6px',
+                              left: '-6px',
+                              width: '12px',
+                              height: '12px',
+                              background: '#3b82f6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'nw-resize',
+                              zIndex: 1001
+                            }}
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'ne')}
+                            style={{
+                              position: 'absolute',
+                              top: '-6px',
+                              right: '-6px',
+                              width: '12px',
+                              height: '12px',
+                              background: '#3b82f6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'ne-resize',
+                              zIndex: 1001
+                            }}
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'sw')}
+                            style={{
+                              position: 'absolute',
+                              bottom: '-6px',
+                              left: '-6px',
+                              width: '12px',
+                              height: '12px',
+                              background: '#3b82f6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'sw-resize',
+                              zIndex: 1001
+                            }}
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'se')}
+                            style={{
+                              position: 'absolute',
+                              bottom: '-6px',
+                              right: '-6px',
+                              width: '12px',
+                              height: '12px',
+                              background: '#3b82f6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'se-resize',
+                              zIndex: 1001
+                            }}
+                          />
+                        </>
+                      )}
                     </div>
                   );
                 })}
