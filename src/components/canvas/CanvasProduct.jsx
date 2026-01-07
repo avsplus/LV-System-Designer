@@ -629,7 +629,8 @@ Only return URLs that:
         WebkitUserSelect: 'none',
         touchAction: 'none',
         willChange: isDragging ? 'transform' : 'auto',
-        transition: isDragging ? 'none' : 'border-color 0.15s ease'
+        transition: isDragging ? 'none' : 'border-color 0.15s ease',
+        pointerEvents: 'auto'
       }}
       className={`bg-gray-800 border-2 rounded-xl p-4 cursor-move flex flex-col ${
         isDragging ? 'shadow-2xl shadow-blue-500/30 border-blue-500 scale-105 z-50' : 
