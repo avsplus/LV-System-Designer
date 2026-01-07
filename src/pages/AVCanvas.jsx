@@ -1335,9 +1335,10 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                 {floorplans.filter(fp => fp.visible).map((fp) => {
-                  // Scale floorplan appropriately for canvas - higher value = larger display
-                  // Using 144 pixels per inch (2x standard DPI) for better visibility
-                  const scaleFactor = 144 / fp.pixelsPerInch;
+                  // Scale floorplan to canvas workspace scale
+                  // Using 600 pixels per inch on canvas for practical device placement
+                  const targetCanvasScale = 600;
+                  const scaleFactor = targetCanvasScale / fp.pixelsPerInch;
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const position = fp.position || { x: 100, y: 100 };
 
