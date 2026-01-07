@@ -624,7 +624,9 @@ function AVCanvasContent() {
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
 
+      e.preventDefault();
       e.stopPropagation();
+
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
