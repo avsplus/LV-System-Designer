@@ -1335,24 +1335,8 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                 {floorplans.filter(fp => fp.visible).map((fp) => {
-                  // Calculate scale factor: original pixels to display pixels (72 ppi standard)
-                  const scaleFactor = 72 / fp.pixelsPerInch;
-                  const displayWidth = fp.imageWidth * scaleFactor;
-                  const displayHeight = fp.imageHeight * scaleFactor;
+                  // Display at natural image size - calibration is for measurements only
                   const position = fp.position || { x: 100, y: 100 };
-
-                  console.log('Rendering floorplan:', {
-                    id: fp.id,
-                    pixelsPerInch: fp.pixelsPerInch,
-                    imageWidth: fp.imageWidth,
-                    imageHeight: fp.imageHeight,
-                    scaleFactor,
-                    displayWidth,
-                    displayHeight,
-                    position,
-                    visible: fp.visible,
-                    opacity: fp.opacity
-                  });
 
                   return (
                     <img 
@@ -1364,12 +1348,11 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${position.y}px`,
                         left: `${position.x}px`,
-                        width: `${displayWidth}px`,
-                        height: `${displayHeight}px`,
+                        width: `${fp.imageWidth}px`,
+                        height: `${fp.imageHeight}px`,
                         opacity: fp.opacity,
                         pointerEvents: 'auto',
-                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab',
-                        border: '2px solid red'
+                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
                       }}
                     />
                   );
