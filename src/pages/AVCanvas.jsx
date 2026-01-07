@@ -623,6 +623,9 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
+      // Don't start drag if clicking on a resize handle
+      if (e.target.hasAttribute('data-resize-handle')) return;
+
       e.preventDefault();
       e.stopPropagation();
 
@@ -1492,6 +1495,7 @@ function AVCanvasContent() {
                         <>
                           {/* Corner resize handles */}
                           <div
+                            data-resize-handle="true"
                             onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'nw')}
                             style={{
                               position: 'absolute',
@@ -1507,6 +1511,7 @@ function AVCanvasContent() {
                             }}
                           />
                           <div
+                            data-resize-handle="true"
                             onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'ne')}
                             style={{
                               position: 'absolute',
@@ -1522,6 +1527,7 @@ function AVCanvasContent() {
                             }}
                           />
                           <div
+                            data-resize-handle="true"
                             onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'sw')}
                             style={{
                               position: 'absolute',
@@ -1537,6 +1543,7 @@ function AVCanvasContent() {
                             }}
                           />
                           <div
+                            data-resize-handle="true"
                             onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'se')}
                             style={{
                               position: 'absolute',
