@@ -640,20 +640,21 @@ function AVCanvasContent() {
     };
 
   const handleFloorplanMouseMove = useCallback((e) => {
-    if (!draggingFloorplan || !floorplanDragStart) return;
+      if (!draggingFloorplan || !floorplanDragStart) return;
 
-    const dx = (e.clientX - floorplanDragStart.mouseX) / zoom;
-    const dy = (e.clientY - floorplanDragStart.mouseY) / zoom;
+      const canvasRect = floorplanDragStart.canvasRect;
+      const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+      const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
-    setFloorplans(prev => prev.map(fp => 
-      fp.id === draggingFloorplan
-        ? { ...fp, position: { 
-            x: floorplanDragStart.startX + dx, 
-            y: floorplanDragStart.startY + dy 
-          }}
-        : fp
-    ));
-  }, [draggingFloorplan, floorplanDragStart, zoom]);
+      setFloorplans(prev => prev.map(fp => 
+        fp.id === draggingFloorplan
+          ? { ...fp, position: { 
+              x: mouseWorldX - floorplanDragStart.offsetX, 
+              y: mouseWorldY - floorplanDragStart.offsetY 
+            }}
+          : fp
+      ));
+    }, [draggingFloorplan, floorplanDragStart, zoom, pan]);
 
   const handleFloorplanMouseUp = useCallback(() => {
     if (draggingFloorplan && currentProject?.id) {
