@@ -48,12 +48,13 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
     const isOnDevice = e.target.closest('[data-instance-id]');
     const isOnButton = e.target.closest('button');
     const isOnPort = e.target.hasAttribute('data-port-type') || e.target.hasAttribute('data-port-id');
-    
+    const isOnFloorplan = e.target.tagName === 'IMG'; // Floorplan images
+
     // Allow panning with middle mouse, space+click, or left click on empty canvas area
     const isMiddleMouse = e.button === 1;
     const isSpacePanning = e.button === 0 && spacePressed;
-    const isEmptyCanvasClick = e.button === 0 && !isOnDevice && !isOnButton && !isOnPort;
-    
+    const isEmptyCanvasClick = e.button === 0 && !isOnDevice && !isOnButton && !isOnPort && !isOnFloorplan;
+
     if (isMiddleMouse || isSpacePanning || isEmptyCanvasClick) {
       e.preventDefault();
       setIsPanning(true);
