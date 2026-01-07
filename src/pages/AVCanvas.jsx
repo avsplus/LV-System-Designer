@@ -1354,6 +1354,7 @@ function AVCanvasContent() {
                   return (
                     <div
                       key={fp.id}
+                      data-floorplan="true"
                       onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
                       style={{
                         position: 'absolute',
