@@ -169,9 +169,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     const img = imageRef.current;
 
     const draw = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
 
       // Draw calibration points and line
       if (calibrationPoints.length > 0) {
