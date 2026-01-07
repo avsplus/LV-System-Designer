@@ -1342,20 +1342,11 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                 {floorplans.filter(fp => fp.visible).map((fp) => {
-                  // Scale floorplan large enough for device placement in rooms
-                  // Using 100 pixels per inch to make rooms large enough for device cards
-                  const targetCanvasScale = 100; // pixels per inch on canvas
-                  const scaleFactor = targetCanvasScale / fp.pixelsPerInch;
+                  // Scale floorplan so 1 canvas pixel = 1 inch in real world
+                  // This makes the calibration meaningful and consistent
+                  const scaleFactor = 1 / (fp.pixelsPerInch || 1);
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const position = fp.position || { x: 100, y: 100 };
-
-                  console.log('Floorplan scaling:', {
-                    imageWidth: fp.imageWidth,
-                    pixelsPerInch: fp.pixelsPerInch,
-                    targetCanvasScale,
-                    scaleFactor,
-                    displayWidth
-                  });
 
                   return (
                     <img 
