@@ -1389,7 +1389,6 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${currentY}px`,
                         left: `${currentX}px`,
-                        width: `${displayWidth}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: selectedFloorplanId === fp.id ? '4px' : '0',
@@ -1404,7 +1403,7 @@ function AVCanvasContent() {
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          width: '100%',
+                          width: `${displayWidth}px`,
                           height: 'auto',
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
