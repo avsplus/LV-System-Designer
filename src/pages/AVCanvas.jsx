@@ -1389,6 +1389,7 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${currentY}px`,
                         left: `${currentX}px`,
+                        width: `${displayWidth}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: selectedFloorplanId === fp.id ? '4px' : '0',
@@ -1396,14 +1397,15 @@ function AVCanvasContent() {
                         borderRadius: selectedFloorplanId === fp.id ? '4px' : '0',
                         boxShadow: selectedFloorplanId === fp.id ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
                         zIndex: selectedFloorplanId === fp.id ? 1000 : index,
-                        transition: isThisOneDragging ? 'none' : 'all 0.2s ease'
+                        transition: isThisOneDragging ? 'none' : 'all 0.2s ease',
+                        flexShrink: 0
                       }}
                     >
                       <img 
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          width: `${displayWidth}px`,
+                          width: '100%',
                           height: 'auto',
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
