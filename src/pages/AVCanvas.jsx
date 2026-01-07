@@ -625,7 +625,9 @@ function AVCanvasContent() {
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
       // Don't start drag if clicking on a resize handle
-      if (e.target.closest('[data-resize-handle]')) return;
+      if (e.target.hasAttribute('data-resize-handle')) {
+        return;
+      }
 
       e.preventDefault();
       e.stopPropagation();
@@ -822,11 +824,11 @@ function AVCanvasContent() {
       handleResizeEnd();
     };
 
-    window.addEventListener('pointermove', handleDragMove);
-    window.addEventListener('pointerup', handleDragEnd);
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('mouseup', handleDragEnd);
     return () => {
-      window.removeEventListener('pointermove', handleDragMove);
-      window.removeEventListener('pointerup', handleDragEnd);
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
     };
   }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd]);
 
@@ -1503,8 +1505,12 @@ function AVCanvasContent() {
                         <>
                           {/* Corner resize handles */}
                           <div
-                            data-resize-handle="nw"
-                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'nw')}
+                            data-resize-handle
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeStart(e, fp.id, 'nw');
+                            }}
                             style={{
                               position: 'absolute',
                               top: '-15px',
@@ -1529,8 +1535,12 @@ function AVCanvasContent() {
                             }} />
                           </div>
                           <div
-                            data-resize-handle="ne"
-                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'ne')}
+                            data-resize-handle
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeStart(e, fp.id, 'ne');
+                            }}
                             style={{
                               position: 'absolute',
                               top: '-15px',
@@ -1555,8 +1565,12 @@ function AVCanvasContent() {
                             }} />
                           </div>
                           <div
-                            data-resize-handle="sw"
-                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'sw')}
+                            data-resize-handle
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeStart(e, fp.id, 'sw');
+                            }}
                             style={{
                               position: 'absolute',
                               bottom: '-15px',
@@ -1581,8 +1595,12 @@ function AVCanvasContent() {
                             }} />
                           </div>
                           <div
-                            data-resize-handle="se"
-                            onPointerDown={(e) => handleResizeStart(e, fp.id, 'se')}
+                            data-resize-handle
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeStart(e, fp.id, 'se');
+                            }}
                             style={{
                               position: 'absolute',
                               bottom: '-15px',
