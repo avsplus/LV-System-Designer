@@ -127,6 +127,7 @@ function AVCanvasContent() {
   const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
   const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
   const [resizingFloorplan, setResizingFloorplan] = useState(null);
+  const resizingRef = useRef(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -656,23 +657,20 @@ function AVCanvasContent() {
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
-      const canvasRect = canvasRef.current?.getBoundingClientRect();
-      if (!canvasRect) return;
-      
-      const startClientX = e.clientX;
-      const startClientY = e.clientY;
-
-      setResizingFloorplan({
+      const resizeState = {
         id: floorplanId,
         corner,
-        startClientX,
-        startClientY,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
         startScale: floorplan.scale || 1,
         startPosition: { ...(floorplan.position || { x: 0, y: 0 }) },
         originalWidth: floorplan.imageWidth,
         aspectRatio: floorplan.imageHeight / floorplan.imageWidth,
         pixelsPerInch: floorplan.pixelsPerInch || 1
-      });
+      };
+
+      resizingRef.current = resizeState;
+      setResizingFloorplan(resizeState);
 
       if (e.target.setPointerCapture && e.pointerId !== undefined) {
         e.target.setPointerCapture(e.pointerId);
@@ -692,40 +690,40 @@ function AVCanvasContent() {
         setFloorplanDragOffset({ x: newX, y: newY });
       }
 
-      if (resizingFloorplan) {
-        const dx = (e.clientX - resizingFloorplan.startClientX) / zoom;
-        const dy = (e.clientY - resizingFloorplan.startClientY) / zoom;
+      const resize = resizingRef.current;
+      if (resize) {
+        const dx = (e.clientX - resize.startClientX) / zoom;
 
-        let newScale = resizingFloorplan.startScale;
-        let newPosition = { ...resizingFloorplan.startPosition };
+        let newScale = resize.startScale;
+        let newPosition = { ...resize.startPosition };
 
         const scaleFactor = 0.005;
 
-        if (resizingFloorplan.corner === 'se') {
-          newScale = Math.max(0.1, resizingFloorplan.startScale + dx * scaleFactor);
-        } else if (resizingFloorplan.corner === 'sw') {
-          newScale = Math.max(0.1, resizingFloorplan.startScale - dx * scaleFactor);
-          const widthChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth / resizingFloorplan.pixelsPerInch;
-          newPosition.x = resizingFloorplan.startPosition.x - widthChange;
-        } else if (resizingFloorplan.corner === 'ne') {
-          newScale = Math.max(0.1, resizingFloorplan.startScale + dx * scaleFactor);
-          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
-          newPosition.y = resizingFloorplan.startPosition.y - heightChange;
-        } else if (resizingFloorplan.corner === 'nw') {
-          newScale = Math.max(0.1, resizingFloorplan.startScale - dx * scaleFactor);
-          const widthChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth / resizingFloorplan.pixelsPerInch;
-          newPosition.x = resizingFloorplan.startPosition.x - widthChange;
-          const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
-          newPosition.y = resizingFloorplan.startPosition.y - heightChange;
+        if (resize.corner === 'se') {
+          newScale = Math.max(0.1, resize.startScale + dx * scaleFactor);
+        } else if (resize.corner === 'sw') {
+          newScale = Math.max(0.1, resize.startScale - dx * scaleFactor);
+          const widthChange = (newScale - resize.startScale) * resize.originalWidth / resize.pixelsPerInch;
+          newPosition.x = resize.startPosition.x - widthChange;
+        } else if (resize.corner === 'ne') {
+          newScale = Math.max(0.1, resize.startScale + dx * scaleFactor);
+          const heightChange = (newScale - resize.startScale) * resize.originalWidth * resize.aspectRatio / resize.pixelsPerInch;
+          newPosition.y = resize.startPosition.y - heightChange;
+        } else if (resize.corner === 'nw') {
+          newScale = Math.max(0.1, resize.startScale - dx * scaleFactor);
+          const widthChange = (newScale - resize.startScale) * resize.originalWidth / resize.pixelsPerInch;
+          newPosition.x = resize.startPosition.x - widthChange;
+          const heightChange = (newScale - resize.startScale) * resize.originalWidth * resize.aspectRatio / resize.pixelsPerInch;
+          newPosition.y = resize.startPosition.y - heightChange;
         }
 
         setFloorplans(prev => prev.map(fp => 
-          fp.id === resizingFloorplan.id 
+          fp.id === resize.id 
             ? { ...fp, scale: newScale, position: newPosition }
             : fp
         ));
       }
-    }, [draggingFloorplan, floorplanDragStart, resizingFloorplan, pan.x, pan.y, zoom]);
+    }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
   const handleResizeEnd = useCallback(() => {
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
@@ -754,7 +752,7 @@ function AVCanvasContent() {
       });
     }
 
-    if (resizingFloorplan) {
+    if (resizingRef.current) {
       setFloorplans(prev => {
         if (currentProject?.id) {
           base44.entities.AVProject.update(currentProject.id, {
@@ -764,13 +762,14 @@ function AVCanvasContent() {
         }
         return prev;
       });
+      resizingRef.current = null;
       setResizingFloorplan(null);
     }
 
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragOffset, currentProject, resizingFloorplan, markLocalChange]);
+  }, [draggingFloorplan, floorplanDragOffset, currentProject, markLocalChange]);
 
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
