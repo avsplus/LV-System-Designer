@@ -652,13 +652,22 @@ function AVCanvasContent() {
   const handleResizeMouseDown = useCallback((e, floorplanId, corner) => {
       e.preventDefault();
       e.stopPropagation();
+      
+      console.log('Resize mousedown triggered:', corner, floorplanId);
 
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
-      if (!floorplan || floorplan.locked) return;
+      if (!floorplan || floorplan.locked) {
+        console.log('Floorplan locked or not found');
+        return;
+      }
 
-      const canvasRect = canvasRef.current.getBoundingClientRect();
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (!canvasRect) return;
+      
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
       const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+      console.log('Starting resize:', { corner, mouseWorldX, mouseWorldY, scale: floorplan.scale });
 
       setResizingFloorplan({
         id: floorplanId,
@@ -671,7 +680,7 @@ function AVCanvasContent() {
         aspectRatio: floorplan.imageHeight / floorplan.imageWidth,
         pixelsPerInch: floorplan.pixelsPerInch || 1
       });
-    }, [floorplans, pan, zoom]);
+    }, [floorplans, pan.x, pan.y, zoom]);
 
   const handleFloorplanMouseMove = useCallback((e) => {
       if (draggingFloorplan && floorplanDragStart) {
@@ -717,6 +726,8 @@ function AVCanvasContent() {
           const heightChange = (newScale - resizingFloorplan.startScale) * resizingFloorplan.originalWidth * resizingFloorplan.aspectRatio / resizingFloorplan.pixelsPerInch;
           newPosition.y = resizingFloorplan.startPosition.y - heightChange;
         }
+
+        console.log('Resizing:', { corner: resizingFloorplan.corner, deltaX, newScale });
 
         setFloorplans(prev => prev.map(fp => 
           fp.id === resizingFloorplan.id 
@@ -1500,71 +1511,119 @@ function AVCanvasContent() {
                       />
                       {isSelected && !fp.locked && (
                         <>
-                          {/* Corner resize handles */}
+                          {/* Corner resize handles with larger hit areas */}
                           <div
                             data-resize-handle="nw"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'nw')}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'nw');
+                            }}
                             style={{
                               position: 'absolute',
-                              top: '-10px',
-                              left: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              top: '-15px',
+                              left: '-15px',
+                              width: '30px',
+                              height: '30px',
+                              cursor: 'nw-resize',
+                              zIndex: 1003,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <div style={{
+                              width: '14px',
+                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
-                              cursor: 'nw-resize',
-                              zIndex: 1002
-                            }}
-                          />
+                              pointerEvents: 'none'
+                            }} />
+                          </div>
                           <div
                             data-resize-handle="ne"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'ne')}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'ne');
+                            }}
                             style={{
                               position: 'absolute',
-                              top: '-10px',
-                              right: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              top: '-15px',
+                              right: '-15px',
+                              width: '30px',
+                              height: '30px',
+                              cursor: 'ne-resize',
+                              zIndex: 1003,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <div style={{
+                              width: '14px',
+                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
-                              cursor: 'ne-resize',
-                              zIndex: 1002
-                            }}
-                          />
+                              pointerEvents: 'none'
+                            }} />
+                          </div>
                           <div
                             data-resize-handle="sw"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'sw')}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'sw');
+                            }}
                             style={{
                               position: 'absolute',
-                              bottom: '-10px',
-                              left: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              bottom: '-15px',
+                              left: '-15px',
+                              width: '30px',
+                              height: '30px',
+                              cursor: 'sw-resize',
+                              zIndex: 1003,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <div style={{
+                              width: '14px',
+                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
-                              cursor: 'sw-resize',
-                              zIndex: 1002
-                            }}
-                          />
+                              pointerEvents: 'none'
+                            }} />
+                          </div>
                           <div
                             data-resize-handle="se"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'se')}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'se');
+                            }}
                             style={{
                               position: 'absolute',
-                              bottom: '-10px',
-                              right: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              bottom: '-15px',
+                              right: '-15px',
+                              width: '30px',
+                              height: '30px',
+                              cursor: 'se-resize',
+                              zIndex: 1003,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <div style={{
+                              width: '14px',
+                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
-                              cursor: 'se-resize',
-                              zIndex: 1002
-                            }}
-                          />
+                              pointerEvents: 'none'
+                            }} />
+                          </div>
                         </>
                       )}
                     </div>
