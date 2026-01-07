@@ -688,7 +688,9 @@ function AVCanvasContent() {
   }, [draggingFloorplan, floorplanDragStart, floorplanDragOffset, floorplans, currentProject]);
 
   const handleMouseDown = (e) => {
-    if (!draggingFloorplan) {
+    // Don't start panning if clicking on a floorplan
+    const isOnFloorplan = e.target.tagName === 'IMG' || e.target.closest('[data-floorplan]');
+    if (!draggingFloorplan && !isOnFloorplan) {
       handlePanStart(e, canvasRef.current);
     }
   };
