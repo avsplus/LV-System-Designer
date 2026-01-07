@@ -1363,10 +1363,11 @@ function AVCanvasContent() {
               height: '100%',
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
-              transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out'
+              transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
+              pointerEvents: 'auto'
             }}>
               {/* Floorplans Layer */}
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Scale floorplan so 1 canvas pixel = 1 inch in real world
                   const scaleFactor = 1 / (fp.pixelsPerInch || 1);
