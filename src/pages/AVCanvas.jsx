@@ -652,8 +652,8 @@ function AVCanvasContent() {
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
       const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
-      const newX = mouseWorldX - floorplanDragStart.offsetX - floorplanDragStart.startPos.x;
-      const newY = mouseWorldY - floorplanDragStart.offsetY - floorplanDragStart.startPos.y;
+      const newX = mouseWorldX - floorplanDragStart.offsetX;
+      const newY = mouseWorldY - floorplanDragStart.offsetY;
 
       setFloorplanDragOffset({ x: newX, y: newY });
     }, [draggingFloorplan, floorplanDragStart, pan, zoom]);
