@@ -688,9 +688,12 @@ function AVCanvasContent() {
   }, [draggingFloorplan, floorplanDragStart, floorplanDragOffset, floorplans, currentProject]);
 
   const handleMouseDown = (e) => {
-    // Don't start panning if clicking on a floorplan
-    const isOnFloorplan = e.target.tagName === 'IMG' || e.target.closest('[data-floorplan]');
-    if (!draggingFloorplan && !isOnFloorplan) {
+    // Only pan when clicking on empty canvas space (background or SVG)
+    const isEmptySpace = e.target === e.currentTarget || 
+                        e.target.tagName === 'svg' || 
+                        e.target.getAttribute('data-canvas-background') === 'true';
+    
+    if (isEmptySpace && !draggingFloorplan) {
       handlePanStart(e, canvasRef.current);
     }
   };
