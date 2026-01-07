@@ -123,10 +123,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     // Store as pixels per inch for distance calculations
     const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
 
-    // Get image dimensions
-    const img = imageRef.current;
-    const imageWidth = img.naturalWidth;
-    const imageHeight = img.naturalHeight;
+    // Get image dimensions from calibrating object (captured during upload)
+    const imageWidth = calibrating.naturalWidth;
+    const imageHeight = calibrating.naturalHeight;
     
     // Calculate position offset for new floorplan (200px right of last one)
     const lastFloorplan = floorplans[floorplans.length - 1];
