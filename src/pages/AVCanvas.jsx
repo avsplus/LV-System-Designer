@@ -1376,8 +1376,8 @@ function AVCanvasContent() {
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
-                  const currentX = isThisOneDragging ? position.x + floorplanDragOffset.x : position.x;
-                  const currentY = isThisOneDragging ? position.y + floorplanDragOffset.y : position.y;
+                  const currentX = isThisOneDragging && floorplanDragOffset.x !== 0 ? floorplanDragOffset.x : position.x;
+                  const currentY = isThisOneDragging && floorplanDragOffset.y !== 0 ? floorplanDragOffset.y : position.y;
 
                   return (
                     <div
