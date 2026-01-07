@@ -124,6 +124,7 @@ function AVCanvasContent() {
   const [floorplans, setFloorplans] = useState([]);
   const [draggingFloorplan, setDraggingFloorplan] = useState(null);
   const [floorplanDragStart, setFloorplanDragStart] = useState(null);
+  const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
   const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
   
   const canvasRef = useRef(null);
@@ -639,40 +640,52 @@ function AVCanvasContent() {
       setDraggingFloorplan(floorplanId);
       setFloorplanDragStart({
         offsetX: mouseWorldX - (floorplan.position?.x || 0),
-        offsetY: mouseWorldY - (floorplan.position?.y || 0)
+        offsetY: mouseWorldY - (floorplan.position?.y || 0),
+        startPos: { x: floorplan.position?.x || 0, y: floorplan.position?.y || 0 }
       });
     };
 
   const handleFloorplanMouseMove = useCallback((e) => {
       if (!draggingFloorplan || !floorplanDragStart) return;
 
-      e.preventDefault();
-      e.stopPropagation();
-
       const canvasRect = canvasRef.current.getBoundingClientRect();
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
       const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
-      setFloorplans(prev => prev.map(fp => 
-        fp.id === draggingFloorplan
-          ? { ...fp, position: { 
-              x: mouseWorldX - floorplanDragStart.offsetX, 
-              y: mouseWorldY - floorplanDragStart.offsetY 
-            }}
-          : fp
-      ));
+      const newX = mouseWorldX - floorplanDragStart.offsetX - floorplanDragStart.startPos.x;
+      const newY = mouseWorldY - floorplanDragStart.offsetY - floorplanDragStart.startPos.y;
+
+      setFloorplanDragOffset({ x: newX, y: newY });
     }, [draggingFloorplan, floorplanDragStart, pan, zoom]);
 
   const handleFloorplanMouseUp = useCallback(() => {
-    if (draggingFloorplan && currentProject?.id) {
-      base44.entities.AVProject.update(currentProject.id, {
-        floorplans: floorplans
-      }).catch(error => console.error('Failed to save floorplan position:', error));
-      markLocalChange();
+    if (draggingFloorplan && floorplanDragStart) {
+      const updatedFloorplans = floorplans.map(fp => {
+        if (fp.id === draggingFloorplan) {
+          return {
+            ...fp,
+            position: {
+              x: (fp.position?.x || 0) + floorplanDragOffset.x,
+              y: (fp.position?.y || 0) + floorplanDragOffset.y
+            }
+          };
+        }
+        return fp;
+      });
+
+      setFloorplans(updatedFloorplans);
+
+      if (currentProject?.id) {
+        base44.entities.AVProject.update(currentProject.id, {
+          floorplans: updatedFloorplans
+        }).catch(error => console.error('Failed to save floorplan position:', error));
+        markLocalChange();
+      }
     }
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
-  }, [draggingFloorplan, floorplans, currentProject]);
+    setFloorplanDragOffset({ x: 0, y: 0 });
+  }, [draggingFloorplan, floorplanDragStart, floorplanDragOffset, floorplans, currentProject]);
 
   const handleMouseDown = (e) => {
     if (!draggingFloorplan) {
@@ -1357,6 +1370,11 @@ function AVCanvasContent() {
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const position = fp.position || { x: 100, y: 100 };
 
+                  const isDragging = draggingFloorplan === fp.id;
+                  const dragTransform = isDragging 
+                    ? `translate(${floorplanDragOffset.x}px, ${floorplanDragOffset.y}px)`
+                    : 'none';
+
                   return (
                     <div
                       key={fp.id}
@@ -1368,12 +1386,13 @@ function AVCanvasContent() {
                         left: `${position.x}px`,
                         width: `${displayWidth}px`,
                         pointerEvents: 'auto',
-                        cursor: fp.locked ? 'not-allowed' : (draggingFloorplan === fp.id ? 'grabbing' : 'grab'),
+                        cursor: fp.locked ? 'not-allowed' : (isDragging ? 'grabbing' : 'grab'),
                         padding: selectedFloorplanId === fp.id ? '4px' : '0',
                         border: selectedFloorplanId === fp.id ? '3px solid #3b82f6' : 'none',
                         borderRadius: selectedFloorplanId === fp.id ? '4px' : '0',
                         boxShadow: selectedFloorplanId === fp.id ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
-                        transition: 'all 0.2s ease'
+                        transform: dragTransform,
+                        transition: isDragging ? 'none' : 'all 0.2s ease'
                       }}
                     >
                       <img 
