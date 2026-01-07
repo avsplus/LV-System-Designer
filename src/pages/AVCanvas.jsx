@@ -1606,7 +1606,7 @@ function AVCanvasContent() {
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
-              pointerEvents: isPanning ? 'none' : 'auto'
+              pointerEvents: 'none'
             }}>
               {canvasProducts.map((cp) => {
                 const isHighlighted = highlightedConnections.some(idx => {
