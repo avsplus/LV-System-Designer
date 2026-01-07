@@ -625,7 +625,7 @@ function AVCanvasContent() {
 
       e.stopPropagation();
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
-      if (!floorplan) return;
+      if (!floorplan || floorplan.locked) return;
 
       const canvasRect = canvasRef.current.getBoundingClientRect();
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
@@ -1362,7 +1362,8 @@ function AVCanvasContent() {
                         height: 'auto',
                         opacity: fp.opacity,
                         pointerEvents: 'auto',
-                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
+                        cursor: fp.locked ? 'not-allowed' : (draggingFloorplan === fp.id ? 'grabbing' : 'grab'),
+                        filter: fp.locked ? 'brightness(0.8)' : 'none'
                       }}
                     />
                   );

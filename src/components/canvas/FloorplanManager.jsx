@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -85,6 +85,22 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     onUpdate(floorplans.map(fp => 
       fp.id === id ? { ...fp, visible: !fp.visible } : fp
     ));
+  };
+
+  const handleToggleLock = (id) => {
+    onUpdate(floorplans.map(fp => 
+      fp.id === id ? { ...fp, locked: !fp.locked } : fp
+    ));
+  };
+
+  const handleLockAll = () => {
+    onUpdate(floorplans.map(fp => ({ ...fp, locked: true })));
+    toast.success('All floorplans locked');
+  };
+
+  const handleUnlockAll = () => {
+    onUpdate(floorplans.map(fp => ({ ...fp, locked: false })));
+    toast.success('All floorplans unlocked');
   };
 
   const handleOpacityChange = (id, opacity) => {
@@ -341,14 +357,34 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">Floorplans</h3>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleLockAll}
+              className="text-xs text-gray-400 hover:text-white"
+            >
+              <Lock className="w-3 h-3 mr-1" />
+              Lock All
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleUnlockAll}
+              className="text-xs text-gray-400 hover:text-white"
+            >
+              <Unlock className="w-3 h-3 mr-1" />
+              Unlock All
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={onClose}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Upload Form */}
@@ -431,24 +467,33 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                         </div>
                       )}
                     </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleToggleVisibility(fp.id)}
-                      className="h-7 w-7 text-orange-400 hover:text-orange-300"
-                    >
-                      {fp.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(fp.id)}
-                      className="h-7 w-7 text-red-500 hover:text-red-400"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleToggleLock(fp.id)}
+                        className={`h-7 w-7 ${fp.locked ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
+                        title={fp.locked ? 'Unlock' : 'Lock'}
+                      >
+                        {fp.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleToggleVisibility(fp.id)}
+                        className="h-7 w-7 text-orange-400 hover:text-orange-300"
+                      >
+                        {fp.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDelete(fp.id)}
+                        className="h-7 w-7 text-red-500 hover:text-red-400"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                 </div>
                 
                 {fp.visible && (
