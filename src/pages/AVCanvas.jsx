@@ -1493,16 +1493,20 @@ function AVCanvasContent() {
                       />
                       {isSelected && !fp.locked && (
                         <>
-                          {/* Corner resize handles */}
+                          {/* Corner resize handles - larger clickable area */}
                           <div
                             data-resize-handle="true"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'nw')}
+                            onMouseDownCapture={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'nw');
+                            }}
                             style={{
                               position: 'absolute',
-                              top: '-6px',
-                              left: '-6px',
-                              width: '12px',
-                              height: '12px',
+                              top: '-10px',
+                              left: '-10px',
+                              width: '20px',
+                              height: '20px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
@@ -1513,13 +1517,17 @@ function AVCanvasContent() {
                           />
                           <div
                             data-resize-handle="true"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'ne')}
+                            onMouseDownCapture={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'ne');
+                            }}
                             style={{
                               position: 'absolute',
-                              top: '-6px',
-                              right: '-6px',
-                              width: '12px',
-                              height: '12px',
+                              top: '-10px',
+                              right: '-10px',
+                              width: '20px',
+                              height: '20px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
@@ -1530,13 +1538,17 @@ function AVCanvasContent() {
                           />
                           <div
                             data-resize-handle="true"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'sw')}
+                            onMouseDownCapture={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'sw');
+                            }}
                             style={{
                               position: 'absolute',
-                              bottom: '-6px',
-                              left: '-6px',
-                              width: '12px',
-                              height: '12px',
+                              bottom: '-10px',
+                              left: '-10px',
+                              width: '20px',
+                              height: '20px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
@@ -1547,13 +1559,17 @@ function AVCanvasContent() {
                           />
                           <div
                             data-resize-handle="true"
-                            onMouseDown={(e) => handleResizeMouseDown(e, fp.id, 'se')}
+                            onMouseDownCapture={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleResizeMouseDown(e, fp.id, 'se');
+                            }}
                             style={{
                               position: 'absolute',
-                              bottom: '-6px',
-                              right: '-6px',
-                              width: '12px',
-                              height: '12px',
+                              bottom: '-10px',
+                              right: '-10px',
+                              width: '20px',
+                              height: '20px',
                               background: '#3b82f6',
                               border: '2px solid white',
                               borderRadius: '50%',
