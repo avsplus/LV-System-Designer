@@ -16,6 +16,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
   const [calibrationPoints, setCalibrationPoints] = useState([]);
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationZoom, setCalibrationZoom] = useState(0.25);
+  const [editingScale, setEditingScale] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -98,6 +99,28 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     }
   };
 
+  const handleRecalibrate = (floorplan) => {
+    setCalibrating({
+      ...floorplan,
+      isRecalibrating: true,
+      originalFloorplan: floorplan
+    });
+    setCalibrationPoints([]);
+    setKnownDistance('');
+    setCalibrationZoom(0.25);
+  };
+
+  const handleScaleEdit = (id, newScale) => {
+    const scale = parseFloat(newScale);
+    if (scale > 0) {
+      onUpdate(floorplans.map(fp => 
+        fp.id === id ? { ...fp, pixelsPerInch: scale } : fp
+      ));
+      setEditingScale(null);
+      toast.success('Scale updated');
+    }
+  };
+
   const handleCanvasClick = (e) => {
     if (!calibrating || calibrationPoints.length >= 2) return;
 
@@ -123,36 +146,45 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
     // Store as pixels per inch for distance calculations
     const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
 
-    // Get image dimensions from calibrating object (captured during upload)
-    const imageWidth = calibrating.naturalWidth;
-    const imageHeight = calibrating.naturalHeight;
+    if (calibrating.isRecalibrating) {
+      // Update existing floorplan
+      onUpdate(floorplans.map(fp => 
+        fp.id === calibrating.id ? { ...fp, pixelsPerInch } : fp
+      ));
+      toast.success('Floorplan recalibrated');
+    } else {
+      // Get image dimensions from calibrating object (captured during upload)
+      const imageWidth = calibrating.naturalWidth;
+      const imageHeight = calibrating.naturalHeight;
+      
+      // Calculate position offset for new floorplan (200px right of last one)
+      const lastFloorplan = floorplans[floorplans.length - 1];
+      const position = lastFloorplan && lastFloorplan.position
+        ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
+        : { x: 0, y: 0 };
+
+      const newFloorplan = {
+        id: calibrating.id,
+        name: calibrating.name,
+        url: calibrating.url,
+        originalUrl: calibrating.originalUrl || calibrating.url,
+        isPdf: calibrating.isPdf,
+        pixelsPerInch: pixelsPerInch,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
+        position: position,
+        visible: true,
+        opacity: 0.3
+      };
+
+      onUpdate([...floorplans, newFloorplan]);
+      setUploadForm({ name: '' });
+      toast.success('Floorplan calibrated and added');
+    }
     
-    // Calculate position offset for new floorplan (200px right of last one)
-    const lastFloorplan = floorplans[floorplans.length - 1];
-    const position = lastFloorplan && lastFloorplan.position
-      ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
-      : { x: 0, y: 0 };
-
-    const newFloorplan = {
-      id: calibrating.id,
-      name: calibrating.name,
-      url: calibrating.url,
-      originalUrl: calibrating.originalUrl || calibrating.url,
-      isPdf: calibrating.isPdf,
-      pixelsPerInch: pixelsPerInch,
-      imageWidth: imageWidth,
-      imageHeight: imageHeight,
-      position: position,
-      visible: true,
-      opacity: 0.3
-    };
-
-    onUpdate([...floorplans, newFloorplan]);
     setCalibrating(null);
     setCalibrationPoints([]);
     setKnownDistance('');
-    setUploadForm({ name: '' });
-    toast.success('Floorplan calibrated and added');
   };
 
   const handleCancelCalibration = () => {
@@ -360,9 +392,44 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose })
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                       <h4 className="text-sm font-medium text-white">{fp.name}</h4>
-                      <p className="text-xs text-gray-500">
-                        Scale: {fp.pixelsPerInch ? `${fp.pixelsPerInch.toFixed(2)} px/inch` : 'Not calibrated'}
-                      </p>
+                      {editingScale === fp.id ? (
+                        <div className="flex gap-1 mt-1">
+                          <Input
+                            type="number"
+                            defaultValue={fp.pixelsPerInch?.toFixed(2) || ''}
+                            placeholder="px/inch"
+                            className="h-6 text-xs bg-gray-900 border-gray-700"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleScaleEdit(fp.id, e.target.value);
+                              if (e.key === 'Escape') setEditingScale(null);
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setEditingScale(null)}
+                            className="h-6 w-6 text-gray-400"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-gray-500">
+                            Scale: {fp.pixelsPerInch ? `${fp.pixelsPerInch.toFixed(2)} px/inch` : 'Not calibrated'}
+                          </p>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleRecalibrate(fp)}
+                            className="h-5 w-5 text-gray-500 hover:text-white"
+                            title="Recalibrate"
+                          >
+                            <Ruler className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   <div className="flex gap-1">
                     <Button
