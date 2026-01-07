@@ -640,16 +640,20 @@ function AVCanvasContent() {
       setFloorplanDragStart({
         offsetX: mouseWorldX - (floorplan.position?.x || 0),
         offsetY: mouseWorldY - (floorplan.position?.y || 0),
-        canvasRect
+        canvasRect,
+        initialPan: { x: pan.x, y: pan.y },
+        initialZoom: zoom
       });
     };
 
   const handleFloorplanMouseMove = useCallback((e) => {
       if (!draggingFloorplan || !floorplanDragStart) return;
 
-      const canvasRect = floorplanDragStart.canvasRect;
-      const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-      const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const mouseWorldX = (e.clientX - floorplanDragStart.canvasRect.left - floorplanDragStart.initialPan.x) / floorplanDragStart.initialZoom;
+      const mouseWorldY = (e.clientY - floorplanDragStart.canvasRect.top - floorplanDragStart.initialPan.y) / floorplanDragStart.initialZoom;
 
       setFloorplans(prev => prev.map(fp => 
         fp.id === draggingFloorplan
@@ -659,7 +663,7 @@ function AVCanvasContent() {
             }}
           : fp
       ));
-    }, [draggingFloorplan, floorplanDragStart, zoom, pan]);
+    }, [draggingFloorplan, floorplanDragStart]);
 
   const handleFloorplanMouseUp = useCallback(() => {
     if (draggingFloorplan && currentProject?.id) {
@@ -673,7 +677,9 @@ function AVCanvasContent() {
   }, [draggingFloorplan, floorplans, currentProject]);
 
   const handleMouseDown = (e) => {
-    handlePanStart(e, canvasRef.current);
+    if (!draggingFloorplan) {
+      handlePanStart(e, canvasRef.current);
+    }
   };
 
   const handleCanvasClick = (e) => {
