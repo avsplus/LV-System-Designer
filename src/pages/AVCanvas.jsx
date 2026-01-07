@@ -1339,7 +1339,20 @@ function AVCanvasContent() {
                   const scaleFactor = 72 / fp.pixelsPerInch;
                   const displayWidth = fp.imageWidth * scaleFactor;
                   const displayHeight = fp.imageHeight * scaleFactor;
-                  const position = fp.position || { x: 0, y: 0 };
+                  const position = fp.position || { x: 100, y: 100 };
+
+                  console.log('Rendering floorplan:', {
+                    id: fp.id,
+                    pixelsPerInch: fp.pixelsPerInch,
+                    imageWidth: fp.imageWidth,
+                    imageHeight: fp.imageHeight,
+                    scaleFactor,
+                    displayWidth,
+                    displayHeight,
+                    position,
+                    visible: fp.visible,
+                    opacity: fp.opacity
+                  });
 
                   return (
                     <img 
@@ -1355,7 +1368,8 @@ function AVCanvasContent() {
                         height: `${displayHeight}px`,
                         opacity: fp.opacity,
                         pointerEvents: 'auto',
-                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab'
+                        cursor: draggingFloorplan === fp.id ? 'grabbing' : 'grab',
+                        border: '2px solid red'
                       }}
                     />
                   );
