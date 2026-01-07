@@ -659,14 +659,14 @@ function AVCanvasContent() {
     }, [draggingFloorplan, floorplanDragStart, pan, zoom]);
 
   const handleFloorplanMouseUp = useCallback(() => {
-    if (draggingFloorplan && floorplanDragStart) {
+    if (draggingFloorplan && floorplanDragOffset.x !== 0 && floorplanDragOffset.y !== 0) {
       const updatedFloorplans = floorplans.map(fp => {
         if (fp.id === draggingFloorplan) {
           return {
             ...fp,
             position: {
-              x: (fp.position?.x || 0) + floorplanDragOffset.x,
-              y: (fp.position?.y || 0) + floorplanDragOffset.y
+              x: floorplanDragOffset.x,
+              y: floorplanDragOffset.y
             }
           };
         }
@@ -685,7 +685,7 @@ function AVCanvasContent() {
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragStart, floorplanDragOffset, floorplans, currentProject]);
+  }, [draggingFloorplan, floorplanDragOffset, floorplans, currentProject]);
 
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
