@@ -654,6 +654,9 @@ function AVCanvasContent() {
     };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
@@ -663,12 +666,14 @@ function AVCanvasContent() {
         y: (typeof floorplan.position?.y === 'number' && !isNaN(floorplan.position.y)) ? floorplan.position.y : 100
       };
 
+      const validScale = (typeof floorplan.scale === 'number' && !isNaN(floorplan.scale) && floorplan.scale > 0) ? floorplan.scale : 1;
+
       const resizeState = {
         id: floorplanId,
         corner,
         startClientX: e.clientX,
         startClientY: e.clientY,
-        startScale: floorplan.scale || 1,
+        startScale: validScale,
         startPosition: { ...validPosition },
         originalWidth: floorplan.imageWidth,
         aspectRatio: floorplan.imageHeight / floorplan.imageWidth,
@@ -677,8 +682,9 @@ function AVCanvasContent() {
 
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
+      // Initialize with current values to prevent jump
       setResizeOffset({ 
-        scale: floorplan.scale || 1, 
+        scale: validScale, 
         position: { ...validPosition }
       });
     }, [floorplans]);
