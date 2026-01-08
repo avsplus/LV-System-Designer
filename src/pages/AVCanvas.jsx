@@ -744,9 +744,10 @@ function AVCanvasContent() {
     }
 
     if (resizingRef.current) {
+      const resizingId = resizingRef.current.id;
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => 
-          fp.id === resizingRef.current.id 
+          fp.id === resizingId 
             ? { ...fp, scale: resizeOffset.scale, position: resizeOffset.position }
             : fp
         );
