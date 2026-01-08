@@ -657,8 +657,22 @@ function AVCanvasContent() {
       e.preventDefault();
       e.stopPropagation();
       
+      console.log('[RESIZE START] Corner:', corner, 'FloorplanId:', floorplanId);
+      
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
-      if (!floorplan || floorplan.locked) return;
+      if (!floorplan || floorplan.locked) {
+        console.log('[RESIZE START] Aborted - floorplan not found or locked');
+        return;
+      }
+
+      console.log('[RESIZE START] Floorplan data:', {
+        id: floorplan.id,
+        position: floorplan.position,
+        scale: floorplan.scale,
+        imageWidth: floorplan.imageWidth,
+        imageHeight: floorplan.imageHeight,
+        pixelsPerInch: floorplan.pixelsPerInch
+      });
 
       // Get current valid values
       const currentPosition = {
@@ -671,6 +685,14 @@ function AVCanvasContent() {
       const scaleFactor = (1 / (floorplan.pixelsPerInch || 1)) * currentScale;
       const currentWidth = floorplan.imageWidth * scaleFactor;
       const currentHeight = currentWidth * (floorplan.imageHeight / floorplan.imageWidth);
+
+      console.log('[RESIZE START] Calculated values:', {
+        currentPosition,
+        currentScale,
+        scaleFactor,
+        currentWidth,
+        currentHeight
+      });
 
       const resizeState = {
         id: floorplanId,
@@ -685,6 +707,8 @@ function AVCanvasContent() {
         imageHeight: floorplan.imageHeight,
         pixelsPerInch: floorplan.pixelsPerInch || 1
       };
+
+      console.log('[RESIZE START] Setting resize state:', resizeState);
 
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
@@ -713,6 +737,8 @@ function AVCanvasContent() {
       // Mouse movement in world coordinates
       const dx = (e.clientX - resize.startClientX) / zoom;
       const dy = (e.clientY - resize.startClientY) / zoom;
+
+      console.log('[RESIZE MOVE] Mouse delta:', { dx, dy, corner: resize.corner });
 
       let newWidth = resize.currentWidth;
       let newHeight = resize.currentHeight;
@@ -745,6 +771,13 @@ function AVCanvasContent() {
       // Convert back to scale
       const newScale = (newWidth / resize.imageWidth) * resize.pixelsPerInch;
 
+      console.log('[RESIZE MOVE] New values:', {
+        newWidth,
+        newHeight,
+        newScale,
+        newPosition: { x: newX, y: newY }
+      });
+
       setResizeOffset({ 
         scale: Math.max(0.1, newScale), 
         position: { x: newX, y: newY }
@@ -752,7 +785,10 @@ function AVCanvasContent() {
     }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
   const handleResizeEnd = useCallback(() => {
+    console.log('[RESIZE END] Starting cleanup');
+    
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
+      console.log('[RESIZE END] Saving drag position:', floorplanDragOffset);
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
           if (fp.id === draggingFloorplan) {
@@ -779,13 +815,24 @@ function AVCanvasContent() {
     }
 
     if (resizingRef.current) {
+      console.log('[RESIZE END] Saving resize:', {
+        id: resizingRef.current.id,
+        scale: resizeOffset.scale,
+        position: resizeOffset.position
+      });
+      
       const resizingId = resizingRef.current.id;
       setFloorplans(prev => {
-        const updatedFloorplans = prev.map(fp => 
-          fp.id === resizingId 
-            ? { ...fp, scale: resizeOffset.scale, position: resizeOffset.position }
-            : fp
-        );
+        const updatedFloorplans = prev.map(fp => {
+          if (fp.id === resizingId) {
+            console.log('[RESIZE END] Updating floorplan:', fp.id, 'with:', {
+              scale: resizeOffset.scale,
+              position: resizeOffset.position
+            });
+            return { ...fp, scale: resizeOffset.scale, position: resizeOffset.position };
+          }
+          return fp;
+        });
         
         if (currentProject?.id) {
           base44.entities.AVProject.update(currentProject.id, {
@@ -801,6 +848,7 @@ function AVCanvasContent() {
       setResizeOffset({ scale: 1, position: { x: 0, y: 0 } });
     }
 
+    console.log('[RESIZE END] Cleanup complete');
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
@@ -1499,6 +1547,14 @@ function AVCanvasContent() {
                     y: (typeof fp.position?.y === 'number' && !isNaN(fp.position.y)) ? fp.position.y : 100
                   };
                   const currentPosition = isThisOneResizing ? resizeOffset.position : safePosition;
+                  
+                  if (isThisOneResizing) {
+                    console.log('[RENDER] Resizing floorplan:', fp.id, {
+                      resizeOffset,
+                      currentScale,
+                      currentPosition
+                    });
+                  }
 
                   // Scale floorplan so 1 canvas pixel = 1 inch in real world
                   const scaleFactor = (1 / (fp.pixelsPerInch || 1)) * currentScale;
