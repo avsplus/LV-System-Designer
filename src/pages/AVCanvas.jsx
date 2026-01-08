@@ -1537,17 +1537,6 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
-                  // Check if floorplan has required properties
-                  if (!fp.imageWidth || !fp.imageHeight || !fp.pixelsPerInch) {
-                    console.warn('[RENDER] Floorplan missing calibration data:', fp.id, {
-                      imageWidth: fp.imageWidth,
-                      imageHeight: fp.imageHeight,
-                      pixelsPerInch: fp.pixelsPerInch
-                    });
-                    // Skip rendering uncalibrated floorplans
-                    return null;
-                  }
-
                   // Check if this floorplan is being resized
                   const isThisOneResizing = resizingRef.current?.id === fp.id;
                   const currentScale = isThisOneResizing ? resizeOffset.scale : (fp.scale || 1);
@@ -1567,9 +1556,18 @@ function AVCanvasContent() {
                     });
                   }
 
-                  // Scale floorplan so 1 canvas pixel = 1 inch in real world
-                  const scaleFactor = (1 / fp.pixelsPerInch) * currentScale;
-                  const displayWidth = fp.imageWidth * scaleFactor;
+                  // For legacy floorplans without calibration, use simple scale
+                  const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
+                  let displayWidth;
+                  
+                  if (hasCalibration) {
+                    // Scale floorplan so 1 canvas pixel = 1 inch in real world
+                    const scaleFactor = (1 / fp.pixelsPerInch) * currentScale;
+                    displayWidth = fp.imageWidth * scaleFactor;
+                  } else {
+                    // Legacy: use simple scale factor (assume 500px default width)
+                    displayWidth = 500 * currentScale;
+                  }
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
