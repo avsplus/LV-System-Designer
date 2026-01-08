@@ -1624,15 +1624,16 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              top: '-15px',
-                              left: '-15px',
-                              width: '30px',
-                              height: '30px',
+                              top: '-25px',
+                              left: '-25px',
+                              width: '50px',
+                              height: '50px',
                               cursor: 'nw-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '2px solid white',
-                              borderRadius: '50%'
+                              border: '3px solid white',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
                           />
                           <div
@@ -1645,15 +1646,16 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              top: '-15px',
-                              right: '-15px',
-                              width: '30px',
-                              height: '30px',
+                              top: '-25px',
+                              right: '-25px',
+                              width: '50px',
+                              height: '50px',
                               cursor: 'ne-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '2px solid white',
-                              borderRadius: '50%'
+                              border: '3px solid white',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
                           />
                           <div
@@ -1666,15 +1668,16 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              bottom: '-15px',
-                              left: '-15px',
-                              width: '30px',
-                              height: '30px',
+                              bottom: '-25px',
+                              left: '-25px',
+                              width: '50px',
+                              height: '50px',
                               cursor: 'sw-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '2px solid white',
-                              borderRadius: '50%'
+                              border: '3px solid white',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
                           />
                           <div
@@ -1687,15 +1690,16 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              bottom: '-15px',
-                              right: '-15px',
-                              width: '30px',
-                              height: '30px',
+                              bottom: '-25px',
+                              right: '-25px',
+                              width: '50px',
+                              height: '50px',
                               cursor: 'se-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '2px solid white',
-                              borderRadius: '50%'
+                              border: '3px solid white',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
                           />
                         </>
