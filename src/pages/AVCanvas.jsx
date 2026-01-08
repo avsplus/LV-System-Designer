@@ -60,7 +60,7 @@ function AVCanvasContent() {
 
     // Zoom and pan state from hook
     const {
-      zoom, setZoom, pan, isPanning, spacePressed,
+      zoom, setZoom, pan, setPan, isPanning, spacePressed,
       handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart
     } = useCanvasZoomPan(orgSettings?.default_zoom || 1);
 
