@@ -131,6 +131,7 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
   const [croppingFloorplan, setCroppingFloorplan] = useState(null);
+  const lastMiddleClickRef = useRef(0);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -877,6 +878,66 @@ function AVCanvasContent() {
   }, []);
 
   const handleMouseDown = (e) => {
+    // Handle middle mouse double-click to center and reset zoom
+    if (e.button === 1) {
+      e.preventDefault();
+      const now = Date.now();
+      const timeSinceLastClick = now - lastMiddleClickRef.current;
+      
+      if (timeSinceLastClick < 300) {
+        // Double middle-click detected
+        if (floorplans.length > 0) {
+          // Calculate center of all visible floorplans
+          const visibleFloorplans = floorplans.filter(fp => fp.visible);
+          if (visibleFloorplans.length > 0) {
+            const bounds = visibleFloorplans.reduce((acc, fp) => {
+              const pos = fp.position || { x: 0, y: 0 };
+              const scale = fp.scale || 1;
+              const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
+              let width, height;
+              
+              if (hasCalibration) {
+                const scaleFactor = (1 / fp.pixelsPerInch) * scale;
+                width = fp.imageWidth * scaleFactor;
+                height = fp.imageHeight * scaleFactor;
+              } else {
+                width = 500 * scale;
+                height = 500 * scale;
+              }
+              
+              return {
+                minX: Math.min(acc.minX, pos.x),
+                minY: Math.min(acc.minY, pos.y),
+                maxX: Math.max(acc.maxX, pos.x + width),
+                maxY: Math.max(acc.maxY, pos.y + height)
+              };
+            }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+            
+            const centerX = (bounds.minX + bounds.maxX) / 2;
+            const centerY = (bounds.minY + bounds.maxY) / 2;
+            
+            // Get canvas center
+            const canvasRect = canvasRef.current?.getBoundingClientRect();
+            if (canvasRect) {
+              const viewportCenterX = canvasRect.width / 2;
+              const viewportCenterY = canvasRect.height / 2;
+              
+              // Calculate pan to center floorplans at 100% zoom
+              setPan({
+                x: viewportCenterX - centerX,
+                y: viewportCenterY - centerY
+              });
+              setZoom(1);
+            }
+          }
+        }
+        lastMiddleClickRef.current = 0;
+      } else {
+        lastMiddleClickRef.current = now;
+      }
+      return;
+    }
+    
     // Only pan when clicking on empty canvas space (background or SVG)
     const isEmptySpace = e.target === e.currentTarget || 
                         e.target.tagName === 'svg' || 
