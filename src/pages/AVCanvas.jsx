@@ -660,32 +660,37 @@ function AVCanvasContent() {
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
-      // Ensure valid position values (handle NaN, undefined, and null)
-      const validPosition = {
+      // Get current valid values
+      const currentPosition = {
         x: (typeof floorplan.position?.x === 'number' && !isNaN(floorplan.position.x)) ? floorplan.position.x : 100,
         y: (typeof floorplan.position?.y === 'number' && !isNaN(floorplan.position.y)) ? floorplan.position.y : 100
       };
+      const currentScale = (typeof floorplan.scale === 'number' && !isNaN(floorplan.scale) && floorplan.scale > 0) ? floorplan.scale : 1;
 
-      const validScale = (typeof floorplan.scale === 'number' && !isNaN(floorplan.scale) && floorplan.scale > 0) ? floorplan.scale : 1;
+      // Calculate current rendered size
+      const scaleFactor = (1 / (floorplan.pixelsPerInch || 1)) * currentScale;
+      const currentWidth = floorplan.imageWidth * scaleFactor;
+      const currentHeight = currentWidth * (floorplan.imageHeight / floorplan.imageWidth);
 
       const resizeState = {
         id: floorplanId,
         corner,
         startClientX: e.clientX,
         startClientY: e.clientY,
-        startScale: validScale,
-        startPosition: { ...validPosition },
-        originalWidth: floorplan.imageWidth,
-        aspectRatio: floorplan.imageHeight / floorplan.imageWidth,
+        startScale: currentScale,
+        startPosition: { ...currentPosition },
+        currentWidth,
+        currentHeight,
+        imageWidth: floorplan.imageWidth,
+        imageHeight: floorplan.imageHeight,
         pixelsPerInch: floorplan.pixelsPerInch || 1
       };
 
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
-      // Initialize with current values to prevent jump
       setResizeOffset({ 
-        scale: validScale, 
-        position: { ...validPosition }
+        scale: currentScale, 
+        position: { ...currentPosition }
       });
     }, [floorplans]);
 
@@ -703,34 +708,47 @@ function AVCanvasContent() {
       }
 
       const resize = resizingRef.current;
-      if (resize) {
-        const dx = (e.clientX - resize.startClientX) / zoom;
+      if (!resize) return;
 
-        let newScale = resize.startScale;
-        let newPosition = { ...resize.startPosition };
+      // Mouse movement in world coordinates
+      const dx = (e.clientX - resize.startClientX) / zoom;
+      const dy = (e.clientY - resize.startClientY) / zoom;
 
-        const scaleFactor = 0.005;
+      let newWidth = resize.currentWidth;
+      let newHeight = resize.currentHeight;
+      let newX = resize.startPosition.x;
+      let newY = resize.startPosition.y;
 
-        if (resize.corner === 'se') {
-          newScale = Math.max(0.1, resize.startScale + dx * scaleFactor);
-        } else if (resize.corner === 'sw') {
-          newScale = Math.max(0.1, resize.startScale - dx * scaleFactor);
-          const widthChange = (newScale - resize.startScale) * resize.originalWidth / resize.pixelsPerInch;
-          newPosition.x = resize.startPosition.x - widthChange;
-        } else if (resize.corner === 'ne') {
-          newScale = Math.max(0.1, resize.startScale + dx * scaleFactor);
-          const heightChange = (newScale - resize.startScale) * resize.originalWidth * resize.aspectRatio / resize.pixelsPerInch;
-          newPosition.y = resize.startPosition.y - heightChange;
-        } else if (resize.corner === 'nw') {
-          newScale = Math.max(0.1, resize.startScale - dx * scaleFactor);
-          const widthChange = (newScale - resize.startScale) * resize.originalWidth / resize.pixelsPerInch;
-          newPosition.x = resize.startPosition.x - widthChange;
-          const heightChange = (newScale - resize.startScale) * resize.originalWidth * resize.aspectRatio / resize.pixelsPerInch;
-          newPosition.y = resize.startPosition.y - heightChange;
-        }
-
-        setResizeOffset({ scale: newScale, position: newPosition });
+      // Calculate new dimensions based on corner
+      if (resize.corner === 'se') {
+        // Bottom-right: expand from top-left anchor
+        newWidth = Math.max(50, resize.currentWidth + dx);
+        newHeight = newWidth * (resize.imageHeight / resize.imageWidth);
+      } else if (resize.corner === 'sw') {
+        // Bottom-left: expand from top-right anchor
+        newWidth = Math.max(50, resize.currentWidth - dx);
+        newHeight = newWidth * (resize.imageHeight / resize.imageWidth);
+        newX = resize.startPosition.x + (resize.currentWidth - newWidth);
+      } else if (resize.corner === 'ne') {
+        // Top-right: expand from bottom-left anchor
+        newWidth = Math.max(50, resize.currentWidth + dx);
+        newHeight = newWidth * (resize.imageHeight / resize.imageWidth);
+        newY = resize.startPosition.y + (resize.currentHeight - newHeight);
+      } else if (resize.corner === 'nw') {
+        // Top-left: expand from bottom-right anchor
+        newWidth = Math.max(50, resize.currentWidth - dx);
+        newHeight = newWidth * (resize.imageHeight / resize.imageWidth);
+        newX = resize.startPosition.x + (resize.currentWidth - newWidth);
+        newY = resize.startPosition.y + (resize.currentHeight - newHeight);
       }
+
+      // Convert back to scale
+      const newScale = (newWidth / resize.imageWidth) * resize.pixelsPerInch;
+
+      setResizeOffset({ 
+        scale: Math.max(0.1, newScale), 
+        position: { x: newX, y: newY }
+      });
     }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
   const handleResizeEnd = useCallback(() => {
