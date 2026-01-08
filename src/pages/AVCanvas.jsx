@@ -894,8 +894,8 @@ function AVCanvasContent() {
     const floorplan = floorplans.find(fp => fp.id === floorplanId);
     if (!floorplan) return;
 
-    const existingCrop = floorplan.crop || { top: 0, left: 0, width: 100, height: 100 };
-    setCropBounds(existingCrop);
+    // Start with full image when entering crop mode
+    setCropBounds({ top: 0, left: 0, width: 100, height: 100 });
     setCroppingFloorplan(floorplanId);
     croppingRef.current = { id: floorplanId };
   }, [floorplans]);
@@ -1709,8 +1709,9 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Apply crop to dimensions
-                  const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
+                  // Apply crop to dimensions (unless we're in crop mode for this floorplan)
+                  const isBeingCropped = croppingFloorplan === fp.id;
+                  const crop = isBeingCropped ? { top: 0, left: 0, width: 100, height: 100 } : (fp.crop || { top: 0, left: 0, width: 100, height: 100 });
                   const croppedWidth = displayWidth * (crop.width / 100);
                   const croppedHeight = displayHeight * (crop.height / 100);
 
@@ -1752,8 +1753,8 @@ function AVCanvasContent() {
                           position: 'absolute',
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
-                          top: `${-(displayHeight * (crop.top / 100))}px`,
-                          left: `${-(displayWidth * (crop.left / 100))}px`,
+                          top: isBeingCropped ? 0 : `${-(displayHeight * (crop.top / 100))}px`,
+                          left: isBeingCropped ? 0 : `${-(displayWidth * (crop.left / 100))}px`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
@@ -1854,11 +1855,11 @@ function AVCanvasContent() {
                         </>
                       )}
                       {croppingFloorplan === fp.id && (() => {
-                        // Calculate actual pixel positions for crop overlay
-                        const cropTopPx = (cropBounds.top / 100) * croppedHeight;
-                        const cropLeftPx = (cropBounds.left / 100) * croppedWidth;
-                        const cropWidthPx = (cropBounds.width / 100) * croppedWidth;
-                        const cropHeightPx = (cropBounds.height / 100) * croppedHeight;
+                        // Calculate actual pixel positions for crop overlay (use full image dimensions)
+                        const cropTopPx = (cropBounds.top / 100) * displayHeight;
+                        const cropLeftPx = (cropBounds.left / 100) * displayWidth;
+                        const cropWidthPx = (cropBounds.width / 100) * displayWidth;
+                        const cropHeightPx = (cropBounds.height / 100) * displayHeight;
 
                         return (
                         <>
@@ -1892,7 +1893,7 @@ function AVCanvasContent() {
                               position: 'absolute',
                               top: `${cropTopPx}px`,
                               right: 0,
-                              width: `${croppedWidth - cropLeftPx - cropWidthPx}px`,
+                              width: `${displayWidth - cropLeftPx - cropWidthPx}px`,
                               height: `${cropHeightPx}px`,
                               background: 'rgba(0,0,0,0.5)'
                             }} />
@@ -1901,7 +1902,7 @@ function AVCanvasContent() {
                               bottom: 0,
                               left: 0,
                               width: '100%',
-                              height: `${croppedHeight - cropTopPx - cropHeightPx}px`,
+                              height: `${displayHeight - cropTopPx - cropHeightPx}px`,
                               background: 'rgba(0,0,0,0.5)'
                             }} />
 
