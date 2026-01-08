@@ -1853,7 +1853,14 @@ function AVCanvasContent() {
                           />
                         </>
                       )}
-                      {croppingFloorplan === fp.id && (
+                      {croppingFloorplan === fp.id && (() => {
+                        // Calculate actual pixel positions for crop overlay
+                        const cropTopPx = (cropBounds.top / 100) * croppedHeight;
+                        const cropLeftPx = (cropBounds.left / 100) * croppedWidth;
+                        const cropWidthPx = (cropBounds.width / 100) * croppedWidth;
+                        const cropHeightPx = (cropBounds.height / 100) * croppedHeight;
+
+                        return (
                         <>
                           {/* Crop overlay */}
                           <div style={{
@@ -1870,23 +1877,23 @@ function AVCanvasContent() {
                               top: 0,
                               left: 0,
                               width: '100%',
-                              height: `${cropBounds.top}%`,
+                              height: `${cropTopPx}px`,
                               background: 'rgba(0,0,0,0.5)'
                             }} />
                             <div style={{
                               position: 'absolute',
-                              top: `${cropBounds.top}%`,
+                              top: `${cropTopPx}px`,
                               left: 0,
-                              width: `${cropBounds.left}%`,
-                              height: `${cropBounds.height}%`,
+                              width: `${cropLeftPx}px`,
+                              height: `${cropHeightPx}px`,
                               background: 'rgba(0,0,0,0.5)'
                             }} />
                             <div style={{
                               position: 'absolute',
-                              top: `${cropBounds.top}%`,
+                              top: `${cropTopPx}px`,
                               right: 0,
-                              width: `${100 - cropBounds.left - cropBounds.width}%`,
-                              height: `${cropBounds.height}%`,
+                              width: `${croppedWidth - cropLeftPx - cropWidthPx}px`,
+                              height: `${cropHeightPx}px`,
                               background: 'rgba(0,0,0,0.5)'
                             }} />
                             <div style={{
@@ -1894,17 +1901,17 @@ function AVCanvasContent() {
                               bottom: 0,
                               left: 0,
                               width: '100%',
-                              height: `${100 - cropBounds.top - cropBounds.height}%`,
+                              height: `${croppedHeight - cropTopPx - cropHeightPx}px`,
                               background: 'rgba(0,0,0,0.5)'
                             }} />
-                            
+
                             {/* Crop boundaries */}
                             <div style={{
                               position: 'absolute',
-                              top: `${cropBounds.top}%`,
-                              left: `${cropBounds.left}%`,
-                              width: `${cropBounds.width}%`,
-                              height: `${cropBounds.height}%`,
+                              top: `${cropTopPx}px`,
+                              left: `${cropLeftPx}px`,
+                              width: `${cropWidthPx}px`,
+                              height: `${cropHeightPx}px`,
                               border: '2px solid #3b82f6',
                               pointerEvents: 'auto',
                               boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)'
@@ -1976,7 +1983,8 @@ function AVCanvasContent() {
                             </div>
                             </div>
                             </>
-                            )}
+                            );
+                            })()}
                             </div>
                             );
                             })}
