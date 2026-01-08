@@ -849,8 +849,9 @@ function AVCanvasContent() {
     const floorplan = floorplans.find(fp => fp.id === floorplanId);
     if (!floorplan) return;
 
-    // Start with full image when entering crop mode
-    setCropBounds({ top: 0, left: 0, width: 100, height: 100 });
+    // Start with existing crop or full image if no crop exists
+    const existingCrop = floorplan.crop || { top: 0, left: 0, width: 100, height: 100 };
+    setCropBounds(existingCrop);
     setCroppingFloorplan(floorplanId);
     croppingRef.current = { id: floorplanId };
   }, [floorplans]);
@@ -1657,11 +1658,11 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Apply crop to dimensions (unless we're in crop mode for this floorplan)
+                  // Apply crop to dimensions
                   const isBeingCropped = croppingFloorplan === fp.id;
-                  const crop = isBeingCropped ? { top: 0, left: 0, width: 100, height: 100 } : (fp.crop || { top: 0, left: 0, width: 100, height: 100 });
-                  const croppedWidth = isBeingCropped ? displayWidth : (displayWidth * (crop.width / 100));
-                  const croppedHeight = isBeingCropped ? displayHeight : (displayHeight * (crop.height / 100));
+                  const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
+                  const croppedWidth = displayWidth * (crop.width / 100);
+                  const croppedHeight = displayHeight * (crop.height / 100);
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1701,8 +1702,8 @@ function AVCanvasContent() {
                           position: 'absolute',
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
-                          top: isBeingCropped ? 0 : `${-(displayHeight * (crop.top / 100))}px`,
-                          left: isBeingCropped ? 0 : `${-(displayWidth * (crop.left / 100))}px`,
+                          top: `${-(displayHeight * (crop.top / 100))}px`,
+                          left: `${-(displayWidth * (crop.left / 100))}px`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
