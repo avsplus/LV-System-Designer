@@ -686,7 +686,9 @@ function AVCanvasContent() {
 
       const resize = resizingRef.current;
       if (resize) {
+        console.log('Resizing, mouse at:', e.clientX, e.clientY);
         const dx = (e.clientX - resize.startClientX) / zoom;
+        console.log('dx:', dx, 'zoom:', zoom);
 
         let newScale = resize.startScale;
         let newPosition = { ...resize.startPosition };
@@ -711,6 +713,7 @@ function AVCanvasContent() {
           newPosition.y = resize.startPosition.y - heightChange;
         }
 
+        console.log('New scale:', newScale, 'New position:', newPosition);
         setFloorplans(prev => prev.map(fp => 
           fp.id === resize.id 
             ? { ...fp, scale: newScale, position: newPosition }
