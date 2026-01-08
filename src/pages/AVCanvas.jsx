@@ -624,19 +624,19 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
-      // Don't start drag if clicking on a resize handle
-      if (e.target.hasAttribute('data-resize-handle')) {
+      // Don't start drag if clicking on a resize handle - check the actual target
+      if (e.target.hasAttribute('data-resize-handle') || e.target.closest('[data-resize-handle]')) {
         return;
       }
-
-      e.preventDefault();
-      e.stopPropagation();
 
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
 
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
+
+      e.preventDefault();
+      e.stopPropagation();
 
       setSelectedFloorplanId(floorplanId);
 
