@@ -966,6 +966,14 @@ function AVCanvasContent() {
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
     const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
 
+    console.log('[CROP DRAG]', {
+      edge,
+      mouseWorld: { x: mouseX, y: mouseY },
+      floorplanPos: currentPosition,
+      displaySize: { w: displayWidth, h: displayHeight },
+      relativePercent: { x: relativeX, y: relativeY }
+    });
+
     setCropBounds(prev => {
       let newBounds = { ...prev };
 
