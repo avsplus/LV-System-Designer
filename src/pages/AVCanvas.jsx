@@ -859,6 +859,8 @@ function AVCanvasContent() {
   const handleApplyCrop = useCallback(() => {
     if (!croppingFloorplan) return;
 
+    console.log('🎯 APPLYING CROP:', cropBounds);
+
     setFloorplans(prev => {
       const updated = prev.map(fp => 
         fp.id === croppingFloorplan 
@@ -1663,6 +1665,20 @@ function AVCanvasContent() {
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
                   const croppedWidth = isBeingCropped ? displayWidth : (displayWidth * (crop.width / 100));
                   const croppedHeight = isBeingCropped ? displayHeight : (displayHeight * (crop.height / 100));
+                  
+                  if (!isBeingCropped && (crop.left !== 0 || crop.top !== 0 || crop.width !== 100 || crop.height !== 100)) {
+                    console.log(`📐 ${fp.name} RENDER:`, {
+                      crop,
+                      displayWidth,
+                      displayHeight,
+                      croppedWidth,
+                      croppedHeight,
+                      imageOffset: {
+                        left: -(displayWidth * (crop.left / 100)),
+                        top: -(displayHeight * (crop.top / 100))
+                      }
+                    });
+                  }
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
