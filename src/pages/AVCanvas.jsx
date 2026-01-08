@@ -1658,11 +1658,11 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Apply crop to dimensions
+                  // Apply crop to dimensions (show full image when in crop mode)
                   const isBeingCropped = croppingFloorplan === fp.id;
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
-                  const croppedWidth = displayWidth * (crop.width / 100);
-                  const croppedHeight = displayHeight * (crop.height / 100);
+                  const croppedWidth = isBeingCropped ? displayWidth : (displayWidth * (crop.width / 100));
+                  const croppedHeight = isBeingCropped ? displayHeight : (displayHeight * (crop.height / 100));
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1702,8 +1702,8 @@ function AVCanvasContent() {
                           position: 'absolute',
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
-                          top: `${-(displayHeight * (crop.top / 100))}px`,
-                          left: `${-(displayWidth * (crop.left / 100))}px`,
+                          top: isBeingCropped ? '0px' : `${-(displayHeight * (crop.top / 100))}px`,
+                          left: isBeingCropped ? '0px' : `${-(displayWidth * (crop.left / 100))}px`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
