@@ -676,22 +676,10 @@ function AVCanvasContent() {
       e.preventDefault();
       e.stopPropagation();
       
-      console.log('[RESIZE START] Corner:', corner, 'FloorplanId:', floorplanId);
-      
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) {
-        console.log('[RESIZE START] Aborted - floorplan not found or locked');
         return;
       }
-
-      console.log('[RESIZE START] Floorplan data:', {
-        id: floorplan.id,
-        position: floorplan.position,
-        scale: floorplan.scale,
-        imageWidth: floorplan.imageWidth,
-        imageHeight: floorplan.imageHeight,
-        pixelsPerInch: floorplan.pixelsPerInch
-      });
 
       // Get current valid values
       const currentPosition = {
@@ -714,14 +702,6 @@ function AVCanvasContent() {
         currentHeight = 500 * currentScale; // Will be corrected by aspect ratio in resize
       }
 
-      console.log('[RESIZE START] Calculated values:', {
-        currentPosition,
-        currentScale,
-        currentWidth,
-        currentHeight,
-        hasCalibration
-      });
-
       const resizeState = {
         id: floorplanId,
         corner,
@@ -735,8 +715,6 @@ function AVCanvasContent() {
         imageHeight: floorplan.imageHeight,
         pixelsPerInch: floorplan.pixelsPerInch || 1
       };
-
-      console.log('[RESIZE START] Setting resize state:', resizeState);
 
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
@@ -765,8 +743,6 @@ function AVCanvasContent() {
       // Mouse movement in world coordinates
       const dx = (e.clientX - resize.startClientX) / zoom;
       const dy = (e.clientY - resize.startClientY) / zoom;
-
-      console.log('[RESIZE MOVE] Mouse delta:', { dx, dy, corner: resize.corner });
 
       let newWidth = resize.currentWidth;
       let newHeight = resize.currentHeight;
@@ -807,13 +783,6 @@ function AVCanvasContent() {
         newScale = newWidth / 500;
       }
 
-      console.log('[RESIZE MOVE] New values:', {
-        newWidth,
-        newHeight,
-        newScale,
-        newPosition: { x: newX, y: newY }
-      });
-
       setResizeOffset({ 
         scale: Math.max(0.1, newScale), 
         position: { x: newX, y: newY }
@@ -821,10 +790,7 @@ function AVCanvasContent() {
     }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
   const handleResizeEnd = useCallback(() => {
-    console.log('[RESIZE END] Starting cleanup');
-    
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
-      console.log('[RESIZE END] Saving drag position:', floorplanDragOffset);
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
           if (fp.id === draggingFloorplan) {
@@ -851,20 +817,10 @@ function AVCanvasContent() {
     }
 
     if (resizingRef.current) {
-      console.log('[RESIZE END] Saving resize:', {
-        id: resizingRef.current.id,
-        scale: resizeOffset.scale,
-        position: resizeOffset.position
-      });
-      
       const resizingId = resizingRef.current.id;
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
           if (fp.id === resizingId) {
-            console.log('[RESIZE END] Updating floorplan:', fp.id, 'with:', {
-              scale: resizeOffset.scale,
-              position: resizeOffset.position
-            });
             return { ...fp, scale: resizeOffset.scale, position: resizeOffset.position };
           }
           return fp;
@@ -884,7 +840,6 @@ function AVCanvasContent() {
       setResizeOffset({ scale: 1, position: { x: 0, y: 0 } });
     }
 
-    console.log('[RESIZE END] Cleanup complete');
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
@@ -902,8 +857,6 @@ function AVCanvasContent() {
 
   const handleApplyCrop = useCallback(() => {
     if (!croppingFloorplan) return;
-
-    console.log('[APPLY CROP] Crop bounds being saved:', cropBounds);
 
     setFloorplans(prev => {
       const updated = prev.map(fp => 
@@ -965,14 +918,6 @@ function AVCanvasContent() {
     // Calculate relative position on the FULL displayed image
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
     const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
-
-    console.log('[CROP DRAG]', {
-      edge,
-      mouseWorld: { x: mouseX, y: mouseY },
-      floorplanPos: currentPosition,
-      displaySize: { w: displayWidth, h: displayHeight },
-      relativePercent: { x: relativeX, y: relativeY }
-    });
 
     setCropBounds(prev => {
       let newBounds = { ...prev };
@@ -1696,14 +1641,6 @@ function AVCanvasContent() {
                     y: (typeof fp.position?.y === 'number' && !isNaN(fp.position.y)) ? fp.position.y : 100
                   };
                   const currentPosition = isThisOneResizing ? resizeOffset.position : safePosition;
-                  
-                  if (isThisOneResizing) {
-                    console.log('[RENDER] Resizing floorplan:', fp.id, {
-                      resizeOffset,
-                      currentScale,
-                      currentPosition
-                    });
-                  }
 
                   // For legacy floorplans without calibration, use simple scale
                   const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
@@ -1871,18 +1808,6 @@ function AVCanvasContent() {
                         const cropLeftPx = (cropBounds.left / 100) * displayWidth;
                         const cropWidthPx = (cropBounds.width / 100) * displayWidth;
                         const cropHeightPx = (cropBounds.height / 100) * displayHeight;
-
-                        console.log('[CROP OVERLAY RENDER]', {
-                          cropBounds,
-                          displayWidth,
-                          displayHeight,
-                          cropTopPx,
-                          cropLeftPx,
-                          cropWidthPx,
-                          cropHeightPx,
-                          containerWidth: croppedWidth,
-                          containerHeight: croppedHeight
-                        });
 
                         return (
                         <>
