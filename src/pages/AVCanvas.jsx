@@ -960,6 +960,7 @@ function AVCanvasContent() {
       displayHeight = 500 * currentScale;
     }
 
+    // Calculate relative position on the FULL displayed image
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
     const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
 
