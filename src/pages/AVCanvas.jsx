@@ -1468,7 +1468,13 @@ function AVCanvasContent() {
                   // Check if this floorplan is being resized
                   const isThisOneResizing = resizingRef.current?.id === fp.id;
                   const currentScale = isThisOneResizing ? resizeOffset.scale : (fp.scale || 1);
-                  const currentPosition = isThisOneResizing ? resizeOffset.position : (fp.position || { x: 100, y: 100 });
+
+                  // Ensure valid position values (handle NaN, undefined, null)
+                  const safePosition = {
+                    x: (typeof fp.position?.x === 'number' && !isNaN(fp.position.x)) ? fp.position.x : 100,
+                    y: (typeof fp.position?.y === 'number' && !isNaN(fp.position.y)) ? fp.position.y : 100
+                  };
+                  const currentPosition = isThisOneResizing ? resizeOffset.position : safePosition;
 
                   // Scale floorplan so 1 canvas pixel = 1 inch in real world
                   const scaleFactor = (1 / (fp.pixelsPerInch || 1)) * currentScale;
