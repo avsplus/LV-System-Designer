@@ -918,9 +918,12 @@ function AVCanvasContent() {
       displayHeight = 500 * currentScale;
     }
 
-    // Calculate relative position on the FULL displayed image
+    // Calculate relative position on the FULL displayed image (in world coordinates)
+    // Mouse is in world coords, currentPosition is top-left of container, displayWidth/Height are full image size
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
     const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
+
+    console.log('🖱️ DRAG:', { edge, mouseX, mouseY, currentPosition, displayWidth, displayHeight, relativeX, relativeY });
 
     setCropBounds(prev => {
       let newBounds = { ...prev };
@@ -939,6 +942,7 @@ function AVCanvasContent() {
         newBounds.width = Math.max(5, Math.min(100 - prev.left, relativeX - prev.left));
       }
 
+      console.log('📊 NEW BOUNDS:', { prev, newBounds, edge });
       return newBounds;
     });
   }, [floorplans, pan, zoom]);
