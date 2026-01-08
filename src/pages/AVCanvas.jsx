@@ -698,9 +698,9 @@ function AVCanvasContent() {
       console.log('[RESIZE START] Calculated values:', {
         currentPosition,
         currentScale,
-        scaleFactor,
         currentWidth,
-        currentHeight
+        currentHeight,
+        hasCalibration
       });
 
       const resizeState = {
