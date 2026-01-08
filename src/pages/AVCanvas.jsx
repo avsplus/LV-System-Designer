@@ -849,9 +849,8 @@ function AVCanvasContent() {
     const floorplan = floorplans.find(fp => fp.id === floorplanId);
     if (!floorplan) return;
 
-    // Start with existing crop or full image if no crop exists
-    const existingCrop = floorplan.crop || { top: 0, left: 0, width: 100, height: 100 };
-    setCropBounds(existingCrop);
+    // Always start with full image bounds when entering crop mode
+    setCropBounds({ top: 0, left: 0, width: 100, height: 100 });
     setCroppingFloorplan(floorplanId);
     croppingRef.current = { id: floorplanId };
   }, [floorplans]);
