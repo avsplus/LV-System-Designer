@@ -486,7 +486,6 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                           e.stopPropagation();
                           if (onStartCrop) {
                             onStartCrop(fp.id);
-                            onClose();
                           }
                         }}
                         className="h-7 w-7 text-purple-400 hover:text-purple-300"

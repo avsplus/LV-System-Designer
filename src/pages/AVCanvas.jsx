@@ -31,6 +31,7 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
+import FloorplanCropper from "../components/canvas/FloorplanCropper";
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
@@ -130,8 +131,6 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
   const [croppingFloorplan, setCroppingFloorplan] = useState(null);
-  const [cropBounds, setCropBounds] = useState({ top: 0, left: 0, width: 100, height: 100 });
-  const croppingRef = useRef(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -848,33 +847,16 @@ function AVCanvasContent() {
   const handleStartCrop = useCallback((floorplanId) => {
     const floorplan = floorplans.find(fp => fp.id === floorplanId);
     if (!floorplan) return;
-
-    // Always start with full image bounds when entering crop mode
-    setCropBounds({ top: 0, left: 0, width: 100, height: 100 });
-    setCroppingFloorplan(floorplanId);
-    croppingRef.current = { id: floorplanId };
+    setCroppingFloorplan(floorplan);
   }, [floorplans]);
 
-  const handleApplyCrop = useCallback(() => {
-    if (!croppingFloorplan) return;
-
-    const finalCrop = {
-      top: Number(cropBounds.top.toFixed(2)),
-      left: Number(cropBounds.left.toFixed(2)),
-      width: Number(cropBounds.width.toFixed(2)),
-      height: Number(cropBounds.height.toFixed(2))
-    };
-
-    console.log('🎯 APPLYING CROP:', finalCrop);
-
+  const handleApplyCrop = useCallback((cropData) => {
     setFloorplans(prev => {
       const updated = prev.map(fp => 
-        fp.id === croppingFloorplan 
-          ? { ...fp, crop: finalCrop }
+        fp.id === croppingFloorplan.id 
+          ? { ...fp, crop: cropData }
           : fp
       );
-
-      console.log('💾 SAVED FLOORPLAN:', updated.find(fp => fp.id === croppingFloorplan));
 
       if (currentProject?.id) {
         base44.entities.AVProject.update(currentProject.id, {
@@ -887,81 +869,12 @@ function AVCanvasContent() {
     });
 
     setCroppingFloorplan(null);
-    croppingRef.current = null;
-  }, [croppingFloorplan, cropBounds, currentProject, markLocalChange]);
+    toast.success('Crop applied successfully');
+  }, [croppingFloorplan, currentProject, markLocalChange]);
 
   const handleCancelCrop = useCallback(() => {
     setCroppingFloorplan(null);
-    croppingRef.current = null;
   }, []);
-
-  const handleCropDrag = useCallback((e, edge) => {
-    if (!croppingRef.current) return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const floorplan = floorplans.find(fp => fp.id === croppingRef.current.id);
-    if (!floorplan) return;
-
-    const canvasRect = canvas.getBoundingClientRect();
-    const mouseX = (e.clientX - canvasRect.left - pan.x) / zoom;
-    const mouseY = (e.clientY - canvasRect.top - pan.y) / zoom;
-
-    const currentPosition = {
-      x: (typeof floorplan.position?.x === 'number' && !isNaN(floorplan.position.x)) ? floorplan.position.x : 100,
-      y: (typeof floorplan.position?.y === 'number' && !isNaN(floorplan.position.y)) ? floorplan.position.y : 100
-    };
-
-    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-    const currentScale = floorplan.scale || 1;
-    let displayWidth, displayHeight;
-
-    if (hasCalibration) {
-      const scaleFactor = (1 / floorplan.pixelsPerInch) * currentScale;
-      displayWidth = floorplan.imageWidth * scaleFactor;
-      displayHeight = floorplan.imageHeight * scaleFactor;
-    } else {
-      displayWidth = 500 * currentScale;
-      displayHeight = 500 * currentScale;
-    }
-
-    // Calculate relative position on the FULL displayed image (in world coordinates)
-    const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
-    const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
-
-    console.log('🖱️ DRAG:', { 
-      edge, 
-      mouseWorld: { x: mouseX, y: mouseY },
-      floorplanPos: currentPosition,
-      imageDims: { displayWidth, displayHeight },
-      relative: { x: relativeX.toFixed(2) + '%', y: relativeY.toFixed(2) + '%' }
-    });
-
-    setCropBounds(prev => {
-      let newBounds = { ...prev };
-
-      if (edge === 'top') {
-        const newTop = Math.max(0, Math.min(relativeY, prev.top + prev.height - 5));
-        newBounds.height = prev.height + (prev.top - newTop);
-        newBounds.top = newTop;
-        console.log('  ↕️ TOP:', { prevTop: prev.top, newTop, prevHeight: prev.height, newHeight: newBounds.height });
-      } else if (edge === 'bottom') {
-        newBounds.height = Math.max(5, Math.min(100 - prev.top, relativeY - prev.top));
-        console.log('  ↕️ BOTTOM:', { prevHeight: prev.height, newHeight: newBounds.height, relativeY, prevTop: prev.top });
-      } else if (edge === 'left') {
-        const newLeft = Math.max(0, Math.min(relativeX, prev.left + prev.width - 5));
-        newBounds.width = prev.width + (prev.left - newLeft);
-        newBounds.left = newLeft;
-        console.log('  ↔️ LEFT:', { prevLeft: prev.left, newLeft, prevWidth: prev.width, newWidth: newBounds.width });
-      } else if (edge === 'right') {
-        newBounds.width = Math.max(5, Math.min(100 - prev.left, relativeX - prev.left));
-        console.log('  ↔️ RIGHT:', { prevWidth: prev.width, newWidth: newBounds.width, relativeX, prevLeft: prev.left });
-      }
-
-      return newBounds;
-    });
-  }, [floorplans, pan, zoom]);
 
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
@@ -1009,17 +922,11 @@ function AVCanvasContent() {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
       handleGlobalMouseMove(e);
       handleResizeMove(e);
-      if (croppingRef.current?.edge) {
-        handleCropDrag(e, croppingRef.current.edge);
-      }
     };
 
     const handleDragEnd = (e) => {
       handleGlobalMouseUp(e);
       handleResizeEnd();
-      if (croppingRef.current?.edge) {
-        croppingRef.current.edge = null;
-      }
     };
 
     window.addEventListener('mousemove', handleDragMove);
@@ -1028,7 +935,7 @@ function AVCanvasContent() {
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, handleCropDrag]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -1680,15 +1587,10 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Apply crop to dimensions (show full image when in crop mode)
-                  const isBeingCropped = croppingFloorplan === fp.id;
+                  // Apply crop to dimensions
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
-                  const croppedWidth = isBeingCropped ? displayWidth : (displayWidth * (crop.width / 100));
-                  const croppedHeight = isBeingCropped ? displayHeight : (displayHeight * (crop.height / 100));
-                  
-                  if (!isBeingCropped) {
-                    console.log(`📐 ${fp.name}:`, { crop, croppedWidth, croppedHeight });
-                  }
+                  const croppedWidth = displayWidth * (crop.width / 100);
+                  const croppedHeight = displayHeight * (crop.height / 100);
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1711,7 +1613,7 @@ function AVCanvasContent() {
                         height: `${croppedHeight}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
-                        padding: isSelected && croppingFloorplan !== fp.id ? '4px' : '0',
+                        padding: isSelected ? '4px' : '0',
                         border: isSelected ? '3px solid #3b82f6' : 'none',
                         borderRadius: isSelected ? '4px' : '0',
                         boxShadow: isSelected ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
@@ -1728,15 +1630,15 @@ function AVCanvasContent() {
                           position: 'absolute',
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
-                          top: isBeingCropped ? '0px' : `${-(displayHeight * (crop.top / 100))}px`,
-                          left: isBeingCropped ? '0px' : `${-(displayWidth * (crop.left / 100))}px`,
+                          top: `${-(displayHeight * (crop.top / 100))}px`,
+                          left: `${-(displayWidth * (crop.left / 100))}px`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
                           pointerEvents: 'none'
                         }}
                       />
-                      {isSelected && !fp.locked && croppingFloorplan !== fp.id && (
+                      {isSelected && !fp.locked && (
                         <>
                           {/* Corner resize handles */}
                           <div
@@ -1829,163 +1731,11 @@ function AVCanvasContent() {
                           />
                         </>
                       )}
-                      {croppingFloorplan === fp.id && (() => {
-                        // Calculate actual pixel positions for crop overlay (use full image dimensions)
-                        const cropTopPx = (cropBounds.top / 100) * displayHeight;
-                        const cropLeftPx = (cropBounds.left / 100) * displayWidth;
-                        const cropWidthPx = (cropBounds.width / 100) * displayWidth;
-                        const cropHeightPx = (cropBounds.height / 100) * displayHeight;
-
-                        return (
-                        <>
-                          {/* Crop overlay */}
-                          <div style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            pointerEvents: 'none'
-                          }}>
-                            {/* Dimmed areas */}
-                            <div style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: `${cropTopPx}px`,
-                              background: 'rgba(0,0,0,0.5)'
-                            }} />
-                            <div style={{
-                              position: 'absolute',
-                              top: `${cropTopPx}px`,
-                              left: 0,
-                              width: `${cropLeftPx}px`,
-                              height: `${cropHeightPx}px`,
-                              background: 'rgba(0,0,0,0.5)'
-                            }} />
-                            <div style={{
-                              position: 'absolute',
-                              top: `${cropTopPx}px`,
-                              right: 0,
-                              width: `${displayWidth - cropLeftPx - cropWidthPx}px`,
-                              height: `${cropHeightPx}px`,
-                              background: 'rgba(0,0,0,0.5)'
-                            }} />
-                            <div style={{
-                              position: 'absolute',
-                              bottom: 0,
-                              left: 0,
-                              width: '100%',
-                              height: `${displayHeight - cropTopPx - cropHeightPx}px`,
-                              background: 'rgba(0,0,0,0.5)'
-                            }} />
-
-                            {/* Crop boundaries */}
-                            <div style={{
-                              position: 'absolute',
-                              top: `${cropTopPx}px`,
-                              left: `${cropLeftPx}px`,
-                              width: `${cropWidthPx}px`,
-                              height: `${cropHeightPx}px`,
-                              border: '2px solid #3b82f6',
-                              pointerEvents: 'auto',
-                              boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)'
-                            }}>
-                              {/* Top edge */}
-                              <div
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  croppingRef.current = { ...croppingRef.current, edge: 'top' };
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  top: '-4px',
-                                  left: 0,
-                                  right: 0,
-                                  height: '8px',
-                                  cursor: 'ns-resize',
-                                  background: 'transparent'
-                                }}
-                              />
-                              {/* Bottom edge */}
-                              <div
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  croppingRef.current = { ...croppingRef.current, edge: 'bottom' };
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  bottom: '-4px',
-                                  left: 0,
-                                  right: 0,
-                                  height: '8px',
-                                  cursor: 'ns-resize',
-                                  background: 'transparent'
-                                }}
-                              />
-                              {/* Left edge */}
-                              <div
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  croppingRef.current = { ...croppingRef.current, edge: 'left' };
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  bottom: 0,
-                                  left: '-4px',
-                                  width: '8px',
-                                  cursor: 'ew-resize',
-                                  background: 'transparent'
-                                }}
-                              />
-                              {/* Right edge */}
-                              <div
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  croppingRef.current = { ...croppingRef.current, edge: 'right' };
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  bottom: 0,
-                                  right: '-4px',
-                                  width: '8px',
-                                  cursor: 'ew-resize',
-                                  background: 'transparent'
-                                }}
-                              />
-                            </div>
-                            </div>
-                            </>
-                            );
-                            })()}
-                            </div>
-                            );
-                            })}
-                            </div>
-                            </div>
-
-                            {/* Crop controls - OUTSIDE transform container */}
-                            {croppingFloorplan && (
-                              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-gray-900/95 backdrop-blur-xl px-8 py-5 rounded-2xl z-[10000] border border-gray-700/50 shadow-2xl">
-                                <Button
-                                  onClick={handleApplyCrop}
-                                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-8 py-6 text-base font-semibold shadow-lg shadow-green-900/50 transition-all hover:scale-105"
-                                >
-                                  <Crop className="w-5 h-5 mr-2" />
-                                  Apply Crop
-                                </Button>
-                                <Button
-                                  onClick={handleCancelCrop}
-                                  className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-6 text-base font-semibold border border-gray-600 shadow-lg transition-all hover:scale-105"
-                                >
-                                  <X className="w-5 h-5 mr-2" />
-                                  Cancel
-                                </Button>
-                              </div>
-                            )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
@@ -2704,6 +2454,14 @@ function AVCanvasContent() {
             </div>
           );
         })()}
+
+        {croppingFloorplan && (
+          <FloorplanCropper
+            floorplan={croppingFloorplan}
+            onApply={handleApplyCrop}
+            onCancel={handleCancelCrop}
+          />
+        )}
       </div>
     </DragDropContext>
   );
