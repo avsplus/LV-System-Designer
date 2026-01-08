@@ -1714,7 +1714,7 @@ function AVCanvasContent() {
                         height: `${croppedHeight}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
-                        padding: isSelected ? '4px' : '0',
+                        padding: isSelected && croppingFloorplan !== fp.id ? '4px' : '0',
                         border: isSelected ? '3px solid #3b82f6' : 'none',
                         borderRadius: isSelected ? '4px' : '0',
                         boxShadow: isSelected ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
