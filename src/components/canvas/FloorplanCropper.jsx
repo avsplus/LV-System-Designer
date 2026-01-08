@@ -16,16 +16,24 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   }, []);
 
   const handleApply = () => {
-    if (croppedAreaPercent) {
-      // Convert from react-easy-crop format (x, y, width, height in %)
-      // to our format (top, left, width, height in %)
+    if (croppedAreaPercent && croppedAreaPixels) {
+      console.log('🎯 Raw crop from react-easy-crop (%):', croppedAreaPercent);
+      console.log('🎯 Raw crop from react-easy-crop (px):', croppedAreaPixels);
+      console.log('🖼️ Image natural dimensions:', {
+        width: floorplan.imageWidth,
+        height: floorplan.imageHeight
+      });
+      
+      // react-easy-crop gives us the crop area position and dimensions
+      // x, y are the CENTER of the crop area, not the top-left corner!
+      // We need to convert to top-left corner coordinates
       const cropData = {
         top: croppedAreaPercent.y,
         left: croppedAreaPercent.x,
         width: croppedAreaPercent.width,
         height: croppedAreaPercent.height
       };
-      console.log('🎯 Crop data from react-easy-crop:', croppedAreaPercent);
+      
       console.log('📦 Saving crop data:', cropData);
       onApply(cropData);
     }
