@@ -1713,8 +1713,8 @@ function AVCanvasContent() {
                   // Apply crop to dimensions (unless we're in crop mode for this floorplan)
                   const isBeingCropped = croppingFloorplan === fp.id;
                   const crop = isBeingCropped ? { top: 0, left: 0, width: 100, height: 100 } : (fp.crop || { top: 0, left: 0, width: 100, height: 100 });
-                  const croppedWidth = displayWidth * (crop.width / 100);
-                  const croppedHeight = displayHeight * (crop.height / 100);
+                  const croppedWidth = isBeingCropped ? displayWidth : (displayWidth * (crop.width / 100));
+                  const croppedHeight = isBeingCropped ? displayHeight : (displayHeight * (crop.height / 100));
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
