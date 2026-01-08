@@ -1639,14 +1639,14 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              top: '-25px',
-                              left: '-25px',
-                              width: '50px',
-                              height: '50px',
+                              top: '-10px',
+                              left: '-10px',
+                              width: '20px',
+                              height: '20px',
                               cursor: 'nw-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '3px solid white',
+                              border: '2px solid white',
                               borderRadius: '50%',
                               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
@@ -1661,14 +1661,14 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              top: '-25px',
-                              right: '-25px',
-                              width: '50px',
-                              height: '50px',
+                              top: '-10px',
+                              right: '-10px',
+                              width: '20px',
+                              height: '20px',
                               cursor: 'ne-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '3px solid white',
+                              border: '2px solid white',
                               borderRadius: '50%',
                               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
@@ -1683,14 +1683,14 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              bottom: '-25px',
-                              left: '-25px',
-                              width: '50px',
-                              height: '50px',
+                              bottom: '-10px',
+                              left: '-10px',
+                              width: '20px',
+                              height: '20px',
                               cursor: 'sw-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '3px solid white',
+                              border: '2px solid white',
                               borderRadius: '50%',
                               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
@@ -1705,14 +1705,14 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              bottom: '-25px',
-                              right: '-25px',
-                              width: '50px',
-                              height: '50px',
+                              bottom: '-10px',
+                              right: '-10px',
+                              width: '20px',
+                              height: '20px',
                               cursor: 'se-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
-                              border: '3px solid white',
+                              border: '2px solid white',
                               borderRadius: '50%',
                               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
