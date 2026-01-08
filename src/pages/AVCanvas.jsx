@@ -778,7 +778,15 @@ function AVCanvasContent() {
       }
 
       // Convert back to scale
-      const newScale = (newWidth / resize.imageWidth) * resize.pixelsPerInch;
+      let newScale;
+      const hasCalibration = resize.imageWidth && resize.imageHeight && resize.pixelsPerInch;
+      
+      if (hasCalibration) {
+        newScale = (newWidth / resize.imageWidth) * resize.pixelsPerInch;
+      } else {
+        // Legacy: calculate scale based on 500px default width
+        newScale = newWidth / 500;
+      }
 
       console.log('[RESIZE MOVE] New values:', {
         newWidth,
