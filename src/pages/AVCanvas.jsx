@@ -129,6 +129,9 @@ function AVCanvasContent() {
   const [resizingFloorplan, setResizingFloorplan] = useState(null);
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
+  const [croppingFloorplan, setCroppingFloorplan] = useState(null);
+  const [cropBounds, setCropBounds] = useState({ top: 0, left: 0, width: 100, height: 100 });
+  const croppingRef = useRef(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
@@ -871,6 +874,98 @@ function AVCanvasContent() {
     setFloorplanDragOffset({ x: 0, y: 0 });
   }, [draggingFloorplan, floorplanDragOffset, resizeOffset, currentProject, markLocalChange]);
 
+  const handleStartCrop = useCallback((floorplanId) => {
+    const floorplan = floorplans.find(fp => fp.id === floorplanId);
+    if (!floorplan) return;
+
+    const existingCrop = floorplan.crop || { top: 0, left: 0, width: 100, height: 100 };
+    setCropBounds(existingCrop);
+    setCroppingFloorplan(floorplanId);
+    croppingRef.current = { id: floorplanId };
+  }, [floorplans]);
+
+  const handleApplyCrop = useCallback(() => {
+    if (!croppingFloorplan) return;
+
+    setFloorplans(prev => {
+      const updated = prev.map(fp => 
+        fp.id === croppingFloorplan 
+          ? { ...fp, crop: { ...cropBounds } }
+          : fp
+      );
+
+      if (currentProject?.id) {
+        base44.entities.AVProject.update(currentProject.id, {
+          floorplans: updated
+        }).catch(error => console.error('Failed to save crop:', error));
+        markLocalChange();
+      }
+
+      return updated;
+    });
+
+    setCroppingFloorplan(null);
+    croppingRef.current = null;
+  }, [croppingFloorplan, cropBounds, currentProject, markLocalChange, floorplans]);
+
+  const handleCancelCrop = useCallback(() => {
+    setCroppingFloorplan(null);
+    croppingRef.current = null;
+  }, []);
+
+  const handleCropDrag = useCallback((e, edge) => {
+    if (!croppingRef.current) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const floorplan = floorplans.find(fp => fp.id === croppingRef.current.id);
+    if (!floorplan) return;
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const mouseX = (e.clientX - canvasRect.left - pan.x) / zoom;
+    const mouseY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+    const currentPosition = {
+      x: (typeof floorplan.position?.x === 'number' && !isNaN(floorplan.position.x)) ? floorplan.position.x : 100,
+      y: (typeof floorplan.position?.y === 'number' && !isNaN(floorplan.position.y)) ? floorplan.position.y : 100
+    };
+
+    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+    const currentScale = floorplan.scale || 1;
+    let displayWidth;
+    
+    if (hasCalibration) {
+      const scaleFactor = (1 / floorplan.pixelsPerInch) * currentScale;
+      displayWidth = floorplan.imageWidth * scaleFactor;
+    } else {
+      displayWidth = 500 * currentScale;
+    }
+
+    const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
+    const relativeY = ((mouseY - currentPosition.y) / displayWidth) * 100;
+
+    setCropBounds(prev => {
+      let newBounds = { ...prev };
+
+      if (edge === 'top') {
+        const newTop = Math.max(0, Math.min(relativeY, prev.top + prev.height - 5));
+        newBounds.height = prev.height + (prev.top - newTop);
+        newBounds.top = newTop;
+      } else if (edge === 'bottom') {
+        newBounds.height = Math.max(5, Math.min(100 - prev.top, relativeY - prev.top));
+      } else if (edge === 'left') {
+        const newLeft = Math.max(0, Math.min(relativeX, prev.left + prev.width - 5));
+        newBounds.width = prev.width + (prev.left - newLeft);
+        newBounds.left = newLeft;
+      } else if (edge === 'right') {
+        newBounds.width = Math.max(5, Math.min(100 - prev.left, relativeX - prev.left));
+      }
+
+      return newBounds;
+    });
+  }, [floorplans, pan, zoom]);
+
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
     const isEmptySpace = e.target === e.currentTarget || 
@@ -915,11 +1010,17 @@ function AVCanvasContent() {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
       handleGlobalMouseMove(e);
       handleResizeMove(e);
+      if (croppingRef.current) {
+        handleCropDrag(e, croppingRef.current.edge);
+      }
     };
 
     const handleDragEnd = (e) => {
       handleGlobalMouseUp(e);
       handleResizeEnd();
+      if (croppingRef.current?.edge) {
+        croppingRef.current.edge = null;
+      }
     };
 
     window.addEventListener('mousemove', handleDragMove);
@@ -928,7 +1029,7 @@ function AVCanvasContent() {
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, handleCropDrag]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -1623,10 +1724,11 @@ function AVCanvasContent() {
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
-                          pointerEvents: 'none'
+                          pointerEvents: 'none',
+                          clipPath: fp.crop ? `inset(${fp.crop.top}% ${100 - fp.crop.left - fp.crop.width}% ${100 - fp.crop.top - fp.crop.height}% ${fp.crop.left}%)` : 'none'
                         }}
                       />
-                      {isSelected && !fp.locked && (
+                      {isSelected && !fp.locked && croppingFloorplan !== fp.id && (
                         <>
                           {/* Corner resize handles */}
                           <div
@@ -1717,6 +1819,166 @@ function AVCanvasContent() {
                               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                             }}
                           />
+                        </>
+                      )}
+                      {croppingFloorplan === fp.id && (
+                        <>
+                          {/* Crop overlay */}
+                          <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            pointerEvents: 'none'
+                          }}>
+                            {/* Dimmed areas */}
+                            <div style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: `${cropBounds.top}%`,
+                              background: 'rgba(0,0,0,0.5)'
+                            }} />
+                            <div style={{
+                              position: 'absolute',
+                              top: `${cropBounds.top}%`,
+                              left: 0,
+                              width: `${cropBounds.left}%`,
+                              height: `${cropBounds.height}%`,
+                              background: 'rgba(0,0,0,0.5)'
+                            }} />
+                            <div style={{
+                              position: 'absolute',
+                              top: `${cropBounds.top}%`,
+                              right: 0,
+                              width: `${100 - cropBounds.left - cropBounds.width}%`,
+                              height: `${cropBounds.height}%`,
+                              background: 'rgba(0,0,0,0.5)'
+                            }} />
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              width: '100%',
+                              height: `${100 - cropBounds.top - cropBounds.height}%`,
+                              background: 'rgba(0,0,0,0.5)'
+                            }} />
+                            
+                            {/* Crop boundaries */}
+                            <div style={{
+                              position: 'absolute',
+                              top: `${cropBounds.top}%`,
+                              left: `${cropBounds.left}%`,
+                              width: `${cropBounds.width}%`,
+                              height: `${cropBounds.height}%`,
+                              border: '2px solid #3b82f6',
+                              pointerEvents: 'auto',
+                              boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)'
+                            }}>
+                              {/* Top edge */}
+                              <div
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  croppingRef.current = { ...croppingRef.current, edge: 'top' };
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  top: '-4px',
+                                  left: 0,
+                                  right: 0,
+                                  height: '8px',
+                                  cursor: 'ns-resize',
+                                  background: 'transparent'
+                                }}
+                              />
+                              {/* Bottom edge */}
+                              <div
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  croppingRef.current = { ...croppingRef.current, edge: 'bottom' };
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '-4px',
+                                  left: 0,
+                                  right: 0,
+                                  height: '8px',
+                                  cursor: 'ns-resize',
+                                  background: 'transparent'
+                                }}
+                              />
+                              {/* Left edge */}
+                              <div
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  croppingRef.current = { ...croppingRef.current, edge: 'left' };
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  bottom: 0,
+                                  left: '-4px',
+                                  width: '8px',
+                                  cursor: 'ew-resize',
+                                  background: 'transparent'
+                                }}
+                              />
+                              {/* Right edge */}
+                              <div
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  croppingRef.current = { ...croppingRef.current, edge: 'right' };
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  bottom: 0,
+                                  right: '-4px',
+                                  width: '8px',
+                                  cursor: 'ew-resize',
+                                  background: 'transparent'
+                                }}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Crop controls */}
+                          <div style={{
+                            position: 'absolute',
+                            top: '-50px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            display: 'flex',
+                            gap: '8px',
+                            background: 'rgba(0,0,0,0.8)',
+                            padding: '8px',
+                            borderRadius: '8px',
+                            zIndex: 1004
+                          }}>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApplyCrop();
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              Apply
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCancelCrop();
+                              }}
+                              className="border-gray-600 text-white hover:bg-gray-700"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
                         </>
                       )}
                     </div>
@@ -2095,6 +2357,7 @@ function AVCanvasContent() {
             onClose={() => setShowFloorplanManager(false)}
             selectedFloorplanId={selectedFloorplanId}
             onSelectFloorplan={setSelectedFloorplanId}
+            onStartCrop={handleStartCrop}
           />
         )}
 

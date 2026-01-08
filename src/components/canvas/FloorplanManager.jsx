@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Crop } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, onStartCrop }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -479,6 +479,21 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                       )}
                     </div>
                     <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onStartCrop) {
+                            onStartCrop(fp.id);
+                            onClose();
+                          }
+                        }}
+                        className="h-7 w-7 text-purple-400 hover:text-purple-300"
+                        title="Crop"
+                      >
+                        <Crop className="w-3 h-3" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"
