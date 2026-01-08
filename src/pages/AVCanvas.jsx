@@ -949,17 +949,19 @@ function AVCanvasContent() {
 
     const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
     const currentScale = floorplan.scale || 1;
-    let displayWidth;
-    
+    let displayWidth, displayHeight;
+
     if (hasCalibration) {
       const scaleFactor = (1 / floorplan.pixelsPerInch) * currentScale;
       displayWidth = floorplan.imageWidth * scaleFactor;
+      displayHeight = floorplan.imageHeight * scaleFactor;
     } else {
       displayWidth = 500 * currentScale;
+      displayHeight = 500 * currentScale;
     }
 
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
-    const relativeY = ((mouseY - currentPosition.y) / displayWidth) * 100;
+    const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
 
     setCropBounds(prev => {
       let newBounds = { ...prev };
