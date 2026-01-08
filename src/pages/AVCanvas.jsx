@@ -628,10 +628,14 @@ function AVCanvasContent() {
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
 
+      // Don't start dragging if clicking on a resize handle
+      if (e.target.closest('[data-resize-handle]')) {
+        return;
+      }
+
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
-      console.log('Floorplan mousedown', e.target);
       e.preventDefault();
       e.stopPropagation();
 
@@ -650,15 +654,13 @@ function AVCanvasContent() {
     };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
-      console.log('handleResizeStart called', corner, floorplanId);
-      
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
-      // Ensure valid position values (handle NaN or undefined)
+      // Ensure valid position values (handle NaN, undefined, and null)
       const validPosition = {
-        x: (floorplan.position?.x && !isNaN(floorplan.position.x)) ? floorplan.position.x : 100,
-        y: (floorplan.position?.y && !isNaN(floorplan.position.y)) ? floorplan.position.y : 100
+        x: (typeof floorplan.position?.x === 'number' && !isNaN(floorplan.position.x)) ? floorplan.position.x : 100,
+        y: (typeof floorplan.position?.y === 'number' && !isNaN(floorplan.position.y)) ? floorplan.position.y : 100
       };
 
       const resizeState = {
@@ -673,7 +675,6 @@ function AVCanvasContent() {
         pixelsPerInch: floorplan.pixelsPerInch || 1
       };
 
-      console.log('Setting resize state:', resizeState);
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
       setResizeOffset({ 
@@ -1517,11 +1518,11 @@ function AVCanvasContent() {
                         <>
                           {/* Corner resize handles */}
                           <div
+                            data-resize-handle="nw"
                             onMouseDown={(e) => {
                               if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log('NW handle clicked');
                               handleResizeStart(e, fp.id, 'nw');
                             }}
                             style={{
@@ -1538,11 +1539,11 @@ function AVCanvasContent() {
                             }}
                           />
                           <div
+                            data-resize-handle="ne"
                             onMouseDown={(e) => {
                               if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log('NE handle clicked');
                               handleResizeStart(e, fp.id, 'ne');
                             }}
                             style={{
@@ -1559,11 +1560,11 @@ function AVCanvasContent() {
                             }}
                           />
                           <div
+                            data-resize-handle="sw"
                             onMouseDown={(e) => {
                               if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log('SW handle clicked');
                               handleResizeStart(e, fp.id, 'sw');
                             }}
                             style={{
@@ -1580,11 +1581,11 @@ function AVCanvasContent() {
                             }}
                           />
                           <div
+                            data-resize-handle="se"
                             onMouseDown={(e) => {
                               if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log('SE handle clicked');
                               handleResizeStart(e, fp.id, 'se');
                             }}
                             style={{
