@@ -8,11 +8,11 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
   const [spacePressed, setSpacePressed] = useState(false);
 
   const handleZoomIn = useCallback(() => {
-    setZoom(prev => Math.min(prev + 0.1, 2));
+    setZoom(prev => Math.min(prev + 0.1, 2.0));
   }, []);
 
   const handleZoomOut = useCallback(() => {
-    setZoom(prev => Math.max(prev - 0.1, 0.1));
+    setZoom(prev => Math.max(prev - 0.1, 0.01));
   }, []);
 
   const handleZoomReset = useCallback(() => {
@@ -22,7 +22,7 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
   const handleWheel = useCallback((e, canvasElement) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    const newZoom = Math.max(0.1, Math.min(2, zoom + delta));
+    const newZoom = Math.max(0.01, Math.min(2.0, zoom + delta));
     
     if (canvasElement) {
       const rect = canvasElement.getBoundingClientRect();
