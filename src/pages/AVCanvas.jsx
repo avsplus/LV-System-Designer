@@ -1676,16 +1676,23 @@ function AVCanvasContent() {
 
                   // For legacy floorplans without calibration, use simple scale
                   const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
-                  let displayWidth;
+                  let displayWidth, displayHeight;
                   
                   if (hasCalibration) {
                     // Scale floorplan so 1 canvas pixel = 1 inch in real world
                     const scaleFactor = (1 / fp.pixelsPerInch) * currentScale;
                     displayWidth = fp.imageWidth * scaleFactor;
+                    displayHeight = fp.imageHeight * scaleFactor;
                   } else {
                     // Legacy: use simple scale factor (assume 500px default width)
                     displayWidth = 500 * currentScale;
+                    displayHeight = 500 * currentScale;
                   }
+
+                  // Apply crop to dimensions
+                  const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
+                  const croppedWidth = displayWidth * (crop.width / 100);
+                  const croppedHeight = displayHeight * (crop.height / 100);
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1703,7 +1710,8 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${currentY}px`,
                         left: `${currentX}px`,
-                        width: `${displayWidth}px`,
+                        width: `${croppedWidth}px`,
+                        height: `${croppedHeight}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: isSelected ? '4px' : '0',
@@ -1712,20 +1720,23 @@ function AVCanvasContent() {
                         boxShadow: isSelected ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
                         zIndex: isSelected ? 1000 : index,
                         transition: isThisOneDragging || resizingFloorplan?.id === fp.id ? 'none' : 'all 0.2s ease',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        overflow: 'hidden'
                       }}
                     >
                       <img 
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          width: '100%',
-                          height: 'auto',
+                          position: 'absolute',
+                          width: `${displayWidth}px`,
+                          height: `${displayHeight}px`,
+                          top: `${-(displayHeight * (crop.top / 100))}px`,
+                          left: `${-(displayWidth * (crop.left / 100))}px`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
-                          pointerEvents: 'none',
-                          clipPath: fp.crop ? `inset(${fp.crop.top}% ${100 - fp.crop.left - fp.crop.width}% ${100 - fp.crop.top - fp.crop.height}% ${fp.crop.left}%)` : 'none'
+                          pointerEvents: 'none'
                         }}
                       />
                       {isSelected && !fp.locked && croppingFloorplan !== fp.id && (
