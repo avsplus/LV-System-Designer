@@ -1964,34 +1964,22 @@ function AVCanvasContent() {
 
                             {/* Crop controls - OUTSIDE transform container */}
                             {croppingFloorplan && (
-                            <div style={{
-                            position: 'fixed',
-                            bottom: '24px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            gap: '12px',
-                            background: 'rgba(0,0,0,0.95)',
-                            padding: '16px 32px',
-                            borderRadius: '12px',
-                            zIndex: 10000,
-                            border: '2px solid #3b82f6',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.8)'
-                            }}>
-                            <Button
-                            onClick={handleApplyCrop}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6"
-                            >
-                            Apply Crop
-                            </Button>
-                            <Button
-                            variant="outline"
-                            onClick={handleCancelCrop}
-                            className="border-gray-600 text-white hover:bg-gray-700 px-6"
-                            >
-                            Cancel
-                            </Button>
-                            </div>
+                              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-gray-900/95 backdrop-blur-xl px-8 py-5 rounded-2xl z-[10000] border border-gray-700/50 shadow-2xl">
+                                <Button
+                                  onClick={handleApplyCrop}
+                                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-8 py-6 text-base font-semibold shadow-lg shadow-green-900/50 transition-all hover:scale-105"
+                                >
+                                  <Crop className="w-5 h-5 mr-2" />
+                                  Apply Crop
+                                </Button>
+                                <Button
+                                  onClick={handleCancelCrop}
+                                  className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-6 text-base font-semibold border border-gray-600 shadow-lg transition-all hover:scale-105"
+                                >
+                                  <X className="w-5 h-5 mr-2" />
+                                  Cancel
+                                </Button>
+                              </div>
                             )}
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
