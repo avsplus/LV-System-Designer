@@ -903,6 +903,8 @@ function AVCanvasContent() {
   const handleApplyCrop = useCallback(() => {
     if (!croppingFloorplan) return;
 
+    console.log('[APPLY CROP] Crop bounds being saved:', cropBounds);
+
     setFloorplans(prev => {
       const updated = prev.map(fp => 
         fp.id === croppingFloorplan 
@@ -1861,6 +1863,18 @@ function AVCanvasContent() {
                         const cropLeftPx = (cropBounds.left / 100) * displayWidth;
                         const cropWidthPx = (cropBounds.width / 100) * displayWidth;
                         const cropHeightPx = (cropBounds.height / 100) * displayHeight;
+
+                        console.log('[CROP OVERLAY RENDER]', {
+                          cropBounds,
+                          displayWidth,
+                          displayHeight,
+                          cropTopPx,
+                          cropLeftPx,
+                          cropWidthPx,
+                          cropHeightPx,
+                          containerWidth: croppedWidth,
+                          containerHeight: croppedHeight
+                        });
 
                         return (
                         <>
