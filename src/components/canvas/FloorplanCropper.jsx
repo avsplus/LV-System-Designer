@@ -25,6 +25,8 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
         width: croppedAreaPercent.width,
         height: croppedAreaPercent.height
       };
+      console.log('🎯 Crop data from react-easy-crop:', croppedAreaPercent);
+      console.log('📦 Saving crop data:', cropData);
       onApply(cropData);
     }
   };
