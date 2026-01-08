@@ -1955,18 +1955,20 @@ function AVCanvasContent() {
                             </div>
                           </div>
                           
-                          {/* Crop controls */}
+                          {/* Crop controls - fixed position on screen */}
                           <div style={{
-                            position: 'absolute',
-                            top: '-50px',
+                            position: 'fixed',
+                            top: '50%',
                             left: '50%',
-                            transform: 'translateX(-50%)',
+                            transform: 'translate(-50%, -50%)',
                             display: 'flex',
-                            gap: '8px',
-                            background: 'rgba(0,0,0,0.8)',
-                            padding: '8px',
-                            borderRadius: '8px',
-                            zIndex: 1004
+                            gap: '12px',
+                            background: 'rgba(0,0,0,0.9)',
+                            padding: '16px 24px',
+                            borderRadius: '12px',
+                            zIndex: 10000,
+                            border: '2px solid #3b82f6',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
                           }}>
                             <Button
                               size="sm"
@@ -1976,7 +1978,7 @@ function AVCanvasContent() {
                               }}
                               className="bg-green-600 hover:bg-green-700 text-white"
                             >
-                              Apply
+                              Apply Crop
                             </Button>
                             <Button
                               size="sm"
