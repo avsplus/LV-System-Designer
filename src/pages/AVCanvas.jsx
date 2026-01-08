@@ -859,14 +859,23 @@ function AVCanvasContent() {
   const handleApplyCrop = useCallback(() => {
     if (!croppingFloorplan) return;
 
-    console.log('🎯 APPLYING CROP:', cropBounds);
+    const finalCrop = {
+      top: Number(cropBounds.top.toFixed(2)),
+      left: Number(cropBounds.left.toFixed(2)),
+      width: Number(cropBounds.width.toFixed(2)),
+      height: Number(cropBounds.height.toFixed(2))
+    };
+
+    console.log('🎯 APPLYING CROP:', finalCrop);
 
     setFloorplans(prev => {
       const updated = prev.map(fp => 
         fp.id === croppingFloorplan 
-          ? { ...fp, crop: { ...cropBounds } }
+          ? { ...fp, crop: finalCrop }
           : fp
       );
+
+      console.log('💾 SAVED FLOORPLAN:', updated.find(fp => fp.id === croppingFloorplan));
 
       if (currentProject?.id) {
         base44.entities.AVProject.update(currentProject.id, {
@@ -880,7 +889,7 @@ function AVCanvasContent() {
 
     setCroppingFloorplan(null);
     croppingRef.current = null;
-  }, [croppingFloorplan, cropBounds, currentProject, markLocalChange, floorplans]);
+  }, [croppingFloorplan, cropBounds, currentProject, markLocalChange]);
 
   const handleCancelCrop = useCallback(() => {
     setCroppingFloorplan(null);
@@ -919,11 +928,8 @@ function AVCanvasContent() {
     }
 
     // Calculate relative position on the FULL displayed image (in world coordinates)
-    // Mouse is in world coords, currentPosition is top-left of container, displayWidth/Height are full image size
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
     const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
-
-    console.log('🖱️ DRAG:', { edge, mouseX, mouseY, currentPosition, displayWidth, displayHeight, relativeX, relativeY });
 
     setCropBounds(prev => {
       let newBounds = { ...prev };
@@ -942,7 +948,6 @@ function AVCanvasContent() {
         newBounds.width = Math.max(5, Math.min(100 - prev.left, relativeX - prev.left));
       }
 
-      console.log('📊 NEW BOUNDS:', { prev, newBounds, edge });
       return newBounds;
     });
   }, [floorplans, pan, zoom]);
@@ -1667,23 +1672,12 @@ function AVCanvasContent() {
                   // Apply crop to dimensions (show full image when in crop mode)
                   const isBeingCropped = croppingFloorplan === fp.id;
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
-                  
-                  console.log(`🔍 ${fp.name} CROP CALC:`, {
-                    isBeingCropped,
-                    'crop.width': crop.width,
-                    'crop.height': crop.height,
-                    displayWidth,
-                    displayHeight,
-                    'crop.width/100': crop.width / 100,
-                    'crop.height/100': crop.height / 100,
-                    'displayWidth * (crop.width/100)': displayWidth * (crop.width / 100),
-                    'displayHeight * (crop.height/100)': displayHeight * (crop.height / 100)
-                  });
-                  
                   const croppedWidth = isBeingCropped ? displayWidth : (displayWidth * (crop.width / 100));
                   const croppedHeight = isBeingCropped ? displayHeight : (displayHeight * (crop.height / 100));
                   
-                  console.log(`✅ ${fp.name} FINAL:`, { croppedWidth, croppedHeight });
+                  if (!isBeingCropped) {
+                    console.log(`📐 ${fp.name}:`, { crop, croppedWidth, croppedHeight });
+                  }
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
