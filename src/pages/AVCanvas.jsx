@@ -624,17 +624,13 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
-      // Don't start drag if clicking on a resize handle - check the actual target
-      if (e.target.hasAttribute('data-resize-handle') || e.target.closest('[data-resize-handle]')) {
-        return;
-      }
-
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
 
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
+      console.log('Floorplan mousedown', e.target);
       e.preventDefault();
       e.stopPropagation();
 
@@ -653,9 +649,8 @@ function AVCanvasContent() {
     };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
-      e.preventDefault();
-      e.stopPropagation();
-
+      console.log('handleResizeStart called', corner, floorplanId);
+      
       const floorplan = floorplans.find(fp => fp.id === floorplanId);
       if (!floorplan || floorplan.locked) return;
 
@@ -671,12 +666,9 @@ function AVCanvasContent() {
         pixelsPerInch: floorplan.pixelsPerInch || 1
       };
 
+      console.log('Setting resize state:', resizeState);
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
-
-      if (e.target.setPointerCapture && e.pointerId !== undefined) {
-        e.target.setPointerCapture(e.pointerId);
-      }
     }, [floorplans]);
 
   const handleResizeMove = useCallback((e) => {
@@ -1505,10 +1497,11 @@ function AVCanvasContent() {
                         <>
                           {/* Corner resize handles */}
                           <div
-                            data-resize-handle
                             onMouseDown={(e) => {
+                              if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
+                              console.log('NW handle clicked');
                               handleResizeStart(e, fp.id, 'nw');
                             }}
                             style={{
@@ -1519,26 +1512,17 @@ function AVCanvasContent() {
                               height: '30px',
                               cursor: 'nw-resize',
                               zIndex: 1003,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              touchAction: 'none'
-                            }}
-                          >
-                            <div style={{
-                              width: '14px',
-                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
-                              borderRadius: '50%',
-                              pointerEvents: 'none'
-                            }} />
-                          </div>
+                              borderRadius: '50%'
+                            }}
+                          />
                           <div
-                            data-resize-handle
                             onMouseDown={(e) => {
+                              if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
+                              console.log('NE handle clicked');
                               handleResizeStart(e, fp.id, 'ne');
                             }}
                             style={{
@@ -1549,26 +1533,17 @@ function AVCanvasContent() {
                               height: '30px',
                               cursor: 'ne-resize',
                               zIndex: 1003,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              touchAction: 'none'
-                            }}
-                          >
-                            <div style={{
-                              width: '14px',
-                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
-                              borderRadius: '50%',
-                              pointerEvents: 'none'
-                            }} />
-                          </div>
+                              borderRadius: '50%'
+                            }}
+                          />
                           <div
-                            data-resize-handle
                             onMouseDown={(e) => {
+                              if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
+                              console.log('SW handle clicked');
                               handleResizeStart(e, fp.id, 'sw');
                             }}
                             style={{
@@ -1579,26 +1554,17 @@ function AVCanvasContent() {
                               height: '30px',
                               cursor: 'sw-resize',
                               zIndex: 1003,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              touchAction: 'none'
-                            }}
-                          >
-                            <div style={{
-                              width: '14px',
-                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
-                              borderRadius: '50%',
-                              pointerEvents: 'none'
-                            }} />
-                          </div>
+                              borderRadius: '50%'
+                            }}
+                          />
                           <div
-                            data-resize-handle
                             onMouseDown={(e) => {
+                              if (e.button !== 0) return;
                               e.preventDefault();
                               e.stopPropagation();
+                              console.log('SE handle clicked');
                               handleResizeStart(e, fp.id, 'se');
                             }}
                             style={{
@@ -1609,21 +1575,11 @@ function AVCanvasContent() {
                               height: '30px',
                               cursor: 'se-resize',
                               zIndex: 1003,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              touchAction: 'none'
-                            }}
-                          >
-                            <div style={{
-                              width: '14px',
-                              height: '14px',
                               background: '#3b82f6',
                               border: '2px solid white',
-                              borderRadius: '50%',
-                              pointerEvents: 'none'
-                            }} />
-                          </div>
+                              borderRadius: '50%'
+                            }}
+                          />
                         </>
                       )}
                     </div>
