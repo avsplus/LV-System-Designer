@@ -1657,6 +1657,10 @@ function AVCanvasContent() {
                   const croppedWidth = displayWidth * (crop.width / 100);
                   const croppedHeight = displayHeight * (crop.height / 100);
 
+                  // Calculate the offset to position the image correctly within the cropped viewport
+                  const imageOffsetX = -(displayWidth * (crop.left / 100));
+                  const imageOffsetY = -(displayHeight * (crop.top / 100));
+
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
                   const currentX = isThisOneDragging && floorplanDragOffset.x !== 0 ? floorplanDragOffset.x : currentPosition.x;
