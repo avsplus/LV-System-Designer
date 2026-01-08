@@ -880,12 +880,14 @@ function AVCanvasContent() {
   const handleMouseDown = (e) => {
     // Handle middle mouse double-click to center and reset zoom
     if (e.button === 1) {
-      e.preventDefault();
       const now = Date.now();
       const timeSinceLastClick = now - lastMiddleClickRef.current;
       
-      if (timeSinceLastClick < 300) {
+      if (timeSinceLastClick < 400) {
         // Double middle-click detected
+        e.preventDefault();
+        e.stopPropagation();
+        
         if (floorplans.length > 0) {
           // Calculate center of all visible floorplans
           const visibleFloorplans = floorplans.filter(fp => fp.visible);
@@ -928,14 +930,16 @@ function AVCanvasContent() {
                 y: viewportCenterY - centerY
               });
               setZoom(1);
+              toast.success('Centered floorplans at 100% zoom');
             }
           }
         }
         lastMiddleClickRef.current = 0;
+        return;
       } else {
         lastMiddleClickRef.current = now;
+        // Still allow normal panning for single middle-click
       }
-      return;
     }
     
     // Only pan when clicking on empty canvas space (background or SVG)
