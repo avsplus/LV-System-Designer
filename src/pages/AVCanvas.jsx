@@ -127,6 +127,7 @@ function AVCanvasContent() {
   const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
   const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
   const [resizingFloorplan, setResizingFloorplan] = useState(null);
+  const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
   
   const canvasRef = useRef(null);
@@ -686,9 +687,7 @@ function AVCanvasContent() {
 
       const resize = resizingRef.current;
       if (resize) {
-        console.log('Resizing, mouse at:', e.clientX, e.clientY);
         const dx = (e.clientX - resize.startClientX) / zoom;
-        console.log('dx:', dx, 'zoom:', zoom);
 
         let newScale = resize.startScale;
         let newPosition = { ...resize.startPosition };
@@ -713,12 +712,7 @@ function AVCanvasContent() {
           newPosition.y = resize.startPosition.y - heightChange;
         }
 
-        console.log('New scale:', newScale, 'New position:', newPosition);
-        setFloorplans(prev => prev.map(fp => 
-          fp.id === resize.id 
-            ? { ...fp, scale: newScale, position: newPosition }
-            : fp
-        ));
+        setResizeOffset({ scale: newScale, position: newPosition });
       }
     }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
@@ -751,22 +745,30 @@ function AVCanvasContent() {
 
     if (resizingRef.current) {
       setFloorplans(prev => {
+        const updatedFloorplans = prev.map(fp => 
+          fp.id === resizingRef.current.id 
+            ? { ...fp, scale: resizeOffset.scale, position: resizeOffset.position }
+            : fp
+        );
+        
         if (currentProject?.id) {
           base44.entities.AVProject.update(currentProject.id, {
-            floorplans: prev
+            floorplans: updatedFloorplans
           }).catch(error => console.error('Failed to save floorplan scale:', error));
           markLocalChange();
         }
-        return prev;
+        
+        return updatedFloorplans;
       });
       resizingRef.current = null;
       setResizingFloorplan(null);
+      setResizeOffset({ scale: 1, position: { x: 0, y: 0 } });
     }
 
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragOffset, currentProject, markLocalChange]);
+  }, [draggingFloorplan, floorplanDragOffset, resizeOffset, currentProject, markLocalChange]);
 
   const handleMouseDown = (e) => {
     // Only pan when clicking on empty canvas space (background or SVG)
@@ -1451,15 +1453,19 @@ function AVCanvasContent() {
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
+                  // Check if this floorplan is being resized
+                  const isThisOneResizing = resizingRef.current?.id === fp.id;
+                  const currentScale = isThisOneResizing ? resizeOffset.scale : (fp.scale || 1);
+                  const currentPosition = isThisOneResizing ? resizeOffset.position : (fp.position || { x: 100, y: 100 });
+
                   // Scale floorplan so 1 canvas pixel = 1 inch in real world
-                  const scaleFactor = (1 / (fp.pixelsPerInch || 1)) * (fp.scale || 1);
+                  const scaleFactor = (1 / (fp.pixelsPerInch || 1)) * currentScale;
                   const displayWidth = fp.imageWidth * scaleFactor;
-                  const position = fp.position || { x: 100, y: 100 };
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
-                  const currentX = isThisOneDragging && floorplanDragOffset.x !== 0 ? floorplanDragOffset.x : position.x;
-                  const currentY = isThisOneDragging && floorplanDragOffset.y !== 0 ? floorplanDragOffset.y : position.y;
+                  const currentX = isThisOneDragging && floorplanDragOffset.x !== 0 ? floorplanDragOffset.x : currentPosition.x;
+                  const currentY = isThisOneDragging && floorplanDragOffset.y !== 0 ? floorplanDragOffset.y : currentPosition.y;
                   const isSelected = selectedFloorplanId === fp.id;
 
                   return (
