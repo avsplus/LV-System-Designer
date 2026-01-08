@@ -670,6 +670,10 @@ function AVCanvasContent() {
       console.log('Setting resize state:', resizeState);
       resizingRef.current = resizeState;
       setResizingFloorplan(resizeState);
+      setResizeOffset({ 
+        scale: floorplan.scale || 1, 
+        position: { ...(floorplan.position || { x: 0, y: 0 }) }
+      });
     }, [floorplans]);
 
   const handleResizeMove = useCallback((e) => {
