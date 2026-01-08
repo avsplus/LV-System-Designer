@@ -930,6 +930,14 @@ function AVCanvasContent() {
     const relativeX = ((mouseX - currentPosition.x) / displayWidth) * 100;
     const relativeY = ((mouseY - currentPosition.y) / displayHeight) * 100;
 
+    console.log('🖱️ DRAG:', { 
+      edge, 
+      mouseWorld: { x: mouseX, y: mouseY },
+      floorplanPos: currentPosition,
+      imageDims: { displayWidth, displayHeight },
+      relative: { x: relativeX.toFixed(2) + '%', y: relativeY.toFixed(2) + '%' }
+    });
+
     setCropBounds(prev => {
       let newBounds = { ...prev };
 
@@ -937,14 +945,18 @@ function AVCanvasContent() {
         const newTop = Math.max(0, Math.min(relativeY, prev.top + prev.height - 5));
         newBounds.height = prev.height + (prev.top - newTop);
         newBounds.top = newTop;
+        console.log('  ↕️ TOP:', { prevTop: prev.top, newTop, prevHeight: prev.height, newHeight: newBounds.height });
       } else if (edge === 'bottom') {
         newBounds.height = Math.max(5, Math.min(100 - prev.top, relativeY - prev.top));
+        console.log('  ↕️ BOTTOM:', { prevHeight: prev.height, newHeight: newBounds.height, relativeY, prevTop: prev.top });
       } else if (edge === 'left') {
         const newLeft = Math.max(0, Math.min(relativeX, prev.left + prev.width - 5));
         newBounds.width = prev.width + (prev.left - newLeft);
         newBounds.left = newLeft;
+        console.log('  ↔️ LEFT:', { prevLeft: prev.left, newLeft, prevWidth: prev.width, newWidth: newBounds.width });
       } else if (edge === 'right') {
         newBounds.width = Math.max(5, Math.min(100 - prev.left, relativeX - prev.left));
+        console.log('  ↔️ RIGHT:', { prevWidth: prev.width, newWidth: newBounds.width, relativeX, prevLeft: prev.left });
       }
 
       return newBounds;
