@@ -1953,52 +1953,46 @@ function AVCanvasContent() {
                                 }}
                               />
                             </div>
-                          </div>
-                          
-                          {/* Crop controls - fixed position on screen */}
-                          <div style={{
+                            </div>
+                            </>
+                            )}
+                            </div>
+                            );
+                            })}
+                            </div>
+                            </div>
+
+                            {/* Crop controls - OUTSIDE transform container */}
+                            {croppingFloorplan && (
+                            <div style={{
                             position: 'fixed',
-                            top: '50%',
+                            bottom: '24px',
                             left: '50%',
-                            transform: 'translate(-50%, -50%)',
+                            transform: 'translateX(-50%)',
                             display: 'flex',
                             gap: '12px',
-                            background: 'rgba(0,0,0,0.9)',
-                            padding: '16px 24px',
+                            background: 'rgba(0,0,0,0.95)',
+                            padding: '16px 32px',
                             borderRadius: '12px',
                             zIndex: 10000,
                             border: '2px solid #3b82f6',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
-                          }}>
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.8)'
+                            }}>
                             <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleApplyCrop();
-                              }}
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={handleApplyCrop}
+                            className="bg-green-600 hover:bg-green-700 text-white px-6"
                             >
-                              Apply Crop
+                            Apply Crop
                             </Button>
                             <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCancelCrop();
-                              }}
-                              className="border-gray-600 text-white hover:bg-gray-700"
+                            variant="outline"
+                            onClick={handleCancelCrop}
+                            className="border-gray-600 text-white hover:bg-gray-700 px-6"
                             >
-                              Cancel
+                            Cancel
                             </Button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                            </div>
+                            )}
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
