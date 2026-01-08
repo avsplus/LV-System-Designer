@@ -1041,7 +1041,7 @@ function AVCanvasContent() {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
       handleGlobalMouseMove(e);
       handleResizeMove(e);
-      if (croppingRef.current) {
+      if (croppingRef.current?.edge) {
         handleCropDrag(e, croppingRef.current.edge);
       }
     };
