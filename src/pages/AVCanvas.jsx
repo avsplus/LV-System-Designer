@@ -652,9 +652,25 @@ function AVCanvasContent() {
       setFloorplanDragStart({
         offsetX: mouseWorldX - (floorplan.position?.x || 0),
         offsetY: mouseWorldY - (floorplan.position?.y || 0),
-        startPos: { x: floorplan.position?.x || 0, y: floorplan.position?.y || 0 }
+        startPos: { x: floorplan.position?.x || 0, y: floorplan.position?.y || 0 },
+        startMouseX: e.clientX,
+        startMouseY: e.clientY
       });
     };
+
+  const handleFloorplanClick = (e, floorplanId) => {
+    // Only open panel if this was a click, not a drag
+    if (floorplanDragStart && (
+      Math.abs(e.clientX - floorplanDragStart.startMouseX) > 5 ||
+      Math.abs(e.clientY - floorplanDragStart.startMouseY) > 5
+    )) {
+      return; // Was a drag, not a click
+    }
+
+    e.stopPropagation();
+    setShowFloorplanManager(true);
+    setSelectedFloorplanId(floorplanId);
+  };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
       e.preventDefault();
@@ -985,6 +1001,8 @@ function AVCanvasContent() {
       setSelectedConnection(null);
       setHighlightedConnections([]);
       setPanelHistory([]);
+      setShowFloorplanManager(false);
+      setSelectedFloorplanId(null);
     }
   };
 
@@ -1706,6 +1724,7 @@ function AVCanvasContent() {
                       data-floorplan="true"
                       data-floorplan-id={fp.id}
                       onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)}
+                      onClick={(e) => handleFloorplanClick(e, fp.id)}
                       style={{
                         position: 'absolute',
                         top: `${currentY}px`,
