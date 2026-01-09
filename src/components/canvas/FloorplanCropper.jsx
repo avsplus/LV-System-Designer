@@ -8,24 +8,46 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-  const [croppedAreaPercent, setCroppedAreaPercent] = useState(null);
+  const [imageDimensions, setImageDimensions] = useState(null);
+
+  // Load image to get natural dimensions
+  React.useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+    };
+    img.src = floorplan.url;
+  }, [floorplan.url]);
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPercent(croppedArea);
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleApply = () => {
-    if (croppedAreaPixels && floorplan.imageWidth && floorplan.imageHeight) {
-      // Use pixel coordinates and convert to decimals relative to natural image size
-      const cropData = {
-        top: croppedAreaPixels.y / floorplan.imageHeight,
-        left: croppedAreaPixels.x / floorplan.imageWidth,
-        width: croppedAreaPixels.width / floorplan.imageWidth,
-        height: croppedAreaPixels.height / floorplan.imageHeight
-      };
-      onApply(cropData);
+    if (!croppedAreaPixels || !imageDimensions) {
+      console.error('Missing crop data or image dimensions', { croppedAreaPixels, imageDimensions });
+      return;
     }
+
+    // croppedAreaPixels is already in natural image pixel coordinates
+    // Convert to decimals (0-1) for storage
+    const cropData = {
+      top: croppedAreaPixels.y / imageDimensions.height,
+      left: croppedAreaPixels.x / imageDimensions.width,
+      width: croppedAreaPixels.width / imageDimensions.width,
+      height: croppedAreaPixels.height / imageDimensions.height
+    };
+
+    console.log('Applying crop:', {
+      pixels: croppedAreaPixels,
+      imageDimensions,
+      normalized: cropData
+    });
+
+    onApply(cropData);
   };
 
   return (
