@@ -409,7 +409,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
             />
             <Button
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
+              disabled={!uploadForm.name.trim() || uploading}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
               <Upload className="w-4 h-4 mr-2" />
