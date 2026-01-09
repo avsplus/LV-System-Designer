@@ -27,7 +27,7 @@ export default function ProductDetailsPanel({ product, onClose, onDeviceUpdate }
   if (!product) return null;
 
   return (
-    <div className="fixed right-0 top-[72px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
+    <div className="fixed right-0 top-[81px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Product Details</h2>
         <div className="flex items-center gap-1">
