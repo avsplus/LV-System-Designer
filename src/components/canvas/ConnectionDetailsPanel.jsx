@@ -67,7 +67,7 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
   const isEmpty = connection.isEmpty;
 
   return (
-    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full flex-shrink-0">
+    <div className="fixed right-0 top-[72px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">
           {isEmpty ? 'Port Details' : 'Connection Details'}
