@@ -936,7 +936,7 @@ function AVCanvasContent() {
                          !e.target.closest('[data-floorplan]') && 
                          !e.target.closest('path') && 
                          !e.target.closest('circle'));
-    
+
     if (isEmptySpace) {
       setSelectedProduct(null);
       setSelectedCanvasProduct(null);
@@ -944,6 +944,7 @@ function AVCanvasContent() {
       setHighlightedConnections([]);
       setPanelHistory([]);
       setShowFloorplanManager(false);
+      setShowRoomManager(false);
       setSelectedFloorplanId(null);
     }
   };
