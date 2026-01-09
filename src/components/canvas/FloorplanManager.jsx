@@ -222,11 +222,11 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   };
 
   const getFloorplanRooms = (floorplanId) => {
-    return rooms.filter(room => room.floorplanId === floorplanId || !room.floorplanId);
+    return rooms.filter(room => room.floorplanId === floorplanId);
   };
 
-  const getFloorplanDevices = (floorplanId) => {
-    return canvasProducts.filter(cp => cp.floorplanId === floorplanId || !cp.floorplanId);
+  const getRoomDevices = (roomId) => {
+    return canvasProducts.filter(cp => cp.room === roomId);
   };
 
   useEffect(() => {
