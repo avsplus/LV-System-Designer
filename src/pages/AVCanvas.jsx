@@ -1652,14 +1652,16 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Apply crop to dimensions (crop is in percentages)
+                  // Crop data is in percentages of the natural image (from react-easy-crop)
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
+
+                  // Calculate the final displayed size after applying crop
                   const croppedWidth = displayWidth * (crop.width / 100);
                   const croppedHeight = displayHeight * (crop.height / 100);
 
-                  // Calculate translate to show the cropped area
-                  const translateX = -crop.left;
-                  const translateY = -crop.top;
+                  // Calculate offset within the image (also percentage-based)
+                  const offsetX = displayWidth * (crop.left / 100);
+                  const offsetY = displayHeight * (crop.top / 100);
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1696,9 +1698,11 @@ function AVCanvasContent() {
                         src={fp.url} 
                         alt={fp.name}
                         style={{
+                          position: 'absolute',
+                          top: `-${offsetY}px`,
+                          left: `-${offsetX}px`,
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
-                          transform: `translate(${translateX}%, ${translateY}%)`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
