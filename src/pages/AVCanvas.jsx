@@ -2159,50 +2159,19 @@ function AVCanvasContent() {
             onClose={() => setShowFloorplanManager(false)}
             selectedFloorplanId={selectedFloorplanId}
             onSelectFloorplan={setSelectedFloorplanId}
-          />
-        )}
-
-        {showRoomManager && (
-          <RoomManager
             rooms={rooms}
             onAddRoom={handleAddRoom}
             onDeleteRoom={handleDeleteRoom}
             canvasProducts={canvasProducts}
-            onClose={() => setShowRoomManager(false)}
-            onDeviceClick={(device) => {
-              setSelectedCanvasProduct(ensureNetworkInfo(device));
-              setSelectedProduct(null);
-              setSelectedConnection(null);
-              setShowFloorplanManager(false);
-              setShowRoomManager(false);
-              setSelectedFloorplanId(null);
-              setPanelHistory(['rooms', 'deviceConnections']);
-            }}
-            selectedRoom={selectedRoom}
-            onSelectRoom={setSelectedRoom}
             onDeviceRoomChange={(instanceId, newRoom) => {
               projectData.setCanvasProducts(prev => prev.map(cp => 
                 cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
               ));
             }}
-            onReorderDevices={(draggedId, targetId, room) => {
-              projectData.setCanvasProducts(prev => {
-                const roomDevices = prev.filter(cp => cp.room === room);
-                const otherDevices = prev.filter(cp => cp.room !== room);
-
-                const draggedIndex = roomDevices.findIndex(cp => cp.instanceId === draggedId);
-                const targetIndex = roomDevices.findIndex(cp => cp.instanceId === targetId);
-
-                if (draggedIndex === -1 || targetIndex === -1) return prev;
-
-                const [draggedItem] = roomDevices.splice(draggedIndex, 1);
-                roomDevices.splice(targetIndex, 0, draggedItem);
-
-                return [...otherDevices, ...roomDevices];
-              });
-            }}
           />
         )}
+
+
 
         {showExportDialog && (
           <ExportPDFDialog
