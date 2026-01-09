@@ -697,16 +697,21 @@ function AVCanvasContent() {
 
       // Calculate current rendered size
       const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+      const hasAspectRatio = floorplan.imageWidth && floorplan.imageHeight;
       let currentWidth, currentHeight;
       
       if (hasCalibration) {
         const scaleFactor = (1 / floorplan.pixelsPerInch) * currentScale;
         currentWidth = floorplan.imageWidth * scaleFactor;
         currentHeight = currentWidth * (floorplan.imageHeight / floorplan.imageWidth);
-      } else {
-        // Legacy: use simple scale factor (assume 500px default width, maintain aspect ratio from image)
+      } else if (hasAspectRatio) {
+        // Has dimensions but no calibration - maintain aspect ratio
         currentWidth = 500 * currentScale;
-        currentHeight = 500 * currentScale; // Will be corrected by aspect ratio in resize
+        currentHeight = currentWidth * (floorplan.imageHeight / floorplan.imageWidth);
+      } else {
+        // Legacy: use simple scale factor (assume 500px default width)
+        currentWidth = 500 * currentScale;
+        currentHeight = 500 * currentScale;
       }
 
       const resizeState = {
