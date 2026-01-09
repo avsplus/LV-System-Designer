@@ -33,25 +33,17 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   // Convert screen coordinates to world coordinates
   const screenToWorld = (screenX, screenY) => {
-    // Find the canvas element (parent with transform)
-    let canvas = canvasRef.current;
-    while (canvas && !canvas.getAttribute('data-canvas-background')) {
-      canvas = canvas.parentElement;
-    }
-    if (!canvas) {
-      // Fallback: find the svg or droppable element
-      canvas = document.querySelector('[data-canvas-background], svg');
-    }
+    // Find the SVG element (parent of the g)
+    const svg = canvasRef.current?.parentElement;
+    if (!svg) return { x: screenX, y: screenY };
     
-    if (!canvas) return { x: screenX, y: screenY };
+    const rect = svg.getBoundingClientRect();
+    const svgX = screenX - rect.left;
+    const svgY = screenY - rect.top;
     
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = screenX - rect.left;
-    const canvasY = screenY - rect.top;
-    
-    // Convert from canvas space to world space
-    const worldX = (canvasX - pan.x) / zoom;
-    const worldY = (canvasY - pan.y) / zoom;
+    // Convert from SVG space to world space using zoom and pan
+    const worldX = (svgX - pan.x) / zoom;
+    const worldY = (svgY - pan.y) / zoom;
     
     return { x: worldX, y: worldY };
   };
