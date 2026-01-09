@@ -1608,9 +1608,10 @@ function AVCanvasContent() {
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
-              className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
+              className={`flex-1 relative bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                 snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
               } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
+              style={{...provided.droppableProps.style, overflow: 'hidden'}}
               style={{
                 backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
                   ? 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)' 
@@ -1629,9 +1630,9 @@ function AVCanvasContent() {
               height: '100%',
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
-              transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
+              transition: isPanning || draggingFloorplan ? 'none' : 'none',
               pointerEvents: 'auto',
-              willChange: 'transform'
+              overflow: 'visible'
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
@@ -1808,8 +1809,8 @@ function AVCanvasContent() {
               </div>
             </div>
 
-            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible', willChange: 'transform' }}>
-              <g style={{ pointerEvents: 'none', willChange: 'transform' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
+              <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
@@ -1995,9 +1996,9 @@ function AVCanvasContent() {
               zIndex: 2,
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
-              transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
+              transition: isPanning || draggingFloorplan ? 'none' : 'none',
               pointerEvents: 'none',
-              willChange: 'transform'
+              overflow: 'visible'
             }}>
               {canvasProducts.map((cp) => {
                 const isHighlighted = highlightedConnections.some(idx => {
