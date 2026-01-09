@@ -190,6 +190,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
         pixelsPerInch: pixelsPerInch,
         imageWidth: imageWidth,
         imageHeight: imageHeight,
+        scale: 1,
         position: position,
         visible: true,
         opacity: 0.3
