@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Save, FolderOpen, Trash2, Plus, Share2, Users, Crown, AlertTriangle, Zap } from "lucide-react";
+import { X, Save, Download, Trash2, Plus, Share2, Users, Crown, AlertTriangle, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trackActivity, ActivityActions } from "../activity/activityTracker";
@@ -502,7 +502,7 @@ export default function ProjectManager({
                           className="h-8 w-8 text-blue-400 hover:text-blue-300"
                           title="Load project"
                         >
-                          <FolderOpen className="w-4 h-4" />
+                          <Download className="w-4 h-4" />
                         </Button>
                         <Button
                           size="icon"
@@ -563,7 +563,7 @@ export default function ProjectManager({
                           className="h-8 w-8 text-purple-400 hover:text-purple-300"
                           title="Load project"
                         >
-                          <FolderOpen className="w-4 h-4" />
+                          <Download className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
