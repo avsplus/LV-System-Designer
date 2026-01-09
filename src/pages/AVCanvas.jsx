@@ -620,6 +620,8 @@ function AVCanvasContent() {
     setFloorplans(updatedFloorplans);
     if (currentProject?.id) {
       try {
+        const updatedProject = { ...currentProject, floorplans: updatedFloorplans };
+        setCurrentProject(updatedProject);
         await base44.entities.AVProject.update(currentProject.id, {
           floorplans: updatedFloorplans
         });
