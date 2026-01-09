@@ -1692,6 +1692,22 @@ function AVCanvasContent() {
                       <img 
                         src={fp.url} 
                         alt={fp.name}
+                        onLoad={(e) => {
+                          // Capture natural dimensions if missing
+                          if (!fp.imageWidth || !fp.imageHeight) {
+                            const updatedFloorplans = floorplans.map(f => 
+                              f.id === fp.id 
+                                ? { ...f, imageWidth: e.target.naturalWidth, imageHeight: e.target.naturalHeight }
+                                : f
+                            );
+                            setFloorplans(updatedFloorplans);
+                            if (currentProject?.id) {
+                              base44.entities.AVProject.update(currentProject.id, {
+                                floorplans: updatedFloorplans
+                              }).catch(err => console.error('Failed to update floorplan dimensions:', err));
+                            }
+                          }
+                        }}
                         style={{
                           width: '100%',
                           height: '100%',
