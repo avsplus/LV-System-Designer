@@ -26,149 +26,24 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
-  const waypointRefs = useRef([]);
-  const canvasRef = useRef(null);
+  const dragStateRef = useRef(null);
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
-  // Convert screen coordinates to world coordinates
-  const screenToWorld = (screenX, screenY) => {
-    // Find the SVG element (parent of the g)
-    const svg = canvasRef.current?.parentElement;
-    if (!svg) return { x: screenX, y: screenY };
-    
-    const rect = svg.getBoundingClientRect();
-    const svgX = screenX - rect.left;
-    const svgY = screenY - rect.top;
-    
-    // Convert from SVG space to world space using zoom and pan
-    const worldX = (svgX - pan.x) / zoom;
-    const worldY = (svgY - pan.y) / zoom;
-    
-    return { x: worldX, y: worldY };
-  };
-
-  // Generate orthogonal path perpendicular to edges with rounded corners
+  // Simple path: connect from → all waypoints → to
   const generatePath = () => {
-    const standoffDistance = 30;
-    const cornerRadius = 12;
-
-    // Exit perpendicular to the edge
-    let fromStandoff, toStandoff;
-
-    if (fromEdge === 'right') {
-      fromStandoff = { x: from.x + standoffDistance, y: from.y };
-    } else if (fromEdge === 'left') {
-      fromStandoff = { x: from.x - standoffDistance, y: from.y };
-    } else if (fromEdge === 'bottom') {
-      fromStandoff = { x: from.x, y: from.y + standoffDistance };
-    } else { // top
-      fromStandoff = { x: from.x, y: from.y - standoffDistance };
-    }
-
-    if (toEdge === 'right') {
-      toStandoff = { x: to.x + standoffDistance, y: to.y };
-    } else if (toEdge === 'left') {
-      toStandoff = { x: to.x - standoffDistance, y: to.y };
-    } else if (toEdge === 'bottom') {
-      toStandoff = { x: to.x, y: to.y + standoffDistance };
-    } else { // top
-      toStandoff = { x: to.x, y: to.y - standoffDistance };
-    }
+    const points = [from, ...waypoints, to];
+    let path = '';
     
-    // Helper to add rounded corner
-    const addRoundedCorner = (path, fromPt, cornerPt, toPt, radius) => {
-      const dx1 = cornerPt.x - fromPt.x;
-      const dy1 = cornerPt.y - fromPt.y;
-      const dx2 = toPt.x - cornerPt.x;
-      const dy2 = toPt.y - cornerPt.y;
-      
-      const dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-      const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-      const r = Math.min(radius, dist1 / 2, dist2 / 2);
-      
-      if (dist1 === 0 || dist2 === 0) {
-        return path;
+    points.forEach((p, i) => {
+      if (i === 0) {
+        path += `M ${p.x} ${p.y}`;
+      } else {
+        path += ` L ${p.x} ${p.y}`;
       }
-      
-      const startX = cornerPt.x - (dx1 / dist1) * r;
-      const startY = cornerPt.y - (dy1 / dist1) * r;
-      const endX = cornerPt.x + (dx2 / dist2) * r;
-      const endY = cornerPt.y + (dy2 / dist2) * r;
-      
-      path += ` L ${startX} ${startY} Q ${cornerPt.x} ${cornerPt.y} ${endX} ${endY}`;
-      return path;
-    };
+    });
     
-    if (waypoints.length === 0) {
-      let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
-
-      // Determine routing based on edge directions
-      const fromIsHorizontal = fromEdge === 'left' || fromEdge === 'right';
-      const toIsHorizontal = toEdge === 'left' || toEdge === 'right';
-
-      if (fromIsHorizontal && toIsHorizontal) {
-        // Both horizontal: H → V → H (3 segments)
-        const midY = (fromStandoff.y + toStandoff.y) / 2;
-        const corner1 = { x: fromStandoff.x, y: midY };
-        const corner2 = { x: toStandoff.x, y: midY };
-        path = addRoundedCorner(path, fromStandoff, corner1, corner2, cornerRadius);
-        path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
-      } else if (!fromIsHorizontal && !toIsHorizontal) {
-        // Both vertical: V → H → V (3 segments)
-        const midX = (fromStandoff.x + toStandoff.x) / 2;
-        const corner1 = { x: midX, y: fromStandoff.y };
-        const corner2 = { x: midX, y: toStandoff.y };
-        path = addRoundedCorner(path, fromStandoff, corner1, corner2, cornerRadius);
-        path = addRoundedCorner(path, corner1, corner2, toStandoff, cornerRadius);
-      } else if (fromIsHorizontal && !toIsHorizontal) {
-        // H → V: single corner
-        const corner1 = { x: toStandoff.x, y: fromStandoff.y };
-        path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
-      } else {
-        // V → H: single corner
-        const corner1 = { x: fromStandoff.x, y: toStandoff.y };
-        path = addRoundedCorner(path, fromStandoff, corner1, toStandoff, cornerRadius);
-      }
-
-      path += ` L ${toStandoff.x} ${toStandoff.y} L ${to.x} ${to.y}`;
-      return path;
-    } else {
-      // With waypoints - route through them orthogonally
-      let path = `M ${from.x} ${from.y} L ${fromStandoff.x} ${fromStandoff.y}`;
-
-      const fromIsHorizontal = fromEdge === 'left' || fromEdge === 'right';
-      const firstWp = waypoints[0];
-
-      if (fromIsHorizontal) {
-        path = addRoundedCorner(path, fromStandoff, { x: firstWp.x, y: fromStandoff.y }, firstWp, cornerRadius);
-      } else {
-        path = addRoundedCorner(path, fromStandoff, { x: fromStandoff.x, y: firstWp.y }, firstWp, cornerRadius);
-      }
-
-      for (let i = 1; i < waypoints.length; i++) {
-        const prevWp = waypoints[i - 1];
-        const currWp = waypoints[i];
-
-        if (Math.abs(currWp.x - prevWp.x) > Math.abs(currWp.y - prevWp.y)) {
-          path = addRoundedCorner(path, prevWp, { x: currWp.x, y: prevWp.y }, currWp, cornerRadius);
-        } else {
-          path = addRoundedCorner(path, prevWp, { x: prevWp.x, y: currWp.y }, currWp, cornerRadius);
-        }
-      }
-
-      const lastWp = waypoints[waypoints.length - 1];
-      const toIsHorizontal = toEdge === 'left' || toEdge === 'right';
-
-      if (toIsHorizontal) {
-        path = addRoundedCorner(path, lastWp, { x: toStandoff.x, y: lastWp.y }, toStandoff, cornerRadius);
-      } else {
-        path = addRoundedCorner(path, lastWp, { x: lastWp.x, y: toStandoff.y }, toStandoff, cornerRadius);
-      }
-
-      path += ` L ${toStandoff.x} ${toStandoff.y} L ${to.x} ${to.y}`;
-      return path;
-    }
+    return path;
   };
 
   const pathData = generatePath();
@@ -190,6 +65,11 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   const handleWaypointMouseDown = (e, index) => {
     e.stopPropagation();
+    dragStateRef.current = {
+      index,
+      startX: e.clientX,
+      startY: e.clientY
+    };
     setDraggingIndex(index);
   };
 
@@ -204,18 +84,31 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   const handleWindowMouseMove = (e) => {
-    if (draggingIndex !== null) {
-      const worldPos = screenToWorld(e.clientX, e.clientY);
+    if (draggingIndex !== null && dragStateRef.current) {
+      const { startX, startY, index } = dragStateRef.current;
+      
+      // Calculate delta in screen space
+      const dx = (e.clientX - startX) / zoom;
+      const dy = (e.clientY - startY) / zoom;
+      
+      // Update waypoint position
       const newWaypoints = [...waypoints];
-      newWaypoints[draggingIndex] = { x: worldPos.x, y: worldPos.y };
+      newWaypoints[index].x += dx;
+      newWaypoints[index].y += dy;
+      
       setWaypoints(newWaypoints);
       if (onWaypointsChange) {
         onWaypointsChange(newWaypoints);
       }
+      
+      // Update drag start for next iteration
+      dragStateRef.current.startX = e.clientX;
+      dragStateRef.current.startY = e.clientY;
     }
   };
 
   const handleWindowMouseUp = () => {
+    dragStateRef.current = null;
     setDraggingIndex(null);
   };
 
@@ -228,12 +121,22 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         window.removeEventListener('mouseup', handleWindowMouseUp);
       };
     }
-  }, [draggingIndex, waypoints, zoom, pan, screenToWorld]);
+  }, [draggingIndex, zoom]);
 
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
-    const worldPos = screenToWorld(e.clientX, e.clientY);
-    const newWaypoints = [...waypoints, { x: worldPos.x, y: worldPos.y }];
+    // Get SVG element to convert screen coords to world coords
+    const svg = e.target.closest('svg');
+    if (!svg) return;
+    
+    const rect = svg.getBoundingClientRect();
+    const svgX = e.clientX - rect.left;
+    const svgY = e.clientY - rect.top;
+    
+    const worldX = (svgX - pan.x) / zoom;
+    const worldY = (svgY - pan.y) / zoom;
+    
+    const newWaypoints = [...waypoints, { x: worldX, y: worldY }];
     setWaypoints(newWaypoints);
     if (onWaypointsChange) {
       onWaypointsChange(newWaypoints);
