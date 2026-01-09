@@ -1652,16 +1652,10 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Crop data is in percentages of the natural image (from react-easy-crop)
-                  const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
-
-                  // Calculate the final displayed size after applying crop
-                  const croppedWidth = displayWidth * (crop.width / 100);
-                  const croppedHeight = displayHeight * (crop.height / 100);
-
-                  // Calculate offset within the image (also percentage-based)
-                  const offsetX = displayWidth * (crop.left / 100);
-                  const offsetY = displayHeight * (crop.top / 100);
+                  // No crop applied - show full image
+                  const crop = fp.crop;
+                  const renderWidth = displayWidth;
+                  const renderHeight = displayHeight;
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1680,8 +1674,8 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${currentY}px`,
                         left: `${currentX}px`,
-                        width: `${croppedWidth}px`,
-                        height: `${croppedHeight}px`,
+                        width: `${renderWidth}px`,
+                        height: `${renderHeight}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: isSelected ? '4px' : '0',
@@ -1691,18 +1685,17 @@ function AVCanvasContent() {
                         zIndex: isSelected ? 1000 : index,
                         transition: isThisOneDragging || resizingFloorplan?.id === fp.id ? 'none' : 'all 0.2s ease',
                         flexShrink: 0,
-                        overflow: 'hidden'
+                        clipPath: crop ? `inset(${crop.top}% ${100 - crop.left - crop.width}% ${100 - crop.top - crop.height}% ${crop.left}%)` : 'none'
                       }}
                       >
                       <img 
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          position: 'absolute',
-                          top: `-${offsetY}px`,
-                          left: `-${offsetX}px`,
-                          width: `${displayWidth}px`,
-                          height: `${displayHeight}px`,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          objectPosition: 'top left',
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
