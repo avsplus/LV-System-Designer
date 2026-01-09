@@ -1720,6 +1720,7 @@ function AVCanvasContent() {
                             );
                             setFloorplans(updatedFloorplans);
                             if (currentProject?.id) {
+                              setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
                               base44.entities.AVProject.update(currentProject.id, {
                                 floorplans: updatedFloorplans
                               }).catch(err => console.error('Failed to update floorplan dimensions:', err));
