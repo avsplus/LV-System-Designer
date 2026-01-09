@@ -591,22 +591,36 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                         {getFloorplanRooms(fp.id).length === 0 ? (
                           <p className="text-xs text-gray-500 py-1">No rooms</p>
                         ) : (
-                          getFloorplanRooms(fp.id).map(room => (
-                            <div key={room.id} className="flex items-center justify-between bg-gray-900 rounded p-2">
-                              <span className="text-xs text-gray-300">{room.name}</span>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDeleteRoom(room.id);
-                                }}
-                                className="h-5 w-5 text-red-400 hover:text-red-300"
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          ))
+                          getFloorplanRooms(fp.id).map(room => {
+                            const roomDevices = getRoomDevices(room.id);
+                            return (
+                              <div key={room.id} className="bg-gray-900 rounded p-2">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs text-gray-300 font-medium">{room.name}</span>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDeleteRoom(room.id);
+                                    }}
+                                    className="h-5 w-5 text-red-400 hover:text-red-300"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                                {roomDevices.length > 0 && (
+                                  <div className="ml-2 space-y-0.5 mt-1">
+                                    {roomDevices.map(device => (
+                                      <div key={device.instanceId} className="text-xs text-gray-500">
+                                        • {device.label || `${device.product.brand} ${device.product.model}`}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
                         )}
                       </div>
                     </div>
