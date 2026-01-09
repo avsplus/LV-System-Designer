@@ -2481,12 +2481,12 @@ function AVCanvasContent() {
               setPendingProductDrop(null);
             }}
             onCancel={() => setPendingProductDrop(null)}
-            onCreateRoom={async (roomName) => {
+            onCreateRoom={(roomName) => {
               const targetFloorplan = selectedFloorplanId 
                 ? floorplans.find(fp => fp.id === selectedFloorplanId)
                 : floorplans[0];
-              const newRoom = await handleAddRoom(roomName, targetFloorplan?.id);
-              return newRoom?.id;
+              const newRoom = handleAddRoom(roomName, targetFloorplan?.id);
+              return newRoom.id;
             }}
           />
         )}
