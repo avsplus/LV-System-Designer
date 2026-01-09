@@ -186,16 +186,29 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const handleMouseMove = (e) => {
     if (draggingIndex !== null) {
       const svg = e.currentTarget.closest('svg');
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const g = e.currentTarget.closest('g[transform]');
       
-      const newWaypoints = [...waypoints];
-      newWaypoints[draggingIndex] = { x: svgP.x, y: svgP.y };
-      setWaypoints(newWaypoints);
-      if (onWaypointsChange) {
-        onWaypointsChange(newWaypoints);
+      if (svg && g) {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        
+        // Get the CTM of the transformed g element
+        const gCTM = g.getScreenCTM();
+        const svgCTM = svg.getScreenCTM();
+        
+        // Convert screen coordinates to SVG coordinates
+        const svgPt = pt.matrixTransform(svgCTM.inverse());
+        
+        // Convert from SVG space to g's local space
+        const localPt = svgPt.matrixTransform(gCTM.inverse());
+        
+        const newWaypoints = [...waypoints];
+        newWaypoints[draggingIndex] = { x: localPt.x, y: localPt.y };
+        setWaypoints(newWaypoints);
+        if (onWaypointsChange) {
+          onWaypointsChange(newWaypoints);
+        }
       }
     }
   };
