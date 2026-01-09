@@ -1974,7 +1974,7 @@ function AVCanvasContent() {
                     <Plus className="w-8 h-8 text-gray-600" />
                   </div>
                   <p className="text-gray-500 text-lg font-medium">Drag products here to start</p>
-                  <p className="text-gray-600 text-sm mt-1">Build your AV system layout</p>
+                  <p className="text-gray-600 text-sm mt-1">Upload a floorplan or build your AV system layout</p>
                 </div>
               </div>
             )}
