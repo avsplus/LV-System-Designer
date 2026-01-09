@@ -572,7 +572,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                           value={newRoomName}
                           onChange={(e) => setNewRoomName(e.target.value)}
                           placeholder="Room name"
-                          className="h-7 text-xs bg-gray-900 border-gray-700"
+                          className="h-7 text-xs bg-gray-900 border-gray-700 text-white"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleAddRoom(fp.id);
                           }}
