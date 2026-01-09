@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Cropper from 'react-easy-crop';
 import { Button } from "@/components/ui/button";
 import { X, Crop, ZoomIn, ZoomOut } from "lucide-react";
@@ -8,6 +8,29 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [imageDimensions, setImageDimensions] = useState(null);
+  const imageRef = useRef(null);
+
+  // Load image to get natural dimensions
+  useEffect(() => {
+    if (imageRef.current && imageRef.current.complete) {
+      setImageDimensions({
+        width: imageRef.current.naturalWidth,
+        height: imageRef.current.naturalHeight
+      });
+    }
+  }, []);
+
+  const handleImageLoad = (e) => {
+    setImageDimensions({
+      width: e.target.naturalWidth,
+      height: e.target.naturalHeight
+    });
+    console.log('Image loaded:', { 
+      naturalWidth: e.target.naturalWidth, 
+      naturalHeight: e.target.naturalHeight 
+    });
+  };
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     console.log('onCropComplete:', { croppedArea, croppedAreaPixels });
@@ -15,22 +38,12 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   }, []);
 
   const handleApply = () => {
-    if (!croppedAreaPixels) {
-      console.error('Missing croppedAreaPixels');
-      return;
-    }
-
-    // Use the stored natural image dimensions from floorplan
-    const naturalWidth = floorplan.imageWidth;
-    const naturalHeight = floorplan.imageHeight;
-
-    if (!naturalWidth || !naturalHeight) {
-      console.error('Missing natural image dimensions in floorplan object');
+    if (!croppedAreaPixels || !imageDimensions) {
+      console.error('Missing data:', { croppedAreaPixels, imageDimensions });
       return;
     }
 
     // croppedAreaPixels from react-easy-crop is already in natural pixel coordinates
-    // Just store it directly - no conversion needed
     const cropData = {
       x: croppedAreaPixels.x,
       y: croppedAreaPixels.y,
@@ -40,7 +53,7 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
 
     console.log('Applying crop (PIXELS):', {
       croppedAreaPixels,
-      naturalDimensions: { width: naturalWidth, height: naturalHeight },
+      imageDimensions,
       cropData
     });
 
@@ -51,6 +64,12 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
     <div className="fixed inset-0 bg-black z-[10000] flex flex-col">
       {/* Cropper Area */}
       <div className="flex-1 relative">
+        <img 
+          ref={imageRef}
+          src={floorplan.url} 
+          onLoad={handleImageLoad}
+          style={{ display: 'none' }}
+        />
         <Cropper
           image={floorplan.url}
           crop={crop}
