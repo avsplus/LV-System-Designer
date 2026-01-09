@@ -1718,10 +1718,10 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              top: '-10px',
-                              left: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              top: '-6px',
+                              left: '-6px',
+                              width: '12px',
+                              height: '12px',
                               cursor: 'nw-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
@@ -1740,10 +1740,10 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              top: '-10px',
-                              right: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              top: '-6px',
+                              right: '-6px',
+                              width: '12px',
+                              height: '12px',
                               cursor: 'ne-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
@@ -1762,10 +1762,10 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              bottom: '-10px',
-                              left: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              bottom: '-6px',
+                              left: '-6px',
+                              width: '12px',
+                              height: '12px',
                               cursor: 'sw-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
@@ -1784,10 +1784,10 @@ function AVCanvasContent() {
                             }}
                             style={{
                               position: 'absolute',
-                              bottom: '-10px',
-                              right: '-10px',
-                              width: '20px',
-                              height: '20px',
+                              bottom: '-6px',
+                              right: '-6px',
+                              width: '12px',
+                              height: '12px',
                               cursor: 'se-resize',
                               zIndex: 1003,
                               background: '#3b82f6',
