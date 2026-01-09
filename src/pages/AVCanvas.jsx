@@ -1852,6 +1852,8 @@ function AVCanvasContent() {
                       isHighlighted={isHighlighted}
                       isSelected={selectedConnection?.index === index}
                       offset={0}
+                      zoom={zoom}
+                      pan={pan}
                       onRemove={() => handleRemoveConnection(index)}
                       onClick={() => handleConnectionClick(connection, index)}
                       onHover={() => handleConnectionHover(index)}
@@ -1899,27 +1901,29 @@ function AVCanvasContent() {
 
                   return (
                     <ConnectionLine
-                      key={`hovered-${index}`}
-                      from={fromPoint}
-                      to={toPoint}
-                      fromEdge={fromEdge}
-                      toEdge={toEdge}
-                      connectionType={connection.type}
-                      wireId={connection.wireId}
-                      waypoints={connection.waypoints}
-                      isHighlighted={isHighlighted}
-                      isSelected={selectedConnection?.index === index}
-                      offset={0}
-                      onRemove={() => handleRemoveConnection(index)}
-                      onClick={() => handleConnectionClick(connection, index)}
-                      onHover={() => handleConnectionHover(index)}
-                      onLeave={handleConnectionLeave}
-                      onWaypointsChange={(newWaypoints) => {
-                        const newConnections = [...connections];
-                        newConnections[index].waypoints = newWaypoints;
-                        setConnections(newConnections);
-                      }}
-                    />
+                        key={`hovered-${index}`}
+                        from={fromPoint}
+                        to={toPoint}
+                        fromEdge={fromEdge}
+                        toEdge={toEdge}
+                        connectionType={connection.type}
+                        wireId={connection.wireId}
+                        waypoints={connection.waypoints}
+                        isHighlighted={isHighlighted}
+                        isSelected={selectedConnection?.index === index}
+                        offset={0}
+                        zoom={zoom}
+                        pan={pan}
+                        onRemove={() => handleRemoveConnection(index)}
+                        onClick={() => handleConnectionClick(connection, index)}
+                        onHover={() => handleConnectionHover(index)}
+                        onLeave={handleConnectionLeave}
+                        onWaypointsChange={(newWaypoints) => {
+                          const newConnections = [...connections];
+                          newConnections[index].waypoints = newWaypoints;
+                          setConnections(newConnections);
+                        }}
+                      />
                   );
                 })()}
 
