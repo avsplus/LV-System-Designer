@@ -2072,7 +2072,10 @@ function AVCanvasContent() {
             toProduct={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.product}
             fromLabel={canvasProducts.find(cp => cp.instanceId === selectedConnection.from)?.label}
             toLabel={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.label}
+            fromPosition={canvasProducts.find(cp => cp.instanceId === selectedConnection.from)?.position}
+            toPosition={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.position}
             allConnections={connections}
+            floorplans={floorplans}
             onClose={() => setSelectedConnection(null)}
             onDelete={handleDeleteConnection}
           />
