@@ -345,7 +345,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       }`}>
                         {category.replace(/_/g, ' ')}
                       </div>
-                      <span className="text-xs text-gray-500">({categoryProducts.length})</span>
+                      <span className="text-[10px] text-gray-600">({categoryProducts.length})</span>
                     </div>
                     {isExpanded ? (
                       <ChevronDown className="w-4 h-4 text-gray-400" />
