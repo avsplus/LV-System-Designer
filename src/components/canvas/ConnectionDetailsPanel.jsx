@@ -6,49 +6,49 @@ import { X, Trash2 } from "lucide-react";
 const connectionTypes = {
   hdmi: { 
     name: "HDMI", 
-    color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    color: "bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20",
     signals: ["Video", "Audio", "Control"],
     description: "High-Definition Multimedia Interface for digital audio/video"
   },
   optical: { 
     name: "Optical/TOSLINK", 
-    color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    color: "bg-[#2A7FDB]/10 text-[#2A7FDB] border-[#2A7FDB]/20",
     signals: ["Audio"],
     description: "Digital optical audio connection"
   },
   rca: { 
     name: "RCA", 
-    color: "bg-red-500/10 text-red-400 border-red-500/20",
+    color: "bg-[#FFB300]/10 text-[#FFB300] border-[#FFB300]/20",
     signals: ["Audio", "Video"],
     description: "Analog audio/video connection"
   },
   xlr: { 
     name: "XLR", 
-    color: "bg-green-500/10 text-green-400 border-green-500/20",
+    color: "bg-[#1ABC9C]/10 text-[#1ABC9C] border-[#1ABC9C]/20",
     signals: ["Audio"],
     description: "Balanced audio connection, professional grade"
   },
   speaker_wire: { 
     name: "Speaker Wire", 
-    color: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    color: "bg-[#8E5C2C]/10 text-[#8E5C2C] border-[#8E5C2C]/20",
     signals: ["Audio"],
     description: "Direct speaker connection from amplifier"
   },
   ethernet: { 
     name: "Ethernet", 
-    color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    color: "bg-[#27AE60]/10 text-[#27AE60] border-[#27AE60]/20",
     signals: ["Data", "Audio", "Video"],
     description: "Network connection for streaming and control"
   },
   usb: { 
     name: "USB", 
-    color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    color: "bg-[#2A7FDB]/10 text-[#2A7FDB] border-[#2A7FDB]/20",
     signals: ["Data", "Audio"],
     description: "Universal Serial Bus for digital audio and data"
   },
   coaxial: { 
     name: "Coaxial", 
-    color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    color: "bg-[#2A7FDB]/10 text-[#2A7FDB] border-[#2A7FDB]/20",
     signals: ["Audio"],
     description: "Digital coaxial audio connection"
   }
