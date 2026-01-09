@@ -1654,20 +1654,12 @@ function AVCanvasContent() {
 
                   // Apply crop to dimensions (crop is in percentages)
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
-
-                  console.log(`🖼️ ${fp.name} - Full image dims:`, { displayWidth, displayHeight });
-                  console.log(`🔪 ${fp.name} - Crop data:`, crop);
-
                   const croppedWidth = displayWidth * (crop.width / 100);
                   const croppedHeight = displayHeight * (crop.height / 100);
-
-                  console.log(`📐 ${fp.name} - Cropped viewport:`, { croppedWidth, croppedHeight });
 
                   // Calculate the offset to position the image correctly within the cropped viewport
                   const imageOffsetX = -(displayWidth * (crop.left / 100));
                   const imageOffsetY = -(displayHeight * (crop.top / 100));
-
-                  console.log(`📍 ${fp.name} - Image offset:`, { imageOffsetX, imageOffsetY });
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
