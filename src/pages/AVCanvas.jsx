@@ -1643,7 +1643,7 @@ function AVCanvasContent() {
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Check if this floorplan is being resized
                   const isThisOneResizing = resizingRef.current?.id === fp.id;
-                  const currentScale = isThisOneResizing ? resizeOffset.scale : (fp.scale || 1);
+                  const currentScale = isThisOneResizing ? resizeOffset.scale : ((typeof fp.scale === 'number' && !isNaN(fp.scale) && fp.scale > 0) ? fp.scale : 1);
 
                   // Ensure valid position values (handle NaN, undefined, null)
                   const safePosition = {
