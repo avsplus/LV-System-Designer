@@ -1652,10 +1652,10 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Calculate container size based on crop
+                  // Calculate container size based on crop (react-easy-crop returns 0-1, not 0-100)
                   const crop = fp.crop;
-                  const renderWidth = crop ? displayWidth * (crop.width / 100) : displayWidth;
-                  const renderHeight = crop ? displayHeight * (crop.height / 100) : displayHeight;
+                  const renderWidth = crop ? displayWidth * crop.width : displayWidth;
+                  const renderHeight = crop ? displayHeight * crop.height : displayHeight;
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1693,8 +1693,8 @@ function AVCanvasContent() {
                         alt={fp.name}
                         style={{
                           position: 'absolute',
-                          top: crop ? `-${displayHeight * (crop.top / 100)}px` : '0',
-                          left: crop ? `-${displayWidth * (crop.left / 100)}px` : '0',
+                          top: crop ? `-${displayHeight * crop.top}px` : '0',
+                          left: crop ? `-${displayWidth * crop.left}px` : '0',
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
                           opacity: fp.opacity,
