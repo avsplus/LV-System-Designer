@@ -1657,9 +1657,9 @@ function AVCanvasContent() {
                   const croppedWidth = displayWidth * (crop.width / 100);
                   const croppedHeight = displayHeight * (crop.height / 100);
 
-                  // Calculate translate values for the image (in percentages of image size)
-                  const translateX = -(crop.left / crop.width * 100);
-                  const translateY = -(crop.top / crop.height * 100);
+                  // Calculate translate to show the cropped area
+                  const translateX = -crop.left;
+                  const translateY = -crop.top;
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
