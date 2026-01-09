@@ -113,12 +113,27 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     if (project) {
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
-      setRooms(project.rooms || []);
+      
+      // Migrate old string-based rooms to new object format
+      const loadedRooms = (project.rooms || []).map(room => {
+        if (typeof room === 'string') {
+          // Old format: convert string to object
+          return {
+            id: `${Date.now()}_${Math.random()}`,
+            name: room,
+            floorplanId: null
+          };
+        }
+        // New format: already an object
+        return room;
+      });
+      
+      setRooms(loadedRooms);
       localStorage.setItem('av_canvas_temp_project_id', project.id);
       lastSavedRef.current = {
         products: JSON.stringify(project.canvas_products || []),
         connections: JSON.stringify(project.connections || []),
-        rooms: JSON.stringify(project.rooms || [])
+        rooms: JSON.stringify(loadedRooms)
       };
       // Mark that project has been loaded, safe to auto-save now
       projectLoadedRef.current = true;
