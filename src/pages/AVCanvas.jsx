@@ -2055,70 +2055,6 @@ function AVCanvasContent() {
           </Droppable>
         </div>
 
-        {(() => {
-          const showProductDetails = selectedProduct && !selectedConnection;
-          const showDeviceConnections = selectedCanvasProduct && !selectedConnection;
-          const lastTwo = panelHistory.slice(-2);
-
-          return (
-            <>
-              {showProductDetails && (!showDeviceConnections || lastTwo.includes('productDetails')) && (
-                <ProductDetailsPanel
-                  product={selectedProduct}
-                  onClose={() => {
-                    setSelectedProduct(null);
-                    setPanelHistory(prev => prev.filter(p => p !== 'productDetails'));
-                  }}
-                  onDeviceUpdate={(updatedProduct) => {
-                    // Update the selected product state
-                    setSelectedProduct(updatedProduct);
-                    // Invalidate products query to refresh sidebar
-                    queryClient.invalidateQueries({ queryKey: ['avProducts'] });
-                    toast.success('Device updated successfully');
-                  }}
-                />
-              )}
-
-              {showDeviceConnections && (
-                <DeviceConnectionsPanel
-                  product={ensureNetworkInfo(selectedCanvasProduct)}
-                  label={selectedCanvasProduct.label}
-                  networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
-                  activeConnections={connections}
-                  allProducts={canvasProducts.map(ensureNetworkInfo)}
-                  onClose={() => {
-                    setSelectedCanvasProduct(null);
-                    setPanelHistory(prev => prev.filter(p => p !== 'deviceConnections'));
-                  }}
-                  onHighlightConnections={setHighlightedConnections}
-                  onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
-                  onDeviceUpdate={(updatedProduct) => {
-                    // Update ALL canvas products that use this product ID (updates canvas visuals)
-                    projectData.setCanvasProducts(prev => {
-                      const updated = prev.map(cp => 
-                        cp.product.id === updatedProduct.id
-                          ? { ...cp, product: { ...cp.product, ...updatedProduct } }
-                          : cp
-                      );
-                      return updated;
-                    });
-                    // Update selected canvas product state
-                    setSelectedCanvasProduct(prev => ({
-                      ...prev,
-                      product: { ...prev.product, ...updatedProduct }
-                    }));
-                    // Invalidate products query to refresh sidebar
-                    queryClient.invalidateQueries({ queryKey: ['avProducts'] });
-                    // Mark local change to trigger project auto-save to database
-                    markLocalChange();
-                    toast.success('Device updated successfully');
-                  }}
-                />
-              )}
-            </>
-          );
-        })()}
-
         {selectedConnection && (
           <ConnectionDetailsPanel
             connection={selectedConnection}
@@ -2129,6 +2065,54 @@ function AVCanvasContent() {
             allConnections={connections}
             onClose={() => setSelectedConnection(null)}
             onDelete={handleDeleteConnection}
+          />
+        )}
+
+        {!selectedConnection && selectedCanvasProduct && (
+          <DeviceConnectionsPanel
+            product={ensureNetworkInfo(selectedCanvasProduct)}
+            label={selectedCanvasProduct.label}
+            networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
+            activeConnections={connections}
+            allProducts={canvasProducts.map(ensureNetworkInfo)}
+            onClose={() => {
+              setSelectedCanvasProduct(null);
+              setPanelHistory(prev => prev.filter(p => p !== 'deviceConnections'));
+            }}
+            onHighlightConnections={setHighlightedConnections}
+            onNetworkInfoChange={(networkInfo) => handleNetworkInfoChange(selectedCanvasProduct.instanceId, networkInfo)}
+            onDeviceUpdate={(updatedProduct) => {
+              projectData.setCanvasProducts(prev => {
+                const updated = prev.map(cp => 
+                  cp.product.id === updatedProduct.id
+                    ? { ...cp, product: { ...cp.product, ...updatedProduct } }
+                    : cp
+                );
+                return updated;
+              });
+              setSelectedCanvasProduct(prev => ({
+                ...prev,
+                product: { ...prev.product, ...updatedProduct }
+              }));
+              queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+              markLocalChange();
+              toast.success('Device updated successfully');
+            }}
+          />
+        )}
+
+        {!selectedConnection && !selectedCanvasProduct && selectedProduct && (
+          <ProductDetailsPanel
+            product={selectedProduct}
+            onClose={() => {
+              setSelectedProduct(null);
+              setPanelHistory(prev => prev.filter(p => p !== 'productDetails'));
+            }}
+            onDeviceUpdate={(updatedProduct) => {
+              setSelectedProduct(updatedProduct);
+              queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+              toast.success('Device updated successfully');
+            }}
           />
         )}
 
@@ -2167,7 +2151,7 @@ function AVCanvasContent() {
           />
         )}
 
-        {showFloorplanManager && !showRoomManager && (
+        {showFloorplanManager && (
           <FloorplanManager
             floorplans={floorplans}
             onUpdate={handleFloorplansUpdate}
@@ -2177,7 +2161,7 @@ function AVCanvasContent() {
           />
         )}
 
-        {showRoomManager && !showFloorplanManager && (
+        {showRoomManager && (
           <RoomManager
             rooms={rooms}
             onAddRoom={handleAddRoom}
