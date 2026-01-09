@@ -848,6 +848,14 @@ function AVCanvasContent() {
   const handleStartCrop = useCallback((floorplanId) => {
     const floorplan = floorplans.find(fp => fp.id === floorplanId);
     if (!floorplan) return;
+    
+    console.log('Starting crop for floorplan:', {
+      id: floorplan.id,
+      imageWidth: floorplan.imageWidth,
+      imageHeight: floorplan.imageHeight,
+      hasImageDimensions: !!(floorplan.imageWidth && floorplan.imageHeight)
+    });
+    
     setCroppingFloorplan(floorplan);
   }, [floorplans]);
 
