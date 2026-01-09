@@ -1624,10 +1624,10 @@ function AVCanvasContent() {
             {/* Unified Canvas Container - All elements share same transform */}
             <div style={{ 
               position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
+              top: '-50%',
+              left: '-50%',
+              width: '200%',
+              height: '200%',
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
@@ -1809,7 +1809,7 @@ function AVCanvasContent() {
               </div>
             </div>
 
-            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible', willChange: 'transform' }}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: '-50%', left: '-50%', width: '200%', height: '200%', minWidth: '6000px', minHeight: '6000px', overflow: 'visible', willChange: 'transform' }}>
               <g style={{ pointerEvents: 'none', willChange: 'transform' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
@@ -1989,10 +1989,10 @@ function AVCanvasContent() {
 
             <div style={{ 
               position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
+              top: '-50%',
+              left: '-50%',
+              width: '200%',
+              height: '200%',
               zIndex: 2,
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
