@@ -375,6 +375,8 @@ function AVCanvasContent() {
     setSelectedConnection({ ...connection, index });
     setSelectedProduct(null);
     setSelectedCanvasProduct(null);
+    setShowFloorplanManager(false);
+    setSelectedFloorplanId(null);
   };
 
   const handleConnectionHover = (index) => {
@@ -670,6 +672,9 @@ function AVCanvasContent() {
     e.stopPropagation();
     setShowFloorplanManager(true);
     setSelectedFloorplanId(floorplanId);
+    setSelectedProduct(null);
+    setSelectedCanvasProduct(null);
+    setSelectedConnection(null);
   };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
@@ -1366,6 +1371,8 @@ function AVCanvasContent() {
             setSelectedProduct(product);
             setSelectedCanvasProduct(null);
             setSelectedConnection(null);
+            setShowFloorplanManager(false);
+            setSelectedFloorplanId(null);
             setPanelHistory(prev => {
               const filtered = prev.filter(p => p !== 'productDetails');
               return [...filtered.slice(-1), 'productDetails'];
@@ -1460,7 +1467,12 @@ function AVCanvasContent() {
                     Export to PDF
                   </DropdownMenuItem>
                   {currentProject && (
-                    <DropdownMenuItem onClick={() => setShowFloorplanManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                    <DropdownMenuItem onClick={() => {
+                      setShowFloorplanManager(true);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                    }} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                       <Settings className="w-4 h-4 mr-2" />
                       Manage Floorplans
                     </DropdownMenuItem>
@@ -1991,6 +2003,8 @@ function AVCanvasContent() {
                           setSelectedCanvasProduct(ensureNetworkInfo(cp));
                           setSelectedProduct(null);
                           setSelectedConnection(null);
+                          setShowFloorplanManager(false);
+                          setSelectedFloorplanId(null);
                           setPanelHistory(prev => {
                             const filtered = prev.filter(p => p !== 'deviceConnections');
                             return [...filtered.slice(-1), 'deviceConnections'];
