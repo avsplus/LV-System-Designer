@@ -1547,7 +1547,13 @@ function AVCanvasContent() {
               </div>
               
               {currentProject && (
-                <Button variant="outline" onClick={() => setShowRoomManager(true)} className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                <Button variant="outline" onClick={() => {
+                  setShowRoomManager(true);
+                  setShowFloorplanManager(false);
+                  setSelectedProduct(null);
+                  setSelectedCanvasProduct(null);
+                  setSelectedConnection(null);
+                }} className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
                   <Home className="w-4 h-4 mr-2" />
                   Rooms ({rooms.length})
                 </Button>
