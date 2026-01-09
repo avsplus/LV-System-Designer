@@ -37,10 +37,12 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
       const newPanX = mouseX - worldX * newZoom;
       const newPanY = mouseY - worldY * newZoom;
       
+      // Batch updates to reduce flickering
       setPan({ x: newPanX, y: newPanY });
+      setZoom(newZoom);
+    } else {
+      setZoom(newZoom);
     }
-    
-    setZoom(newZoom);
   }, [zoom, pan]);
 
   const handlePanStart = useCallback((e, canvasElement) => {
