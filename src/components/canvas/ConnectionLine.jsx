@@ -22,7 +22,7 @@ const connectionTypeColors = {
   "IR": "#7F8C8D"
 };
 
-export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, isSelected, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange }) {
+export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, isSelected, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange, zoom = 1, pan = { x: 0, y: 0 } }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
@@ -214,12 +214,17 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
     const svg = e.currentTarget.closest('svg');
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const rect = svg.getBoundingClientRect();
     
-    const newWaypoints = [...waypoints, { x: svgP.x, y: svgP.y }];
+    // Get mouse position relative to canvas
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
+    
+    // Convert to world coordinates by reversing zoom and pan
+    const worldX = (canvasX - pan.x) / zoom;
+    const worldY = (canvasY - pan.y) / zoom;
+    
+    const newWaypoints = [...waypoints, { x: worldX, y: worldY }];
     setWaypoints(newWaypoints);
     if (onWaypointsChange) {
       onWaypointsChange(newWaypoints);
