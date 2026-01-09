@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X, Crop } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X, Crop, Layers } from "lucide-react";
 import FloorplanManager from "../components/canvas/FloorplanManager";
 import { ToastProvider, useToast } from "../components/ui/Toast";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
@@ -1496,7 +1496,7 @@ function AVCanvasContent() {
                         setSelectedFloorplanId(null);
                       }} 
                       className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                      <Settings className="w-4 h-4 mr-2" />
+                      <Layers className="w-4 h-4 mr-2" />
                       Floorplans
                     </Button>
                   )}
