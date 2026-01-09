@@ -327,14 +327,22 @@ export default function ProductSidebar({ products, onProductSelect }) {
                 <div key={category} className="space-y-2">
                   <button
                     onClick={() => toggleCategory(category)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg transition-colors"
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all border-l-2 ${
+                      isExpanded
+                        ? 'bg-gray-800 border-l-blue-500'
+                        : 'bg-gray-800/50 border-l-transparent hover:bg-gray-800 hover:border-l-gray-600'
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       {(() => {
                         const IconComponent = categoryIcons[category];
-                        return IconComponent ? <IconComponent className="w-4 h-4 text-gray-300" /> : null;
+                        return IconComponent ? <IconComponent className="w-4 h-4 text-gray-400 stroke-[1.5]" /> : null;
                       })()}
-                      <div className={`${categorySolidColors[category]} w-32 px-2 py-1 rounded text-white text-xs font-medium capitalize text-center`}>
+                      <div className={`w-32 px-2 py-1 rounded text-white text-xs font-medium capitalize text-center transition-all ${
+                        isExpanded
+                          ? categorySolidColors[category]
+                          : `${categorySolidColors[category]} opacity-60`
+                      }`}>
                         {category.replace(/_/g, ' ')}
                       </div>
                       <span className="text-xs text-gray-500">({categoryProducts.length})</span>
