@@ -144,7 +144,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   return (
-    <g ref={canvasRef}>
+    <g>
       <path
         d={pathData}
         stroke={color}
@@ -186,7 +186,23 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         }}
       />
       
-      {/* Draggable waypoints */}
+      {/* Waypoint hit area (larger, invisible) */}
+      {waypoints.map((wp, index) => (
+        <circle
+          key={`waypoint-hit-${index}`}
+          cx={wp.x}
+          cy={wp.y}
+          r="12"
+          fill="transparent"
+          stroke="none"
+          style={{ pointerEvents: 'all' }}
+          onMouseDown={(e) => handleWaypointMouseDown(e, index)}
+          onContextMenu={(e) => handleWaypointContextMenu(e, index)}
+          className="cursor-move"
+        />
+      ))}
+      
+      {/* Visible waypoint handles */}
       {waypoints.map((wp, index) => (
         <circle
           key={`waypoint-${index}`}
@@ -196,11 +212,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
           fill={color}
           stroke="white"
           strokeWidth="2"
-          className="cursor-move"
-          style={{ pointerEvents: 'all' }}
-          onMouseDown={(e) => handleWaypointMouseDown(e, index)}
-          onContextMenu={(e) => handleWaypointContextMenu(e, index)}
-          title="Drag to move, right-click to delete"
+          style={{ pointerEvents: 'none' }}
         />
       ))}
 
