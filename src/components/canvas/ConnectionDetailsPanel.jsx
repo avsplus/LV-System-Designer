@@ -54,7 +54,7 @@ const connectionTypes = {
   }
 };
 
-export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, fromLabel, toLabel, allConnections, onClose, onDelete }) {
+export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, fromLabel, toLabel, allConnections, onClose, onDelete, fromPosition, toPosition, floorplans = [] }) {
   // Normalize connection type - handle both "Speaker Wire" and "speaker_wire"
   const normalizeTypeKey = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const typeKey = normalizeTypeKey(connection.type);
