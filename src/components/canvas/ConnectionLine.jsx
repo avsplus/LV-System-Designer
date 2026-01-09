@@ -27,8 +27,34 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const waypointRefs = useRef([]);
+  const canvasRef = useRef(null);
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
+
+  // Convert screen coordinates to world coordinates
+  const screenToWorld = (screenX, screenY) => {
+    // Find the canvas element (parent with transform)
+    let canvas = canvasRef.current;
+    while (canvas && !canvas.getAttribute('data-canvas-background')) {
+      canvas = canvas.parentElement;
+    }
+    if (!canvas) {
+      // Fallback: find the svg or droppable element
+      canvas = document.querySelector('[data-canvas-background], svg');
+    }
+    
+    if (!canvas) return { x: screenX, y: screenY };
+    
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = screenX - rect.left;
+    const canvasY = screenY - rect.top;
+    
+    // Convert from canvas space to world space
+    const worldX = (canvasX - pan.x) / zoom;
+    const worldY = (canvasY - pan.y) / zoom;
+    
+    return { x: worldX, y: worldY };
+  };
 
   // Generate orthogonal path perpendicular to edges with rounded corners
   const generatePath = () => {
@@ -186,20 +212,10 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   const handleWindowMouseMove = (e) => {
-    if (draggingIndex !== null && gRef.current) {
-      const g = gRef.current;
-      const rect = g.getBoundingClientRect();
-      
-      // Get mouse position relative to the parent container
-      const clientX = e.clientX - rect.left;
-      const clientY = e.clientY - rect.top;
-      
-      // Convert from screen space to world space using zoom and pan
-      const worldX = (clientX - pan.x) / zoom;
-      const worldY = (clientY - pan.y) / zoom;
-      
+    if (draggingIndex !== null) {
+      const worldPos = screenToWorld(e.clientX, e.clientY);
       const newWaypoints = [...waypoints];
-      newWaypoints[draggingIndex] = { x: worldX, y: worldY };
+      newWaypoints[draggingIndex] = { x: worldPos.x, y: worldPos.y };
       setWaypoints(newWaypoints);
       if (onWaypointsChange) {
         onWaypointsChange(newWaypoints);
@@ -220,38 +236,20 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         window.removeEventListener('mouseup', handleWindowMouseUp);
       };
     }
-  }, [draggingIndex, waypoints, zoom, pan]);
+  }, [draggingIndex, waypoints, zoom, pan, screenToWorld]);
 
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
-    const svg = e.currentTarget.closest('svg');
-    const g = e.currentTarget.closest('g[transform]');
-    
-    if (svg && g) {
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      
-      // Get the CTM of the transformed g element
-      const gCTM = g.getScreenCTM();
-      const svgCTM = svg.getScreenCTM();
-      
-      // Convert screen coordinates to SVG coordinates
-      const svgPt = pt.matrixTransform(svgCTM.inverse());
-      
-      // Convert from SVG space to g's local space
-      const localPt = svgPt.matrixTransform(gCTM.inverse());
-      
-      const newWaypoints = [...waypoints, { x: localPt.x, y: localPt.y }];
-      setWaypoints(newWaypoints);
-      if (onWaypointsChange) {
-        onWaypointsChange(newWaypoints);
-      }
+    const worldPos = screenToWorld(e.clientX, e.clientY);
+    const newWaypoints = [...waypoints, { x: worldPos.x, y: worldPos.y }];
+    setWaypoints(newWaypoints);
+    if (onWaypointsChange) {
+      onWaypointsChange(newWaypoints);
     }
   };
 
   return (
-    <g ref={gRef}>
+    <g ref={canvasRef}>
       <path
         d={pathData}
         stroke={color}
