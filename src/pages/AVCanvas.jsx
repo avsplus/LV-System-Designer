@@ -31,7 +31,7 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
-import FloorplanCropper from "../components/canvas/FloorplanCropper";
+
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
 import { ROLES } from "../components/auth/permissions";
@@ -130,7 +130,7 @@ function AVCanvasContent() {
   const [resizingFloorplan, setResizingFloorplan] = useState(null);
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
-  const [croppingFloorplan, setCroppingFloorplan] = useState(null);
+
   const lastMiddleClickRef = useRef(0);
   
   const canvasRef = useRef(null);
@@ -845,73 +845,7 @@ function AVCanvasContent() {
     setFloorplanDragOffset({ x: 0, y: 0 });
   }, [draggingFloorplan, floorplanDragOffset, resizeOffset, currentProject, markLocalChange]);
 
-  const handleStartCrop = useCallback((floorplanId) => {
-    const floorplan = floorplans.find(fp => fp.id === floorplanId);
-    if (!floorplan) return;
-    
-    console.log('Starting crop for floorplan:', {
-      id: floorplan.id,
-      imageWidth: floorplan.imageWidth,
-      imageHeight: floorplan.imageHeight,
-      hasImageDimensions: !!(floorplan.imageWidth && floorplan.imageHeight)
-    });
-    
-    setCroppingFloorplan(floorplan);
-  }, [floorplans]);
 
-  const handleApplyCrop = useCallback((cropData) => {
-    console.log('handleApplyCrop received:', cropData);
-    
-    setFloorplans(prev => {
-      const updated = prev.map(fp => {
-        if (fp.id !== croppingFloorplan.id) return fp;
-        
-        // Ensure image dimensions are stored on floorplan
-        const imageWidth = cropData.imageDimensions?.width || fp.imageWidth;
-        const imageHeight = cropData.imageDimensions?.height || fp.imageHeight;
-        
-        console.log('Storing crop on floorplan:', {
-          id: fp.id,
-          imageWidth,
-          imageHeight,
-          crop: {
-            x: cropData.x,
-            y: cropData.y,
-            width: cropData.width,
-            height: cropData.height
-          }
-        });
-        
-        return { 
-          ...fp,
-          imageWidth,
-          imageHeight,
-          crop: {
-            x: cropData.x,
-            y: cropData.y,
-            width: cropData.width,
-            height: cropData.height
-          }
-        };
-      });
-
-      if (currentProject?.id) {
-        base44.entities.AVProject.update(currentProject.id, {
-          floorplans: updated
-        }).catch(error => console.error('Failed to save crop:', error));
-        markLocalChange();
-      }
-
-      return updated;
-    });
-
-    setCroppingFloorplan(null);
-    toast.success('Crop applied successfully');
-  }, [croppingFloorplan, currentProject, markLocalChange]);
-
-  const handleCancelCrop = useCallback(() => {
-    setCroppingFloorplan(null);
-  }, []);
 
   const handleMouseDown = (e) => {
     // Handle middle mouse double-click to center and reset zoom
@@ -1688,34 +1622,8 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Calculate cropped display dimensions
-                  const crop = fp.crop;
                   let renderWidth = displayWidth;
                   let renderHeight = displayHeight;
-                  let imgOffsetX = 0;
-                  let imgOffsetY = 0;
-
-                  if (crop && fp.imageWidth && fp.imageHeight) {
-                    // crop contains PIXEL coordinates from croppedAreaPixels
-                    // Calculate scale from natural to display
-                    const scaleX = displayWidth / fp.imageWidth;
-                    const scaleY = displayHeight / fp.imageHeight;
-
-                    // Apply crop in display space
-                    renderWidth = crop.width * scaleX;
-                    renderHeight = crop.height * scaleY;
-                    imgOffsetX = -crop.x * scaleX;
-                    imgOffsetY = -crop.y * scaleY;
-
-                    console.log('Displaying crop:', {
-                      cropPixels: crop,
-                      naturalSize: { w: fp.imageWidth, h: fp.imageHeight },
-                      displaySize: { w: displayWidth, h: displayHeight },
-                      scale: { x: scaleX, y: scaleY },
-                      renderSize: { w: renderWidth, h: renderHeight },
-                      offset: { x: imgOffsetX, y: imgOffsetY }
-                    });
-                  }
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1753,11 +1661,8 @@ function AVCanvasContent() {
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          position: 'absolute',
-                          top: crop ? `${imgOffsetY}px` : '0',
-                          left: crop ? `${imgOffsetX}px` : '0',
-                          width: `${displayWidth}px`,
-                          height: `${displayHeight}px`,
+                          width: '100%',
+                          height: '100%',
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
@@ -2233,7 +2138,6 @@ function AVCanvasContent() {
             onClose={() => setShowFloorplanManager(false)}
             selectedFloorplanId={selectedFloorplanId}
             onSelectFloorplan={setSelectedFloorplanId}
-            onStartCrop={handleStartCrop}
           />
         )}
 
@@ -2581,13 +2485,7 @@ function AVCanvasContent() {
           );
         })()}
 
-        {croppingFloorplan && (
-          <FloorplanCropper
-            floorplan={croppingFloorplan}
-            onApply={handleApplyCrop}
-            onCancel={handleCancelCrop}
-          />
-        )}
+
       </div>
     </DragDropContext>
   );
