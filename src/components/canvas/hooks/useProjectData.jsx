@@ -145,25 +145,33 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, []);
 
   // Room operations
-  const handleAddRoom = useCallback((roomName) => {
-    setRooms(prev => [...prev, roomName]);
+  const handleAddRoom = useCallback((roomName, floorplanId) => {
+    const newRoom = {
+      id: `${Date.now()}_${Math.random()}`,
+      name: roomName,
+      floorplanId: floorplanId
+    };
+    setRooms(prev => [...prev, newRoom]);
     if (currentProject?.id) {
       trackActivity(ActivityActions.ADDED_ROOM, currentProject.id, currentProject.name, { room_name: roomName });
     }
   }, [currentProject]);
 
-  const handleDeleteRoom = useCallback((roomName) => {
-    setRooms(prev => prev.filter(r => r !== roomName));
-    setCanvasProducts(prev => prev.filter(cp => cp.room !== roomName));
-    setConnections(prev => prev.filter(conn => {
-      const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
-      const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
-      return fromDevice?.room !== roomName && toDevice?.room !== roomName;
-    }));
-    if (currentProject?.id) {
-      trackActivity(ActivityActions.REMOVED_ROOM, currentProject.id, currentProject.name, { room_name: roomName });
+  const handleDeleteRoom = useCallback((roomId) => {
+    const room = rooms.find(r => r.id === roomId);
+    setRooms(prev => prev.filter(r => r.id !== roomId));
+    if (room) {
+      setCanvasProducts(prev => prev.filter(cp => cp.room !== room.name));
+      setConnections(prev => prev.filter(conn => {
+        const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+        const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+        return fromDevice?.room !== room.name && toDevice?.room !== room.name;
+      }));
     }
-  }, [currentProject, canvasProducts]);
+    if (currentProject?.id && room) {
+      trackActivity(ActivityActions.REMOVED_ROOM, currentProject.id, currentProject.name, { room_name: room.name });
+    }
+  }, [currentProject, canvasProducts, rooms]);
 
   // Product operations
   const addProductToCanvas = useCallback((product, position, room) => {
