@@ -70,10 +70,7 @@ export default function RoomManager({
   return (
     <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Home className="w-5 h-5" />
-          Rooms
-        </h2>
+        <h2 className="text-lg font-semibold text-white">Rooms</h2>
         <Button
           size="icon"
           variant="ghost"
@@ -84,33 +81,35 @@ export default function RoomManager({
         </Button>
       </div>
 
-      <div className="p-4 border-b border-gray-800">
-        <div className="flex gap-2">
-          <Input
-            placeholder="New room name..."
-            value={newRoomName}
-            onChange={(e) => {
-              setNewRoomName(e.target.value);
-              setError('');
-            }}
-            onKeyDown={(e) => {
-              e.stopPropagation();
-              if (e.key === 'Enter') handleAddRoom();
-            }}
-            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-          />
-          <Button
-            size="icon"
-            onClick={handleAddRoom}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-        {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
-      </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+            <div className="flex gap-2">
+              <Input
+                placeholder="New room name..."
+                value={newRoomName}
+                onChange={(e) => {
+                  setNewRoomName(e.target.value);
+                  setError('');
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') handleAddRoom();
+                }}
+                className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500"
+              />
+              <Button
+                size="icon"
+                onClick={handleAddRoom}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+          </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <div className="space-y-2">
         {rooms.length === 0 ? (
           <div className="text-center py-8">
             <Home className="w-12 h-12 text-gray-700 mx-auto mb-3" />
@@ -250,6 +249,8 @@ export default function RoomManager({
             );
           })
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -353,42 +353,43 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   }
 
   return (
-    <div className="fixed right-0 top-[72px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 overflow-y-auto">
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Floorplans</h3>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleLockAll}
-              className="text-xs text-gray-400 hover:text-white"
-            >
-              <Lock className="w-3 h-3 mr-1" />
-              Lock All
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleUnlockAll}
-              className="text-xs text-gray-400 hover:text-white"
-            >
-              <Unlock className="w-3 h-3 mr-1" />
-              Unlock All
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
+    <div className="fixed right-0 top-[72px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-white">Floorplans</h2>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleLockAll}
+            className="text-xs text-gray-400 hover:text-white h-8 px-2"
+          >
+            <Lock className="w-3 h-3 mr-1" />
+            Lock All
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleUnlockAll}
+            className="text-xs text-gray-400 hover:text-white h-8 px-2"
+          >
+            <Unlock className="w-3 h-3 mr-1" />
+            Unlock All
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
+      </div>
 
-        {/* Upload Form */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-4">
+          {/* Upload Form */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
           <h4 className="text-sm font-medium text-white mb-3">Add Floorplan</h4>
           <div className="space-y-3">
             <div>
@@ -418,8 +419,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
           </div>
         </div>
 
-        {/* Floorplan List */}
-        <div className="space-y-3">
+          {/* Floorplan List */}
+          <div className="space-y-3">
           {floorplans.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-4">No floorplans yet</p>
           ) : (
