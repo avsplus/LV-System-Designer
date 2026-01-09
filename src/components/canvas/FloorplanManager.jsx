@@ -353,7 +353,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   }
 
   return (
-    <div className="fixed right-0 top-[81px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
+    <div className="fixed right-0 top-[105px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Floorplans</h2>
         <div className="flex gap-1">
