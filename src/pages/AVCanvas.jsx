@@ -786,12 +786,14 @@ function AVCanvasContent() {
         newY = resize.startPosition.y + (resize.currentHeight - newHeight);
       }
 
-      // Convert back to scale
+      // Convert back to scale using the same logic as rendering
       let newScale;
-      const hasCalibration = resize.imageWidth && resize.imageHeight && resize.pixelsPerInch;
       
-      if (hasCalibration) {
+      if (resize.hasCalibration) {
         newScale = (newWidth / resize.imageWidth) * resize.pixelsPerInch;
+      } else if (resize.hasAspectRatio) {
+        // Calculate scale based on 500px default width
+        newScale = newWidth / 500;
       } else {
         // Legacy: calculate scale based on 500px default width
         newScale = newWidth / 500;
