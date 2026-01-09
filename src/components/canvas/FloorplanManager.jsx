@@ -533,6 +533,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
               </div>
             ))
           )}
+          </div>
         </div>
       </div>
     </div>
