@@ -580,7 +580,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                         <Button
                           size="sm"
                           onClick={() => handleAddRoom(fp.id)}
-                          className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={!newRoomName.trim()}
+                          className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Add
                         </Button>
