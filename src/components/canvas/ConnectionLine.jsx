@@ -271,19 +271,31 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       
       {/* Draggable waypoints */}
       {waypoints.map((wp, index) => (
-        <circle
-          key={index}
-          ref={el => waypointRefs.current[index] = el}
-          cx={wp.x}
-          cy={wp.y}
-          r="6"
-          fill={color}
-          stroke="white"
-          strokeWidth="2"
-          className="cursor-move"
-          style={{ pointerEvents: 'all' }}
-          onMouseDown={(e) => handleWaypointMouseDown(e, index)}
-        />
+        <g key={index}>
+          <circle
+            cx={wp.x}
+            cy={wp.y}
+            r="8"
+            fill="transparent"
+            stroke={color}
+            strokeWidth="2"
+            strokeDasharray="4,2"
+            className="cursor-move"
+            style={{ pointerEvents: 'all' }}
+            onMouseDown={(e) => handleWaypointMouseDown(e, index)}
+            onContextMenu={(e) => handleWaypointContextMenu(e, index)}
+            title="Drag to move, right-click to delete"
+          />
+          <circle
+            cx={wp.x}
+            cy={wp.y}
+            r="4"
+            fill={color}
+            stroke="white"
+            strokeWidth="1.5"
+            className="cursor-move pointer-events-none"
+          />
+        </g>
       ))}
 
       {/* Connection Label */}
