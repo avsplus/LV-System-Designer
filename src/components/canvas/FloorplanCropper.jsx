@@ -16,13 +16,13 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   }, []);
 
   const handleApply = () => {
-    if (croppedAreaPercent) {
-      // react-easy-crop returns percentages (0-100), convert to decimals (0-1)
+    if (croppedAreaPixels && floorplan.imageWidth && floorplan.imageHeight) {
+      // Use pixel coordinates and convert to decimals relative to natural image size
       const cropData = {
-        top: croppedAreaPercent.y / 100,
-        left: croppedAreaPercent.x / 100,
-        width: croppedAreaPercent.width / 100,
-        height: croppedAreaPercent.height / 100
+        top: croppedAreaPixels.y / floorplan.imageHeight,
+        left: croppedAreaPixels.x / floorplan.imageWidth,
+        width: croppedAreaPixels.width / floorplan.imageWidth,
+        height: croppedAreaPixels.height / floorplan.imageHeight
       };
       onApply(cropData);
     }
