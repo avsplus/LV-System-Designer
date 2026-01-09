@@ -1631,7 +1631,8 @@ function AVCanvasContent() {
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
-              pointerEvents: 'auto'
+              pointerEvents: 'auto',
+              willChange: 'transform'
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
@@ -1808,8 +1809,8 @@ function AVCanvasContent() {
               </div>
             </div>
 
-            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
-              <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '200%', height: '200%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible', willChange: 'transform' }}>
+              <g style={{ pointerEvents: 'none', willChange: 'transform' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
@@ -1996,7 +1997,8 @@ function AVCanvasContent() {
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              willChange: 'transform'
             }}>
               {canvasProducts.map((cp) => {
                 const isHighlighted = highlightedConnections.some(idx => {
