@@ -579,9 +579,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                         />
                         <Button
                           size="sm"
-                          variant="ghost"
                           onClick={() => handleAddRoom(fp.id)}
-                          className="h-7 px-2 text-xs bg-gray-700 hover:bg-gray-600"
+                          className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           Add
                         </Button>
