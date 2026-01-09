@@ -9,28 +9,14 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [imageDimensions, setImageDimensions] = useState(null);
-  const imageRef = useRef(null);
 
-  // Load image to get natural dimensions
-  useEffect(() => {
-    if (imageRef.current && imageRef.current.complete) {
-      setImageDimensions({
-        width: imageRef.current.naturalWidth,
-        height: imageRef.current.naturalHeight
-      });
-    }
-  }, []);
-
-  const handleImageLoad = (e) => {
+  const onMediaLoaded = useCallback((mediaSize) => {
+    console.log('Media loaded in Cropper:', mediaSize);
     setImageDimensions({
-      width: e.target.naturalWidth,
-      height: e.target.naturalHeight
+      width: mediaSize.naturalWidth,
+      height: mediaSize.naturalHeight
     });
-    console.log('Image loaded:', { 
-      naturalWidth: e.target.naturalWidth, 
-      naturalHeight: e.target.naturalHeight 
-    });
-  };
+  }, []);
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     console.log('onCropComplete:', { croppedArea, croppedAreaPixels });
@@ -55,12 +41,6 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
     <div className="fixed inset-0 bg-black z-[10000] flex flex-col">
       {/* Cropper Area */}
       <div className="flex-1 relative">
-        <img 
-          ref={imageRef}
-          src={floorplan.url} 
-          onLoad={handleImageLoad}
-          style={{ display: 'none' }}
-        />
         <Cropper
           image={floorplan.url}
           crop={crop}
@@ -69,6 +49,7 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
+          onMediaLoaded={onMediaLoaded}
           style={{
             containerStyle: {
               backgroundColor: '#000'
