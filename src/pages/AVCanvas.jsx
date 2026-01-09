@@ -1603,31 +1603,30 @@ function AVCanvasContent() {
             }}
             {...provided.droppableProps}
             onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
-            onMouseDown={currentProject ? handleMouseDown : undefined}
-            onClick={currentProject ? handleCanvasClick : undefined}
-            onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
-            onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
-            onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
-            className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
-              snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
-            } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
-            style={{
-              backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
-                ? 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)' 
-                : 'none',
-              backgroundSize: `${(orgSettings?.grid_size || 30) * zoom}px ${(orgSettings?.grid_size || 30) * zoom}px`,
-              backgroundPosition: `${pan.x}px ${pan.y}px`,
-              backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined,
-              willChange: 'transform'
-            }}
+              onMouseDown={currentProject ? handleMouseDown : undefined}
+              onClick={currentProject ? handleCanvasClick : undefined}
+              onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
+              onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
+              onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
+              className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
+                snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
+              } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
+              style={{
+                backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
+                  ? 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)' 
+                  : 'none',
+                backgroundSize: `${(orgSettings?.grid_size || 30) * zoom}px ${(orgSettings?.grid_size || 30) * zoom}px`,
+                backgroundPosition: `${pan.x}px ${pan.y}px`,
+                backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : '#0f172a'
+              }}
           >
             {/* Unified Canvas Container - All elements share same transform */}
             <div style={{ 
               position: 'absolute',
-              top: '-50%',
-              left: '-50%',
-              width: '200%',
-              height: '200%',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'transform 0.1s ease-out',
@@ -1809,7 +1808,7 @@ function AVCanvasContent() {
               </div>
             </div>
 
-            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: '-50%', left: '-50%', width: '200%', height: '200%', minWidth: '6000px', minHeight: '6000px', overflow: 'visible', willChange: 'transform' }}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible', willChange: 'transform' }}>
               <g style={{ pointerEvents: 'none', willChange: 'transform' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
@@ -1989,10 +1988,10 @@ function AVCanvasContent() {
 
             <div style={{ 
               position: 'absolute',
-              top: '-50%',
-              left: '-50%',
-              width: '200%',
-              height: '200%',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
               zIndex: 2,
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
