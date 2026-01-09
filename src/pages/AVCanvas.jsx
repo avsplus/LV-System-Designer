@@ -824,6 +824,7 @@ function AVCanvasContent() {
         });
 
         if (currentProject?.id) {
+          setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
           base44.entities.AVProject.update(currentProject.id, {
             floorplans: updatedFloorplans
           }).catch(error => console.error('Failed to save floorplan position:', error));
@@ -845,6 +846,7 @@ function AVCanvasContent() {
         });
         
         if (currentProject?.id) {
+          setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
           base44.entities.AVProject.update(currentProject.id, {
             floorplans: updatedFloorplans
           }).catch(error => console.error('Failed to save floorplan scale:', error));
