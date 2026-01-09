@@ -173,6 +173,16 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     setDraggingIndex(index);
   };
 
+  const handleWaypointContextMenu = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newWaypoints = waypoints.filter((_, i) => i !== index);
+    setWaypoints(newWaypoints);
+    if (onWaypointsChange) {
+      onWaypointsChange(newWaypoints);
+    }
+  };
+
   const handleMouseMove = (e) => {
     if (draggingIndex !== null) {
       const svg = e.currentTarget.closest('svg');
