@@ -1608,10 +1608,9 @@ function AVCanvasContent() {
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
-              className={`flex-1 relative bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
+              className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                 snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
               } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
-              style={{...provided.droppableProps.style, overflow: 'hidden'}}
               style={{
                 backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
                   ? 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)' 
@@ -1631,8 +1630,7 @@ function AVCanvasContent() {
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'none',
-              pointerEvents: 'auto',
-              overflow: 'visible'
+              pointerEvents: 'auto'
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
@@ -1997,8 +1995,7 @@ function AVCanvasContent() {
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'top left',
               transition: isPanning || draggingFloorplan ? 'none' : 'none',
-              pointerEvents: 'none',
-              overflow: 'visible'
+              pointerEvents: 'none'
             }}>
               {canvasProducts.map((cp) => {
                 const isHighlighted = highlightedConnections.some(idx => {
