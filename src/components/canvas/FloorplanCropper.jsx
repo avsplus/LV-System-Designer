@@ -8,43 +8,40 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-  const [imageDimensions, setImageDimensions] = useState(null);
-
-  // Load image to get natural dimensions
-  React.useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      setImageDimensions({
-        width: img.naturalWidth,
-        height: img.naturalHeight
-      });
-    };
-    img.src = floorplan.url;
-  }, [floorplan.url]);
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    console.log('onCropComplete:', { croppedArea, croppedAreaPixels });
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleApply = () => {
-    if (!croppedAreaPixels || !imageDimensions) {
-      console.error('Missing crop data or image dimensions', { croppedAreaPixels, imageDimensions });
+    if (!croppedAreaPixels) {
+      console.error('Missing croppedAreaPixels');
       return;
     }
 
-    // croppedAreaPixels is already in natural image pixel coordinates
-    // Convert to decimals (0-1) for storage
+    // Use the stored natural image dimensions from floorplan
+    const naturalWidth = floorplan.imageWidth;
+    const naturalHeight = floorplan.imageHeight;
+
+    if (!naturalWidth || !naturalHeight) {
+      console.error('Missing natural image dimensions in floorplan object');
+      return;
+    }
+
+    // croppedAreaPixels from react-easy-crop is already in natural pixel coordinates
+    // Just store it directly - no conversion needed
     const cropData = {
-      top: croppedAreaPixels.y / imageDimensions.height,
-      left: croppedAreaPixels.x / imageDimensions.width,
-      width: croppedAreaPixels.width / imageDimensions.width,
-      height: croppedAreaPixels.height / imageDimensions.height
+      x: croppedAreaPixels.x,
+      y: croppedAreaPixels.y,
+      width: croppedAreaPixels.width,
+      height: croppedAreaPixels.height
     };
 
-    console.log('Applying crop:', {
-      pixels: croppedAreaPixels,
-      imageDimensions,
-      normalized: cropData
+    console.log('Applying crop (PIXELS):', {
+      croppedAreaPixels,
+      naturalDimensions: { width: naturalWidth, height: naturalHeight },
+      cropData
     });
 
     onApply(cropData);

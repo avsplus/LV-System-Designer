@@ -1652,10 +1652,34 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Calculate container size based on crop (react-easy-crop returns 0-1 decimals)
+                  // Calculate cropped display dimensions
                   const crop = fp.crop;
-                  const renderWidth = crop ? displayWidth * crop.width : displayWidth;
-                  const renderHeight = crop ? displayHeight * crop.height : displayHeight;
+                  let renderWidth = displayWidth;
+                  let renderHeight = displayHeight;
+                  let imgOffsetX = 0;
+                  let imgOffsetY = 0;
+
+                  if (crop) {
+                    // crop contains PIXEL coordinates from croppedAreaPixels
+                    // Calculate scale from natural to display
+                    const scaleX = displayWidth / fp.imageWidth;
+                    const scaleY = displayHeight / fp.imageHeight;
+
+                    // Apply crop in display space
+                    renderWidth = crop.width * scaleX;
+                    renderHeight = crop.height * scaleY;
+                    imgOffsetX = -crop.x * scaleX;
+                    imgOffsetY = -crop.y * scaleY;
+
+                    console.log('Displaying crop:', {
+                      cropPixels: crop,
+                      naturalSize: { w: fp.imageWidth, h: fp.imageHeight },
+                      displaySize: { w: displayWidth, h: displayHeight },
+                      scale: { x: scaleX, y: scaleY },
+                      renderSize: { w: renderWidth, h: renderHeight },
+                      offset: { x: imgOffsetX, y: imgOffsetY }
+                    });
+                  }
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1693,8 +1717,8 @@ function AVCanvasContent() {
                         alt={fp.name}
                         style={{
                           position: 'absolute',
-                          top: crop ? `-${displayHeight * crop.top}px` : '0',
-                          left: crop ? `-${displayWidth * crop.left}px` : '0',
+                          top: crop ? `${imgOffsetY}px` : '0',
+                          left: crop ? `${imgOffsetX}px` : '0',
                           width: `${displayWidth}px`,
                           height: `${displayHeight}px`,
                           opacity: fp.opacity,
