@@ -1617,7 +1617,8 @@ function AVCanvasContent() {
                 : 'none',
               backgroundSize: `${(orgSettings?.grid_size || 30) * zoom}px ${(orgSettings?.grid_size || 30) * zoom}px`,
               backgroundPosition: `${pan.x}px ${pan.y}px`,
-              backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined
+              backgroundColor: orgSettings?.canvas_theme === 'light' ? '#f8fafc' : undefined,
+              willChange: 'transform'
             }}
           >
             {/* Unified Canvas Container - All elements share same transform */}
