@@ -9,6 +9,7 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [imageDimensions, setImageDimensions] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const onMediaLoaded = useCallback((mediaSize) => {
     console.log('Media loaded in Cropper:', mediaSize);
@@ -16,11 +17,15 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
       width: mediaSize.naturalWidth,
       height: mediaSize.naturalHeight
     });
+    setIsLoading(false);
   }, []);
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     console.log('onCropComplete:', { croppedArea, croppedAreaPixels });
-    setCroppedAreaPixels(croppedAreaPixels);
+    // Only set if we have valid data
+    if (croppedAreaPixels && typeof croppedAreaPixels.width === 'number' && croppedAreaPixels.width > 0) {
+      setCroppedAreaPixels(croppedAreaPixels);
+    }
   }, []);
 
   const handleApply = () => {
@@ -44,6 +49,11 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
     <div className="fixed inset-0 bg-black z-[10000] flex flex-col">
       {/* Cropper Area */}
       <div className="flex-1 relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+            <div className="text-white">Loading image...</div>
+          </div>
+        )}
         <Cropper
           image={floorplan.url}
           crop={crop}
@@ -53,6 +63,7 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
           onMediaLoaded={onMediaLoaded}
+          restrictPosition={true}
           style={{
             containerStyle: {
               backgroundColor: '#000'
