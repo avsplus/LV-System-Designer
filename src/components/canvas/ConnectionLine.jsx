@@ -168,7 +168,6 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   const midpoint = getMidpoint();
 
-  const svgRef = useRef(null);
   const gRef = useRef(null);
 
   const handleWaypointMouseDown = (e, index) => {
@@ -187,26 +186,20 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   const handleWindowMouseMove = (e) => {
-    if (draggingIndex !== null && svgRef.current && gRef.current) {
-      const svg = svgRef.current;
+    if (draggingIndex !== null && gRef.current) {
       const g = gRef.current;
+      const rect = g.getBoundingClientRect();
       
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
+      // Get mouse position relative to the parent container
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
       
-      // Get the CTM of the transformed g element
-      const gCTM = g.getScreenCTM();
-      const svgCTM = svg.getScreenCTM();
-      
-      // Convert screen coordinates to SVG coordinates
-      const svgPt = pt.matrixTransform(svgCTM.inverse());
-      
-      // Convert from SVG space to g's local space
-      const localPt = svgPt.matrixTransform(gCTM.inverse());
+      // Convert from screen space to world space using zoom and pan
+      const worldX = (clientX - pan.x) / zoom;
+      const worldY = (clientY - pan.y) / zoom;
       
       const newWaypoints = [...waypoints];
-      newWaypoints[draggingIndex] = { x: localPt.x, y: localPt.y };
+      newWaypoints[draggingIndex] = { x: worldX, y: worldY };
       setWaypoints(newWaypoints);
       if (onWaypointsChange) {
         onWaypointsChange(newWaypoints);
@@ -227,7 +220,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         window.removeEventListener('mouseup', handleWindowMouseUp);
       };
     }
-  }, [draggingIndex, waypoints]);
+  }, [draggingIndex, waypoints, zoom, pan]);
 
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
@@ -258,7 +251,6 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   return (
-    <svg ref={svgRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible' }}>
     <g ref={gRef}>
       <path
         d={pathData}
@@ -399,6 +391,5 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         </>
       )}
     </g>
-    </svg>
   );
 }
