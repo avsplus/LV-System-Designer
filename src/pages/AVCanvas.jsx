@@ -2473,14 +2473,18 @@ function AVCanvasContent() {
 
         {pendingProductDrop && (
           <RoomSelectDialog
-            rooms={rooms}
+            rooms={rooms.map(r => r.name)}
             productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
-            onSelect={(room) => {
-              addProductToCanvas(pendingProductDrop.product, pendingProductDrop.position, room);
+            onSelect={(roomName) => {
+              const room = rooms.find(r => r.name === roomName);
+              addProductToCanvas(pendingProductDrop.product, pendingProductDrop.position, room?.id || roomName);
               setPendingProductDrop(null);
             }}
             onCancel={() => setPendingProductDrop(null)}
-            onCreateRoom={handleAddRoom}
+            onCreateRoom={(roomName) => {
+              const selectedFloorplan = floorplans.find(fp => fp.id === selectedFloorplanId);
+              handleAddRoom(roomName, selectedFloorplan?.id);
+            }}
           />
         )}
         
