@@ -1652,22 +1652,22 @@ function AVCanvasContent() {
                   };
                   const currentPosition = isThisOneResizing ? resizeOffset.position : safePosition;
 
-                  // For legacy floorplans without calibration, use simple scale
+                  // Always preserve aspect ratio if dimensions are available
                   const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
-                  const hasAspectRatio = fp.imageWidth && fp.imageHeight;
+                  const hasDimensions = fp.imageWidth && fp.imageHeight;
                   let displayWidth, displayHeight;
 
                   if (hasCalibration) {
-                    // Scale floorplan so 1 canvas pixel = 1 inch in real world
+                    // Calibrated: scale based on real-world measurements
                     const scaleFactor = (1 / fp.pixelsPerInch) * currentScale;
                     displayWidth = fp.imageWidth * scaleFactor;
                     displayHeight = fp.imageHeight * scaleFactor;
-                  } else if (hasAspectRatio) {
-                    // Has dimensions but no calibration - maintain aspect ratio
+                  } else if (hasDimensions) {
+                    // Has dimensions but no calibration - preserve aspect ratio
                     displayWidth = 500 * currentScale;
                     displayHeight = displayWidth * (fp.imageHeight / fp.imageWidth);
                   } else {
-                    // Legacy: use simple scale factor (assume 500px default width)
+                    // No dimensions yet - temporary square placeholder
                     displayWidth = 500 * currentScale;
                     displayHeight = 500 * currentScale;
                   }
