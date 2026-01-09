@@ -24,8 +24,11 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
   }, []);
 
   const handleApply = () => {
-    if (!croppedAreaPixels || !imageDimensions) {
-      console.error('Missing data:', { croppedAreaPixels, imageDimensions });
+    // Validate croppedAreaPixels has actual data (not just an empty object)
+    if (!croppedAreaPixels || !imageDimensions || 
+        typeof croppedAreaPixels.width !== 'number' || 
+        typeof croppedAreaPixels.height !== 'number') {
+      console.error('Missing or invalid crop data:', { croppedAreaPixels, imageDimensions });
       return;
     }
 
@@ -85,7 +88,8 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
           <div className="flex gap-4 justify-center">
             <Button
               onClick={handleApply}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-8 py-6 text-base font-semibold shadow-lg shadow-green-900/50 transition-all hover:scale-105"
+              disabled={!croppedAreaPixels || !imageDimensions || typeof croppedAreaPixels.width !== 'number'}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-8 py-6 text-base font-semibold shadow-lg shadow-green-900/50 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Crop className="w-5 h-5 mr-2" />
               Apply Crop
