@@ -2473,12 +2473,9 @@ function AVCanvasContent() {
 
         {pendingProductDrop && (
           <RoomSelectDialog
-            rooms={rooms.map(r => r.name)}
+            rooms={rooms}
             productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
-            onSelect={(roomIdOrName) => {
-              // Use the ID directly - for new rooms it's already the ID, for existing rooms look it up
-              const existingRoom = rooms.find(r => r.id === roomIdOrName || r.name === roomIdOrName);
-              const roomId = existingRoom?.id || roomIdOrName;
+            onSelect={(roomId) => {
               addProductToCanvas(pendingProductDrop.product, pendingProductDrop.position, roomId);
               setPendingProductDrop(null);
             }}

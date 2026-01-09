@@ -8,6 +8,7 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
   const [newRoomName, setNewRoomName] = useState('');
   const [error, setError] = useState('');
   const noRoomsExist = rooms.length === 0;
+  const roomNames = rooms.map(r => typeof r === 'string' ? r : r.name);
 
   const handleCreateRoom = () => {
     const trimmedName = newRoomName.trim();
@@ -15,7 +16,7 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
       setError('Room name cannot be empty');
       return;
     }
-    if (rooms.some(r => r.toLowerCase() === trimmedName.toLowerCase())) {
+    if (roomNames.some(name => name.toLowerCase() === trimmedName.toLowerCase())) {
       setError('Room name already exists');
       return;
     }
@@ -84,16 +85,20 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
         ) : (
           <>
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {rooms.map((room) => (
-                <button
-                  key={room}
-                  onClick={() => onSelect(room)}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-left"
-                >
-                  <Home className="w-5 h-5 text-gray-400" />
-                  <span className="text-white font-medium">{room}</span>
-                </button>
-              ))}
+              {rooms.map((room) => {
+                const roomId = typeof room === 'string' ? room : room.id;
+                const roomName = typeof room === 'string' ? room : room.name;
+                return (
+                  <button
+                    key={roomId}
+                    onClick={() => onSelect(roomId)}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-left"
+                  >
+                    <Home className="w-5 h-5 text-gray-400" />
+                    <span className="text-white font-medium">{roomName}</span>
+                  </button>
+                );
+              })}
             </div>
 
             <button
