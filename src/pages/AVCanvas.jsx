@@ -1678,8 +1678,8 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${currentY}px`,
                         left: `${currentX}px`,
-                        width: `${croppedWidth}px`,
-                        height: `${croppedHeight}px`,
+                        width: `${displayWidth}px`,
+                        height: `${displayHeight}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: isSelected ? '4px' : '0',
@@ -1689,18 +1689,15 @@ function AVCanvasContent() {
                         zIndex: isSelected ? 1000 : index,
                         transition: isThisOneDragging || resizingFloorplan?.id === fp.id ? 'none' : 'all 0.2s ease',
                         flexShrink: 0,
-                        overflow: 'hidden'
+                        clipPath: `inset(${clipTop}% ${100 - clipRight}% ${100 - clipBottom}% ${clipLeft}%)`
                       }}
-                    >
+                      >
                       <img 
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          position: 'absolute',
-                          width: `${displayWidth}px`,
-                          height: `${displayHeight}px`,
-                          top: `${imageOffsetY}px`,
-                          left: `${imageOffsetX}px`,
+                          width: '100%',
+                          height: '100%',
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
