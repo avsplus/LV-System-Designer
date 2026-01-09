@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Trash2 } from "lucide-react";
+import { getWireLength } from './wireUtils';
 
 const connectionTypes = {
   hdmi: { 
@@ -65,6 +66,12 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
   )?.[1] || connectionTypes.speaker_wire;
 
   const isEmpty = connection.isEmpty;
+  
+  // Calculate wire length if we have positions and a calibrated floorplan
+  const activeFloorplan = floorplans?.find(fp => fp.visible && fp.pixelsPerInch);
+  const wireLength = !isEmpty && fromPosition && toPosition && activeFloorplan
+    ? getWireLength(fromPosition, toPosition, connection.waypoints || [], activeFloorplan)
+    : null;
 
   return (
     <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
@@ -97,15 +104,38 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
 
         <div>
           <p className="text-sm text-gray-500 mb-2">Connection Type</p>
-          <Badge className={`${connectionInfo.color} border text-base px-3 py-1`}>
-            {connectionInfo.name}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={`${connectionInfo.color} border text-base px-3 py-1`}>
+              {connectionInfo.name}
+            </Badge>
+            {wireLength && (
+              <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/20">
+                {wireLength.feet} ft
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div>
           <p className="text-sm text-gray-500 mb-2">Description</p>
           <p className="text-sm text-gray-300">{connectionInfo.description}</p>
         </div>
+
+        {wireLength && (
+          <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+            <p className="text-xs text-gray-400 mb-2">Wire Run Length</p>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">Feet</span>
+                <span className="text-sm font-mono text-white font-semibold">{wireLength.feet} ft</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">Inches</span>
+                <span className="text-sm font-mono text-gray-400">{wireLength.inches} in</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div>
           <p className="text-sm text-gray-500 mb-2">Signal Types</p>
