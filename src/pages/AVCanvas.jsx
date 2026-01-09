@@ -855,15 +855,16 @@ function AVCanvasContent() {
 
 
   const handleMouseDown = (e) => {
-    // Handle middle mouse double-click to center and reset zoom
+    // Handle middle mouse button - double-click to center/reset, single-click to pan
     if (e.button === 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const now = Date.now();
       const timeSinceLastClick = now - lastMiddleClickRef.current;
       
       if (timeSinceLastClick < 400) {
         // Double middle-click detected
-        e.preventDefault();
-        e.stopPropagation();
         
         if (floorplans.length > 0) {
           // Calculate center of all visible floorplans
