@@ -1450,7 +1450,7 @@ function AVCanvasContent() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => setShowProjectManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
-                    <FolderOpen className="w-4 h-4 mr-2" />
+                    <Download className="w-4 h-4 mr-2" />
                     Load Project
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowProjectManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
