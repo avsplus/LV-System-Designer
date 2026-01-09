@@ -331,33 +331,35 @@ export default function ProjectManager({
               </div>
             </div>
           ) : (
-            <div className="flex gap-2 mb-4">
-              {currentProject && (
-                <Button
-                  onClick={() => {
-                    setProjectName('');
-                    setProjectDescription('');
-                    setShowSaveForm(true);
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save As New Project
-                </Button>
-              )}
-              {!currentProject && (
-                <Button
-                  onClick={handleCreateProject}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New Project
-                </Button>
-              )}
+            <div className="mb-4 space-y-2">
+              <div className="flex gap-2 items-center">
+                {currentProject && (
+                  <Button
+                    onClick={() => {
+                      setProjectName('');
+                      setProjectDescription('');
+                      setShowSaveForm(true);
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save As New Project
+                  </Button>
+                )}
+                {!currentProject && (
+                  <Button
+                    onClick={handleCreateProject}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Project
+                  </Button>
+                )}
+              </div>
               
               {/* Show usage stats for free tier */}
               {isFree && (
-                <div className="w-full mt-2 p-3 bg-gray-800 border border-gray-700 rounded-lg">
+                <div className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-gray-400">Projects</span>
                     <span className="text-xs text-gray-300">{ownProjects.length} / {limits.maxProjects}</span>
