@@ -924,7 +924,15 @@ function AVCanvasContent() {
 
   const handleCanvasClick = (e) => {
     // Only trigger if clicking directly on the canvas background, not on products/connections
-    if (e.target === e.currentTarget || e.target.tagName === 'svg' || e.target.closest('[data-canvas-background]')) {
+    const isEmptySpace = e.target === e.currentTarget || 
+                        e.target.tagName === 'svg' || 
+                        e.target.getAttribute('data-canvas-background') === 'true' ||
+                        (!e.target.closest('[data-instance-id]') && 
+                         !e.target.closest('[data-floorplan]') && 
+                         !e.target.closest('path') && 
+                         !e.target.closest('circle'));
+    
+    if (isEmptySpace) {
       setSelectedProduct(null);
       setSelectedCanvasProduct(null);
       setSelectedConnection(null);
