@@ -2476,8 +2476,10 @@ function AVCanvasContent() {
             rooms={rooms.map(r => r.name)}
             productName={`${pendingProductDrop.product.brand} ${pendingProductDrop.product.model}`}
             onSelect={(roomIdOrName) => {
-              const room = rooms.find(r => r.id === roomIdOrName || r.name === roomIdOrName);
-              addProductToCanvas(pendingProductDrop.product, pendingProductDrop.position, room?.id || roomIdOrName);
+              // Use the ID directly - for new rooms it's already the ID, for existing rooms look it up
+              const existingRoom = rooms.find(r => r.id === roomIdOrName || r.name === roomIdOrName);
+              const roomId = existingRoom?.id || roomIdOrName;
+              addProductToCanvas(pendingProductDrop.product, pendingProductDrop.position, roomId);
               setPendingProductDrop(null);
             }}
             onCancel={() => setPendingProductDrop(null)}
@@ -2486,7 +2488,7 @@ function AVCanvasContent() {
                 ? floorplans.find(fp => fp.id === selectedFloorplanId)
                 : floorplans[0];
               const newRoom = handleAddRoom(roomName, targetFloorplan?.id);
-              return newRoom.id;
+              return newRoom?.id;
             }}
           />
         )}
