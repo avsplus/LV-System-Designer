@@ -1469,6 +1469,7 @@ function AVCanvasContent() {
                   {currentProject && (
                     <DropdownMenuItem onClick={() => {
                       setShowFloorplanManager(true);
+                      setShowRoomManager(false);
                       setSelectedProduct(null);
                       setSelectedCanvasProduct(null);
                       setSelectedConnection(null);
