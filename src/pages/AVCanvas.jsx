@@ -2482,8 +2482,11 @@ function AVCanvasContent() {
             }}
             onCancel={() => setPendingProductDrop(null)}
             onCreateRoom={(roomName) => {
-              const selectedFloorplan = floorplans.find(fp => fp.id === selectedFloorplanId);
-              handleAddRoom(roomName, selectedFloorplan?.id);
+              // Use selected floorplan, or first available floorplan, or null
+              const targetFloorplan = selectedFloorplanId 
+                ? floorplans.find(fp => fp.id === selectedFloorplanId)
+                : floorplans[0];
+              handleAddRoom(roomName, targetFloorplan?.id);
             }}
           />
         )}
