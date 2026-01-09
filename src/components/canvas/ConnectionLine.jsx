@@ -168,6 +168,9 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   const midpoint = getMidpoint();
 
+  const svgRef = useRef(null);
+  const gRef = useRef(null);
+
   const handleWaypointMouseDown = (e, index) => {
     e.stopPropagation();
     setDraggingIndex(index);
@@ -183,46 +186,48 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     }
   };
 
-  const handleMouseMove = (e) => {
-    if (draggingIndex !== null) {
-      const svg = e.currentTarget.closest('svg');
-      const g = e.currentTarget.closest('g[transform]');
+  const handleWindowMouseMove = (e) => {
+    if (draggingIndex !== null && svgRef.current && gRef.current) {
+      const svg = svgRef.current;
+      const g = gRef.current;
       
-      if (svg && g) {
-        const pt = svg.createSVGPoint();
-        pt.x = e.clientX;
-        pt.y = e.clientY;
-        
-        // Get the CTM of the transformed g element
-        const gCTM = g.getScreenCTM();
-        const svgCTM = svg.getScreenCTM();
-        
-        // Convert screen coordinates to SVG coordinates
-        const svgPt = pt.matrixTransform(svgCTM.inverse());
-        
-        // Convert from SVG space to g's local space
-        const localPt = svgPt.matrixTransform(gCTM.inverse());
-        
-        const newWaypoints = [...waypoints];
-        newWaypoints[draggingIndex] = { x: localPt.x, y: localPt.y };
-        setWaypoints(newWaypoints);
-        if (onWaypointsChange) {
-          onWaypointsChange(newWaypoints);
-        }
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      
+      // Get the CTM of the transformed g element
+      const gCTM = g.getScreenCTM();
+      const svgCTM = svg.getScreenCTM();
+      
+      // Convert screen coordinates to SVG coordinates
+      const svgPt = pt.matrixTransform(svgCTM.inverse());
+      
+      // Convert from SVG space to g's local space
+      const localPt = svgPt.matrixTransform(gCTM.inverse());
+      
+      const newWaypoints = [...waypoints];
+      newWaypoints[draggingIndex] = { x: localPt.x, y: localPt.y };
+      setWaypoints(newWaypoints);
+      if (onWaypointsChange) {
+        onWaypointsChange(newWaypoints);
       }
     }
   };
 
-  const handleMouseUp = () => {
+  const handleWindowMouseUp = () => {
     setDraggingIndex(null);
   };
 
   useEffect(() => {
     if (draggingIndex !== null) {
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => window.removeEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mousemove', handleWindowMouseMove);
+      window.addEventListener('mouseup', handleWindowMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleWindowMouseMove);
+        window.removeEventListener('mouseup', handleWindowMouseUp);
+      };
     }
-  }, [draggingIndex]);
+  }, [draggingIndex, waypoints]);
 
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
@@ -253,7 +258,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   return (
-    <g onMouseMove={handleMouseMove}>
+    <svg ref={svgRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+    <g ref={gRef}>
       <path
         d={pathData}
         stroke={color}
@@ -393,5 +399,6 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         </>
       )}
     </g>
+    </svg>
   );
 }
