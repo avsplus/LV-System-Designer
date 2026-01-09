@@ -1476,19 +1476,7 @@ function AVCanvasContent() {
                     <FileText className="w-4 h-4 mr-2" />
                     Export to PDF
                   </DropdownMenuItem>
-                  {currentProject && (
-                    <DropdownMenuItem onClick={() => {
-                      setShowFloorplanManager(true);
-                      setShowRoomManager(false);
-                      setSelectedProduct(null);
-                      setSelectedCanvasProduct(null);
-                      setSelectedConnection(null);
-                      setSelectedFloorplanId(null);
-                    }} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Manage Floorplans
-                    </DropdownMenuItem>
-                  )}
+
                   <DropdownMenuItem onClick={clearCanvas} disabled={canvasProducts.length === 0} className="text-gray-300 hover:bg-red-500/10 hover:text-red-400 cursor-pointer">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Clear Canvas
