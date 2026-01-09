@@ -214,20 +214,28 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
     const svg = e.currentTarget.closest('svg');
-    const rect = svg.getBoundingClientRect();
+    const g = e.currentTarget.closest('g[transform]');
     
-    // Get mouse position relative to canvas
-    const canvasX = e.clientX - rect.left;
-    const canvasY = e.clientY - rect.top;
-    
-    // Convert to world coordinates by reversing zoom and pan
-    const worldX = (canvasX - pan.x) / zoom;
-    const worldY = (canvasY - pan.y) / zoom;
-    
-    const newWaypoints = [...waypoints, { x: worldX, y: worldY }];
-    setWaypoints(newWaypoints);
-    if (onWaypointsChange) {
-      onWaypointsChange(newWaypoints);
+    if (svg && g) {
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      
+      // Get the CTM of the transformed g element
+      const gCTM = g.getScreenCTM();
+      const svgCTM = svg.getScreenCTM();
+      
+      // Convert screen coordinates to SVG coordinates
+      const svgPt = pt.matrixTransform(svgCTM.inverse());
+      
+      // Convert from SVG space to g's local space
+      const localPt = svgPt.matrixTransform(gCTM.inverse());
+      
+      const newWaypoints = [...waypoints, { x: localPt.x, y: localPt.y }];
+      setWaypoints(newWaypoints);
+      if (onWaypointsChange) {
+        onWaypointsChange(newWaypoints);
+      }
     }
   };
 
