@@ -914,13 +914,18 @@ function AVCanvasContent() {
         }
         lastMiddleClickRef.current = 0;
         return;
+        lastMiddleClickRef.current = 0;
+        return;
       } else {
         lastMiddleClickRef.current = now;
-        // Still allow normal panning for single middle-click
       }
+      
+      // Allow middle-click panning anywhere on canvas
+      handlePanStart(e, canvasRef.current);
+      return;
     }
     
-    // Only pan when clicking on empty canvas space (background or SVG)
+    // Only pan with other buttons when clicking on empty canvas space
     const isEmptySpace = e.target === e.currentTarget || 
                         e.target.tagName === 'svg' || 
                         e.target.getAttribute('data-canvas-background') === 'true';
