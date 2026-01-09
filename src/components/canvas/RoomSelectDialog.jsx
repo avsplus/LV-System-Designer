@@ -9,7 +9,7 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
   const [error, setError] = useState('');
   const noRoomsExist = rooms.length === 0;
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     const trimmedName = newRoomName.trim();
     if (!trimmedName) {
       setError('Room name cannot be empty');
@@ -19,8 +19,8 @@ export default function RoomSelectDialog({ rooms, onSelect, onCancel, productNam
       setError('Room name already exists');
       return;
     }
-    onCreateRoom(trimmedName);
-    onSelect(trimmedName);
+    const roomId = await onCreateRoom(trimmedName);
+    onSelect(roomId || trimmedName);
   };
 
   return (
