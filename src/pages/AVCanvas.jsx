@@ -2159,7 +2159,7 @@ function AVCanvasContent() {
           />
         )}
 
-        {showFloorplanManager && (
+        {showFloorplanManager && !showRoomManager && (
           <FloorplanManager
             floorplans={floorplans}
             onUpdate={handleFloorplansUpdate}
@@ -2169,7 +2169,7 @@ function AVCanvasContent() {
           />
         )}
 
-        {showRoomManager && (
+        {showRoomManager && !showFloorplanManager && (
           <RoomManager
             rooms={rooms}
             onAddRoom={handleAddRoom}
