@@ -852,10 +852,20 @@ function AVCanvasContent() {
   }, [floorplans]);
 
   const handleApplyCrop = useCallback((cropData) => {
+    console.log('handleApplyCrop received:', cropData);
+    
     setFloorplans(prev => {
       const updated = prev.map(fp => 
         fp.id === croppingFloorplan.id 
-          ? { ...fp, crop: cropData }
+          ? { 
+              ...fp, 
+              crop: {
+                x: cropData.x,
+                y: cropData.y,
+                width: cropData.width,
+                height: cropData.height
+              }
+            }
           : fp
       );
 
@@ -1659,7 +1669,7 @@ function AVCanvasContent() {
                   let imgOffsetX = 0;
                   let imgOffsetY = 0;
 
-                  if (crop) {
+                  if (crop && fp.imageWidth && fp.imageHeight) {
                     // crop contains PIXEL coordinates from croppedAreaPixels
                     // Calculate scale from natural to display
                     const scaleX = displayWidth / fp.imageWidth;

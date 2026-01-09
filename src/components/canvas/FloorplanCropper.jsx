@@ -43,21 +43,12 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
       return;
     }
 
-    // croppedAreaPixels from react-easy-crop is already in natural pixel coordinates
-    const cropData = {
-      x: croppedAreaPixels.x,
-      y: croppedAreaPixels.y,
-      width: croppedAreaPixels.width,
-      height: croppedAreaPixels.height
-    };
-
-    console.log('Applying crop (PIXELS):', {
+    console.log('Applying crop with data:', {
       croppedAreaPixels,
-      imageDimensions,
-      cropData
+      imageDimensions
     });
 
-    onApply(cropData);
+    onApply({ ...croppedAreaPixels, imageDimensions });
   };
 
   return (
