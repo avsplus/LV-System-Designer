@@ -332,30 +332,15 @@ export default function ProjectManager({
             </div>
           ) : (
             <div className="mb-4 space-y-2">
-              <div className="flex gap-2 items-center">
-                {currentProject && (
-                  <Button
-                    onClick={() => {
-                      setProjectName('');
-                      setProjectDescription('');
-                      setShowSaveForm(true);
-                    }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save As New Project
-                  </Button>
-                )}
-                {!currentProject && (
-                  <Button
-                    onClick={handleCreateProject}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create New Project
-                  </Button>
-                )}
-              </div>
+              {!currentProject && (
+                <Button
+                  onClick={handleCreateProject}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Project
+                </Button>
+              )}
               
               {/* Show usage stats for free tier */}
               {isFree && (
