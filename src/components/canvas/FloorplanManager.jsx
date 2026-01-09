@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, canvasProducts = [], onDeviceRoomChange }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -17,6 +17,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationZoom, setCalibrationZoom] = useState(0.25);
   const [editingScale, setEditingScale] = useState(null);
+  const [expandedFloorplan, setExpandedFloorplan] = useState(null);
+  const [newRoomName, setNewRoomName] = useState('');
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -207,6 +209,24 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     setCalibrating(null);
     setCalibrationPoints([]);
     setKnownDistance('');
+  };
+
+  const handleAddRoom = (floorplanId) => {
+    if (!newRoomName.trim()) {
+      toast.error('Please enter a room name');
+      return;
+    }
+    onAddRoom(newRoomName, floorplanId);
+    setNewRoomName('');
+    toast.success(`Room "${newRoomName}" added to ${floorplans.find(fp => fp.id === floorplanId)?.name}`);
+  };
+
+  const getFloorplanRooms = (floorplanId) => {
+    return rooms.filter(room => room.floorplanId === floorplanId || !room.floorplanId);
+  };
+
+  const getFloorplanDevices = (floorplanId) => {
+    return canvasProducts.filter(cp => cp.floorplanId === floorplanId || !cp.floorplanId);
   };
 
   useEffect(() => {
@@ -518,7 +538,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                 </div>
                 
                 {fp.visible && (
-                  <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                   <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
                     <label className="text-xs text-gray-400">Opacity: {Math.round(fp.opacity * 100)}%</label>
                     <Slider
                       value={[fp.opacity]}
@@ -530,12 +550,74 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                     />
                   </div>
                 )}
-              </div>
-            ))
-          )}
-        </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+
+                {/* Rooms Section */}
+                <div className="pt-3 border-t border-gray-700" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedFloorplan(expandedFloorplan === fp.id ? null : fp.id);
+                    }}
+                    className="flex items-center gap-2 text-xs font-medium text-gray-400 hover:text-white mb-2 w-full"
+                  >
+                    <Home className="w-3 h-3" />
+                    Rooms ({getFloorplanRooms(fp.id).length})
+                    {expandedFloorplan === fp.id ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+                  </button>
+
+                  {expandedFloorplan === fp.id && (
+                    <div className="space-y-2 mt-2">
+                      <div className="flex gap-1">
+                        <Input
+                          value={newRoomName}
+                          onChange={(e) => setNewRoomName(e.target.value)}
+                          placeholder="Room name"
+                          className="h-7 text-xs bg-gray-900 border-gray-700"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddRoom(fp.id);
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleAddRoom(fp.id)}
+                          className="h-7 px-2 text-xs bg-gray-700 hover:bg-gray-600"
+                        >
+                          Add
+                        </Button>
+                      </div>
+
+                      <div className="space-y-1">
+                        {getFloorplanRooms(fp.id).length === 0 ? (
+                          <p className="text-xs text-gray-500 py-1">No rooms</p>
+                        ) : (
+                          getFloorplanRooms(fp.id).map(room => (
+                            <div key={room.id} className="flex items-center justify-between bg-gray-900 rounded p-2">
+                              <span className="text-xs text-gray-300">{room.name}</span>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteRoom(room.id);
+                                }}
+                                className="h-5 w-5 text-red-400 hover:text-red-300"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                </div>
+                ))
+                )}
+                </div>
+                </div>
+                </div>
+                </div>
+                );
+                }
