@@ -1496,7 +1496,24 @@ function AVCanvasContent() {
                   </DropdownMenuContent>
                   </DropdownMenu>
 
-              <DropdownMenu>
+                  {currentProject && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowFloorplanManager(true);
+                        setShowRoomManager(false);
+                        setSelectedProduct(null);
+                        setSelectedCanvasProduct(null);
+                        setSelectedConnection(null);
+                        setSelectedFloorplanId(null);
+                      }} 
+                      className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Floorplans
+                    </Button>
+                  )}
+
+                  <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
                     <Settings className="w-4 h-4 mr-2" />
