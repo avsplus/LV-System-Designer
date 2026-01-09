@@ -1652,14 +1652,14 @@ function AVCanvasContent() {
                     displayHeight = 500 * currentScale;
                   }
 
-                  // Apply crop using clip-path (percentages)
+                  // Apply crop to dimensions (crop is in percentages)
                   const crop = fp.crop || { top: 0, left: 0, width: 100, height: 100 };
+                  const croppedWidth = displayWidth * (crop.width / 100);
+                  const croppedHeight = displayHeight * (crop.height / 100);
 
-                  // Calculate clip-path coordinates (top-left to bottom-right)
-                  const clipLeft = crop.left;
-                  const clipTop = crop.top;
-                  const clipRight = crop.left + crop.width;
-                  const clipBottom = crop.top + crop.height;
+                  // Calculate translate values for the image (in percentages of image size)
+                  const translateX = -(crop.left / crop.width * 100);
+                  const translateY = -(crop.top / crop.height * 100);
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
@@ -1678,8 +1678,8 @@ function AVCanvasContent() {
                         position: 'absolute',
                         top: `${currentY}px`,
                         left: `${currentX}px`,
-                        width: `${displayWidth}px`,
-                        height: `${displayHeight}px`,
+                        width: `${croppedWidth}px`,
+                        height: `${croppedHeight}px`,
                         pointerEvents: 'auto',
                         cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
                         padding: isSelected ? '4px' : '0',
@@ -1689,15 +1689,16 @@ function AVCanvasContent() {
                         zIndex: isSelected ? 1000 : index,
                         transition: isThisOneDragging || resizingFloorplan?.id === fp.id ? 'none' : 'all 0.2s ease',
                         flexShrink: 0,
-                        clipPath: `inset(${clipTop}% ${100 - clipRight}% ${100 - clipBottom}% ${clipLeft}%)`
+                        overflow: 'hidden'
                       }}
                       >
                       <img 
                         src={fp.url} 
                         alt={fp.name}
                         style={{
-                          width: '100%',
-                          height: '100%',
+                          width: `${displayWidth}px`,
+                          height: `${displayHeight}px`,
+                          transform: `translate(${translateX}%, ${translateY}%)`,
                           opacity: fp.opacity,
                           filter: fp.locked ? 'brightness(0.8)' : 'none',
                           display: 'block',
