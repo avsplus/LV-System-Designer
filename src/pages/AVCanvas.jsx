@@ -1709,7 +1709,8 @@ function AVCanvasContent() {
                         zIndex: isSelected ? 1000 : index,
                         transition: isThisOneDragging || resizingFloorplan?.id === fp.id ? 'none' : 'all 0.2s ease',
                         flexShrink: 0,
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        backgroundColor: '#000'
                       }}
                       >
                       <img 
