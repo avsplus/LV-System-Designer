@@ -376,6 +376,7 @@ function AVCanvasContent() {
     setSelectedProduct(null);
     setSelectedCanvasProduct(null);
     setShowFloorplanManager(false);
+    setShowRoomManager(false);
     setSelectedFloorplanId(null);
   };
 
@@ -671,6 +672,7 @@ function AVCanvasContent() {
 
     e.stopPropagation();
     setShowFloorplanManager(true);
+    setShowRoomManager(false);
     setSelectedFloorplanId(floorplanId);
     setSelectedProduct(null);
     setSelectedCanvasProduct(null);
@@ -1373,6 +1375,7 @@ function AVCanvasContent() {
             setSelectedCanvasProduct(null);
             setSelectedConnection(null);
             setShowFloorplanManager(false);
+            setShowRoomManager(false);
             setSelectedFloorplanId(null);
             setPanelHistory(prev => {
               const filtered = prev.filter(p => p !== 'productDetails');
@@ -1474,6 +1477,7 @@ function AVCanvasContent() {
                       setSelectedProduct(null);
                       setSelectedCanvasProduct(null);
                       setSelectedConnection(null);
+                      setSelectedFloorplanId(null);
                     }} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                       <Settings className="w-4 h-4 mr-2" />
                       Manage Floorplans
@@ -1555,6 +1559,7 @@ function AVCanvasContent() {
                   setSelectedProduct(null);
                   setSelectedCanvasProduct(null);
                   setSelectedConnection(null);
+                  setSelectedFloorplanId(null);
                 }} className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
                   <Home className="w-4 h-4 mr-2" />
                   Rooms ({rooms.length})
@@ -2008,15 +2013,16 @@ function AVCanvasContent() {
                         zoom={zoom}
                         responsiveDimensions={responsiveDimensions}
                         onClick={() => {
-                          setSelectedCanvasProduct(ensureNetworkInfo(cp));
-                          setSelectedProduct(null);
-                          setSelectedConnection(null);
-                          setShowFloorplanManager(false);
-                          setSelectedFloorplanId(null);
-                          setPanelHistory(prev => {
-                            const filtered = prev.filter(p => p !== 'deviceConnections');
-                            return [...filtered.slice(-1), 'deviceConnections'];
-                          });
+                        setSelectedCanvasProduct(ensureNetworkInfo(cp));
+                        setSelectedProduct(null);
+                        setSelectedConnection(null);
+                        setShowFloorplanManager(false);
+                        setShowRoomManager(false);
+                        setSelectedFloorplanId(null);
+                        setPanelHistory(prev => {
+                        const filtered = prev.filter(p => p !== 'deviceConnections');
+                        return [...filtered.slice(-1), 'deviceConnections'];
+                        });
                         }}
                         onPortClick={handlePortClick}
                         onPortMouseDown={handlePortMouseDown}
@@ -2182,6 +2188,9 @@ function AVCanvasContent() {
               setSelectedCanvasProduct(ensureNetworkInfo(device));
               setSelectedProduct(null);
               setSelectedConnection(null);
+              setShowFloorplanManager(false);
+              setShowRoomManager(false);
+              setSelectedFloorplanId(null);
               setPanelHistory(['rooms', 'deviceConnections']);
             }}
             selectedRoom={selectedRoom}
