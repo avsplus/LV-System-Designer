@@ -17,11 +17,12 @@ export default function FloorplanCropper({ floorplan, onApply, onCancel }) {
 
   const handleApply = () => {
     if (croppedAreaPercent) {
+      // react-easy-crop returns percentages (0-100), convert to decimals (0-1)
       const cropData = {
-        top: croppedAreaPercent.y,
-        left: croppedAreaPercent.x,
-        width: croppedAreaPercent.width,
-        height: croppedAreaPercent.height
+        top: croppedAreaPercent.y / 100,
+        left: croppedAreaPercent.x / 100,
+        width: croppedAreaPercent.width / 100,
+        height: croppedAreaPercent.height / 100
       };
       onApply(cropData);
     }
