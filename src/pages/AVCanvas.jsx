@@ -695,7 +695,7 @@ function AVCanvasContent() {
       };
       const currentScale = (typeof floorplan.scale === 'number' && !isNaN(floorplan.scale) && floorplan.scale > 0) ? floorplan.scale : 1;
 
-      // Calculate current rendered size
+      // Calculate current rendered size - MUST match rendering logic exactly
       const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
       const hasAspectRatio = floorplan.imageWidth && floorplan.imageHeight;
       let currentWidth, currentHeight;
@@ -703,7 +703,7 @@ function AVCanvasContent() {
       if (hasCalibration) {
         const scaleFactor = (1 / floorplan.pixelsPerInch) * currentScale;
         currentWidth = floorplan.imageWidth * scaleFactor;
-        currentHeight = currentWidth * (floorplan.imageHeight / floorplan.imageWidth);
+        currentHeight = floorplan.imageHeight * scaleFactor;
       } else if (hasAspectRatio) {
         // Has dimensions but no calibration - maintain aspect ratio
         currentWidth = 500 * currentScale;
@@ -725,7 +725,9 @@ function AVCanvasContent() {
         currentHeight,
         imageWidth: floorplan.imageWidth,
         imageHeight: floorplan.imageHeight,
-        pixelsPerInch: floorplan.pixelsPerInch || 1
+        pixelsPerInch: floorplan.pixelsPerInch || 1,
+        hasCalibration,
+        hasAspectRatio
       };
 
       resizingRef.current = resizeState;
