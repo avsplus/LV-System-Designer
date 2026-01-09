@@ -855,19 +855,37 @@ function AVCanvasContent() {
     console.log('handleApplyCrop received:', cropData);
     
     setFloorplans(prev => {
-      const updated = prev.map(fp => 
-        fp.id === croppingFloorplan.id 
-          ? { 
-              ...fp, 
-              crop: {
-                x: cropData.x,
-                y: cropData.y,
-                width: cropData.width,
-                height: cropData.height
-              }
-            }
-          : fp
-      );
+      const updated = prev.map(fp => {
+        if (fp.id !== croppingFloorplan.id) return fp;
+        
+        // Ensure image dimensions are stored on floorplan
+        const imageWidth = cropData.imageDimensions?.width || fp.imageWidth;
+        const imageHeight = cropData.imageDimensions?.height || fp.imageHeight;
+        
+        console.log('Storing crop on floorplan:', {
+          id: fp.id,
+          imageWidth,
+          imageHeight,
+          crop: {
+            x: cropData.x,
+            y: cropData.y,
+            width: cropData.width,
+            height: cropData.height
+          }
+        });
+        
+        return { 
+          ...fp,
+          imageWidth,
+          imageHeight,
+          crop: {
+            x: cropData.x,
+            y: cropData.y,
+            width: cropData.width,
+            height: cropData.height
+          }
+        };
+      });
 
       if (currentProject?.id) {
         base44.entities.AVProject.update(currentProject.id, {
