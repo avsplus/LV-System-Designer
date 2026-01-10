@@ -184,6 +184,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
   const toggleCategory = (category) => {
     setExpandedCategories(prev => ({
+      ...prev,
       [category]: !prev[category]
     }));
   };
