@@ -1753,6 +1753,13 @@ function AVCanvasContent() {
                           pointerEvents: 'none'
                         }}
                       />
+                      {/* Floorplan name overlay */}
+                      <div 
+                        className="absolute bottom-2 right-2 bg-gray-900/90 text-white px-3 py-1.5 rounded text-sm font-medium border border-gray-700 shadow-lg"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {fp.name}
+                      </div>
                       {isSelected && !fp.locked && (
                         <>
                           {/* Corner resize handles */}
