@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, FileText, Download, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { X, FileText, Download, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Loader2, Info, CheckCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
   DropdownMenu,
@@ -817,6 +817,15 @@ Only return URLs that:
             )}
           </div>
         <div className="flex gap-1">
+          {/* Network Status Indicator */}
+          {(() => {
+            const hasNetworkInfo = safeNetworkInfo?.ip && safeNetworkInfo.ip !== '000.000.000.000' && safeNetworkInfo.ip !== '';
+            return hasNetworkInfo ? (
+              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+            ) : (
+              <Info className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+            );
+          })()}
           {hasManuals ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
