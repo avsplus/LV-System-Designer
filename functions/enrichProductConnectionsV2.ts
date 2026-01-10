@@ -105,18 +105,29 @@ function generateConnectionsFromSpec(spec, allRules) {
   }
 
   const deviceType = spec.device_type;
+  console.log(`[DEBUG-SPEC] Device type: ${deviceType}, Total rules: ${allRules.length}`);
 
   const applicableRules = allRules.filter(ruleSet => {
-    if (!ruleSet.applies_to) return false;
-    
-    const { device_type } = ruleSet.applies_to;
-    
-    if (Array.isArray(device_type)) {
-      return device_type.includes(deviceType);
+    if (!ruleSet.applies_to) {
+      console.log(`[DEBUG-SPEC] Rule has no applies_to`);
+      return false;
     }
     
-    return device_type === deviceType;
+    const { device_type } = ruleSet.applies_to;
+    console.log(`[DEBUG-SPEC] Checking rule applies_to: ${JSON.stringify(device_type)} against ${deviceType}`);
+    
+    if (Array.isArray(device_type)) {
+      const matches = device_type.includes(deviceType);
+      console.log(`[DEBUG-SPEC] Array check: ${matches}`);
+      return matches;
+    }
+    
+    const matches = device_type === deviceType;
+    console.log(`[DEBUG-SPEC] String check: ${matches}`);
+    return matches;
   });
+
+  console.log(`[DEBUG-SPEC] Found ${applicableRules.length} applicable rules`);
 
   const allRulesFlat = applicableRules.flatMap(ruleSet => ruleSet.rules || []);
 
