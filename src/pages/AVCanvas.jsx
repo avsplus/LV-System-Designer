@@ -827,6 +827,9 @@ function AVCanvasContent() {
 
   const handleResizeEnd = useCallback(() => {
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
+      // Mark local change FIRST to prevent sync conflicts
+      markLocalChange();
+
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
           if (fp.id === draggingFloorplan) {
@@ -843,10 +846,6 @@ function AVCanvasContent() {
 
         if (currentProject?.id) {
           setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
-          // Instant save
-          base44.entities.AVProject.update(currentProject.id, {
-            floorplans: updatedFloorplans
-          }).then(() => markLocalChange()).catch(error => console.error('Failed to save floorplan position:', error));
         }
 
         return updatedFloorplans;
@@ -854,6 +853,9 @@ function AVCanvasContent() {
     }
 
     if (resizingRef.current) {
+      // Mark local change FIRST to prevent sync conflicts
+      markLocalChange();
+
       const resizingId = resizingRef.current.id;
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
@@ -862,15 +864,11 @@ function AVCanvasContent() {
           }
           return fp;
         });
-        
+
         if (currentProject?.id) {
           setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
-          // Instant save
-          base44.entities.AVProject.update(currentProject.id, {
-            floorplans: updatedFloorplans
-          }).then(() => markLocalChange()).catch(error => console.error('Failed to save floorplan scale:', error));
         }
-        
+
         return updatedFloorplans;
       });
       resizingRef.current = null;
@@ -898,24 +896,31 @@ function AVCanvasContent() {
         // Double middle-click detected
         
         if (floorplans.length > 0) {
-          // Calculate center of all visible floorplans
+          // Calculate center of all visible floorplans with correct aspect ratio
           const visibleFloorplans = floorplans.filter(fp => fp.visible);
           if (visibleFloorplans.length > 0) {
             const bounds = visibleFloorplans.reduce((acc, fp) => {
               const pos = fp.position || { x: 0, y: 0 };
               const scale = fp.scale || 1;
-              const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
+              const hasDimensions = fp.imageWidth && fp.imageHeight;
+              const hasCalibration = hasDimensions && fp.pixelsPerInch;
               let width, height;
-              
-              if (hasCalibration) {
-                const scaleFactor = (1 / fp.pixelsPerInch) * scale;
-                width = fp.imageWidth * scaleFactor;
-                height = fp.imageHeight * scaleFactor;
+
+              if (hasDimensions) {
+                // Calculate width based on calibration or default
+                if (hasCalibration) {
+                  const scaleFactor = (1 / fp.pixelsPerInch) * scale;
+                  width = fp.imageWidth * scaleFactor;
+                } else {
+                  width = 500 * scale;
+                }
+                // Always calculate height from width to preserve aspect ratio
+                height = width * (fp.imageHeight / fp.imageWidth);
               } else {
                 width = 500 * scale;
                 height = 500 * scale;
               }
-              
+
               return {
                 minX: Math.min(acc.minX, pos.x),
                 minY: Math.min(acc.minY, pos.y),
@@ -923,16 +928,16 @@ function AVCanvasContent() {
                 maxY: Math.max(acc.maxY, pos.y + height)
               };
             }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
-            
+
             const centerX = (bounds.minX + bounds.maxX) / 2;
             const centerY = (bounds.minY + bounds.maxY) / 2;
-            
+
             // Get canvas center
             const canvasRect = canvasRef.current?.getBoundingClientRect();
             if (canvasRect) {
               const viewportCenterX = canvasRect.width / 2;
               const viewportCenterY = canvasRect.height / 2;
-              
+
               // Calculate pan to center floorplans at 100% zoom
               setPan({
                 x: viewportCenterX - centerX,
