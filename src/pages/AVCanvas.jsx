@@ -131,40 +131,6 @@ function AVCanvasContent() {
     currentUserEmail,
     onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
-  const [showRoomManager, setShowRoomManager] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [pendingProductDrop, setPendingProductDrop] = useState(null);
-  const [connectingFrom, setConnectingFrom] = useState(null);
-  const [connectingTo, setConnectingTo] = useState(null);
-  const [pendingConnection, setPendingConnection] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
-  const [selectedConnection, setSelectedConnection] = useState(null);
-  const [panelHistory, setPanelHistory] = useState([]);
-  const [highlightedConnections, setHighlightedConnections] = useState([]);
-  const [hoveredConnectionIndex, setHoveredConnectionIndex] = useState(null);
-  const [dragMousePosition, setDragMousePosition] = useState(null);
-  const [connectingState, setConnectingState] = useState(null);
-  const [hoveredPortId, setHoveredPortId] = useState(null);
-  const [portTooltip, setPortTooltip] = useState(null);
-  const [enrichmentProgress, setEnrichmentProgress] = useState(null);
-  const [importProgress, setImportProgress] = useState(null);
-  const [showExportDialog, setShowExportDialog] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportEngine, setExportEngine] = useState('jspdf');
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [showEnrichDialog, setShowEnrichDialog] = useState(false);
-  const [enrichCategory, setEnrichCategory] = useState('all');
-  const [previewManual, setPreviewManual] = useState(null);
-  const [showFloorplanManager, setShowFloorplanManager] = useState(false);
-  const [floorplans, setFloorplans] = useState([]);
-  const [draggingFloorplan, setDraggingFloorplan] = useState(null);
-  const [floorplanDragStart, setFloorplanDragStart] = useState(null);
-  const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
-  const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
-  const [resizingFloorplan, setResizingFloorplan] = useState(null);
-  const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
-  const resizingRef = useRef(null);
 
   const lastMiddleClickRef = useRef(0);
   
@@ -1464,26 +1430,7 @@ function AVCanvasContent() {
                     <Save className="w-4 h-4 mr-2" />
                     Save Canvas As...
                   </DropdownMenuItem>
-                  {currentProject && (
-                    <DropdownMenuItem 
-                      onClick={async () => {
-                        try {
-                          markLocalChange();
-                          await base44.entities.AVProject.update(currentProject.id, {
-                            canvas_products: canvasProducts,
-                            connections: connections
-                          });
-                          toast.success('Project saved successfully!');
-                        } catch (error) {
-                          toast.error('Failed to save project');
-                        }
-                      }}
-                      className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Progress
-                    </DropdownMenuItem>
-                  )}
+
                   {currentProject && (
                     <DropdownMenuItem 
                       onClick={async () => {
