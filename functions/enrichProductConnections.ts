@@ -78,10 +78,13 @@ Deno.serve(async (req) => {
 
             // Get all active rules
             const allRules = await base44.asServiceRole.entities.ConnectionRule.list();
+            console.log(`[DEBUG] Got ${allRules.length} total rules`);
             const activeRules = allRules.filter(r => r.is_active);
+            console.log(`[DEBUG] Filtered to ${activeRules.length} active rules`);
 
             // Generate connections
             const { inputs, outputs } = generateConnectionsFromSpec(deviceSpec, activeRules);
+            console.log(`[DEBUG] Generated connections: ${inputs.length} inputs, ${outputs.length} outputs`);
             
             debugLogs.push(`Generated ${inputs.length} inputs, ${outputs.length} outputs`);
 
