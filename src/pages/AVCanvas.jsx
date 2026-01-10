@@ -128,7 +128,7 @@ function AVCanvasContent() {
   const {
     rooms, canvasProducts, connections, setConnections,
     floorplans, setFloorplans,
-    loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
+    loadProject, handleAddRoom, handleDeleteRoom, handleRenameRoom, addProductToCanvas,
     handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
     handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
   } = projectData;
