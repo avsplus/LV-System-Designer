@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
         const existingKeys = new Set(existingProducts.map(p => `${p.brand.toLowerCase()}-${p.model.toLowerCase()}`));
 
         // All valid categories
-        const allCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "control_processors", "hdmi_extenders", "access_points", "patch_panels", "data_jacks", "telephones", "phone_jacks", "intercoms", "nvrs", "ip_cameras"];
+        const allCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "routers", "control_processors", "hdmi_extenders", "access_points", "patch_panels", "data_jacks", "telephones", "phone_jacks", "intercoms", "nvrs", "ip_cameras"];
         
         // Determine which categories to import
         const categoriesToImport = selectedCategory && selectedCategory !== 'all' 
@@ -52,7 +52,7 @@ ${searchModel ? `Find the EXACT product: ${searchBrand} ${searchModel}` : `Find 
 For each product provide:
 - brand: exact brand name
 - model: exact model number
-- category: one of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, control_processors, hdmi_extenders, access_points, patch_panels, data_jacks, telephones, phone_jacks, intercoms, nvrs, ip_cameras]
+- category: one of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, routers, control_processors, hdmi_extenders, access_points, patch_panels, data_jacks, telephones, phone_jacks, intercoms, nvrs, ip_cameras]
 - description: brief product description
 - price: estimated USD price
 - installation_manual_url: URL to official installation PDF (if found)
@@ -156,6 +156,7 @@ CATEGORY RULES:
             surround_processors: "Preamp/processors WITHOUT built-in amplification (Marantz AV10, Anthem AVM)",
             av_receivers: "Receivers WITH built-in amplification - all-in-one surround (Denon AVR, Yamaha RX, Marantz)",
             network_switches: "Ethernet switches, managed switches (Ubiquiti, Araknis, Luxul, Cisco)",
+            routers: "Routers, edge routers, core routers for network infrastructure (Ubiquiti, Juniper, Cisco)",
             control_processors: "Home automation processors (Crestron, Control4, RTI, Savant)",
             hdmi_extenders: "HDMI over Cat6/HDBaseT extenders, AVoIP encoders/decoders (AVPro Edge, Atlona, Just Add Power)",
             access_points: "WiFi access points, wireless routers (Ubiquiti UniFi, Arista, TP-Link Omada)",
@@ -275,6 +276,9 @@ Search patterns to find manuals:
                 "hdbasetext": "hdmi_extenders",
                 "hdbaset_extenders": "hdmi_extenders",
                 "avoip": "hdmi_extenders",
+                "routers": "routers",
+                "edge_routers": "routers",
+                "core_routers": "routers",
                 "access_points": "access_points",
                 "accesspoints": "access_points",
                 "wifi_access_points": "access_points",

@@ -14,8 +14,8 @@ Deno.serve(async (req) => {
             "televisions", "projectors", "projector_screens", "video_distribution", 
             "matrix_switchers", "audio_streamers", "media_streamers", "speakers", 
             "soundbars", "subwoofers", "stereo_amps", "multizone_amps", 
-            "surround_processors", "av_receivers", "network_switches", "control_processors",
-            "hdmi_extenders", "access_points", "patch_panels", "data_jacks",
+            "surround_processors", "av_receivers", "network_switches", "routers",
+            "control_processors", "hdmi_extenders", "access_points", "patch_panels", "data_jacks",
             "telephones", "phone_jacks", "intercoms", "nvrs", "ip_cameras"
         ];
 
@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
                 "controlprocessors": "control_processors",
                 "hdmi_extenders": "hdmi_extenders",
                 "hdmiextenders": "hdmi_extenders",
+                "routers": "routers",
                 "access_points": "access_points",
                 "accesspoints": "access_points",
                 "patch_panels": "patch_panels",
@@ -350,8 +351,8 @@ IMPORTANT:
                             inputs = inputs.filter(input => vidTypes.includes(input.type));
                             outputs = outputs.filter(output => vidTypes.includes(output.type));
                         }
-                        if (product.category === 'access_points') {
-                            // Wireless network - Ethernet and power only
+                        if (product.category === 'access_points' || product.category === 'routers' || product.category === 'patch_panels') {
+                            // Network infrastructure - Ethernet and power only
                             inputs = inputs.filter(input => ['Ethernet', 'Control'].includes(input.type));
                             outputs = outputs.filter(output => ['Ethernet', 'Control'].includes(output.type));
                         }
