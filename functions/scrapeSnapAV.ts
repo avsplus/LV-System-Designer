@@ -157,7 +157,15 @@ CATEGORY RULES:
             av_receivers: "Receivers WITH built-in amplification - all-in-one surround (Denon AVR, Yamaha RX, Marantz)",
             network_switches: "Ethernet switches, managed switches (Ubiquiti, Araknis, Luxul, Cisco)",
             control_processors: "Home automation processors (Crestron, Control4, RTI, Savant)",
-            hdmi_extenders: "HDMI over Cat6/HDBaseT extenders, AVoIP encoders/decoders (AVPro Edge, Atlona, Just Add Power)"
+            hdmi_extenders: "HDMI over Cat6/HDBaseT extenders, AVoIP encoders/decoders (AVPro Edge, Atlona, Just Add Power)",
+            access_points: "WiFi access points, wireless routers (Ubiquiti UniFi, Arista, TP-Link Omada)",
+            patch_panels: "Network patch panels, cable management, structured cabling (CommScope, Leviton, Panduit)",
+            data_jacks: "Network data jacks, keystones, wall plates (Leviton, Panduit, CommScope)",
+            telephones: "IP phones, VoIP phones (Polycom, Cisco, Yealink, Avaya)",
+            phone_jacks: "Telephone jacks, RJ11 connectors, voice cabling (Leviton, Panduit)",
+            intercoms: "Intercom systems, door phones (Panasonic, Aiphone, Legrand)",
+            nvrs: "Network video recorders for surveillance (Hikvision, Uniview, Dahua, Axis)",
+            ip_cameras: "IP security cameras, network cameras (Hikvision, Uniview, Dahua, Axis, Amcrest)"
         };
 
         const categoryExamples = categoriesToImport.map(cat => `${cat}: ${categoryDefinitions[cat]}`).join('\n');
