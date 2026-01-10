@@ -25,8 +25,12 @@ export default function useProjectSync({
 
   // Update known timestamp directly (used after save to prevent race condition)
   const updateKnownTimestamp = useCallback((timestamp) => {
-    lastKnownUpdate.current = timestamp;
-    console.log('⏰ Updated known timestamp to:', timestamp);
+    // Normalize timestamp to match database precision (3 decimal places for milliseconds)
+    // Database returns: 2026-01-10T04:08:56.946000 (truncated)
+    // Save returns:     2026-01-10T04:08:56.946947 (full microseconds)
+    const normalizedTimestamp = timestamp ? timestamp.substring(0, 23) + '000' : timestamp;
+    lastKnownUpdate.current = normalizedTimestamp;
+    console.log('⏰ Updated known timestamp to:', normalizedTimestamp, '(normalized from:', timestamp + ')');
   }, []);
 
 
