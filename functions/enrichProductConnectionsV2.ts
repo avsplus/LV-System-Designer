@@ -135,10 +135,16 @@ function generateConnectionsFromSpec(spec, allRules) {
   const allPorts = [];
   const sortedRules = [...allRulesFlat].sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
+  ruleLogs.push(`Total individual rules to check: ${sortedRules.length}`);
   for (const rule of sortedRules) {
-    if (!rule.is_active) continue;
+    if (!rule.is_active) {
+      ruleLogs.push(`  Rule skipped (not active): ${JSON.stringify(rule.if)}`);
+      continue;
+    }
     
+    ruleLogs.push(`  Checking rule: ${JSON.stringify(rule.if)}`);
     const ports = generatePortsFromRule(spec, rule);
+    ruleLogs.push(`    Generated ${ports.length} ports`);
     allPorts.push(...ports);
   }
 
