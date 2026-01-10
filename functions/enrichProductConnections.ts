@@ -118,59 +118,49 @@ Deno.serve(async (req) => {
         };
 
         // Get products from database, filtered by category or brand/model
-         console.log('About to fetch products...');
+         logs.push('About to fetch products');
          let products;
          if (searchMode === 'search' && searchBrand) {
-            // Filter by brand (and optionally model)
-            console.log(`Search mode: brand="${searchBrand}", model="${searchModel}"`);
-            const allProducts = await base44.asServiceRole.entities.AVProduct.list();
-            console.log(`Total products in DB: ${allProducts.length}`);
-            products = allProducts.filter(p => {
-                const brandMatch = p.brand?.toLowerCase().includes(searchBrand.toLowerCase());
-                if (!searchModel) return brandMatch;
-                const modelMatch = p.model?.toLowerCase().includes(searchModel.toLowerCase());
-                return brandMatch && modelMatch;
-            });
-            console.log(`Found ${products.length} matching products`);
-        } else if (categoryFilter && validCategories.includes(categoryFilter)) {
-            console.log(`Fetching products for category: ${categoryFilter}`);
-            products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
-            console.log(`Fetched ${products.length} products for category`);
-        } else {
-            console.log('Fetching all products');
-            products = await base44.asServiceRole.entities.AVProduct.list();
-            console.log(`Fetched ${products.length} total products`);
-        }
+             logs.push('Search mode');
+             const allProducts = await base44.asServiceRole.entities.AVProduct.list();
+             products = allProducts.filter(p => {
+                 const brandMatch = p.brand?.toLowerCase().includes(searchBrand.toLowerCase());
+                 if (!searchModel) return brandMatch;
+                 const modelMatch = p.model?.toLowerCase().includes(searchModel.toLowerCase());
+                 return brandMatch && modelMatch;
+             });
+             logs.push('Found ' + products.length + ' matching');
+         } else if (categoryFilter && validCategories.includes(categoryFilter)) {
+             logs.push('Fetching by category: ' + categoryFilter);
+             products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
+             logs.push('Fetched ' + products.length + ' for category');
+         } else {
+             logs.push('Fetching all products');
+             products = await base44.asServiceRole.entities.AVProduct.list();
+             logs.push('Fetched ' + products.length + ' total');
+         }
 
-        console.log(`Total products to process: ${products.length}`);
-        let enriched = 0;
-        let failed = 0;
-        let categoryFixed = 0;
+         logs.push('Total to process: ' + products.length);
+         let enriched = 0;
+         let failed = 0;
+         let categoryFixed = 0;
 
-        // Write debug info to file
-        const debugLog = `Products to process: ${products.length}\n`;
-        await Deno.writeTextFile('/tmp/enrichment_debug.log', debugLog, { append: true });
+         // First pass: fix categories
+         for (const product of products) {
+             const normalizedCat = normalizeCategory(product.category);
+             if (normalizedCat !== product.category && validCategories.includes(normalizedCat)) {
+                 try {
+                     await base44.asServiceRole.entities.AVProduct.update(product.id, { category: normalizedCat });
+                     product.category = normalizedCat;
+                     categoryFixed++;
+                 } catch (e) {
+                     logs.push('Catfix error: ' + e.message);
+                 }
+             }
+         }
 
-        // First pass: fix any products with invalid categories
-        for (const product of products) {
-            const normalizedCat = normalizeCategory(product.category);
-            if (normalizedCat !== product.category && validCategories.includes(normalizedCat)) {
-                try {
-                    await base44.asServiceRole.entities.AVProduct.update(product.id, { category: normalizedCat });
-                    product.category = normalizedCat; // Update local copy
-                    categoryFixed++;
-                } catch (e) {
-                    console.error(`Failed to fix category for ${product.brand} ${product.model}:`, e);
-                }
-            }
-        }
-
-        // Process products sequentially to avoid timeouts
-        console.log(`Starting enrichment of ${products.length} products`);
-
-        // Log to file
-        const loopDebug = `Starting loop with ${products.length} products\n`;
-        await Deno.writeTextFile('/tmp/enrichment_debug.log', loopDebug, { append: true });
+         // Process products
+         logs.push('Starting enrichment loop with ' + products.length);
 
         for (let idx = 0; idx < products.length; idx++) {
             const product = products[idx];
