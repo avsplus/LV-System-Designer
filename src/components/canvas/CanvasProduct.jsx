@@ -817,15 +817,6 @@ Only return URLs that:
             )}
           </div>
         <div className="flex gap-1">
-          {/* Network Status Indicator */}
-          {(() => {
-            const hasNetworkInfo = safeNetworkInfo?.ip && safeNetworkInfo.ip !== '000.000.000.000' && safeNetworkInfo.ip !== '';
-            return hasNetworkInfo ? (
-              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            ) : (
-              <Info className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-            );
-          })()}
           {hasManuals ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -936,12 +927,22 @@ Only return URLs that:
             <p className="text-xs text-gray-400">
               <span className="text-gray-500">MAC:</span> {safeNetworkInfo.mac || '00:00:00:00:00:00'}
             </p>
-            <p className="text-xs text-gray-400">
-              <span className="text-gray-500">IP:</span> {safeNetworkInfo.ip || '000.000.000.000'}
-              <span className="mx-1">|</span>
-              <span className="text-gray-500">SW#:</span> {safeNetworkInfo.sw || '00'} 
-              <span className="mx-1">|</span>
-              <span className="text-gray-500">Port:</span> {safeNetworkInfo.port || '00'}
+            <p className="text-xs text-gray-400 flex items-center justify-between">
+              <span>
+                <span className="text-gray-500">IP:</span> {safeNetworkInfo.ip || '000.000.000.000'}
+                <span className="mx-1">|</span>
+                <span className="text-gray-500">SW#:</span> {safeNetworkInfo.sw || '00'} 
+                <span className="mx-1">|</span>
+                <span className="text-gray-500">Port:</span> {safeNetworkInfo.port || '00'}
+              </span>
+              {(() => {
+                const hasNetworkInfo = safeNetworkInfo?.ip && safeNetworkInfo.ip !== '000.000.000.000' && safeNetworkInfo.ip !== '';
+                return hasNetworkInfo ? (
+                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                ) : (
+                  <Info className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                );
+              })()}
             </p>
           </div>
         )}
