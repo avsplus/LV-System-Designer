@@ -164,9 +164,7 @@ Deno.serve(async (req) => {
 
         for (let idx = 0; idx < products.length; idx++) {
             const product = products[idx];
-            const msg = `[${idx+1}/${products.length}] Processing: ${product.brand} ${product.model}`;
-            console.log(msg);
-            await Deno.writeTextFile('/tmp/enrichment_debug.log', msg + '\n', { append: true });
+            logs.push(`[${idx+1}/${products.length}] ${product.brand} ${product.model}`);
 
             try {
                 const deviceType = deviceTypeMap[product.category] || product.category;
