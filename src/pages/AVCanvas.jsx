@@ -910,8 +910,6 @@ function AVCanvasContent() {
         }
         lastMiddleClickRef.current = 0;
         return;
-        lastMiddleClickRef.current = 0;
-        return;
       } else {
         lastMiddleClickRef.current = now;
       }
