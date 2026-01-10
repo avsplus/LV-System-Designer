@@ -111,13 +111,16 @@ Deno.serve(async (req) => {
         let products;
         if (searchMode === 'search' && searchBrand) {
             // Filter by brand (and optionally model)
+            console.log(`Search mode: brand="${searchBrand}", model="${searchModel}"`);
             const allProducts = await base44.asServiceRole.entities.AVProduct.list();
+            console.log(`Total products in DB: ${allProducts.length}`);
             products = allProducts.filter(p => {
                 const brandMatch = p.brand?.toLowerCase().includes(searchBrand.toLowerCase());
                 if (!searchModel) return brandMatch;
                 const modelMatch = p.model?.toLowerCase().includes(searchModel.toLowerCase());
                 return brandMatch && modelMatch;
             });
+            console.log(`Found ${products.length} matching products`);
         } else if (categoryFilter && validCategories.includes(categoryFilter)) {
             products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
         } else {
