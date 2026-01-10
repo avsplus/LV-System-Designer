@@ -76,9 +76,8 @@ function AVCanvasContent() {
   // Project sync callback
   const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
     setCurrentProject(updatedProject);
-    setFloorplans(updatedProject?.floorplans || []);
-    projectData.handleProjectUpdatedFromSync(updatedProject);
-  }, []);
+    projectData.handleProjectUpdatedFromSync(updatedProject, setFloorplans);
+  }, [projectData]);
 
   const { markLocalChange } = useProjectSync({
     currentProject,
@@ -87,7 +86,7 @@ function AVCanvasContent() {
   });
 
   // Project data from hook
-  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange);
+  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans);
   const {
     rooms, canvasProducts, connections, setConnections,
     loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
@@ -219,17 +218,7 @@ function AVCanvasContent() {
     setSelectedRoom(null);
   };
 
-  // Sync floorplans state to currentProject (auto-save is handled by useProjectData)
-  useEffect(() => {
-    if (!currentProject?.id) return;
 
-    const floorplansJson = JSON.stringify(floorplans);
-    const savedFloorplansJson = JSON.stringify(currentProject.floorplans || []);
-
-    if (floorplansJson !== savedFloorplansJson) {
-      setCurrentProject(curr => ({ ...curr, floorplans: floorplans }));
-    }
-  }, [floorplans, currentProject?.id]);
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -630,7 +619,6 @@ function AVCanvasContent() {
   };
 
   const handleFloorplansUpdate = (updatedFloorplans) => {
-    markLocalChange();
     setFloorplans(updatedFloorplans);
   };
 

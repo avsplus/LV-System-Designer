@@ -29,12 +29,12 @@ export const ensureNetworkInfo = (product) => ({
   networkInfo: product.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
 });
 
-export default function useProjectData(currentProject, currentUserEmail, markLocalChange) {
+export default function useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans) {
   const [rooms, setRooms] = useState([]);
   const [canvasProducts, setCanvasProducts] = useState([]);
   const [connections, setConnections] = useState([]);
   
-  const lastSavedRef = useRef({ products: null, connections: null, rooms: null });
+  const lastSavedRef = useRef({ products: null, connections: null, rooms: null, floorplans: null });
   const isSavingRef = useRef(false);
 
   // Clear state on mount
@@ -78,10 +78,12 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     const productsJson = JSON.stringify(canvasProducts);
     const connectionsJson = JSON.stringify(connections);
     const roomsJson = JSON.stringify(rooms);
+    const floorplansJson = JSON.stringify(floorplans || []);
 
     if (lastSavedRef.current.products === productsJson && 
         lastSavedRef.current.connections === connectionsJson &&
-        lastSavedRef.current.rooms === roomsJson) {
+        lastSavedRef.current.rooms === roomsJson &&
+        lastSavedRef.current.floorplans === floorplansJson) {
       return;
     }
 
@@ -95,9 +97,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           await base44.entities.AVProject.update(currentProject.id, {
             canvas_products: canvasProducts,
             connections: connections,
-            rooms: rooms
+            rooms: rooms,
+            floorplans: floorplans || []
           });
-          lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson };
+          lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson };
           console.log('Auto-saved project');
         } catch (error) {
           console.error('Auto-save failed:', error);
@@ -110,7 +113,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     }, 100);
 
     return () => clearTimeout(saveTimer);
-  }, [canvasProducts, connections, rooms, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
+  }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // Load project data
   const loadProject = useCallback((project) => {
@@ -137,7 +140,8 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       lastSavedRef.current = {
         products: JSON.stringify(project.canvas_products || []),
         connections: JSON.stringify(project.connections || []),
-        rooms: JSON.stringify(loadedRooms)
+        rooms: JSON.stringify(loadedRooms),
+        floorplans: JSON.stringify(project.floorplans || [])
       };
       // Mark that project has been loaded, safe to auto-save now
       projectLoadedRef.current = true;
@@ -147,19 +151,23 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setConnections([]);
       setRooms([]);
       localStorage.removeItem('av_canvas_temp_project_id');
-      lastSavedRef.current = { products: null, connections: null, rooms: null };
+      lastSavedRef.current = { products: null, connections: null, rooms: null, floorplans: null };
     }
   }, []);
 
   // Handle sync updates from collaborators
-  const handleProjectUpdatedFromSync = useCallback((updatedProject) => {
+  const handleProjectUpdatedFromSync = useCallback((updatedProject, setFloorplansCallback) => {
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);
+    if (setFloorplansCallback) {
+      setFloorplansCallback(updatedProject.floorplans || []);
+    }
     lastSavedRef.current = {
       products: JSON.stringify(updatedProject.canvas_products || []),
       connections: JSON.stringify(updatedProject.connections || []),
-      rooms: JSON.stringify(updatedProject.rooms || [])
+      rooms: JSON.stringify(updatedProject.rooms || []),
+      floorplans: JSON.stringify(updatedProject.floorplans || [])
     };
   }, []);
 
