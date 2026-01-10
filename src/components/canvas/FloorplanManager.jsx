@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Projector, Box, Network, Grid3x3, Music, Cast, Volume2, Speaker, Waves, Radio, Headphones, AudioWaveform, Activity, Cable, Cpu, Plug, GripVertical, Pencil, Check } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -11,22 +11,22 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs
 
 const categoryIcons = {
   televisions: Tv,
-  projectors: Projector,
-  projector_screens: Box,
+  projectors: Video,
+  projector_screens: RectangleHorizontal,
   video_distribution: Network,
-  matrix_switchers: Grid3x3,
+  matrix_switchers: LayoutGrid,
   audio_streamers: Music,
-  media_streamers: Cast,
-  speakers: Volume2,
-  soundbars: Speaker,
-  subwoofers: Waves,
-  stereo_amps: Radio,
-  multizone_amps: Headphones,
-  surround_processors: AudioWaveform,
-  av_receivers: Activity,
-  network_switches: Cable,
-  control_processors: Cpu,
-  hdmi_extenders: Plug
+  media_streamers: Play,
+  speakers: Speaker,
+  soundbars: Volume2,
+  subwoofers: AudioLines,
+  stereo_amps: Gauge,
+  multizone_amps: Layers,
+  surround_processors: Cpu,
+  av_receivers: Radio,
+  network_switches: Router,
+  control_processors: Settings2,
+  hdmi_extenders: Cable
 };
 
 export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover }) {
