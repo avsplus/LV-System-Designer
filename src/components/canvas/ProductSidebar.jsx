@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable } from "lucide-react";
+import { Search, Grip, ChevronDown, ChevronRight, X, Filter, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, Wifi, Phone, HardDrive, Camera, Plug } from "lucide-react";
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { useSettings } from "../settings/SettingsContext";
 import { useOrganization } from "../auth/useOrganization";
