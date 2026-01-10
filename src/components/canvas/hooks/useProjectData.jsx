@@ -37,6 +37,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   
   const lastSavedRef = useRef({ products: null, connections: null, rooms: null, floorplans: null });
   const isSavingRef = useRef(false);
+  const onSaveCompleteRef = useRef(onSaveComplete);
 
   // Clear state on mount
   useEffect(() => {
@@ -64,6 +65,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
 
   // Track if project has been loaded to prevent saving empty state
   const projectLoadedRef = useRef(false);
+
+  // Keep callback ref updated
+  useEffect(() => {
+    onSaveCompleteRef.current = onSaveComplete;
+  }, [onSaveComplete]);
 
   // Auto-save to database instantly (with 100ms debounce for batching)
   useEffect(() => {
@@ -106,10 +112,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           });
           lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson };
           console.log('✅ Project saved - Floorplans:', floorplans.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
+          console.log('💾 Save complete - new timestamp:', updatedProject.updated_date);
 
-          // CRITICAL: Update currentProject's timestamp to prevent sync thinking this is a collaborator update
-          if (onSaveComplete && updatedProject) {
-            onSaveComplete(updatedProject);
+          // CRITICAL: Update currentProject's timestamp immediately to prevent sync race condition
+          if (onSaveCompleteRef.current && updatedProject) {
+            onSaveCompleteRef.current(updatedProject);
           }
         } catch (error) {
           console.error('Auto-save failed:', error);
@@ -122,7 +129,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     }, 200);
 
     return () => clearTimeout(saveTimer);
-  }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
+    }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange, onSaveComplete]);
 
   // Load project data
   const loadProject = useCallback((project) => {
