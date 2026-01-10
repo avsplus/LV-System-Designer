@@ -109,8 +109,11 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
 
+  // Create markLocalChange ref that can be set later
+  const markLocalChangeRef = useRef(() => {});
+
   // Project data from hook - manages all project state including floorplans
-  const projectData = useProjectData(currentProject, currentUserEmail, null);
+  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChangeRef.current);
 
   const {
     rooms, canvasProducts, connections, setConnections,
@@ -131,6 +134,11 @@ function AVCanvasContent() {
     currentUserEmail,
     onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
+
+  // Update the ref so projectData can use it
+  useEffect(() => {
+    markLocalChangeRef.current = markLocalChange;
+  }, [markLocalChange]);
 
   const lastMiddleClickRef = useRef(0);
   
