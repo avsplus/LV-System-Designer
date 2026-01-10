@@ -29,7 +29,7 @@ const categoryIcons = {
   hdmi_extenders: Cable
 };
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover, onCenterDevice }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -723,6 +723,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                        <div 
                                          key={device.instanceId} 
                                          draggable
+                                         onClick={() => onCenterDevice?.(device)}
                                          onDragStart={() => setDraggedDevice({ device, fromRoom: room.id })}
                                          onDragEnd={() => {
                                            setDraggedDevice(null);
@@ -730,7 +731,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                          }}
                                          onMouseEnter={() => onDeviceHover?.(device.instanceId)}
                                          onMouseLeave={() => onDeviceHover?.(null)}
-                                         className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 cursor-move transition-colors"
+                                         className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 cursor-pointer transition-colors"
                                        >
                                          <GripVertical className="w-3 h-3 text-gray-600 flex-shrink-0" />
                                          <CategoryIcon className="w-3 h-3 flex-shrink-0" />
