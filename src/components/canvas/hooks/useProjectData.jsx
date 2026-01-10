@@ -29,10 +29,11 @@ export const ensureNetworkInfo = (product) => ({
   networkInfo: product.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
 });
 
-export default function useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans) {
+export default function useProjectData(currentProject, currentUserEmail, markLocalChange) {
   const [rooms, setRooms] = useState([]);
   const [canvasProducts, setCanvasProducts] = useState([]);
   const [connections, setConnections] = useState([]);
+  const [floorplans, setFloorplans] = useState([]);
   
   const lastSavedRef = useRef({ products: null, connections: null, rooms: null, floorplans: null });
   const isSavingRef = useRef(false);
@@ -115,10 +116,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // Load project data
-  const loadProject = useCallback((project, setFloorplansCallback) => {
+  const loadProject = useCallback((project) => {
     if (project) {
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
+      setFloorplans(project.floorplans || []);
       
       // Migrate old string-based rooms to new object format
       const loadedRooms = (project.rooms || []).map(room => {
@@ -136,11 +138,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       
       setRooms(loadedRooms);
       
-      // Load floorplans if callback provided
-      if (setFloorplansCallback && project.floorplans) {
-        setFloorplansCallback(project.floorplans);
-      }
-      
       localStorage.setItem('av_canvas_temp_project_id', project.id);
       lastSavedRef.current = {
         products: JSON.stringify(project.canvas_products || []),
@@ -155,22 +152,18 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setCanvasProducts([]);
       setConnections([]);
       setRooms([]);
-      if (setFloorplansCallback) {
-        setFloorplansCallback([]);
-      }
+      setFloorplans([]);
       localStorage.removeItem('av_canvas_temp_project_id');
       lastSavedRef.current = { products: null, connections: null, rooms: null, floorplans: null };
     }
   }, []);
 
   // Handle sync updates from collaborators
-  const handleProjectUpdatedFromSync = useCallback((updatedProject, setFloorplansCallback) => {
+  const handleProjectUpdatedFromSync = useCallback((updatedProject) => {
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);
-    if (setFloorplansCallback) {
-      setFloorplansCallback(updatedProject.floorplans || []);
-    }
+    setFloorplans(updatedProject.floorplans || []);
     lastSavedRef.current = {
       products: JSON.stringify(updatedProject.canvas_products || []),
       connections: JSON.stringify(updatedProject.connections || []),
@@ -293,6 +286,8 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     setCanvasProducts,
     connections,
     setConnections,
+    floorplans,
+    setFloorplans,
     loadProject,
     handleProjectUpdatedFromSync,
     handleAddRoom,

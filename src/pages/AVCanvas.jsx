@@ -110,27 +110,28 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
 
-  // Project sync - must be before projectData to pass markLocalChange
+  // Project data from hook - manages all project state including floorplans
+  const projectData = useProjectData(currentProject, currentUserEmail, null);
+
+  const {
+    rooms, canvasProducts, connections, setConnections,
+    floorplans, setFloorplans,
+    loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
+    handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
+    handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
+  } = projectData;
+
+  // Project sync - after projectData so we can use handleProjectUpdatedFromSync
   const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
     setCurrentProject(updatedProject);
-    setFloorplans(updatedProject?.floorplans || []);
-  }, []);
+    handleProjectUpdatedFromSync(updatedProject);
+  }, [handleProjectUpdatedFromSync]);
 
   const { markLocalChange } = useProjectSync({
     currentProject,
     currentUserEmail,
     onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
-
-  // Project data from hook - now with markLocalChange available
-  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans);
-
-  const {
-    rooms, canvasProducts, connections, setConnections,
-    loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
-    handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
-    handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
-  } = projectData;
 
   const lastMiddleClickRef = useRef(0);
   
@@ -211,7 +212,7 @@ function AVCanvasContent() {
   // Project load handler
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
-    loadProject(project, setFloorplans);
+    loadProject(project);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -613,7 +614,6 @@ function AVCanvasContent() {
       setSelectedConnection(null);
       setSelectedRoom(null);
       setCurrentProject(null);
-      setFloorplans([]);
       toast.success('Canvas cleared');
     }
   };
