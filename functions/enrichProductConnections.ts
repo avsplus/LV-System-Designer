@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Process products in batches of 5 to avoid rate limits
+        // Process products in batches
         for (let i = 0; i < products.length; i += 5) {
             const batch = products.slice(i, i + 5);
             
@@ -152,263 +152,95 @@ Deno.serve(async (req) => {
                         return;
                     }
 
-                    // Build manufacturer-specific search query
-                    const manufacturerUrls = {
-                        "Sony": "sony.com",
-                        "Samsung": "samsung.com",
-                        "LG": "lg.com",
-                        "Epson": "epson.com",
-                        "JVC": "jvc.com",
-                        "Denon": "denon.com",
-                        "Marantz": "marantz.com",
-                        "Yamaha": "yamaha.com",
-                        "KEF": "kef.com",
-                        "Klipsch": "klipsch.com",
-                        "SVS": "svsound.com",
-                        "Sonos": "sonos.com",
-                        "Crestron": "crestron.com",
-                        "Control4": "control4.com",
-                        "Savant": "savant.com",
-                        "RTI": "rticorp.com",
-                        "Ubiquiti": "ui.com",
-                        "Araknis": "araknisnetworks.com",
-                        "Luxul": "luxul.com",
-                        "AVPro Edge": "avproedge.com",
-                        "Atlona": "atlona.com",
-                        "Just Add Power": "justaddpower.com",
-                        "Binary": "snapav.com/binary",
-                        "Bowers & Wilkins": "bowerswilkins.com",
-                        "Bose": "bose.com",
-                        "Anthem": "anthemav.com",
-                        "NAD": "nadelectronics.com",
-                        "Bluesound": "bluesound.com",
-                        "Screen Innovations": "screeninnovations.com"
-                    };
+                    // Step 1: Extract specs from LLM
+                    const deviceType = deviceTypeMap[product.category] || product.category;
                     
-                    const manufacturerSite = manufacturerUrls[product.brand] || `${product.brand.toLowerCase().replace(/\s+/g, '')}.com`;
+                    const specResponse = await base44.integrations.Core.InvokeLLM({
+                        prompt: `Extract detailed specifications from the ${product.brand} ${product.model} (${product.category}).
 
-                    const response = await base44.integrations.Core.InvokeLLM({
-                        prompt: `Find the EXACT specifications for: ${product.brand} ${product.model}
+Return ONLY factual specifications found in official datasheets, NOT assumptions.
+If you cannot find a specific spec, set it to null.
+Be precise with port counts and types.
 
-SEARCH PRIORITY (in order):
-1. Official manufacturer specs page: site:${manufacturerSite} "${product.model}" specifications
-2. Product manual/datasheet PDF from ${product.brand}
-3. Professional AV retailer specs (Crutchfield, World Wide Stereo, Audio Advice)
+For each specification:
+- Set to actual number/value if found
+- Set to null if not found or if unsure (confidence < 0.7)
+- Never guess port counts
 
-PRODUCT INFO:
-Brand: ${product.brand}
-Model: ${product.model}
-Category: ${product.category}
-
-REQUIRED - Find the EXACT rear panel connections as listed by the manufacturer:
-
-FOR INPUTS - Physical ports that RECEIVE signals:
-- HDMI inputs (list each: "HDMI 1", "HDMI 2 (eARC)", etc.)
-- Audio inputs: Optical/TOSLINK, Coaxial Digital, RCA (Analog), XLR, 3.5mm
-- Network: Ethernet/LAN port
-- USB ports
-- Legacy: Component, Composite, VGA
-- Control: RS-232, IR In
-
-FOR OUTPUTS - Physical ports that SEND signals:
-- HDMI outputs (e.g., "HDMI Out 1", "HDMI Out 2")
-- Audio outputs: Speaker terminals, Preamp/Line Out, Subwoofer Out, Zone 2 Out
-- Optical Out, Headphone jack
-- Control: IR Out, 12V Trigger
-
-CONTROL CAPABILITIES:
-- IP/Network control (yes/no)
-- RS-232 control (yes/no)
-- IR control (yes/no)
-- 12V Trigger (yes/no)
-- Supported protocols: Control4 SDDP, Crestron Connected, IP commands, etc.
-
-IMPORTANT:
-- Use EXACT port labels from the manufacturer's specification sheet
-- For speaker outputs, list each terminal pair (Front L/R, Center, Surround L/R, etc.)
-- Include port counts accurately (e.g., if it has 7 HDMI inputs, list all 7)
-- Do NOT guess - only include verified specifications from official sources`,
+Common attributes by device type:
+- network_switch: ethernet_ports (count), ethernet_speed (1G/10G/25G), sfp_ports, managed, poe
+- av_receiver: hdmi_inputs, hdmi_outputs, analog_audio_inputs, analog_audio_outputs, channels, speaker_outputs, subwoofer_output, has_ip_control, has_rs232_control
+- speaker: type (passive/active/powered), impedance, frequency_response
+- soundbar: has_subwoofer_output, hdmi_inputs, hdmi_outputs, audio_inputs`,
                         add_context_from_internet: true,
                         response_json_schema: {
                             type: "object",
                             properties: {
-                                inputs: {
-                                    type: "array",
-                                    items: {
-                                        type: "object",
-                                        properties: {
-                                            type: { type: "string" },
-                                            ports: {
-                                                type: "array",
-                                                items: { type: "string" }
-                                            }
-                                        },
-                                        required: ["type", "ports"]
-                                    }
-                                },
-                                outputs: {
-                                    type: "array",
-                                    items: {
-                                        type: "object",
-                                        properties: {
-                                            type: { type: "string" },
-                                            ports: {
-                                                type: "array",
-                                                items: { type: "string" }
-                                            }
-                                        },
-                                        required: ["type", "ports"]
-                                    }
-                                },
-                                control: {
+                                attributes: {
                                     type: "object",
-                                    properties: {
-                                        ip: { type: "boolean" },
-                                        rs232: { type: "boolean" },
-                                        ir: { type: "boolean" },
-                                        trigger: { type: "boolean" },
-                                        protocols: {
-                                            type: "array",
-                                            items: { type: "string" }
-                                        }
-                                    }
+                                    description: "Device attributes (specs only)"
                                 },
-                                specs: {
+                                confidence_scores: {
                                     type: "object",
-                                    properties: {
-                                        power: { type: "string" },
-                                        impedance: { type: "string" },
-                                        frequency_response: { type: "string" },
-                                        connectivity: { type: "string" },
-                                        dimensions: { type: "string" },
-                                        weight: { type: "string" }
-                                    }
+                                    description: "Confidence for each attribute (0-1)"
+                                },
+                                source: {
+                                    type: "string",
+                                    enum: ["manufacturer_page", "datasheet", "manual", "web_search"],
+                                    description: "Source of specs"
+                                },
+                                overall_confidence: {
+                                    type: "number",
+                                    description: "Overall confidence (0-1)"
                                 }
                             },
-                            required: ["inputs", "outputs"]
+                            required: ["attributes"]
                         }
                     });
 
-                    // Build update object safely, matching AVProduct schema
-                    const updateData = {};
-
-                    // Port name patterns for each connection type
-                    const connectionTypePatterns = {
-                        'HDMI': /hdmi|arc|earc/i,
-                        'HDBaseT': /hdbaset|hdb/i,
-                        'Optical': /optical|toslink|spdif/i,
-                        'Coaxial': /coax/i,
-                        'RCA': /rca|analog|aux|cd|phono|zone|pre.?out|line/i,
-                        'XLR': /xlr/i,
-                        'Speaker Wire': /speaker|front|center|surround|rear|sub|lfe|height|atmos|zone/i,
-                        'Subwoofer': /sub|lfe|sw/i,
-                        'Ethernet': /lan|ethernet|network|rj.?45/i,
-                        'USB': /usb/i,
-                        'RS232': /rs.?232|serial/i,
-                        'IR': /ir|infra/i,
-                        'Control': /trigger|control|12v/i,
-                        'Component': /component|ypbpr/i,
-                        'Composite': /composite|cvbs|video/i,
-                        'VGA': /vga|d.?sub/i,
-                        '3.5mm Jack': /3\.5|headphone|aux|mini/i
+                    // Step 2: Create DeviceSpec record
+                    const spec = {
+                        product_id: product.id,
+                        device_type: deviceType,
+                        brand: product.brand,
+                        model: product.model,
+                        attributes: specResponse.attributes || {},
+                        confidence_scores: specResponse.confidence_scores || {},
+                        source: specResponse.source || 'web_search',
+                        overall_confidence: specResponse.overall_confidence || 0.5,
+                        status: 'pending_review',
+                        organization_id: user.organization_id
                     };
 
-                    // Validate that ports match their connection type
-                    const validateConnection = (conn) => {
-                        if (!conn.type || !conn.ports || !Array.isArray(conn.ports)) return null;
-                        
-                        const pattern = connectionTypePatterns[conn.type];
-                        if (!pattern) return conn; // Unknown type, keep as-is
-                        
-                        // Filter ports to only those matching the connection type
-                        const validPorts = conn.ports.filter(port => {
-                            if (!port || typeof port !== 'string') return false;
-                            // Port should match its type OR be a generic numbered port
-                            const isGenericNumbered = /^(in|out|input|output)?\s*\d+$/i.test(port.trim());
-                            return pattern.test(port) || isGenericNumbered;
+                    const createdSpec = await base44.asServiceRole.entities.DeviceSpec.create(spec);
+
+                    // Step 3: Apply connection rules to generate connections
+                    const rules = await base44.asServiceRole.entities.ConnectionRule.filter({
+                        organization_id: user.organization_id,
+                        is_active: true
+                    });
+
+                    // Import rule engine functions
+                    const ruleEngine = await import('./ruleEngine.js');
+                    const { inputs, outputs } = ruleEngine.generateConnectionsFromSpec(createdSpec, rules);
+
+                    // Step 4: Update product with generated connections and mark spec approved
+                    if (inputs.length > 0 || outputs.length > 0) {
+                        await base44.asServiceRole.entities.AVProduct.update(product.id, {
+                            input_connections: inputs.map(p => ({
+                                type: p.type,
+                                ports: [p.label]
+                            })),
+                            output_connections: outputs.map(p => ({
+                                type: p.type,
+                                ports: [p.label]
+                            }))
                         });
-                        
-                        if (validPorts.length === 0) return null;
-                        return { ...conn, ports: validPorts };
-                    };
 
-                    // Always update connections if we got valid data
-                    if (response.inputs || response.outputs) {
-                        let inputs = Array.isArray(response.inputs) ? response.inputs : [];
-                        let outputs = Array.isArray(response.outputs) ? response.outputs : [];
-                        
-                        // Validate and filter connections
-                        inputs = inputs.map(validateConnection).filter(c => c !== null);
-                        outputs = outputs.map(validateConnection).filter(c => c !== null);
-                        
-                        // Category-specific validations
-                        if (product.category === 'media_streamers') {
-                            inputs = inputs.filter(input => input.type !== 'HDMI');
-                        }
-                        if (product.category === 'speakers' || product.category === 'subwoofers') {
-                            // Speakers only have speaker wire/subwoofer inputs
-                            inputs = inputs.filter(input => ['Speaker Wire', 'Subwoofer'].includes(input.type));
-                            outputs = [];
-                        }
-                        if (product.category === 'patch_panels' || product.category === 'data_jacks') {
-                            // Network/data infrastructure - only Ethernet/data connections
-                            inputs = inputs.filter(input => ['Ethernet', 'Control'].includes(input.type));
-                            outputs = outputs.filter(output => ['Ethernet', 'Control'].includes(output.type));
-                        }
-                        if (product.category === 'intercoms' || product.category === 'telephones') {
-                            // Communications - limited connection types
-                            const comTypes = ['Ethernet', 'Control', 'RS232', 'XLR', 'RCA'];
-                            inputs = inputs.filter(input => comTypes.includes(input.type));
-                            outputs = outputs.filter(output => comTypes.includes(output.type));
-                        }
-                        if (product.category === 'nvrs' || product.category === 'ip_cameras') {
-                            // Video surveillance - Ethernet, HDMI, and power-related
-                            const vidTypes = ['Ethernet', 'HDMI', 'Control', 'RS232'];
-                            inputs = inputs.filter(input => vidTypes.includes(input.type));
-                            outputs = outputs.filter(output => vidTypes.includes(output.type));
-                        }
-                        if (product.category === 'access_points' || product.category === 'routers' || product.category === 'patch_panels') {
-                            // Network infrastructure - Ethernet and power only
-                            inputs = inputs.filter(input => ['Ethernet', 'Control'].includes(input.type));
-                            outputs = outputs.filter(output => ['Ethernet', 'Control'].includes(output.type));
-                        }
-                        
-                        updateData.input_connections = inputs;
-                        updateData.output_connections = outputs;
-                    }
+                        await base44.asServiceRole.entities.DeviceSpec.update(createdSpec.id, {
+                            status: 'approved'
+                        });
 
-                    // Add control capabilities if provided and valid
-                    if (response.control && typeof response.control === 'object') {
-                        updateData.control = {
-                            ip: Boolean(response.control.ip),
-                            rs232: Boolean(response.control.rs232),
-                            ir: Boolean(response.control.ir),
-                            trigger: Boolean(response.control.trigger),
-                            protocols: Array.isArray(response.control.protocols) ? response.control.protocols : []
-                        };
-                    }
-
-                    // Add specs if provided (merge with existing, only update non-empty values)
-                    if (response.specs && typeof response.specs === 'object') {
-                        const existingSpecs = product.specs || {};
-                        const newSpecs = {};
-                        
-                        // Only include non-empty spec values
-                        for (const [key, value] of Object.entries(response.specs)) {
-                            if (value && typeof value === 'string' && value.trim()) {
-                                newSpecs[key] = value.trim();
-                            }
-                        }
-                        
-                        // Merge with existing specs
-                        if (Object.keys(newSpecs).length > 0) {
-                            updateData.specs = { ...existingSpecs, ...newSpecs };
-                        }
-                    }
-
-                    // Only update if we have data to update
-                    if (Object.keys(updateData).length > 0) {
-                        await base44.asServiceRole.entities.AVProduct.update(product.id, updateData);
                         enriched++;
                     }
 
