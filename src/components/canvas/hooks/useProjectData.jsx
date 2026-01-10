@@ -125,6 +125,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
       setFloorplans(project.floorplans || []);
+      console.log('📂 Loaded project floorplans:', project.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
       
       // Migrate old string-based rooms to new object format
       const loadedRooms = (project.rooms || []).map(room => {
@@ -151,6 +152,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       };
       // Mark that project has been loaded, safe to auto-save now
       projectLoadedRef.current = true;
+      
+      // CRITICAL: Mark local change on load to prevent immediate sync overwrite
+      if (markLocalChange) {
+        markLocalChange();
+      }
     } else {
       projectLoadedRef.current = false;
       setCanvasProducts([]);
@@ -160,10 +166,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       localStorage.removeItem('av_canvas_temp_project_id');
       lastSavedRef.current = { products: null, connections: null, rooms: null, floorplans: null };
     }
-  }, []);
+  }, [markLocalChange]);
 
   // Handle sync updates from collaborators
   const handleProjectUpdatedFromSync = useCallback((updatedProject) => {
+    console.log('🔄 Syncing from collaborator - Floorplans:', updatedProject.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);

@@ -805,6 +805,7 @@ function AVCanvasContent() {
 
   const handleResizeEnd = useCallback(() => {
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
+      console.log('🎯 Floorplan drag ended - New position:', { id: draggingFloorplan, x: floorplanDragOffset.x, y: floorplanDragOffset.y });
       markLocalChange(); // Mark BEFORE state update
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
