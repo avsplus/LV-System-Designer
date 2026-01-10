@@ -46,21 +46,20 @@ Deno.serve(async (req) => {
         ];
 
         // Get filter from request body
-        let categoryFilter = null;
-        let searchBrand = null;
-        let searchModel = null;
-        let searchMode = 'category';
-        try {
-            const body = await req.json();
-            searchMode = body.mode || 'category';
-            categoryFilter = body.category || null;
-            searchBrand = body.brand || null;
-            searchModel = body.model || null;
-            console.log('Request body parsed:', { searchMode, categoryFilter, searchBrand, searchModel });
-        } catch (e) {
-            // No body or invalid JSON, proceed without filter
-            console.log('No request body or parse error:', e.message);
-        }
+         let categoryFilter = null;
+         let searchBrand = null;
+         let searchModel = null;
+         let searchMode = 'category';
+         try {
+             const body = await req.json();
+             searchMode = body.mode || 'category';
+             categoryFilter = body.category || null;
+             searchBrand = body.brand || null;
+             searchModel = body.model || null;
+             logs.push('Request parsed: mode=' + searchMode + ', category=' + categoryFilter);
+         } catch (e) {
+             logs.push('Parse error: ' + e.message);
+         }
 
         // Normalize category function
         const normalizeCategory = (cat) => {
