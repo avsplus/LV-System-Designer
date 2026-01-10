@@ -22,9 +22,13 @@ Deno.serve(async (req) => {
 
     let enriched = 0;
     const failedProducts = [];
+    const debugLogs = [];
+
+    debugLogs.push(`Starting with ${products.length} products`);
 
     for (const product of products) {
         try {
+            debugLogs.push(`Processing ${product.brand} ${product.model}`);
             // Call LLM to extract specs
             const llmResponse = await base44.integrations.Core.InvokeLLM({
                 prompt: `Extract detailed technical specifications for: ${product.brand} ${product.model}. Include ethernet_ports, sfp_ports, hdmi_inputs, hdmi_outputs, etc. as applicable.`,
