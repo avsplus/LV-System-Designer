@@ -818,7 +818,7 @@ function AVCanvasContent() {
     }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
   const handleResizeEnd = useCallback(() => {
-    if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
+    if (draggingFloorplan && floorplanDragStart) {
       console.log('🎯 Floorplan drag ended - New position:', { id: draggingFloorplan, x: floorplanDragOffset.x, y: floorplanDragOffset.y });
       markLocalChange(); // Mark BEFORE state update
       setFloorplans(prev => {
@@ -1682,8 +1682,8 @@ function AVCanvasContent() {
 
                   // Only this specific floorplan gets the drag offset applied
                   const isThisOneDragging = draggingFloorplan === fp.id;
-                  const currentX = isThisOneDragging && floorplanDragOffset.x !== 0 ? floorplanDragOffset.x : currentPosition.x;
-                  const currentY = isThisOneDragging && floorplanDragOffset.y !== 0 ? floorplanDragOffset.y : currentPosition.y;
+                  const currentX = isThisOneDragging && floorplanDragStart ? floorplanDragOffset.x : currentPosition.x;
+                  const currentY = isThisOneDragging && floorplanDragStart ? floorplanDragOffset.y : currentPosition.y;
                   const isSelected = selectedFloorplanId === fp.id;
 
                   return (
