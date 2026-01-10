@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { generateConnectionsFromSpec } from './ruleEngine.js';
 
 Deno.serve(async (req) => {
+    // Force cache bust: version 2.1 - added detailed logging
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
