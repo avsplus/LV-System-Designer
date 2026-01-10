@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
     const failedProducts = [];
     const debugLogs = [];
 
+    console.log(`[DEBUG] Found ${products.length} products`);
     debugLogs.push(`Starting with ${products.length} products`);
 
     for (const product of products) {
