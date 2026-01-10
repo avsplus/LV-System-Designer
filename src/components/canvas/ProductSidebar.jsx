@@ -437,7 +437,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                 <div key={masterCat} className="space-y-2">
                   {/* Master Category Header */}
                   <button
-                    onClick={() => toggleCategory(`master-${masterCat}`)}
+                    onClick={() => toggleMasterCategory(masterCat)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all border-l-2 ${
                       masterCatExpanded
                         ? 'bg-gray-700 border-l-purple-500'
