@@ -73,11 +73,8 @@ function AVCanvasContent() {
     base44.auth.me().then(user => setCurrentUserEmail(user.email)).catch(() => {});
   }, []);
 
-  // Project sync callback
-  const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
-    setCurrentProject(updatedProject);
-    projectData.handleProjectUpdatedFromSync(updatedProject, setFloorplans);
-  }, [projectData]);
+  // Project data from hook
+  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans);
 
   const { markLocalChange } = useProjectSync({
     currentProject,
@@ -85,14 +82,18 @@ function AVCanvasContent() {
     onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
 
-  // Project data from hook
-  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans);
   const {
     rooms, canvasProducts, connections, setConnections,
     loadProject, handleAddRoom, handleDeleteRoom, addProductToCanvas,
     handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
-    handleRemoveConnection, clearCanvas: clearCanvasData
+    handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
   } = projectData;
+
+  // Project sync callback
+  const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
+    setCurrentProject(updatedProject);
+    handleProjectUpdatedFromSync(updatedProject, setFloorplans);
+  }, [handleProjectUpdatedFromSync]);
 
   // UI state
   const [showProjectManager, setShowProjectManager] = useState(false);
