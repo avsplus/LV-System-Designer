@@ -62,10 +62,8 @@ Deno.serve(async (req) => {
                 const createdSpec = await base44.asServiceRole.entities.DeviceSpec.create(spec);
 
                 // Get rules and generate connections
-                const rules = await base44.asServiceRole.entities.ConnectionRule.filter({
-                    organization_id: user.organization_id,
-                    is_active: true
-                });
+                const allRules = await base44.asServiceRole.entities.ConnectionRule.list();
+                const rules = allRules.filter(r => r.is_active && (!r.organization_id || r.organization_id === user.organization_id));
 
                 const { inputs, outputs } = generateConnectionsFromSpec(createdSpec, rules);
 
