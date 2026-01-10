@@ -115,7 +115,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // Load project data
-  const loadProject = useCallback((project) => {
+  const loadProject = useCallback((project, setFloorplansCallback) => {
     if (project) {
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
@@ -135,6 +135,12 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       });
       
       setRooms(loadedRooms);
+      
+      // Load floorplans if callback provided
+      if (setFloorplansCallback && project.floorplans) {
+        setFloorplansCallback(project.floorplans);
+      }
+      
       localStorage.setItem('av_canvas_temp_project_id', project.id);
       lastSavedRef.current = {
         products: JSON.stringify(project.canvas_products || []),
@@ -149,6 +155,9 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setCanvasProducts([]);
       setConnections([]);
       setRooms([]);
+      if (setFloorplansCallback) {
+        setFloorplansCallback([]);
+      }
       localStorage.removeItem('av_canvas_temp_project_id');
       lastSavedRef.current = { products: null, connections: null, rooms: null, floorplans: null };
     }

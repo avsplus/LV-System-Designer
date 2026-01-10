@@ -110,8 +110,20 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
 
-  // Project data from hook
-  const projectData = useProjectData(currentProject, currentUserEmail, null, floorplans);
+  // Project sync - must be before projectData to pass markLocalChange
+  const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
+    setCurrentProject(updatedProject);
+    setFloorplans(updatedProject?.floorplans || []);
+  }, []);
+
+  const { markLocalChange } = useProjectSync({
+    currentProject,
+    currentUserEmail,
+    onProjectUpdated: handleProjectUpdatedFromSyncCallback
+  });
+
+  // Project data from hook - now with markLocalChange available
+  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans);
 
   const {
     rooms, canvasProducts, connections, setConnections,
@@ -119,18 +131,6 @@ function AVCanvasContent() {
     handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
     handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
   } = projectData;
-
-  // Project sync callback
-  const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
-    setCurrentProject(updatedProject);
-    handleProjectUpdatedFromSync(updatedProject, setFloorplans);
-  }, [handleProjectUpdatedFromSync]);
-
-  const { markLocalChange } = useProjectSync({
-    currentProject,
-    currentUserEmail,
-    onProjectUpdated: handleProjectUpdatedFromSyncCallback
-  });
 
   const lastMiddleClickRef = useRef(0);
   
@@ -211,8 +211,7 @@ function AVCanvasContent() {
   // Project load handler
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
-    loadProject(project);
-    setFloorplans(project?.floorplans || []);
+    loadProject(project, setFloorplans);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -670,6 +669,7 @@ function AVCanvasContent() {
 
   const handleFloorplansUpdate = (updatedFloorplans) => {
     setFloorplans(updatedFloorplans);
+    markLocalChange(); // Mark local change for sync
   };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
@@ -816,6 +816,7 @@ function AVCanvasContent() {
 
         return updatedFloorplans;
       });
+      markLocalChange(); // Mark local change for sync
     }
 
     if (resizingRef.current) {
@@ -830,6 +831,7 @@ function AVCanvasContent() {
 
         return updatedFloorplans;
       });
+      markLocalChange(); // Mark local change for sync
       resizingRef.current = null;
       setResizingFloorplan(null);
       setResizeOffset({ scale: 1, position: { x: 0, y: 0 } });
@@ -838,7 +840,7 @@ function AVCanvasContent() {
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragOffset, resizeOffset]);
+  }, [draggingFloorplan, floorplanDragOffset, resizeOffset, markLocalChange]);
 
 
 
