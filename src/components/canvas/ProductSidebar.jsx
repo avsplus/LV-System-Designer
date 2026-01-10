@@ -24,7 +24,15 @@ const categorySolidColors = {
   av_receivers: "bg-emerald-600",
   network_switches: "bg-slate-600",
   control_processors: "bg-violet-600",
-  hdmi_extenders: "bg-indigo-600"
+  hdmi_extenders: "bg-indigo-600",
+  access_points: "bg-sky-500",
+  patch_panels: "bg-slate-500",
+  data_jacks: "bg-blue-500",
+  telephones: "bg-cyan-600",
+  phone_jacks: "bg-cyan-500",
+  intercoms: "bg-teal-500",
+  nvrs: "bg-gray-600",
+  ip_cameras: "bg-gray-500"
 };
 
 const categoryIcons = {
