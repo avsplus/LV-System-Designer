@@ -175,7 +175,16 @@ export default function EnrichConnectionsDialog({ open, onClose, onEnrich, isEnr
               {matchingProducts.length > 0 && matchingProducts.length <= 5 && (
                 <div className="text-gray-400 text-xs mt-2 space-y-1">
                   {matchingProducts.map(p => (
-                    <div key={p.id}>{p.brand} {p.model}</div>
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setBrand(p.brand);
+                        setModel(p.model);
+                      }}
+                      className="block w-full text-left px-2 py-1 rounded hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200"
+                    >
+                      {p.brand} {p.model}
+                    </button>
                   ))}
                 </div>
               )}
