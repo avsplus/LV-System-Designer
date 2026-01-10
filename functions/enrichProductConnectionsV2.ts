@@ -245,10 +245,14 @@ Deno.serve(async (req) => {
             debugLogs.push(`Filtered to ${activeRules.length} active rules`);
 
             // Generate connections
-            console.log('[DEBUG] Generating connections from rules...');
-            const { inputs, outputs } = generateConnectionsFromSpec(deviceSpec, activeRules);
-            console.log(`[DEBUG] Generated ${inputs.length} inputs, ${outputs.length} outputs`);
-            debugLogs.push(`Generated ${inputs.length} inputs, ${outputs.length} outputs`);
+                        console.log('[DEBUG] Generating connections from rules...');
+                        const genResult = generateConnectionsFromSpec(deviceSpec, activeRules);
+                        const { inputs, outputs } = genResult;
+                        console.log(`[DEBUG] Generated ${inputs.length} inputs, ${outputs.length} outputs`);
+                        debugLogs.push(`Generated ${inputs.length} inputs, ${outputs.length} outputs`);
+                        if (genResult.ruleLogs) {
+                          genResult.ruleLogs.forEach(log => debugLogs.push(`  ${log}`));
+                        }
 
             if (inputs.length > 0 || outputs.length > 0) {
                 console.log('[DEBUG] Enriching product with connections...');
