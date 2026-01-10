@@ -2217,6 +2217,7 @@ function AVCanvasContent() {
             rooms={rooms}
             onAddRoom={handleAddRoom}
             onDeleteRoom={handleDeleteRoom}
+            onRenameRoom={handleRenameRoom}
             canvasProducts={canvasProducts}
             onDeviceRoomChange={(instanceId, newRoom) => {
               projectData.setCanvasProducts(prev => prev.map(cp => 

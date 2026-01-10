@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Projector, Box, Network, Grid3x3, Music, Cast, Volume2, Speaker, Waves, Radio, Headphones, AudioWaveform, Activity, Cable, Cpu, Plug, GripVertical } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Projector, Box, Network, Grid3x3, Music, Cast, Volume2, Speaker, Waves, Radio, Headphones, AudioWaveform, Activity, Cable, Cpu, Plug, GripVertical, Pencil, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -29,7 +29,7 @@ const categoryIcons = {
   hdmi_extenders: Plug
 };
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, canvasProducts = [], onDeviceRoomChange }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -41,6 +41,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [newRoomName, setNewRoomName] = useState('');
   const [draggedDevice, setDraggedDevice] = useState(null);
   const [dragOverRoom, setDragOverRoom] = useState(null);
+  const [editingRoomId, setEditingRoomId] = useState(null);
+  const [editingRoomName, setEditingRoomName] = useState('');
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -242,6 +244,19 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     onAddRoom(newRoomName, floorplanId);
     setNewRoomName('');
     toast.success(`Room "${newRoomName}" added to ${floorplans.find(fp => fp.id === floorplanId)?.name}`);
+  };
+
+  const handleRenameRoom = (roomId, newName) => {
+    if (!newName.trim()) {
+      toast.error('Room name cannot be empty');
+      return;
+    }
+    if (onRenameRoom) {
+      onRenameRoom(roomId, newName);
+    }
+    setEditingRoomId(null);
+    setEditingRoomName('');
+    toast.success(`Room renamed to "${newName}"`);
   };
 
   const getFloorplanRooms = (floorplanId) => {
@@ -640,18 +655,63 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                  }}
                                >
                                <div className="flex items-center justify-between mb-1">
-                                 <span className="text-xs text-gray-300 font-medium">{room.name}</span>
-                                 <Button
-                                   size="icon"
-                                   variant="ghost"
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     onDeleteRoom(room.id);
-                                   }}
-                                   className="h-5 w-5 text-red-400 hover:text-red-300"
-                                 >
-                                   <X className="w-3 h-3" />
-                                 </Button>
+                                 {editingRoomId === room.id ? (
+                                   <div className="flex items-center gap-1 flex-1">
+                                     <Input
+                                       value={editingRoomName}
+                                       onChange={(e) => setEditingRoomName(e.target.value)}
+                                       className="h-6 text-xs bg-gray-800 border-gray-700 text-white"
+                                       autoFocus
+                                       onKeyDown={(e) => {
+                                         if (e.key === 'Enter') handleRenameRoom(room.id, editingRoomName);
+                                         if (e.key === 'Escape') {
+                                           setEditingRoomId(null);
+                                           setEditingRoomName('');
+                                         }
+                                       }}
+                                     />
+                                     <Button
+                                       size="icon"
+                                       variant="ghost"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handleRenameRoom(room.id, editingRoomName);
+                                       }}
+                                       className="h-6 w-6 text-green-400 hover:text-green-300"
+                                     >
+                                       <Check className="w-3 h-3" />
+                                     </Button>
+                                   </div>
+                                 ) : (
+                                   <>
+                                     <span className="text-xs text-gray-300 font-medium">{room.name}</span>
+                                     <div className="flex gap-1">
+                                       <Button
+                                         size="icon"
+                                         variant="ghost"
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           setEditingRoomId(room.id);
+                                           setEditingRoomName(room.name);
+                                         }}
+                                         className="h-5 w-5 text-blue-400 hover:text-blue-300"
+                                       >
+                                         <Pencil className="w-3 h-3" />
+                                       </Button>
+                                       <Button
+                                         size="icon"
+                                         variant="ghost"
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           onDeleteRoom(room.id);
+                                         }}
+                                         className="h-5 w-5 text-red-400 hover:text-red-300"
+                                       >
+                                         <X className="w-3 h-3" />
+                                       </Button>
+                                     </div>
+                                   </>
+                                 )}
                                </div>
                                 {roomDevices.length > 0 && (
                                  <div className="ml-2 space-y-0.5 mt-1">

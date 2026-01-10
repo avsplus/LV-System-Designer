@@ -230,6 +230,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     }
   }, [currentProject, canvasProducts, rooms]);
 
+  const handleRenameRoom = useCallback((roomId, newName) => {
+    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, name: newName } : r));
+  }, []);
+
   // Product operations
   const addProductToCanvas = useCallback((product, position, roomId) => {
     const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
@@ -320,6 +324,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     handleProjectUpdatedFromSync,
     handleAddRoom,
     handleDeleteRoom,
+    handleRenameRoom,
     addProductToCanvas,
     handlePositionChange,
     handleNetworkInfoChange,
