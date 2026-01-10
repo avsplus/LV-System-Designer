@@ -64,7 +64,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   // Track if project has been loaded to prevent saving empty state
   const projectLoadedRef = useRef(false);
 
-  // Auto-save to database when project exists
+  // Auto-save to database instantly (with 100ms debounce for batching)
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
 
@@ -87,25 +87,29 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
 
     if (isSavingRef.current) return;
 
-    const saveProject = async () => {
-      isSavingRef.current = true;
-      try {
-        if (markLocalChange) markLocalChange();
-        await base44.entities.AVProject.update(currentProject.id, {
-          canvas_products: canvasProducts,
-          connections: connections,
-          rooms: rooms
-        });
-        lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson };
-        console.log('Auto-saved project');
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-      } finally {
-        isSavingRef.current = false;
-      }
-    };
+    const saveTimer = setTimeout(() => {
+      const saveProject = async () => {
+        isSavingRef.current = true;
+        try {
+          if (markLocalChange) markLocalChange();
+          await base44.entities.AVProject.update(currentProject.id, {
+            canvas_products: canvasProducts,
+            connections: connections,
+            rooms: rooms
+          });
+          lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson };
+          console.log('Auto-saved project');
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+        } finally {
+          isSavingRef.current = false;
+        }
+      };
 
-    saveProject();
+      saveProject();
+    }, 100);
+
+    return () => clearTimeout(saveTimer);
   }, [canvasProducts, connections, rooms, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
 
   // Load project data
