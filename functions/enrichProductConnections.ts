@@ -128,11 +128,16 @@ Deno.serve(async (req) => {
             });
             console.log(`Found ${products.length} matching products`);
         } else if (categoryFilter && validCategories.includes(categoryFilter)) {
+            console.log(`Fetching products for category: ${categoryFilter}`);
             products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
+            console.log(`Fetched ${products.length} products for category`);
         } else {
+            console.log('Fetching all products');
             products = await base44.asServiceRole.entities.AVProduct.list();
+            console.log(`Fetched ${products.length} total products`);
         }
 
+        console.log(`Total products to process: ${products.length}`);
         let enriched = 0;
         let failed = 0;
         let categoryFixed = 0;
