@@ -1,8 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { generateConnectionsFromSpec } from './ruleEngine.js';
 
+const initMsg = 'ENRICH_FUNCTION_LOADED_AT_' + new Date().toISOString();
+console.log(initMsg);
+
 Deno.serve(async (req) => {
-    console.log('Function started');
+    console.log('ENRICH_REQUEST_RECEIVED');
     try {
         console.log('enrichProductConnections called');
         const base44 = createClientFromRequest(req);
