@@ -142,6 +142,10 @@ Deno.serve(async (req) => {
         let failed = 0;
         let categoryFixed = 0;
 
+        // Write debug info to file
+        const debugLog = `Products to process: ${products.length}\n`;
+        await Deno.writeTextFile('/tmp/enrichment_debug.log', debugLog, { append: true });
+
         // First pass: fix any products with invalid categories
         for (const product of products) {
             const normalizedCat = normalizeCategory(product.category);
