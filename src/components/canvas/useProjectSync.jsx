@@ -28,8 +28,10 @@ export default function useProjectSync({
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
 
-    // Update last known timestamp when project changes
+    // Update last known timestamp when project changes (initial load or project switch)
+    // This prevents treating the initial load as a "collaborator update"
     lastKnownUpdate.current = currentProject.updated_date;
+    console.log('🔄 Sync initialized for project, timestamp:', currentProject.updated_date);
 
     const checkForUpdates = async () => {
       // Skip sync if we're saving or within local change window (extended to 8 seconds)
@@ -56,11 +58,15 @@ export default function useProjectSync({
           return;
         }
 
-        // Check if project was updated by someone else
+        // Only sync if timestamp actually changed from what we know
+        // This prevents re-syncing the same data after project load
         if (latestProject.updated_date !== lastKnownUpdate.current) {
+          console.log('📥 Remote update detected:', {
+            known: lastKnownUpdate.current,
+            latest: latestProject.updated_date
+          });
           lastKnownUpdate.current = latestProject.updated_date;
           
-          console.log('Syncing project from collaborator');
           toast.info('Project updated by collaborator', {
             description: 'Canvas has been synced with latest changes'
           });
@@ -75,7 +81,7 @@ export default function useProjectSync({
     const interval = setInterval(checkForUpdates, 5000);
 
     return () => clearInterval(interval);
-  }, [currentProject?.id, currentUserEmail, onProjectUpdated]);
+  }, [currentProject?.id, currentProject?.updated_date, currentUserEmail, onProjectUpdated]);
 
   return { markLocalChange };
 }

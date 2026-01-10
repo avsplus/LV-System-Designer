@@ -122,10 +122,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   // Load project data
   const loadProject = useCallback((project) => {
     if (project) {
+      console.log('📂 Loading project:', project.name, 'timestamp:', project.updated_date);
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
       setFloorplans(project.floorplans || []);
-      console.log('📂 Loaded project floorplans:', project.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
+      console.log('📍 Loaded floorplans:', project.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
       
       // Migrate old string-based rooms to new object format
       const loadedRooms = (project.rooms || []).map(room => {
@@ -155,6 +156,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       
       // CRITICAL: Mark local change on load to prevent immediate sync overwrite
       if (markLocalChange) {
+        console.log('🔒 Marking local change to block sync after load');
         markLocalChange();
       }
     } else {
