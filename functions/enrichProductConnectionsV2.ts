@@ -101,33 +101,34 @@ function generatePortsFromRule(spec, rule) {
 
 function generateConnectionsFromSpec(spec, allRules) {
   if (!spec || !allRules) {
-    return { inputs: [], outputs: [] };
+    return { inputs: [], outputs: [], ruleLogs: [] };
   }
 
   const deviceType = spec.device_type;
-  console.log(`[DEBUG-SPEC] Device type: ${deviceType}, Total rules: ${allRules.length}`);
+  const ruleLogs = [];
+  ruleLogs.push(`Device type: ${deviceType}, Total rules: ${allRules.length}`);
 
   const applicableRules = allRules.filter(ruleSet => {
     if (!ruleSet.applies_to) {
-      console.log(`[DEBUG-SPEC] Rule has no applies_to`);
+      ruleLogs.push(`Rule "${ruleSet.name}" has no applies_to`);
       return false;
     }
     
     const { device_type } = ruleSet.applies_to;
-    console.log(`[DEBUG-SPEC] Checking rule applies_to: ${JSON.stringify(device_type)} against ${deviceType}`);
+    ruleLogs.push(`Rule "${ruleSet.name}" applies_to: ${JSON.stringify(device_type)}`);
     
     if (Array.isArray(device_type)) {
       const matches = device_type.includes(deviceType);
-      console.log(`[DEBUG-SPEC] Array check: ${matches}`);
+      ruleLogs.push(`  → Array check for ${deviceType}: ${matches}`);
       return matches;
     }
     
     const matches = device_type === deviceType;
-    console.log(`[DEBUG-SPEC] String check: ${matches}`);
+    ruleLogs.push(`  → String check ${device_type} === ${deviceType}: ${matches}`);
     return matches;
   });
 
-  console.log(`[DEBUG-SPEC] Found ${applicableRules.length} applicable rules`);
+  ruleLogs.push(`Found ${applicableRules.length} applicable rules`);
 
   const allRulesFlat = applicableRules.flatMap(ruleSet => ruleSet.rules || []);
 
@@ -144,7 +145,7 @@ function generateConnectionsFromSpec(spec, allRules) {
   const inputs = allPorts.filter(p => p.direction === 'input' || p.direction === 'bidirectional');
   const outputs = allPorts.filter(p => p.direction === 'output' || p.direction === 'bidirectional');
 
-  return { inputs, outputs };
+  return { inputs, outputs, ruleLogs };
 }
 // === END INLINE RULE ENGINE ===
 
