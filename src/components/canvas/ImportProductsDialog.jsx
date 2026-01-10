@@ -36,6 +36,14 @@ const CATEGORIES = [
   { value: 'network_switches', label: 'Network Switches' },
   { value: 'control_processors', label: 'Control Processors' },
   { value: 'hdmi_extenders', label: 'HDMI Extenders' },
+  { value: 'access_points', label: 'Access Points' },
+  { value: 'patch_panels', label: 'Patch Panels' },
+  { value: 'data_jacks', label: 'Data Jacks' },
+  { value: 'telephones', label: 'Telephones' },
+  { value: 'phone_jacks', label: 'Phone Jacks' },
+  { value: 'intercoms', label: 'Intercoms' },
+  { value: 'nvrs', label: 'NVRs' },
+  { value: 'ip_cameras', label: 'IP Cameras' },
 ];
 
 export default function ImportProductsDialog({ open, onClose, onImport, isImporting }) {
