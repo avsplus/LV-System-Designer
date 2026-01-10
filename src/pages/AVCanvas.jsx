@@ -101,7 +101,6 @@ function AVCanvasContent() {
   const [enrichCategory, setEnrichCategory] = useState('all');
   const [previewManual, setPreviewManual] = useState(null);
   const [showFloorplanManager, setShowFloorplanManager] = useState(false);
-  const [floorplans, setFloorplans] = useState([]);
   const [draggingFloorplan, setDraggingFloorplan] = useState(null);
   const [floorplanDragStart, setFloorplanDragStart] = useState(null);
   const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
