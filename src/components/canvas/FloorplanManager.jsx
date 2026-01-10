@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -717,6 +717,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                  <div className="ml-2 space-y-0.5 mt-1">
                                    {roomDevices.map(device => {
                                      const CategoryIcon = categoryIcons[device.product.category] || Box;
+                                     const networkInfo = device.networkInfo || {};
+                                     const hasNetworkInfo = networkInfo.ip && networkInfo.ip !== '000.000.000.000' && networkInfo.ip !== '';
                                      return (
                                        <div 
                                          key={device.instanceId} 
@@ -732,7 +734,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                        >
                                          <GripVertical className="w-3 h-3 text-gray-600 flex-shrink-0" />
                                          <CategoryIcon className="w-3 h-3 flex-shrink-0" />
-                                         <span className="truncate">{device.product.brand} {device.product.model} ({device.label})</span>
+                                         <span className="truncate flex-1">{device.product.brand} {device.product.model} ({device.label})</span>
+                                         <Circle className={`w-2 h-2 flex-shrink-0 ${hasNetworkInfo ? 'fill-green-500 text-green-500' : 'fill-red-500 text-red-500'}`} />
                                        </div>
                                      );
                                    })}
