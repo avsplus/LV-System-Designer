@@ -108,6 +108,7 @@ function AVCanvasContent() {
   const [resizingFloorplan, setResizingFloorplan] = useState(null);
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
+  const [hoveredDeviceId, setHoveredDeviceId] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -2049,7 +2050,7 @@ function AVCanvasContent() {
                 const isHighlighted = highlightedConnections.some(idx => {
                   const conn = connections[idx];
                   return conn && (conn.from === cp.instanceId || conn.to === cp.instanceId);
-                });
+                }) || hoveredDeviceId === cp.instanceId;
                 return (
                   <CanvasProduct
                         key={cp.instanceId}
@@ -2224,6 +2225,7 @@ function AVCanvasContent() {
                 cp.instanceId === instanceId ? { ...cp, room: newRoom } : cp
               ));
             }}
+            onDeviceHover={setHoveredDeviceId}
           />
         )}
 

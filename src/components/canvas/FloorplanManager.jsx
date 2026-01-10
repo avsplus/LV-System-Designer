@@ -29,7 +29,7 @@ const categoryIcons = {
   hdmi_extenders: Plug
 };
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -726,6 +726,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                            setDraggedDevice(null);
                                            setDragOverRoom(null);
                                          }}
+                                         onMouseEnter={() => onDeviceHover?.(device.instanceId)}
+                                         onMouseLeave={() => onDeviceHover?.(null)}
                                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 cursor-move transition-colors"
                                        >
                                          <GripVertical className="w-3 h-3 text-gray-600 flex-shrink-0" />
