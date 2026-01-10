@@ -613,9 +613,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                                 {roomDevices.length > 0 && (
                                   <div className="ml-2 space-y-0.5 mt-1">
                                     {roomDevices.map(device => (
-                                      <div key={device.instanceId} className="text-xs text-gray-500">
-                                        • {device.label || `${device.product.brand} ${device.product.model}`}
-                                      </div>
+                                     <div key={device.instanceId} className="text-xs text-gray-500">
+                                       • {device.product.brand} {device.product.model} ({device.label})
+                                     </div>
                                     ))}
                                   </div>
                                 )}
