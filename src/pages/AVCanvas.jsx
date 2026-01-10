@@ -1760,7 +1760,7 @@ function AVCanvasContent() {
                       >
                         <div className="text-5xl font-bold">{fp.name}</div>
                         <div className="text-xl font-normal opacity-80 mt-1">
-                          {new Date(parseInt(fp.id)).toLocaleDateString()}
+                          Uploaded Date: {new Date(parseInt(fp.id)).toLocaleDateString()}
                         </div>
                       </div>
                       {isSelected && !fp.locked && (
