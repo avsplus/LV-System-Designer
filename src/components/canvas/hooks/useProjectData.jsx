@@ -93,7 +93,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       const saveProject = async () => {
         isSavingRef.current = true;
         try {
-          if (markLocalChange) markLocalChange();
           await base44.entities.AVProject.update(currentProject.id, {
             canvas_products: canvasProducts,
             connections: connections,

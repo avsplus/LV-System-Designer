@@ -95,6 +95,12 @@ function AVCanvasContent() {
     handleProjectUpdatedFromSync(updatedProject, setFloorplans);
   }, [handleProjectUpdatedFromSync]);
 
+  const { markLocalChange } = useProjectSync({
+    currentProject,
+    currentUserEmail,
+    onProjectUpdated: handleProjectUpdatedFromSyncCallback
+  });
+
   // UI state
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);
