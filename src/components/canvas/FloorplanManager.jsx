@@ -532,7 +532,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                             className="h-5 w-5 text-blue-400 hover:text-blue-300"
                             title="Recalibrate"
                           >
-                            <Compass className="w-3 h-3" />
+                            <Ruler className="w-3 h-3" />
                           </Button>
                         </div>
                       )}
