@@ -91,6 +91,18 @@ const masterCategoryMap = {
   ip_cameras: 'Surveillance'
 };
 
+// Define all master categories and their subcategories
+const allMasterCategoryMappings = {
+  'AV': ['av_receivers', 'projectors', 'hdmi_extenders', 'matrix_switchers', 'media_streamers', 'video_distribution'],
+  'Audio': ['audio_streamers', 'soundbars', 'speakers', 'multizone_amps', 'stereo_amps', 'subwoofers', 'surround_processors'],
+  'Communication': ['telephones', 'phone_jacks', 'intercoms'],
+  'Control': ['control_processors'],
+  'Data': ['access_points', 'patch_panels', 'data_jacks'],
+  'Displays': ['projector_screens', 'televisions'],
+  'Network': ['network_switches'],
+  'Surveillance': ['nvrs', 'ip_cameras']
+};
+
 export default function ProductSidebar({ products, onProductSelect }) {
   const { settings } = useSettings();
   const { organization } = useOrganization();
