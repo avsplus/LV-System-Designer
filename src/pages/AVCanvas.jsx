@@ -76,7 +76,7 @@ function AVCanvasContent() {
   // UI state
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState(null);
+
   const [pendingProductDrop, setPendingProductDrop] = useState(null);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [connectingTo, setConnectingTo] = useState(null);
@@ -98,7 +98,7 @@ function AVCanvasContent() {
   const [exportEngine, setExportEngine] = useState('jspdf');
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showEnrichDialog, setShowEnrichDialog] = useState(false);
-  const [enrichCategory, setEnrichCategory] = useState('all');
+
   const [previewManual, setPreviewManual] = useState(null);
   const [showFloorplanManager, setShowFloorplanManager] = useState(false);
   const [draggingFloorplan, setDraggingFloorplan] = useState(null);
@@ -215,7 +215,6 @@ function AVCanvasContent() {
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
-    setSelectedRoom(null);
   };
 
 
@@ -611,7 +610,6 @@ function AVCanvasContent() {
       clearCanvasData();
       setSelectedProduct(null);
       setSelectedConnection(null);
-      setSelectedRoom(null);
       setCurrentProject(null);
       toast.success('Canvas cleared');
     }
