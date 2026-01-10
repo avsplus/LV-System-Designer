@@ -1555,7 +1555,7 @@ function AVCanvasContent() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowImportDialog(true)} disabled={importProgress?.status === 'running'} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Plus className="w-4 h-4 mr-2" />
-                    {importProgress?.status === 'running' ? 'Importing...' : 'Import AV Products'}
+                    {importProgress?.status === 'running' ? 'Importing...' : 'Import Products'}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                       onClick={() => setShowEnrichDialog(true)}
