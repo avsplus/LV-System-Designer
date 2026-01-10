@@ -15,11 +15,12 @@ export default function useProjectSync({
   const markLocalChange = useCallback(() => {
     localChangeTimestamp.current = Date.now();
     isSaving.current = true;
-    console.log('Local change marked - sync paused for 5 seconds');
-    // Clear saving flag after save should be complete
+    console.log('Local change marked - sync paused for 8 seconds');
+    // Clear saving flag after save should be complete (3 seconds to be safe)
     setTimeout(() => {
       isSaving.current = false;
-    }, 2000);
+      console.log('Saving flag cleared');
+    }, 3000);
   }, []);
 
 
@@ -31,8 +32,12 @@ export default function useProjectSync({
     lastKnownUpdate.current = currentProject.updated_date;
 
     const checkForUpdates = async () => {
-      // Skip sync if we're saving or within local change window
-      if (isSaving.current || (Date.now() - localChangeTimestamp.current < 5000)) {
+      // Skip sync if we're saving or within local change window (extended to 8 seconds)
+      const timeSinceChange = Date.now() - localChangeTimestamp.current;
+      if (isSaving.current || timeSinceChange < 8000) {
+        if (timeSinceChange < 8000) {
+          console.log(`Sync blocked: ${Math.ceil((8000 - timeSinceChange) / 1000)}s remaining`);
+        }
         return;
       }
 
@@ -46,7 +51,8 @@ export default function useProjectSync({
         const latestProject = projects[0];
 
         // Double-check we're still not in local change window after fetch
-        if (Date.now() - localChangeTimestamp.current < 5000) {
+        if (Date.now() - localChangeTimestamp.current < 8000) {
+          console.log('Sync blocked after fetch - ignoring server update');
           return;
         }
 
@@ -54,6 +60,7 @@ export default function useProjectSync({
         if (latestProject.updated_date !== lastKnownUpdate.current) {
           lastKnownUpdate.current = latestProject.updated_date;
           
+          console.log('Syncing project from collaborator');
           toast.info('Project updated by collaborator', {
             description: 'Canvas has been synced with latest changes'
           });
@@ -64,7 +71,7 @@ export default function useProjectSync({
       }
     };
 
-    // Check every 5 seconds instead of 3 to reduce conflicts
+    // Check every 5 seconds
     const interval = setInterval(checkForUpdates, 5000);
 
     return () => clearInterval(interval);
