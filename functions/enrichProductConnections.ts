@@ -9,6 +9,22 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Device type mapping from category to device_type
+        const deviceTypeMap = {
+            'televisions': 'television',
+            'projectors': 'projector',
+            'av_receivers': 'av_receiver',
+            'speakers': 'speaker',
+            'soundbars': 'soundbar',
+            'subwoofers': 'subwoofer',
+            'network_switches': 'network_switch',
+            'routers': 'router',
+            'access_points': 'access_point',
+            'matrix_switchers': 'matrix_switcher',
+            'audio_streamers': 'audio_streamer',
+            'media_streamers': 'media_streamer'
+        };
+
         // Valid categories from the AVProduct entity schema
         const validCategories = [
             "televisions", "projectors", "projector_screens", "video_distribution", 
