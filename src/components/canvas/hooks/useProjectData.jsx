@@ -188,7 +188,24 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);
-    setFloorplans(updatedProject.floorplans || []);
+    
+    // Merge floorplans - preserve local position/scale if recently modified
+    setFloorplans(prev => {
+      const merged = (updatedProject.floorplans || []).map(remoteFp => {
+        const localFp = prev.find(fp => fp.id === remoteFp.id);
+        // If we have this floorplan locally, preserve position/scale to avoid jumps
+        if (localFp) {
+          return {
+            ...remoteFp,
+            position: localFp.position || remoteFp.position,
+            scale: localFp.scale || remoteFp.scale
+          };
+        }
+        return remoteFp;
+      });
+      return merged;
+    });
+    
     lastSavedRef.current = {
       products: JSON.stringify(updatedProject.canvas_products || []),
       connections: JSON.stringify(updatedProject.connections || []),
