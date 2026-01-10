@@ -625,10 +625,6 @@ function AVCanvasContent() {
     }
   };
 
-  const handleFloorplansUpdate = (updatedFloorplans) => {
-    setFloorplans(updatedFloorplans);
-  };
-
   const handleFloorplanMouseDown = (e, floorplanId) => {
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
@@ -676,7 +672,11 @@ function AVCanvasContent() {
     setSelectedProduct(null);
     setSelectedCanvasProduct(null);
     setSelectedConnection(null);
-  };
+    };
+
+    const handleFloorplansUpdate = (updatedFloorplans) => {
+    setFloorplans(updatedFloorplans);
+    };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
       e.preventDefault();
