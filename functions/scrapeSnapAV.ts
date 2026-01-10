@@ -267,7 +267,32 @@ Search patterns to find manuals:
                 "hdmi_extender": "hdmi_extenders",
                 "hdbasetext": "hdmi_extenders",
                 "hdbaset_extenders": "hdmi_extenders",
-                "avoip": "hdmi_extenders"
+                "avoip": "hdmi_extenders",
+                "access_points": "access_points",
+                "accesspoints": "access_points",
+                "wifi_access_points": "access_points",
+                "patch_panels": "patch_panels",
+                "patchpanels": "patch_panels",
+                "data_jacks": "data_jacks",
+                "datajacks": "data_jacks",
+                "network_jacks": "data_jacks",
+                "telephones": "telephones",
+                "ip_phones": "telephones",
+                "voip_phones": "telephones",
+                "phone_jacks": "phone_jacks",
+                "phonejacks": "phone_jacks",
+                "telephone_jacks": "phone_jacks",
+                "rj11": "phone_jacks",
+                "intercoms": "intercoms",
+                "intercom_systems": "intercoms",
+                "door_phones": "intercoms",
+                "nvrs": "nvrs",
+                "network_video_recorders": "nvrs",
+                "video_recorders": "nvrs",
+                "ip_cameras": "ip_cameras",
+                "ipcameras": "ip_cameras",
+                "security_cameras": "ip_cameras",
+                "network_cameras": "ip_cameras"
             };
             
             return categoryMapping[normalized] || normalized;
