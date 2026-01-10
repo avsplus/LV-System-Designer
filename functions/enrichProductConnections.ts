@@ -148,11 +148,6 @@ Deno.serve(async (req) => {
             
             await Promise.all(batch.map(async (product) => {
                 try {
-                    // Skip if already has connections
-                    if (product.input_connections && product.input_connections.length > 0) {
-                        return;
-                    }
-
                     // Step 1: Extract specs from LLM
                     const deviceType = deviceTypeMap[product.category] || product.category;
                     
