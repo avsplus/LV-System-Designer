@@ -15,6 +15,7 @@ export default function useProjectSync({
   const markLocalChange = useCallback(() => {
     localChangeTimestamp.current = Date.now();
     isSaving.current = true;
+    console.log('Local change marked - sync paused for 5 seconds');
     // Clear saving flag after save should be complete
     setTimeout(() => {
       isSaving.current = false;
