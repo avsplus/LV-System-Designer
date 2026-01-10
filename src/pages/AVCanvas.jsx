@@ -229,11 +229,11 @@ function AVCanvasContent() {
     if (floorplansJson === savedFloorplansJson) return;
 
     const saveTimer = setTimeout(() => {
+      markLocalChange();
       base44.entities.AVProject.update(currentProject.id, {
         floorplans: floorplans
       }).then(() => {
         setCurrentProject(curr => ({ ...curr, floorplans: floorplans }));
-        markLocalChange();
       }).catch(error => console.error('Failed to auto-save floorplans:', error));
     }, 100);
 
