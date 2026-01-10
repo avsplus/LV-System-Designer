@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -532,7 +532,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                             className="h-5 w-5 text-blue-400 hover:text-blue-300"
                             title="Recalibrate"
                           >
-                            <Ruler className="w-3 h-3" />
+                            <Compass className="w-3 h-3" />
                           </Button>
                         </div>
                       )}
