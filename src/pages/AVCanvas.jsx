@@ -2460,10 +2460,28 @@ function AVCanvasContent() {
                 const { data } = await base44.functions.invoke('scrapeSnapAV', params);
                 setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
                 toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
-                setTimeout(() => {
-                  setImportProgress(null);
-                  window.location.reload();
-                }, 2000);
+                
+                // Auto-trigger enrichment for imported products
+                setTimeout(async () => {
+                  try {
+                    setImportProgress(null);
+                    setEnrichmentProgress({ status: 'running', message: `Enriching ${data.productsFound} products...` });
+                    const enrichParams = params.mode === 'search' 
+                      ? { mode: 'search', brand: params.brand, model: params.model }
+                      : { mode: 'category', category: params.category };
+                    const { data: enrichData } = await base44.functions.invoke('enrichProductConnections', enrichParams);
+                    setEnrichmentProgress({ status: 'complete', enriched: enrichData.enriched, total: enrichData.total });
+                    toast.success(`Enriched ${enrichData.enriched} products with connection data!`);
+                    setTimeout(() => {
+                      setEnrichmentProgress(null);
+                      window.location.reload();
+                    }, 1000);
+                  } catch (enrichError) {
+                    console.error('Auto-enrichment error:', enrichError);
+                    setEnrichmentProgress(null);
+                    window.location.reload();
+                  }
+                }, 500);
               } catch (error) {
                 console.error('Import error:', error);
                 const errorMsg = error.response?.data?.error || error.message;
