@@ -149,116 +149,118 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Process products in batches
-         console.log(`Processing ${products.length} products...`);
-         for (let i = 0; i < products.length; i += 5) {
-             const batch = products.slice(i, i + 5);
-             console.log(`Processing batch ${i/5 + 1}: ${batch.length} products`);
+        // Process products sequentially to avoid timeouts
+         console.log(`Starting enrichment of ${products.length} products`);
 
-             await Promise.all(batch.map(async (product) => {
-                 try {
-                     // Step 1: Extract specs from LLM
-                     const deviceType = deviceTypeMap[product.category] || product.category;
-                     console.log(`[${product.brand} ${product.model}] Starting enrichment with deviceType: ${deviceType}`);
+         for (const product of products) {
+             try {
+                 console.log(`\n=== Processing: ${product.brand} ${product.model} ===`);
+                 const deviceType = deviceTypeMap[product.category] || product.category;
 
-                     console.log(`[${product.brand} ${product.model}] Calling LLM to extract specs...`);
-                     const specResponse = await base44.integrations.Core.InvokeLLM({
-                        prompt: `Extract detailed specifications from the ${product.brand} ${product.model} (${product.category}).
+                 // Step 1: Extract specs from LLM
+                 console.log(`Calling LLM for ${product.brand} ${product.model}...`);
+                 const specResponse = await base44.integrations.Core.InvokeLLM({
+                     prompt: `Extract detailed specifications from the ${product.brand} ${product.model} (${product.category}).
 
-                    Return ONLY factual specifications found in official datasheets, NOT assumptions.
-                    If you cannot find a specific spec, set it to null.
-                    Be precise with port counts and types.
+        Return ONLY factual specifications found in official datasheets, NOT assumptions.
+        If you cannot find a specific spec, set it to null.
+        Be precise with port counts and types.
 
-                    For each specification:
-                    - Set to actual number/value if found
-                    - Set to null if not found or if unsure (confidence < 0.7)
-                    - Never guess port counts
+        For each specification:
+        - Set to actual number/value if found
+        - Set to null if not found or if unsure (confidence < 0.7)
+        - Never guess port counts
 
-                    Common attributes by device type:
-                    - network_switch: ethernet_ports (count), ethernet_speed (1G/10G/25G), sfp_ports, managed, poe
-                    - av_receiver: hdmi_inputs, hdmi_outputs, analog_audio_inputs, analog_audio_outputs, channels, speaker_outputs, subwoofer_output, has_ip_control, has_rs232_control
-                    - speaker: type (passive/active/powered), impedance, frequency_response
-                    - soundbar: has_subwoofer_output, hdmi_inputs, hdmi_outputs, audio_inputs`,
-                        add_context_from_internet: true,
-                        response_json_schema: {
-                            type: "object",
-                            properties: {
-                                attributes: {
-                                    type: "object",
-                                    description: "Device attributes (specs only)"
-                                },
-                                confidence_scores: {
-                                    type: "object",
-                                    description: "Confidence for each attribute (0-1)"
-                                },
-                                source: {
-                                    type: "string",
-                                    enum: ["manufacturer_page", "datasheet", "manual", "web_search"],
-                                    description: "Source of specs"
-                                },
-                                overall_confidence: {
-                                    type: "number",
-                                    description: "Overall confidence (0-1)"
-                                }
-                            },
-                            required: ["attributes"]
-                        }
-                    });
-                    console.log(`[${product.brand} ${product.model}] LLM response:`, JSON.stringify(specResponse));
+        Common attributes by device type:
+        - network_switch: ethernet_ports (count), ethernet_speed (1G/10G/25G), sfp_ports, managed, poe
+        - av_receiver: hdmi_inputs, hdmi_outputs, analog_audio_inputs, analog_audio_outputs, channels, speaker_outputs, subwoofer_output, has_ip_control, has_rs232_control
+        - speaker: type (passive/active/powered), impedance, frequency_response
+        - soundbar: has_subwoofer_output, hdmi_inputs, hdmi_outputs, audio_inputs`,
+                     add_context_from_internet: true,
+                     response_json_schema: {
+                         type: "object",
+                         properties: {
+                             attributes: {
+                                 type: "object",
+                                 description: "Device attributes (specs only)"
+                             },
+                             confidence_scores: {
+                                 type: "object",
+                                 description: "Confidence for each attribute (0-1)"
+                             },
+                             source: {
+                                 type: "string",
+                                 enum: ["manufacturer_page", "datasheet", "manual", "web_search"],
+                                 description: "Source of specs"
+                             },
+                             overall_confidence: {
+                                 type: "number",
+                                 description: "Overall confidence (0-1)"
+                             }
+                         },
+                         required: ["attributes"]
+                     }
+                 });
+                 console.log(`LLM response received with attributes:`, Object.keys(specResponse.attributes || {}));
 
-                    // Step 2: Create DeviceSpec record
-                    const spec = {
-                        product_id: product.id,
-                        device_type: deviceType,
-                        brand: product.brand,
-                        model: product.model,
-                        attributes: specResponse.attributes || {},
-                        confidence_scores: specResponse.confidence_scores || {},
-                        source: specResponse.source || 'web_search',
-                        overall_confidence: specResponse.overall_confidence || 0.5,
-                        status: 'pending_review',
-                        organization_id: user.organization_id
-                    };
+                 // Step 2: Create DeviceSpec record
+                 console.log(`Creating DeviceSpec...`);
+                 const spec = {
+                     product_id: product.id,
+                     device_type: deviceType,
+                     brand: product.brand,
+                     model: product.model,
+                     attributes: specResponse.attributes || {},
+                     confidence_scores: specResponse.confidence_scores || {},
+                     source: specResponse.source || 'web_search',
+                     overall_confidence: specResponse.overall_confidence || 0.5,
+                     status: 'pending_review',
+                     organization_id: user.organization_id
+                 };
 
-                    console.log(`[${product.brand} ${product.model}] Spec extracted, creating DeviceSpec record...`);
-                    const createdSpec = await base44.asServiceRole.entities.DeviceSpec.create(spec);
-                    console.log(`[${product.brand} ${product.model}] DeviceSpec created with attributes:`, JSON.stringify(spec.attributes));
+                 const createdSpec = await base44.asServiceRole.entities.DeviceSpec.create(spec);
+                 console.log(`DeviceSpec created: ${createdSpec.id}`);
 
-                    // Step 3: Apply connection rules to generate connections
-                    const rules = await base44.asServiceRole.entities.ConnectionRule.filter({
-                        organization_id: user.organization_id,
-                        is_active: true
-                    });
+                 // Step 3: Apply connection rules
+                 console.log(`Applying connection rules...`);
+                 const rules = await base44.asServiceRole.entities.ConnectionRule.filter({
+                     organization_id: user.organization_id,
+                     is_active: true
+                 });
+                 console.log(`Found ${rules.length} active rules`);
 
-                    const { inputs, outputs } = generateConnectionsFromSpec(createdSpec, rules);
+                 const { inputs, outputs } = generateConnectionsFromSpec(createdSpec, rules);
+                 console.log(`Generated ${inputs.length} inputs, ${outputs.length} outputs`);
 
-                    // Step 4: Update product with generated connections and mark spec approved
-                    if (inputs.length > 0 || outputs.length > 0) {
-                        await base44.asServiceRole.entities.AVProduct.update(product.id, {
-                            input_connections: inputs.map(p => ({
-                                type: p.type,
-                                ports: [p.label]
-                            })),
-                            output_connections: outputs.map(p => ({
-                                type: p.type,
-                                ports: [p.label]
-                            }))
-                        });
+                 // Step 4: Update product
+                 if (inputs.length > 0 || outputs.length > 0) {
+                     await base44.asServiceRole.entities.AVProduct.update(product.id, {
+                         input_connections: inputs.map(p => ({
+                             type: p.type,
+                             ports: [p.label]
+                         })),
+                         output_connections: outputs.map(p => ({
+                             type: p.type,
+                             ports: [p.label]
+                         }))
+                     });
 
-                        await base44.asServiceRole.entities.DeviceSpec.update(createdSpec.id, {
-                            status: 'approved'
-                        });
+                     await base44.asServiceRole.entities.DeviceSpec.update(createdSpec.id, {
+                         status: 'approved'
+                     });
 
-                        enriched++;
-                    }
+                     enriched++;
+                     console.log(`✓ Enriched: ${product.brand} ${product.model}`);
+                 } else {
+                     console.log(`⊘ No connections generated for ${product.brand} ${product.model}`);
+                 }
 
-                } catch (error) {
-                    console.error(`[${product.brand} ${product.model}] Error:`, error.message || error);
-                    console.error(`Stack:`, error.stack);
-                    failed++;
-                }
-            }));
-        }
+             } catch (error) {
+                 console.error(`✗ Failed: ${product.brand} ${product.model} - ${error.message}`);
+                 failed++;
+             }
+         }
+         console.log(`\nEnrichment complete: ${enriched} enriched, ${failed} failed`);
 
         return Response.json({ 
             success: true,
