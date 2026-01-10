@@ -150,6 +150,7 @@ Deno.serve(async (req) => {
                 try {
                     // Step 1: Extract specs from LLM
                     const deviceType = deviceTypeMap[product.category] || product.category;
+                    console.log(`[${product.brand} ${product.model}] Starting enrichment with deviceType: ${deviceType}`);
                     
                     const specResponse = await base44.integrations.Core.InvokeLLM({
                         prompt: `Extract detailed specifications from the ${product.brand} ${product.model} (${product.category}).
@@ -208,7 +209,9 @@ Common attributes by device type:
                         organization_id: user.organization_id
                     };
 
+                    console.log(`[${product.brand} ${product.model}] Spec extracted, creating DeviceSpec record...`);
                     const createdSpec = await base44.asServiceRole.entities.DeviceSpec.create(spec);
+                    console.log(`[${product.brand} ${product.model}] DeviceSpec created with attributes:`, JSON.stringify(spec.attributes));
 
                     // Step 3: Apply connection rules to generate connections
                     const rules = await base44.asServiceRole.entities.ConnectionRule.filter({
@@ -239,7 +242,8 @@ Common attributes by device type:
                     }
 
                 } catch (error) {
-                    console.error(`Failed to enrich ${product.brand} ${product.model}:`, error);
+                    console.error(`[${product.brand} ${product.model}] Error:`, error.message || error);
+                    console.error(`Stack:`, error.stack);
                     failed++;
                 }
             }));
