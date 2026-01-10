@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical, Tv, Projector, Box, Network, Grid3x3, Music, Cast, Volume2, Speaker, Waves, Radio, Headphones, AudioWaveform, Activity, Cable, Cpu, Plug } from "lucide-react";
+import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const categoryTextColors = {
@@ -23,22 +23,22 @@ const categoryTextColors = {
 
 const categoryIcons = {
   televisions: Tv,
-  projectors: Projector,
-  projector_screens: Box,
+  projectors: Video,
+  projector_screens: RectangleHorizontal,
   video_distribution: Network,
-  matrix_switchers: Grid3x3,
+  matrix_switchers: LayoutGrid,
   audio_streamers: Music,
-  media_streamers: Cast,
-  speakers: Volume2,
-  soundbars: Speaker,
-  subwoofers: Waves,
-  stereo_amps: Radio,
-  multizone_amps: Headphones,
-  surround_processors: AudioWaveform,
-  av_receivers: Activity,
-  network_switches: Cable,
-  control_processors: Cpu,
-  hdmi_extenders: Plug
+  media_streamers: Play,
+  speakers: Speaker,
+  soundbars: Volume2,
+  subwoofers: AudioLines,
+  stereo_amps: Gauge,
+  multizone_amps: Layers,
+  surround_processors: Cpu,
+  av_receivers: Radio,
+  network_switches: Router,
+  control_processors: Settings2,
+  hdmi_extenders: Cable
 };
 
 export default function RoomManager({ 
