@@ -113,8 +113,9 @@ Deno.serve(async (req) => {
         };
 
         // Get products from database, filtered by category or brand/model
-        let products;
-        if (searchMode === 'search' && searchBrand) {
+         console.log('About to fetch products...');
+         let products;
+         if (searchMode === 'search' && searchBrand) {
             // Filter by brand (and optionally model)
             console.log(`Search mode: brand="${searchBrand}", model="${searchModel}"`);
             const allProducts = await base44.asServiceRole.entities.AVProduct.list();
