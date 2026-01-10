@@ -163,9 +163,15 @@ Deno.serve(async (req) => {
         // Process products sequentially to avoid timeouts
         console.log(`Starting enrichment of ${products.length} products`);
 
+        // Log to file
+        const loopDebug = `Starting loop with ${products.length} products\n`;
+        await Deno.writeTextFile('/tmp/enrichment_debug.log', loopDebug, { append: true });
+
         for (let idx = 0; idx < products.length; idx++) {
             const product = products[idx];
-            console.log(`[${idx+1}/${products.length}] Processing: ${product.brand} ${product.model}`);
+            const msg = `[${idx+1}/${products.length}] Processing: ${product.brand} ${product.model}`;
+            console.log(msg);
+            await Deno.writeTextFile('/tmp/enrichment_debug.log', msg + '\n', { append: true });
 
             try {
                 const deviceType = deviceTypeMap[product.category] || product.category;
