@@ -79,8 +79,11 @@ Deno.serve(async (req) => {
 
             // Generate connections
             const { inputs, outputs } = generateConnectionsFromSpec(deviceSpec, activeRules);
+            
+            debugLogs.push(`Generated ${inputs.length} inputs, ${outputs.length} outputs`);
 
             if (inputs.length > 0 || outputs.length > 0) {
+                debugLogs.push(`Enriching ${product.brand} ${product.model}`);
                 // Update product
                 await base44.asServiceRole.entities.AVProduct.update(product.id, {
                     input_connections: inputs.map(p => ({ type: p.type, ports: [p.label] })),
