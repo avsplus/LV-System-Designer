@@ -150,16 +150,19 @@ Deno.serve(async (req) => {
         }
 
         // Process products sequentially to avoid timeouts
-         console.log(`Starting enrichment of ${products.length} products`);
+        console.log(`Starting enrichment of ${products.length} products`);
 
-         for (const product of products) {
-             try {
-                 console.log(`\n=== Processing: ${product.brand} ${product.model} ===`);
-                 const deviceType = deviceTypeMap[product.category] || product.category;
+        for (let idx = 0; idx < products.length; idx++) {
+            const product = products[idx];
+            console.log(`[${idx+1}/${products.length}] Processing: ${product.brand} ${product.model}`);
 
-                 // Step 1: Extract specs from LLM
-                 console.log(`Calling LLM for ${product.brand} ${product.model}...`);
-                 const specResponse = await base44.integrations.Core.InvokeLLM({
+            try {
+                const deviceType = deviceTypeMap[product.category] || product.category;
+                console.log(`  Device type: ${deviceType}`);
+
+                // Step 1: Extract specs from LLM
+                console.log(`  Calling LLM...`);
+                const specResponse = await base44.integrations.Core.InvokeLLM({
                      prompt: `Extract detailed specifications from the ${product.brand} ${product.model} (${product.category}).
 
         Return ONLY factual specifications found in official datasheets, NOT assumptions.
