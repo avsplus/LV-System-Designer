@@ -938,9 +938,9 @@ Only return URLs that:
               {(() => {
                 const hasNetworkInfo = safeNetworkInfo?.ip && safeNetworkInfo.ip !== '000.000.000.000' && safeNetworkInfo.ip !== '';
                 return hasNetworkInfo ? (
-                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
                 ) : (
-                  <Info className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                  <Info className="w-6 h-6 text-yellow-500 flex-shrink-0" />
                 );
               })()}
             </p>
