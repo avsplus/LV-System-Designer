@@ -152,23 +152,24 @@ Deno.serve(async (req) => {
                     const deviceType = deviceTypeMap[product.category] || product.category;
                     console.log(`[${product.brand} ${product.model}] Starting enrichment with deviceType: ${deviceType}`);
                     
+                    console.log(`[${product.brand} ${product.model}] Calling LLM to extract specs...`);
                     const specResponse = await base44.integrations.Core.InvokeLLM({
                         prompt: `Extract detailed specifications from the ${product.brand} ${product.model} (${product.category}).
 
-Return ONLY factual specifications found in official datasheets, NOT assumptions.
-If you cannot find a specific spec, set it to null.
-Be precise with port counts and types.
+                    Return ONLY factual specifications found in official datasheets, NOT assumptions.
+                    If you cannot find a specific spec, set it to null.
+                    Be precise with port counts and types.
 
-For each specification:
-- Set to actual number/value if found
-- Set to null if not found or if unsure (confidence < 0.7)
-- Never guess port counts
+                    For each specification:
+                    - Set to actual number/value if found
+                    - Set to null if not found or if unsure (confidence < 0.7)
+                    - Never guess port counts
 
-Common attributes by device type:
-- network_switch: ethernet_ports (count), ethernet_speed (1G/10G/25G), sfp_ports, managed, poe
-- av_receiver: hdmi_inputs, hdmi_outputs, analog_audio_inputs, analog_audio_outputs, channels, speaker_outputs, subwoofer_output, has_ip_control, has_rs232_control
-- speaker: type (passive/active/powered), impedance, frequency_response
-- soundbar: has_subwoofer_output, hdmi_inputs, hdmi_outputs, audio_inputs`,
+                    Common attributes by device type:
+                    - network_switch: ethernet_ports (count), ethernet_speed (1G/10G/25G), sfp_ports, managed, poe
+                    - av_receiver: hdmi_inputs, hdmi_outputs, analog_audio_inputs, analog_audio_outputs, channels, speaker_outputs, subwoofer_output, has_ip_control, has_rs232_control
+                    - speaker: type (passive/active/powered), impedance, frequency_response
+                    - soundbar: has_subwoofer_output, hdmi_inputs, hdmi_outputs, audio_inputs`,
                         add_context_from_internet: true,
                         response_json_schema: {
                             type: "object",
@@ -194,6 +195,7 @@ Common attributes by device type:
                             required: ["attributes"]
                         }
                     });
+                    console.log(`[${product.brand} ${product.model}] LLM response:`, JSON.stringify(specResponse));
 
                     // Step 2: Create DeviceSpec record
                     const spec = {
