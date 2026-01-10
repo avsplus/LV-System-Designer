@@ -5,16 +5,19 @@ const initMsg = 'ENRICH_FUNCTION_LOADED_AT_' + new Date().toISOString();
 console.log(initMsg);
 
 Deno.serve(async (req) => {
-    console.log('ENRICH_REQUEST_RECEIVED');
+    const logs = [];
+    logs.push('ENRICH_REQUEST_RECEIVED');
+    
     try {
-        console.log('enrichProductConnections called');
+        logs.push('enrichProductConnections called');
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
 
         if (!user) {
+            await Deno.writeTextFile('/tmp/enrich.log', logs.join('\n'));
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        console.log('User authenticated:', user.email);
+        logs.push('User authenticated: ' + user.email);
 
         // Device type mapping from category to device_type
         const deviceTypeMap = {
