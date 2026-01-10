@@ -80,7 +80,15 @@ const masterCategoryMap = {
   stereo_amps: 'Audio',
   subwoofers: 'Audio',
   surround_processors: 'Audio',
-  control_processors: 'Control'
+  control_processors: 'Control',
+  access_points: 'Data',
+  patch_panels: 'Data',
+  data_jacks: 'Data',
+  telephones: 'Communication',
+  phone_jacks: 'Communication',
+  intercoms: 'Communication',
+  nvrs: 'Surveillance',
+  ip_cameras: 'Surveillance'
 };
 
 export default function ProductSidebar({ products, onProductSelect }) {
