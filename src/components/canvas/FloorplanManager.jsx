@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -26,7 +26,15 @@ const categoryIcons = {
   av_receivers: Radio,
   network_switches: Router,
   control_processors: Settings2,
-  hdmi_extenders: Cable
+  hdmi_extenders: Cable,
+  access_points: Wifi,
+  patch_panels: LayoutGrid,
+  data_jacks: Plug,
+  telephones: Phone,
+  phone_jacks: Plug,
+  intercoms: Speaker,
+  nvrs: HardDrive,
+  ip_cameras: Camera
 };
 
 export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover, onCenterDevice }) {

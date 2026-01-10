@@ -383,7 +383,15 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                       stereo_amps: "bg-orange-600",
                       multizone_amps: "bg-amber-600",
                       surround_processors: "bg-yellow-400",
-                      av_receivers: "bg-emerald-600"
+                      av_receivers: "bg-emerald-600",
+                      access_points: "bg-sky-500",
+                      patch_panels: "bg-slate-500",
+                      data_jacks: "bg-blue-500",
+                      telephones: "bg-cyan-600",
+                      phone_jacks: "bg-cyan-500",
+                      intercoms: "bg-teal-500",
+                      nvrs: "bg-gray-600",
+                      ip_cameras: "bg-gray-500"
                     }[productData.category]
                   }`}></div>
                   <span className="text-xs text-gray-400 capitalize">{productData.category.replace(/_/g, ' ')}</span>

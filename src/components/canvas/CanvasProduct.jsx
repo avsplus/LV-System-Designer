@@ -242,7 +242,15 @@ const categoryColors = {
   av_receivers: "bg-emerald-500/10 text-emerald-400 border-emerald-500/50",
   network_switches: "bg-slate-500/10 text-slate-400 border-slate-500/50",
   control_processors: "bg-violet-500/10 text-violet-400 border-violet-500/50",
-  hdmi_extenders: "bg-indigo-500/10 text-indigo-400 border-indigo-500/50"
+  hdmi_extenders: "bg-indigo-500/10 text-indigo-400 border-indigo-500/50",
+  access_points: "bg-sky-500/10 text-sky-400 border-sky-500/50",
+  patch_panels: "bg-slate-500/10 text-slate-400 border-slate-500/50",
+  data_jacks: "bg-blue-500/10 text-blue-400 border-blue-500/50",
+  telephones: "bg-cyan-500/10 text-cyan-400 border-cyan-500/50",
+  phone_jacks: "bg-cyan-500/10 text-cyan-400 border-cyan-500/50",
+  intercoms: "bg-teal-500/10 text-teal-400 border-teal-500/50",
+  nvrs: "bg-gray-500/10 text-gray-400 border-gray-500/50",
+  ip_cameras: "bg-gray-500/10 text-gray-400 border-gray-500/50"
 };
 
 const categorySolidColors = {
@@ -262,7 +270,15 @@ const categorySolidColors = {
   av_receivers: "bg-emerald-600",
   network_switches: "bg-slate-600",
   control_processors: "bg-violet-600",
-  hdmi_extenders: "bg-indigo-600"
+  hdmi_extenders: "bg-indigo-600",
+  access_points: "bg-sky-500",
+  patch_panels: "bg-slate-500",
+  data_jacks: "bg-blue-500",
+  telephones: "bg-cyan-600",
+  phone_jacks: "bg-cyan-500",
+  intercoms: "bg-teal-500",
+  nvrs: "bg-gray-600",
+  ip_cameras: "bg-gray-500"
 };
 
 const categoryTextColors = {
@@ -282,7 +298,15 @@ const categoryTextColors = {
   av_receivers: "text-emerald-400",
   network_switches: "text-slate-400",
   control_processors: "text-violet-400",
-  hdmi_extenders: "text-indigo-400"
+  hdmi_extenders: "text-indigo-400",
+  access_points: "text-sky-400",
+  patch_panels: "text-slate-400",
+  data_jacks: "text-blue-400",
+  telephones: "text-cyan-400",
+  phone_jacks: "text-cyan-400",
+  intercoms: "text-teal-400",
+  nvrs: "text-gray-400",
+  ip_cameras: "text-gray-400"
 };
 
 export default function CanvasProduct({ 

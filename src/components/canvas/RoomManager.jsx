@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable } from "lucide-react";
+import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical, Tv, Video, RectangleHorizontal, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, Wifi, Phone, HardDrive, Camera, Plug } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const categoryTextColors = {
@@ -18,7 +18,18 @@ const categoryTextColors = {
   stereo_amps: "text-orange-400",
   multizone_amps: "text-amber-400",
   surround_processors: "text-yellow-400",
-  av_receivers: "text-emerald-400"
+  av_receivers: "text-emerald-400",
+  network_switches: "text-slate-400",
+  control_processors: "text-violet-400",
+  hdmi_extenders: "text-indigo-400",
+  access_points: "text-sky-400",
+  patch_panels: "text-slate-400",
+  data_jacks: "text-blue-400",
+  telephones: "text-cyan-400",
+  phone_jacks: "text-cyan-400",
+  intercoms: "text-teal-400",
+  nvrs: "text-gray-400",
+  ip_cameras: "text-gray-400"
 };
 
 const categoryIcons = {
@@ -38,7 +49,15 @@ const categoryIcons = {
   av_receivers: Radio,
   network_switches: Router,
   control_processors: Settings2,
-  hdmi_extenders: Cable
+  hdmi_extenders: Cable,
+  access_points: Wifi,
+  patch_panels: LayoutGrid,
+  data_jacks: Plug,
+  telephones: Phone,
+  phone_jacks: Plug,
+  intercoms: Speaker,
+  nvrs: HardDrive,
+  ip_cameras: Camera
 };
 
 export default function RoomManager({ 
