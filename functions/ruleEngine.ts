@@ -58,7 +58,13 @@ function ruleMatches(spec, ifCondition) {
   }
 
   for (const [key, condition] of Object.entries(ifCondition)) {
-    const value = getValueByPath(spec, key);
+    // Look for the path either in spec directly or in spec.attributes
+    let value = getValueByPath(spec, key);
+    if (value === undefined && key.startsWith('attributes.')) {
+      const attrKey = key.substring('attributes.'.length);
+      value = spec.attributes ? spec.attributes[attrKey] : undefined;
+    }
+    
     if (!matchesCondition(value, condition)) {
       return false;
     }
