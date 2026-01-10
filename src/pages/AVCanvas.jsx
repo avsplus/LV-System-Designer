@@ -639,15 +639,8 @@ function AVCanvasContent() {
   };
 
   const handleFloorplansUpdate = (updatedFloorplans) => {
+    markLocalChange();
     setFloorplans(updatedFloorplans);
-    if (currentProject?.id) {
-      const updatedProject = { ...currentProject, floorplans: updatedFloorplans };
-      setCurrentProject(updatedProject);
-      // Instant save without await to not block UI
-      base44.entities.AVProject.update(currentProject.id, {
-        floorplans: updatedFloorplans
-      }).then(() => markLocalChange()).catch(error => console.error('Failed to save floorplans:', error));
-    }
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
