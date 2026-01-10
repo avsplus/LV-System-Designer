@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { generateConnectionsFromSpec } from './ruleEngine.js';
 
 Deno.serve(async (req) => {
+    console.log('Function started');
     try {
         console.log('enrichProductConnections called');
         const base44 = createClientFromRequest(req);
