@@ -111,16 +111,17 @@ function AVCanvasContent() {
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
+  const updateKnownTimestampRef = useRef(() => {});
 
   // Project data from hook - manages all project state including floorplans
   const handleSaveComplete = useCallback((updatedProject) => {
     // Update sync timestamp IMMEDIATELY to prevent race condition
-    if (updateKnownTimestamp) {
-      updateKnownTimestamp(updatedProject.updated_date);
+    if (updateKnownTimestampRef.current) {
+      updateKnownTimestampRef.current(updatedProject.updated_date);
     }
     setCurrentProject(updatedProject);
     console.log('💾 Save complete - updated project timestamp to:', updatedProject.updated_date);
-  }, [updateKnownTimestamp]);
+  }, []);
   
   const projectData = useProjectData(currentProject, currentUserEmail, markLocalChangeRef.current, handleSaveComplete);
 
@@ -145,10 +146,13 @@ function AVCanvasContent() {
     onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
 
-  // Update the ref so projectData can use it
+  // Update the refs so callbacks can use them
   useEffect(() => {
     markLocalChangeRef.current = markLocalChange;
-  }, [markLocalChange]);
+    updateKnownTimestampRef.current = updateKnownTimestamp;
+  }, [markLocalChange, updateKnownTimestamp]);
+
+
 
   const lastMiddleClickRef = useRef(0);
   
