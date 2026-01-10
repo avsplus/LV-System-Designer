@@ -51,7 +51,10 @@ function ruleMatches(spec, ifCondition) {
       value = spec.attributes ? spec.attributes[attrKey] : undefined;
     }
     
-    if (!matchesCondition(value, condition)) {
+    const matches = matchesCondition(value, condition);
+    console.log(`[DEBUG-RULE] Checking ${key}: value=${value}, condition=${JSON.stringify(condition)}, matches=${matches}`);
+    
+    if (!matches) {
       return false;
     }
   }
