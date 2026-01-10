@@ -149,19 +149,15 @@ export default function ProductSidebar({ products, onProductSelect }) {
       {/* Logo */}
       <div className="p-4 border-b border-gray-800 flex justify-center">
         <div className="cursor-pointer hover:opacity-80 transition-opacity">
-          {(settings?.logo_url || organization?.logo_url) ? (
-            <img 
-              src={settings?.logo_url || organization?.logo_url} 
-              alt={settings?.name || organization?.name || 'Logo'} 
-              className="h-14 w-auto object-contain"
-            />
-          ) : (
-            <div className="h-14 flex items-center">
-              <span className="text-xl font-bold text-white">
-                {settings?.name || organization?.name || 'AV Design'}
-              </span>
-            </div>
-          )}
+          <img 
+            src={settings?.logo_url || organization?.logo_url || 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png'} 
+            alt="AV System Design Logo" 
+            className="h-14 w-auto object-contain"
+            onError={(e) => {
+              // Fallback text if image fails to load
+              e.target.style.display = 'none';
+            }}
+          />
         </div>
       </div>
 
