@@ -616,19 +616,15 @@ function AVCanvasContent() {
     }
   };
 
-  const handleFloorplansUpdate = async (updatedFloorplans) => {
+  const handleFloorplansUpdate = (updatedFloorplans) => {
     setFloorplans(updatedFloorplans);
     if (currentProject?.id) {
-      try {
-        const updatedProject = { ...currentProject, floorplans: updatedFloorplans };
-        setCurrentProject(updatedProject);
-        await base44.entities.AVProject.update(currentProject.id, {
-          floorplans: updatedFloorplans
-        });
-        markLocalChange();
-      } catch (error) {
-        console.error('Failed to save floorplans:', error);
-      }
+      const updatedProject = { ...currentProject, floorplans: updatedFloorplans };
+      setCurrentProject(updatedProject);
+      // Instant save without await to not block UI
+      base44.entities.AVProject.update(currentProject.id, {
+        floorplans: updatedFloorplans
+      }).then(() => markLocalChange()).catch(error => console.error('Failed to save floorplans:', error));
     }
   };
 
@@ -825,10 +821,10 @@ function AVCanvasContent() {
 
         if (currentProject?.id) {
           setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
+          // Instant save
           base44.entities.AVProject.update(currentProject.id, {
             floorplans: updatedFloorplans
-          }).catch(error => console.error('Failed to save floorplan position:', error));
-          markLocalChange();
+          }).then(() => markLocalChange()).catch(error => console.error('Failed to save floorplan position:', error));
         }
 
         return updatedFloorplans;
@@ -847,10 +843,10 @@ function AVCanvasContent() {
         
         if (currentProject?.id) {
           setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
+          // Instant save
           base44.entities.AVProject.update(currentProject.id, {
             floorplans: updatedFloorplans
-          }).catch(error => console.error('Failed to save floorplan scale:', error));
-          markLocalChange();
+          }).then(() => markLocalChange()).catch(error => console.error('Failed to save floorplan scale:', error));
         }
         
         return updatedFloorplans;
