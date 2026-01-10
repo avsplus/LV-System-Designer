@@ -817,26 +817,34 @@ function AVCanvasContent() {
       });
     }, [draggingFloorplan, floorplanDragStart, pan.x, pan.y, zoom]);
 
-  const handleResizeEnd = useCallback(() => {
+  const handleResizeEnd = useCallback((e) => {
     if (draggingFloorplan && floorplanDragStart) {
-      console.log('🎯 Floorplan drag ended - New position:', { id: draggingFloorplan, x: floorplanDragOffset.x, y: floorplanDragOffset.y });
-      markLocalChange(); // Mark BEFORE state update
-      setFloorplans(prev => {
-        const updatedFloorplans = prev.map(fp => {
-          if (fp.id === draggingFloorplan) {
-            return {
-              ...fp,
-              position: {
-                x: floorplanDragOffset.x,
-                y: floorplanDragOffset.y
-              }
-            };
-          }
-          return fp;
-        });
+      // Only update position if user actually moved the mouse (not just a click)
+      const mouseMoveDist = Math.sqrt(
+        Math.pow((e?.clientX || 0) - floorplanDragStart.startMouseX, 2) +
+        Math.pow((e?.clientY || 0) - floorplanDragStart.startMouseY, 2)
+      );
+      
+      if (mouseMoveDist > 5) {
+        console.log('🎯 Floorplan drag ended - New position:', { id: draggingFloorplan, x: floorplanDragOffset.x, y: floorplanDragOffset.y });
+        markLocalChange(); // Mark BEFORE state update
+        setFloorplans(prev => {
+          const updatedFloorplans = prev.map(fp => {
+            if (fp.id === draggingFloorplan) {
+              return {
+                ...fp,
+                position: {
+                  x: floorplanDragOffset.x,
+                  y: floorplanDragOffset.y
+                }
+              };
+            }
+            return fp;
+          });
 
-        return updatedFloorplans;
-      });
+          return updatedFloorplans;
+        });
+      }
     }
 
     if (resizingRef.current) {
@@ -998,7 +1006,7 @@ function AVCanvasContent() {
 
     const handleDragEnd = (e) => {
       handleGlobalMouseUp(e);
-      handleResizeEnd();
+      handleResizeEnd(e);
     };
 
     window.addEventListener('mousemove', handleDragMove);
