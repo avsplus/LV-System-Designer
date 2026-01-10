@@ -1657,17 +1657,18 @@ function AVCanvasContent() {
                   const hasDimensions = fp.imageWidth && fp.imageHeight;
                   let displayWidth, displayHeight;
 
-                  if (hasCalibration) {
-                    // Calibrated: scale based on real-world measurements
-                    const scaleFactor = (1 / fp.pixelsPerInch) * currentScale;
-                    displayWidth = fp.imageWidth * scaleFactor;
-                    displayHeight = fp.imageHeight * scaleFactor;
-                  } else if (hasDimensions) {
-                    // Has dimensions but no calibration - preserve aspect ratio
-                    displayWidth = 500 * currentScale;
+                  if (hasDimensions) {
+                    // Calculate width based on calibration or default
+                    if (hasCalibration) {
+                      const scaleFactor = (1 / fp.pixelsPerInch) * currentScale;
+                      displayWidth = fp.imageWidth * scaleFactor;
+                    } else {
+                      displayWidth = 500 * currentScale;
+                    }
+                    // Always calculate height from width to preserve aspect ratio
                     displayHeight = displayWidth * (fp.imageHeight / fp.imageWidth);
                   } else {
-                    // No dimensions yet - temporary square placeholder
+                    // No dimensions yet - square placeholder
                     displayWidth = 500 * currentScale;
                     displayHeight = 500 * currentScale;
                   }
