@@ -104,6 +104,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           markLocalChange();
         }
         try {
+          console.log('💾 Saving floorplans to database:', JSON.stringify(floorplans, null, 2));
           const updatedProject = await base44.entities.AVProject.update(currentProject.id, {
             canvas_products: canvasProducts,
             connections: connections,
@@ -135,6 +136,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   const loadProject = useCallback((project) => {
     if (project) {
       console.log('📂 Loading project:', project.name, 'timestamp:', project.updated_date);
+      console.log('📍 RAW floorplans from database:', JSON.stringify(project.floorplans, null, 2));
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
       setFloorplans(project.floorplans || []);
