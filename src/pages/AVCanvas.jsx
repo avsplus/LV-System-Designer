@@ -76,6 +76,7 @@ function AVCanvasContent() {
   // Project sync callback
   const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
     setCurrentProject(updatedProject);
+    setFloorplans(updatedProject?.floorplans || []);
     projectData.handleProjectUpdatedFromSync(updatedProject);
   }, []);
 
@@ -217,6 +218,27 @@ function AVCanvasContent() {
     setSelectedCanvasProduct(null);
     setSelectedRoom(null);
   };
+
+  // Auto-save floorplans instantly (with 100ms debounce)
+  useEffect(() => {
+    if (!currentProject?.id) return;
+
+    const floorplansJson = JSON.stringify(floorplans);
+    const savedFloorplansJson = JSON.stringify(currentProject.floorplans || []);
+
+    if (floorplansJson === savedFloorplansJson) return;
+
+    const saveTimer = setTimeout(() => {
+      base44.entities.AVProject.update(currentProject.id, {
+        floorplans: floorplans
+      }).then(() => {
+        setCurrentProject(curr => ({ ...curr, floorplans: floorplans }));
+        markLocalChange();
+      }).catch(error => console.error('Failed to auto-save floorplans:', error));
+    }, 100);
+
+    return () => clearTimeout(saveTimer);
+  }, [floorplans, currentProject?.id, markLocalChange]);
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
