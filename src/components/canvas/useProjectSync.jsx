@@ -40,8 +40,12 @@ export default function useProjectSync({
 
     // Update last known timestamp when project changes (initial load or project switch)
     // This prevents treating the initial load as a "collaborator update"
-    lastKnownUpdate.current = currentProject.updated_date;
-    console.log('🔄 Sync initialized for project, timestamp:', currentProject.updated_date);
+    // Normalize to match database precision (truncate microseconds)
+    const normalizedTimestamp = currentProject.updated_date ? 
+      currentProject.updated_date.substring(0, 23) + '000' : 
+      currentProject.updated_date;
+    lastKnownUpdate.current = normalizedTimestamp;
+    console.log('🔄 Sync initialized for project, timestamp:', normalizedTimestamp);
 
     const checkForUpdates = async () => {
       // Skip sync if we're saving or within local change window (extended to 8 seconds)
@@ -70,13 +74,19 @@ export default function useProjectSync({
 
         // Only sync if timestamp actually changed from what we know
         // This prevents re-syncing the same data after project load
-        if (latestProject.updated_date !== lastKnownUpdate.current) {
+        // Normalize both timestamps to same precision for comparison
+        const normalizedLatest = latestProject.updated_date ? 
+          latestProject.updated_date.substring(0, 23) + '000' : 
+          latestProject.updated_date;
+        const normalizedKnown = lastKnownUpdate.current;
+
+        if (normalizedLatest !== normalizedKnown) {
           console.log('📥 Remote update detected:', {
-            known: lastKnownUpdate.current,
-            latest: latestProject.updated_date
+            known: normalizedKnown,
+            latest: normalizedLatest
           });
-          lastKnownUpdate.current = latestProject.updated_date;
-          
+          lastKnownUpdate.current = normalizedLatest;
+
           toast.info('Project updated by collaborator', {
             description: 'Canvas has been synced with latest changes'
           });
