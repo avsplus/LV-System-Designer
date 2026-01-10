@@ -164,6 +164,21 @@ export default function ProductSidebar({ products, onProductSelect }) {
     }));
   };
 
+  // Group products by master category, then by individual category
+  const productsByMasterCategory = {};
+  filteredProducts.forEach(product => {
+    const masterCat = masterCategoryMap[product.category] || 'Other';
+    if (!productsByMasterCategory[masterCat]) {
+      productsByMasterCategory[masterCat] = {};
+    }
+    if (!productsByMasterCategory[masterCat][product.category]) {
+      productsByMasterCategory[masterCat][product.category] = [];
+    }
+    productsByMasterCategory[masterCat][product.category].push(product);
+  });
+
+  const masterCategories = Object.keys(productsByMasterCategory).sort();
+
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
       {/* Logo */}
