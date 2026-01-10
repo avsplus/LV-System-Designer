@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical } from "lucide-react";
+import { X, Plus, Home, ChevronDown, ChevronRight, Trash2, GripVertical, Tv, Projector, Box, Network, Grid3x3, Music, Cast, Volume2, Speaker, Waves, Radio, Headphones, AudioWaveform, Activity, Cable, Cpu, Plug } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const categoryTextColors = {
@@ -19,6 +19,26 @@ const categoryTextColors = {
   multizone_amps: "text-amber-400",
   surround_processors: "text-yellow-400",
   av_receivers: "text-emerald-400"
+};
+
+const categoryIcons = {
+  televisions: Tv,
+  projectors: Projector,
+  projector_screens: Box,
+  video_distribution: Network,
+  matrix_switchers: Grid3x3,
+  audio_streamers: Music,
+  media_streamers: Cast,
+  speakers: Volume2,
+  soundbars: Speaker,
+  subwoofers: Waves,
+  stereo_amps: Radio,
+  multizone_amps: Headphones,
+  surround_processors: AudioWaveform,
+  av_receivers: Activity,
+  network_switches: Cable,
+  control_processors: Cpu,
+  hdmi_extenders: Plug
 };
 
 export default function RoomManager({ 
@@ -222,6 +242,10 @@ export default function RoomManager({
                         } ${dragOverDeviceId === device.instanceId ? 'border-t-2 border-blue-500' : ''}`}
                       >
                         <GripVertical className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0 cursor-grab" />
+                        {(() => {
+                          const CategoryIcon = categoryIcons[device.product.category] || Box;
+                          return <CategoryIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${categoryTextColors[device.product.category] || 'text-gray-400'}`} />;
+                        })()}
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs capitalize ${categoryTextColors[device.product.category] || 'text-gray-400'}`}>
                             {device.product.category?.replace(/_/g, ' ')}
