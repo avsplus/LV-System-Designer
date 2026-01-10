@@ -65,9 +65,12 @@ function ruleMatches(spec, ifCondition) {
 function generatePortsFromRule(spec, rule) {
   const ports = [];
 
+  console.log(`[DEBUG-GEN] Testing rule: ${JSON.stringify(rule.if)}`);
   if (!ruleMatches(spec, rule.if)) {
+    console.log(`[DEBUG-GEN] Rule did not match`);
     return ports;
   }
+  console.log(`[DEBUG-GEN] Rule matched!`);
 
   const { then: action } = rule;
   
