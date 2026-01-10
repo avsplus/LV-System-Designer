@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
         total: products.length,
         enriched,
         failed: failedProducts.length,
-        failedProducts: failedProducts.slice(0, 3)
+        failedProducts: failedProducts.slice(0, 3),
+        debug: debugLogs
     });
 });
