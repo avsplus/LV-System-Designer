@@ -68,7 +68,22 @@ Deno.serve(async (req) => {
                 "control_processors": "control_processors",
                 "controlprocessors": "control_processors",
                 "hdmi_extenders": "hdmi_extenders",
-                "hdmiextenders": "hdmi_extenders"
+                "hdmiextenders": "hdmi_extenders",
+                "access_points": "access_points",
+                "accesspoints": "access_points",
+                "patch_panels": "patch_panels",
+                "patchpanels": "patch_panels",
+                "data_jacks": "data_jacks",
+                "datajacks": "data_jacks",
+                "telephones": "telephones",
+                "phone_jacks": "phone_jacks",
+                "phonejacks": "phone_jacks",
+                "intercoms": "intercoms",
+                "nvrs": "nvrs",
+                "nvr": "nvrs",
+                "ip_cameras": "ip_cameras",
+                "ipcameras": "ip_cameras",
+                "ipcams": "ip_cameras"
             };
             
             return categoryMapping[normalized] || normalized;
