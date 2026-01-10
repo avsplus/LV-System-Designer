@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { generateConnectionsFromSpec } from './ruleEngine.js';
 
 Deno.serve(async (req) => {
     try {
@@ -220,9 +221,7 @@ Common attributes by device type:
                         is_active: true
                     });
 
-                    // Import rule engine functions
-                    const ruleEngine = await import('./ruleEngine.js');
-                    const { inputs, outputs } = ruleEngine.generateConnectionsFromSpec(createdSpec, rules);
+                    const { inputs, outputs } = generateConnectionsFromSpec(createdSpec, rules);
 
                     // Step 4: Update product with generated connections and mark spec approved
                     if (inputs.length > 0 || outputs.length > 0) {
