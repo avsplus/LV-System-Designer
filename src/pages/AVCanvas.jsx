@@ -1655,7 +1655,7 @@ function AVCanvasContent() {
               pointerEvents: 'auto'
             }}>
               {/* Floorplans Layer */}
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Check if this floorplan is being resized
                   const isThisOneResizing = resizingRef.current?.id === fp.id;
