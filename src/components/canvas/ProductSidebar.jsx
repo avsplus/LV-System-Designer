@@ -107,7 +107,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
   const { settings } = useSettings();
   const { organization } = useOrganization();
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({ 'master-AV': true });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
