@@ -114,9 +114,13 @@ function AVCanvasContent() {
 
   // Project data from hook - manages all project state including floorplans
   const handleSaveComplete = useCallback((updatedProject) => {
+    // Update sync timestamp IMMEDIATELY to prevent race condition
+    if (updateKnownTimestamp) {
+      updateKnownTimestamp(updatedProject.updated_date);
+    }
     setCurrentProject(updatedProject);
     console.log('💾 Save complete - updated project timestamp to:', updatedProject.updated_date);
-  }, []);
+  }, [updateKnownTimestamp]);
   
   const projectData = useProjectData(currentProject, currentUserEmail, markLocalChangeRef.current, handleSaveComplete);
 
@@ -135,7 +139,7 @@ function AVCanvasContent() {
     handleProjectUpdatedFromSync(updatedProject);
   }, [handleProjectUpdatedFromSync]);
 
-  const { markLocalChange } = useProjectSync({
+  const { markLocalChange, updateKnownTimestamp } = useProjectSync({
     currentProject,
     currentUserEmail,
     onProjectUpdated: handleProjectUpdatedFromSyncCallback

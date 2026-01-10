@@ -23,6 +23,12 @@ export default function useProjectSync({
     }, 3000);
   }, []);
 
+  // Update known timestamp directly (used after save to prevent race condition)
+  const updateKnownTimestamp = useCallback((timestamp) => {
+    lastKnownUpdate.current = timestamp;
+    console.log('⏰ Updated known timestamp to:', timestamp);
+  }, []);
+
 
 
   useEffect(() => {
@@ -83,5 +89,5 @@ export default function useProjectSync({
     return () => clearInterval(interval);
   }, [currentProject?.id, currentProject?.updated_date, currentUserEmail, onProjectUpdated]);
 
-  return { markLocalChange };
+  return { markLocalChange, updateKnownTimestamp };
 }
