@@ -2236,6 +2236,21 @@ function AVCanvasContent() {
               ));
             }}
             onDeviceHover={setHoveredDeviceId}
+            onCenterDevice={(device) => {
+              if (canvasRef.current && device.position) {
+                const canvasRect = canvasRef.current.getBoundingClientRect();
+                const viewportCenterX = canvasRect.width / 2;
+                const viewportCenterY = canvasRect.height / 2;
+                const deviceCenterX = device.position.x + 160;
+                const deviceCenterY = device.position.y + 140;
+                
+                setPan({
+                  x: viewportCenterX - deviceCenterX,
+                  y: viewportCenterY - deviceCenterY
+                });
+                setZoom(1);
+              }
+            }}
           />
         )}
 

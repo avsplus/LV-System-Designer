@@ -52,7 +52,8 @@ export default function RoomManager({
   onSelectRoom,
   onDeviceRoomChange,
   onReorderDevices,
-  keepOpen = false
+  keepOpen = false,
+  onCenterDevice
 }) {
   const [newRoomName, setNewRoomName] = useState('');
   const [expandedRooms, setExpandedRooms] = useState({});
@@ -236,7 +237,12 @@ export default function RoomManager({
                           setDragOverRoom(null);
                           setDragOverDeviceId(null);
                         }}
-                        onClick={() => onDeviceClick(device)}
+                        onClick={() => {
+                          onDeviceClick(device);
+                          if (onCenterDevice) {
+                            onCenterDevice(device);
+                          }
+                        }}
                         className={`px-3 py-2 bg-gray-800/30 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors flex items-start gap-2 ${
                           draggedDevice?.instanceId === device.instanceId ? 'opacity-50' : ''
                         } ${dragOverDeviceId === device.instanceId ? 'border-t-2 border-blue-500' : ''}`}
