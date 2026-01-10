@@ -445,7 +445,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                         const isExpanded = expandedCategories[category] === true;
 
                         return (
-                          <div key={category} className="space-y-2">
+                          <div key={category} className="space-y-2" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={() => toggleCategory(category)}
                               className={`w-full flex items-center justify-between px-2 py-1.5 rounded transition-all border-l-2 text-xs ${
