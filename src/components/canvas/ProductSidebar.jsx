@@ -47,6 +47,26 @@ const categoryIcons = {
   hdmi_extenders: Cable
 };
 
+const masterCategoryMap = {
+  av_receivers: 'AV',
+  projectors: 'AV',
+  hdmi_extenders: 'AV',
+  matrix_switchers: 'AV',
+  media_streamers: 'AV',
+  video_distribution: 'AV',
+  network_switches: 'Network',
+  projector_screens: 'Displays',
+  televisions: 'Displays',
+  audio_streamers: 'Audio',
+  soundbars: 'Audio',
+  speakers: 'Audio',
+  multizone_amps: 'Audio',
+  stereo_amps: 'Audio',
+  subwoofers: 'Audio',
+  surround_processors: 'Audio',
+  control_processors: 'Control'
+};
+
 export default function ProductSidebar({ products, onProductSelect }) {
   const { settings } = useSettings();
   const { organization } = useOrganization();
