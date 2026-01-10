@@ -273,23 +273,35 @@ Deno.serve(async (req) => {
                  failed++;
              }
          }
-         console.log(`\nEnrichment complete: ${enriched} enriched, ${failed} failed`);
+         logs.push(`Complete: ${enriched} enriched, ${failed} failed`);
 
-        return Response.json({ 
-            success: true,
-            total: products.length,
-            enriched,
-            failed,
-            categoryFixed,
-            categoryFilter: categoryFilter || 'all',
-            message: `Enriched ${enriched} products with connection data${categoryFixed > 0 ? `, fixed ${categoryFixed} category names` : ''}${categoryFilter ? ` (category: ${categoryFilter})` : ''}`
-        });
+         // Write logs to file
+         try {
+             await Deno.writeTextFile('/tmp/enrich.log', logs.join('\n'));
+         } catch (e) {
+             // ignored
+         }
 
-    } catch (error) {
-        console.error('Enrichment error:', error);
-        return Response.json({ 
-            error: error.message,
-            details: 'Failed to enrich products with connection data'
-        }, { status: 500 });
-    }
-});
+         return Response.json({ 
+             success: true,
+             total: products.length,
+             enriched,
+             failed,
+             categoryFixed,
+             categoryFilter: categoryFilter || 'all',
+             message: `Enriched ${enriched} products with connection data${categoryFixed > 0 ? `, fixed ${categoryFixed} category names` : ''}${categoryFilter ? ` (category: ${categoryFilter})` : ''}`
+         });
+
+         } catch (error) {
+         const errMsg = 'Enrichment error: ' + (error.message || String(error));
+         try {
+             await Deno.writeTextFile('/tmp/enrich.log', logs.join('\n') + '\n\nERROR:\n' + errMsg);
+         } catch (e) {
+             // ignored
+         }
+         return Response.json({ 
+             error: error.message,
+             details: 'Failed to enrich products with connection data'
+         }, { status: 500 });
+         }
+         });
