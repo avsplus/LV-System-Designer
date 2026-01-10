@@ -324,9 +324,36 @@ IMPORTANT:
                         inputs = inputs.map(validateConnection).filter(c => c !== null);
                         outputs = outputs.map(validateConnection).filter(c => c !== null);
                         
-                        // Validation: Media streamers should not have HDMI inputs
+                        // Category-specific validations
                         if (product.category === 'media_streamers') {
                             inputs = inputs.filter(input => input.type !== 'HDMI');
+                        }
+                        if (product.category === 'speakers' || product.category === 'subwoofers') {
+                            // Speakers only have speaker wire/subwoofer inputs
+                            inputs = inputs.filter(input => ['Speaker Wire', 'Subwoofer'].includes(input.type));
+                            outputs = [];
+                        }
+                        if (product.category === 'patch_panels' || product.category === 'data_jacks') {
+                            // Network/data infrastructure - only Ethernet/data connections
+                            inputs = inputs.filter(input => ['Ethernet', 'Control'].includes(input.type));
+                            outputs = outputs.filter(output => ['Ethernet', 'Control'].includes(output.type));
+                        }
+                        if (product.category === 'intercoms' || product.category === 'telephones') {
+                            // Communications - limited connection types
+                            const comTypes = ['Ethernet', 'Control', 'RS232', 'XLR', 'RCA'];
+                            inputs = inputs.filter(input => comTypes.includes(input.type));
+                            outputs = outputs.filter(output => comTypes.includes(output.type));
+                        }
+                        if (product.category === 'nvrs' || product.category === 'ip_cameras') {
+                            // Video surveillance - Ethernet, HDMI, and power-related
+                            const vidTypes = ['Ethernet', 'HDMI', 'Control', 'RS232'];
+                            inputs = inputs.filter(input => vidTypes.includes(input.type));
+                            outputs = outputs.filter(output => vidTypes.includes(output.type));
+                        }
+                        if (product.category === 'access_points') {
+                            // Wireless network - Ethernet and power only
+                            inputs = inputs.filter(input => ['Ethernet', 'Control'].includes(input.type));
+                            outputs = outputs.filter(output => ['Ethernet', 'Control'].includes(output.type));
                         }
                         
                         updateData.input_connections = inputs;
