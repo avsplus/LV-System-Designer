@@ -3,12 +3,14 @@ import { generateConnectionsFromSpec } from './ruleEngine.js';
 
 Deno.serve(async (req) => {
     try {
+        console.log('enrichProductConnections called');
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
 
         if (!user) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        console.log('User authenticated:', user.email);
 
         // Device type mapping from category to device_type
         const deviceTypeMap = {
@@ -47,8 +49,10 @@ Deno.serve(async (req) => {
             categoryFilter = body.category || null;
             searchBrand = body.brand || null;
             searchModel = body.model || null;
+            console.log('Request body parsed:', { searchMode, categoryFilter, searchBrand, searchModel });
         } catch (e) {
             // No body or invalid JSON, proceed without filter
+            console.log('No request body or parse error:', e.message);
         }
 
         // Normalize category function
