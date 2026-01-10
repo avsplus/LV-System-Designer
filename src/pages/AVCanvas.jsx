@@ -113,7 +113,12 @@ function AVCanvasContent() {
   const markLocalChangeRef = useRef(() => {});
 
   // Project data from hook - manages all project state including floorplans
-  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChangeRef.current);
+  const handleSaveComplete = useCallback((updatedProject) => {
+    setCurrentProject(updatedProject);
+    console.log('💾 Save complete - updated project timestamp to:', updatedProject.updated_date);
+  }, []);
+  
+  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChangeRef.current, handleSaveComplete);
 
   const {
     rooms, canvasProducts, connections, setConnections,
@@ -125,6 +130,7 @@ function AVCanvasContent() {
 
   // Project sync - after projectData so we can use handleProjectUpdatedFromSync
   const handleProjectUpdatedFromSyncCallback = useCallback((updatedProject) => {
+    console.log('🔄 Applying sync update from collaborator');
     setCurrentProject(updatedProject);
     handleProjectUpdatedFromSync(updatedProject);
   }, [handleProjectUpdatedFromSync]);

@@ -29,7 +29,7 @@ export const ensureNetworkInfo = (product) => ({
   networkInfo: product.networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
 });
 
-export default function useProjectData(currentProject, currentUserEmail, markLocalChange) {
+export default function useProjectData(currentProject, currentUserEmail, markLocalChange, onSaveComplete) {
   const [rooms, setRooms] = useState([]);
   const [canvasProducts, setCanvasProducts] = useState([]);
   const [connections, setConnections] = useState([]);
@@ -98,7 +98,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           markLocalChange();
         }
         try {
-          await base44.entities.AVProject.update(currentProject.id, {
+          const updatedProject = await base44.entities.AVProject.update(currentProject.id, {
             canvas_products: canvasProducts,
             connections: connections,
             rooms: rooms,
@@ -106,6 +106,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           });
           lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson };
           console.log('✅ Project saved - Floorplans:', floorplans.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
+
+          // CRITICAL: Update currentProject's timestamp to prevent sync thinking this is a collaborator update
+          if (onSaveComplete && updatedProject) {
+            onSaveComplete(updatedProject);
+          }
         } catch (error) {
           console.error('Auto-save failed:', error);
         } finally {
