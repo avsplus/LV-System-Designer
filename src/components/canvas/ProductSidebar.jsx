@@ -189,6 +189,24 @@ export default function ProductSidebar({ products, onProductSelect }) {
     }));
   };
 
+  const toggleMasterCategory = (masterCat) => {
+    setExpandedCategories(prev => {
+      const key = `master-${masterCat}`;
+      const newState = {};
+      // Close all other masters
+      Object.keys(prev).forEach(k => {
+        if (k.startsWith('master-')) {
+          newState[k] = false;
+        } else {
+          newState[k] = prev[k];
+        }
+      });
+      // Toggle the clicked master
+      newState[key] = !prev[key];
+      return newState;
+    });
+  };
+
   // Define all master categories and their subcategories
   const allMasterCategoryMappings = {
     'AV': ['av_receivers', 'projectors', 'hdmi_extenders', 'matrix_switchers', 'media_streamers', 'video_distribution'],
