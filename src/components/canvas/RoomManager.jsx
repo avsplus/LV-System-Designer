@@ -227,7 +227,7 @@ export default function RoomManager({
                             {device.product.category?.replace(/_/g, ' ')}
                           </p>
                           <p className="text-sm font-medium text-white">
-                            {device.label} <span className="text-gray-400 font-normal">— {device.product.model}</span>
+                            {device.product.brand} {device.product.model} <span className="text-gray-400 font-normal">({device.label})</span>
                           </p>
                           {device.product.description && (
                             <p className="text-xs text-gray-500 truncate mt-0.5">
