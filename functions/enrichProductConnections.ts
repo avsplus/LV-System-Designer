@@ -12,6 +12,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const categoryFilter = body.category;
 
+    console.log('[DEBUG] Request received with category:', categoryFilter);
+
     // Fetch products
     let products = [];
     if (categoryFilter) {
