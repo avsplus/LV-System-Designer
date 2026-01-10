@@ -51,9 +51,13 @@ Deno.serve(async (req) => {
             });
 
             if (!llmResponse || !llmResponse.attributes) {
-                failedProducts.push(`${product.brand} ${product.model}: No specs extracted`);
+                const msg = `${product.brand} ${product.model}: No specs extracted`;
+                debugLogs.push(msg);
+                failedProducts.push(msg);
                 continue;
             }
+            
+            debugLogs.push(`Got attributes: ${JSON.stringify(llmResponse.attributes)}`);
 
             // Create DeviceSpec
             const deviceSpec = await base44.asServiceRole.entities.DeviceSpec.create({
