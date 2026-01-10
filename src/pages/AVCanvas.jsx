@@ -1755,8 +1755,8 @@ function AVCanvasContent() {
                       />
                       {/* Floorplan name overlay */}
                       <div 
-                        className="absolute bottom-4 right-4 bg-gray-900/95 text-white px-6 py-3.5 rounded-xl text-2xl font-bold border-2 border-gray-500 shadow-2xl"
-                        style={{ pointerEvents: 'none' }}
+                        className="absolute bottom-4 right-4 text-white text-5xl font-bold"
+                        style={{ pointerEvents: 'none', textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}
                       >
                         {fp.name}
                       </div>
