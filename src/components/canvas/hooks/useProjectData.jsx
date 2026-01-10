@@ -170,17 +170,18 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     if (currentProject?.id) {
       trackActivity(ActivityActions.ADDED_ROOM, currentProject.id, currentProject.name, { room_name: roomName });
     }
+    return newRoom;
   }, [currentProject]);
 
   const handleDeleteRoom = useCallback((roomId) => {
     const room = rooms.find(r => r.id === roomId);
     setRooms(prev => prev.filter(r => r.id !== roomId));
     if (room) {
-      setCanvasProducts(prev => prev.filter(cp => cp.room !== room.name));
+      setCanvasProducts(prev => prev.filter(cp => cp.room !== roomId));
       setConnections(prev => prev.filter(conn => {
         const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
         const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
-        return fromDevice?.room !== room.name && toDevice?.room !== room.name;
+        return fromDevice?.room !== roomId && toDevice?.room !== roomId;
       }));
     }
     if (currentProject?.id && room) {
@@ -189,11 +190,12 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, [currentProject, canvasProducts, rooms]);
 
   // Product operations
-  const addProductToCanvas = useCallback((product, position, room) => {
+  const addProductToCanvas = useCallback((product, position, roomId) => {
     const instanceId = `${product.id}_${Date.now()}_${Math.random()}`;
     const catAbbr = CATEGORY_ABBREVIATIONS[product.category] || 'DEV';
-    const roomInitial = room ? room.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : 'UN';
-    const roomDevices = canvasProducts.filter(cp => cp.room === room);
+    const room = rooms.find(r => r.id === roomId);
+    const roomInitial = room?.name ? room.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : 'UN';
+    const roomDevices = canvasProducts.filter(cp => cp.room === roomId);
     const catCount = roomDevices.filter(cp => cp.product.category === product.category).length + 1;
     const deviceLabel = `${catAbbr}-${roomInitial}-${catCount}`;
 
@@ -202,7 +204,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       product,
       position,
       label: deviceLabel,
-      room: room,
+      room: roomId,
       networkInfo: { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }
     }]);
 
@@ -211,7 +213,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         device_name: `${product.brand} ${product.model}`
       });
     }
-  }, [currentProject, canvasProducts]);
+  }, [currentProject, canvasProducts, rooms]);
 
   const handlePositionChange = useCallback((instanceId, newPosition) => {
     setCanvasProducts(prev => prev.map(cp => 
