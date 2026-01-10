@@ -2,12 +2,32 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Projector, Box, Network, Grid3x3, Music, Cast, Volume2, Speaker, Waves, Radio, Headphones, AudioWaveform, Activity, Cable, Cpu, Plug, GripVertical } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+const categoryIcons = {
+  televisions: Tv,
+  projectors: Projector,
+  projector_screens: Box,
+  video_distribution: Network,
+  matrix_switchers: Grid3x3,
+  audio_streamers: Music,
+  media_streamers: Cast,
+  speakers: Volume2,
+  soundbars: Speaker,
+  subwoofers: Waves,
+  stereo_amps: Radio,
+  multizone_amps: Headphones,
+  surround_processors: AudioWaveform,
+  av_receivers: Activity,
+  network_switches: Cable,
+  control_processors: Cpu,
+  hdmi_extenders: Plug
+};
 
 export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, canvasProducts = [], onDeviceRoomChange }) {
   const [uploading, setUploading] = useState(false);
@@ -19,6 +39,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [editingScale, setEditingScale] = useState(null);
   const [expandedFloorplan, setExpandedFloorplan] = useState(null);
   const [newRoomName, setNewRoomName] = useState('');
+  const [draggedDevice, setDraggedDevice] = useState(null);
+  const [dragOverRoom, setDragOverRoom] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -595,29 +617,64 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                           getFloorplanRooms(fp.id).map(room => {
                             const roomDevices = getRoomDevices(room.id);
                             return (
-                              <div key={room.id} className="bg-gray-900 rounded p-2">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-xs text-gray-300 font-medium">{room.name}</span>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onDeleteRoom(room.id);
-                                    }}
-                                    className="h-5 w-5 text-red-400 hover:text-red-300"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </div>
+                              <div 
+                                 key={room.id} 
+                                 className={`bg-gray-900 rounded p-2 transition-colors ${
+                                   dragOverRoom === room.id ? 'ring-2 ring-green-500 bg-green-500/10' : ''
+                                 }`}
+                                 onDragOver={(e) => {
+                                   e.preventDefault();
+                                   if (draggedDevice && draggedDevice.fromRoom !== room.id) {
+                                     setDragOverRoom(room.id);
+                                   }
+                                 }}
+                                 onDragLeave={() => setDragOverRoom(null)}
+                                 onDrop={(e) => {
+                                   e.preventDefault();
+                                   if (draggedDevice && draggedDevice.fromRoom !== room.id && onDeviceRoomChange) {
+                                     onDeviceRoomChange(draggedDevice.device.instanceId, room.id);
+                                     toast.success(`Moved ${draggedDevice.device.label} to ${room.name}`);
+                                   }
+                                   setDraggedDevice(null);
+                                   setDragOverRoom(null);
+                                 }}
+                               >
+                               <div className="flex items-center justify-between mb-1">
+                                 <span className="text-xs text-gray-300 font-medium">{room.name}</span>
+                                 <Button
+                                   size="icon"
+                                   variant="ghost"
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     onDeleteRoom(room.id);
+                                   }}
+                                   className="h-5 w-5 text-red-400 hover:text-red-300"
+                                 >
+                                   <X className="w-3 h-3" />
+                                 </Button>
+                               </div>
                                 {roomDevices.length > 0 && (
-                                  <div className="ml-2 space-y-0.5 mt-1">
-                                    {roomDevices.map(device => (
-                                     <div key={device.instanceId} className="text-xs text-gray-500">
-                                       • {device.product.brand} {device.product.model} ({device.label})
-                                     </div>
-                                    ))}
-                                  </div>
+                                 <div className="ml-2 space-y-0.5 mt-1">
+                                   {roomDevices.map(device => {
+                                     const CategoryIcon = categoryIcons[device.product.category] || Box;
+                                     return (
+                                       <div 
+                                         key={device.instanceId} 
+                                         draggable
+                                         onDragStart={() => setDraggedDevice({ device, fromRoom: room.id })}
+                                         onDragEnd={() => {
+                                           setDraggedDevice(null);
+                                           setDragOverRoom(null);
+                                         }}
+                                         className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 cursor-move transition-colors"
+                                       >
+                                         <GripVertical className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                                         <CategoryIcon className="w-3 h-3 flex-shrink-0" />
+                                         <span className="truncate">{device.product.brand} {device.product.model} ({device.label})</span>
+                                       </div>
+                                     );
+                                   })}
+                                 </div>
                                 )}
                               </div>
                             );
