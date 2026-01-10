@@ -52,7 +52,15 @@ const categoryIcons = {
   av_receivers: Radio,
   network_switches: Router,
   control_processors: Settings2,
-  hdmi_extenders: Cable
+  hdmi_extenders: Cable,
+  access_points: Wifi,
+  patch_panels: LayoutGrid,
+  data_jacks: Plug,
+  telephones: Phone,
+  phone_jacks: Plug,
+  intercoms: Speaker,
+  nvrs: HardDrive,
+  ip_cameras: Camera
 };
 
 const masterCategoryMap = {
