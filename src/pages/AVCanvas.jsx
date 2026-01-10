@@ -805,6 +805,7 @@ function AVCanvasContent() {
 
   const handleResizeEnd = useCallback(() => {
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
+      markLocalChange(); // Mark BEFORE state update
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
           if (fp.id === draggingFloorplan) {
@@ -821,10 +822,10 @@ function AVCanvasContent() {
 
         return updatedFloorplans;
       });
-      markLocalChange(); // Mark local change for sync
     }
 
     if (resizingRef.current) {
+      markLocalChange(); // Mark BEFORE state update
       const resizingId = resizingRef.current.id;
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
@@ -836,7 +837,6 @@ function AVCanvasContent() {
 
         return updatedFloorplans;
       });
-      markLocalChange(); // Mark local change for sync
       resizingRef.current = null;
       setResizingFloorplan(null);
       setResizeOffset({ scale: 1, position: { x: 0, y: 0 } });

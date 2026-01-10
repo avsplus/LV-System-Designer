@@ -105,7 +105,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
             floorplans: floorplans || []
           });
           lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson };
-          console.log('Auto-saved project');
+          console.log('Auto-saved project with floorplans:', floorplans.map(fp => ({ id: fp.id, name: fp.name, position: fp.position })));
         } catch (error) {
           console.error('Auto-save failed:', error);
         } finally {
@@ -114,7 +114,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       };
 
       saveProject();
-    }, 100);
+    }, 150);
 
     return () => clearTimeout(saveTimer);
   }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange]);
