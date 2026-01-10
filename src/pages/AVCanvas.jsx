@@ -73,14 +73,45 @@ function AVCanvasContent() {
     base44.auth.me().then(user => setCurrentUserEmail(user.email)).catch(() => {});
   }, []);
 
-  // Project data from hook
-  const projectData = useProjectData(currentProject, currentUserEmail, markLocalChange, floorplans);
+  // UI state
+  const [showProjectManager, setShowProjectManager] = useState(false);
+  const [showRoomManager, setShowRoomManager] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [pendingProductDrop, setPendingProductDrop] = useState(null);
+  const [connectingFrom, setConnectingFrom] = useState(null);
+  const [connectingTo, setConnectingTo] = useState(null);
+  const [pendingConnection, setPendingConnection] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCanvasProduct, setSelectedCanvasProduct] = useState(null);
+  const [selectedConnection, setSelectedConnection] = useState(null);
+  const [panelHistory, setPanelHistory] = useState([]);
+  const [highlightedConnections, setHighlightedConnections] = useState([]);
+  const [hoveredConnectionIndex, setHoveredConnectionIndex] = useState(null);
+  const [dragMousePosition, setDragMousePosition] = useState(null);
+  const [connectingState, setConnectingState] = useState(null);
+  const [hoveredPortId, setHoveredPortId] = useState(null);
+  const [portTooltip, setPortTooltip] = useState(null);
+  const [enrichmentProgress, setEnrichmentProgress] = useState(null);
+  const [importProgress, setImportProgress] = useState(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportEngine, setExportEngine] = useState('jspdf');
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showEnrichDialog, setShowEnrichDialog] = useState(false);
+  const [enrichCategory, setEnrichCategory] = useState('all');
+  const [previewManual, setPreviewManual] = useState(null);
+  const [showFloorplanManager, setShowFloorplanManager] = useState(false);
+  const [floorplans, setFloorplans] = useState([]);
+  const [draggingFloorplan, setDraggingFloorplan] = useState(null);
+  const [floorplanDragStart, setFloorplanDragStart] = useState(null);
+  const [floorplanDragOffset, setFloorplanDragOffset] = useState({ x: 0, y: 0 });
+  const [selectedFloorplanId, setSelectedFloorplanId] = useState(null);
+  const [resizingFloorplan, setResizingFloorplan] = useState(null);
+  const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
+  const resizingRef = useRef(null);
 
-  const { markLocalChange } = useProjectSync({
-    currentProject,
-    currentUserEmail,
-    onProjectUpdated: handleProjectUpdatedFromSyncCallback
-  });
+  // Project data from hook
+  const projectData = useProjectData(currentProject, currentUserEmail, null, floorplans);
 
   const {
     rooms, canvasProducts, connections, setConnections,
@@ -674,9 +705,9 @@ function AVCanvasContent() {
     setSelectedConnection(null);
     };
 
-    const handleFloorplansUpdate = (updatedFloorplans) => {
+  const handleFloorplansUpdate = (updatedFloorplans) => {
     setFloorplans(updatedFloorplans);
-    };
+  };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
       e.preventDefault();
@@ -806,9 +837,6 @@ function AVCanvasContent() {
 
   const handleResizeEnd = useCallback(() => {
     if (draggingFloorplan && (floorplanDragOffset.x !== 0 || floorplanDragOffset.y !== 0)) {
-      // Mark local change FIRST to prevent sync conflicts
-      markLocalChange();
-
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
           if (fp.id === draggingFloorplan) {
@@ -823,18 +851,11 @@ function AVCanvasContent() {
           return fp;
         });
 
-        if (currentProject?.id) {
-          setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
-        }
-
         return updatedFloorplans;
       });
     }
 
     if (resizingRef.current) {
-      // Mark local change FIRST to prevent sync conflicts
-      markLocalChange();
-
       const resizingId = resizingRef.current.id;
       setFloorplans(prev => {
         const updatedFloorplans = prev.map(fp => {
@@ -843,10 +864,6 @@ function AVCanvasContent() {
           }
           return fp;
         });
-
-        if (currentProject?.id) {
-          setCurrentProject(curr => ({ ...curr, floorplans: updatedFloorplans }));
-        }
 
         return updatedFloorplans;
       });
@@ -858,7 +875,7 @@ function AVCanvasContent() {
     setDraggingFloorplan(null);
     setFloorplanDragStart(null);
     setFloorplanDragOffset({ x: 0, y: 0 });
-  }, [draggingFloorplan, floorplanDragOffset, resizeOffset, currentProject, markLocalChange]);
+  }, [draggingFloorplan, floorplanDragOffset, resizeOffset]);
 
 
 
@@ -1458,6 +1475,27 @@ function AVCanvasContent() {
                           await base44.entities.AVProject.update(currentProject.id, {
                             canvas_products: canvasProducts,
                             connections: connections
+                          });
+                          toast.success('Project saved successfully!');
+                        } catch (error) {
+                          toast.error('Failed to save project');
+                        }
+                      }}
+                      className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Progress
+                    </DropdownMenuItem>
+                  )}
+                  {currentProject && (
+                    <DropdownMenuItem 
+                      onClick={async () => {
+                        try {
+                          await base44.entities.AVProject.update(currentProject.id, {
+                            canvas_products: canvasProducts,
+                            connections: connections,
+                            rooms: rooms,
+                            floorplans: floorplans
                           });
                           toast.success('Project saved successfully!');
                         } catch (error) {
@@ -2139,7 +2177,6 @@ function AVCanvasContent() {
                 product: { ...prev.product, ...updatedProduct }
               }));
               queryClient.invalidateQueries({ queryKey: ['avProducts'] });
-              markLocalChange();
               toast.success('Device updated successfully');
             }}
           />
