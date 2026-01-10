@@ -137,7 +137,7 @@ CATEGORY RULES:
         }
 
         const categoryList = categoriesToImport.join(', ');
-        const productCount = selectedCategory && selectedCategory !== 'all' ? 10 : 34;
+        const productCount = selectedCategory && selectedCategory !== 'all' ? 15 : 34;
 
         // Category definitions with examples to help LLM classify correctly
         const categoryDefinitions = {
