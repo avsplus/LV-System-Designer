@@ -52,7 +52,7 @@ ${searchModel ? `Find the EXACT product: ${searchBrand} ${searchModel}` : `Find 
 For each product provide:
 - brand: exact brand name
 - model: exact model number
-- category: one of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, control_processors, hdmi_extenders]
+- category: one of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, control_processors, hdmi_extenders, access_points, patch_panels, data_jacks, telephones, phone_jacks, intercoms, nvrs, ip_cameras]
 - description: brief product description
 - price: estimated USD price
 - installation_manual_url: URL to official installation PDF (if found)
