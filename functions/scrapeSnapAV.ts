@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
         const existingKeys = new Set(existingProducts.map(p => `${p.brand.toLowerCase()}-${p.model.toLowerCase()}`));
 
         // All valid categories
-        const allCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "control_processors", "hdmi_extenders"];
+        const allCategories = ["televisions", "projectors", "projector_screens", "video_distribution", "matrix_switchers", "audio_streamers", "media_streamers", "speakers", "soundbars", "subwoofers", "stereo_amps", "multizone_amps", "surround_processors", "av_receivers", "network_switches", "control_processors", "hdmi_extenders", "access_points", "patch_panels", "data_jacks", "telephones", "phone_jacks", "intercoms", "nvrs", "ip_cameras"];
         
         // Determine which categories to import
         const categoriesToImport = selectedCategory && selectedCategory !== 'all' 
