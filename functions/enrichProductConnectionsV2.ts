@@ -263,6 +263,7 @@ Deno.serve(async (req) => {
             debugLogs.push(`✗ Error: ${error.message}`);
         }
     }
+    
 
     console.log(`[DEBUG] Enrichment complete: ${enriched} products enriched, ${failedProducts.length} failed`);
 
