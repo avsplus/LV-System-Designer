@@ -1,5 +1,135 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { generateConnectionsFromSpec } from './ruleEngine.js';
+
+// === INLINE RULE ENGINE ===
+function matchesCondition(value, condition) {
+  if (condition === null || condition === undefined) {
+    return value === null || value === undefined;
+  }
+
+  if (typeof condition === 'object' && !Array.isArray(condition)) {
+    if ('$gt' in condition) return value > condition.$gt;
+    if ('$gte' in condition) return value >= condition.$gte;
+    if ('$lt' in condition) return value < condition.$lt;
+    if ('$lte' in condition) return value <= condition.$lte;
+    if ('$eq' in condition) return value === condition.$eq;
+    if ('$ne' in condition) return value !== condition.$ne;
+    if ('$in' in condition) return condition.$in.includes(value);
+    if ('$nin' in condition) return !condition.$nin.includes(value);
+    if ('$exists' in condition) {
+      const exists = value !== null && value !== undefined;
+      return condition.$exists ? exists : !exists;
+    }
+    return false;
+  }
+
+  return value === condition;
+}
+
+function getValueByPath(obj, path) {
+  if (!path) return undefined;
+  const keys = path.split('.');
+  let value = obj;
+  for (const key of keys) {
+    if (value && typeof value === 'object') {
+      value = value[key];
+    } else {
+      return undefined;
+    }
+  }
+  return value;
+}
+
+function ruleMatches(spec, ifCondition) {
+  if (!ifCondition || typeof ifCondition !== 'object') {
+    return true;
+  }
+
+  for (const [key, condition] of Object.entries(ifCondition)) {
+    let value = getValueByPath(spec, key);
+    if (value === undefined && key.startsWith('attributes.')) {
+      const attrKey = key.substring('attributes.'.length);
+      value = spec.attributes ? spec.attributes[attrKey] : undefined;
+    }
+    
+    if (!matchesCondition(value, condition)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function generatePortsFromRule(spec, rule) {
+  const ports = [];
+
+  if (!ruleMatches(spec, rule.if)) {
+    return ports;
+  }
+
+  const { then: action } = rule;
+  
+  let portCount = 0;
+  if (action.fixed_count !== undefined && action.fixed_count !== null) {
+    portCount = action.fixed_count;
+  } else if (action.count_from) {
+    portCount = getValueByPath(spec, action.count_from) || 0;
+  }
+
+  if (portCount <= 0) {
+    return ports;
+  }
+
+  for (let i = 1; i <= portCount; i++) {
+    const label = action.label_format.replace('{n}', i);
+    ports.push({
+      type: action.type,
+      direction: action.direction || 'bidirectional',
+      label,
+      category: action.port_category || 'general',
+      source: 'rule_engine'
+    });
+  }
+
+  return ports;
+}
+
+function generateConnectionsFromSpec(spec, allRules) {
+  if (!spec || !allRules) {
+    return { inputs: [], outputs: [] };
+  }
+
+  const deviceType = spec.device_type;
+
+  const applicableRules = allRules.filter(ruleSet => {
+    if (!ruleSet.applies_to) return false;
+    
+    const { device_type } = ruleSet.applies_to;
+    
+    if (Array.isArray(device_type)) {
+      return device_type.includes(deviceType);
+    }
+    
+    return device_type === deviceType;
+  });
+
+  const allRulesFlat = applicableRules.flatMap(ruleSet => ruleSet.rules || []);
+
+  const allPorts = [];
+  const sortedRules = [...allRulesFlat].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+  for (const rule of sortedRules) {
+    if (!rule.is_active) continue;
+    
+    const ports = generatePortsFromRule(spec, rule);
+    allPorts.push(...ports);
+  }
+
+  const inputs = allPorts.filter(p => p.direction === 'input' || p.direction === 'bidirectional');
+  const outputs = allPorts.filter(p => p.direction === 'output' || p.direction === 'bidirectional');
+
+  return { inputs, outputs };
+}
+// === END INLINE RULE ENGINE ===
 
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
