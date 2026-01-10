@@ -131,9 +131,6 @@ function AVCanvasContent() {
     currentUserEmail,
     onProjectUpdated: handleProjectUpdatedFromSyncCallback
   });
-
-  // UI state
-  const [showProjectManager, setShowProjectManager] = useState(false);
   const [showRoomManager, setShowRoomManager] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [pendingProductDrop, setPendingProductDrop] = useState(null);
