@@ -1755,10 +1755,13 @@ function AVCanvasContent() {
                       />
                       {/* Floorplan name overlay */}
                       <div 
-                        className="absolute bottom-4 right-4 text-white text-5xl font-bold"
+                        className="absolute bottom-4 right-4 text-white text-right"
                         style={{ pointerEvents: 'none', textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}
                       >
-                        {fp.name}
+                        <div className="text-5xl font-bold">{fp.name}</div>
+                        <div className="text-xl font-normal opacity-80 mt-1">
+                          {new Date(parseInt(fp.id)).toLocaleDateString()}
+                        </div>
                       </div>
                       {isSelected && !fp.locked && (
                         <>
