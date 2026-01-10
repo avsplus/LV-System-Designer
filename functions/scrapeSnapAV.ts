@@ -172,7 +172,7 @@ CATEGORY RULES:
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find ${productCount} popular professional AV products. You MUST categorize each product EXACTLY according to these definitions:
+            prompt: `Find ${productCount} popular professional products from these categories: ${categoryList}. You MUST categorize each product EXACTLY according to these definitions:
 
 CATEGORY DEFINITIONS (use ONLY these exact category names):
 ${categoryExamples}
@@ -186,8 +186,15 @@ CRITICAL CLASSIFICATION RULES:
 - Matrix Switchers ROUTE multiple sources to multiple displays
 - Speakers are loudspeakers (NOT soundbars, NOT subwoofers)
 - Control Processors are automation systems (Crestron, Control4)
+- Patch Panels are network cabling/management infrastructure (not devices)
+- Data Jacks are network keystones/connectors
+- Access Points are WiFi routers/wireless infrastructure
+- IP Cameras are network video surveillance cameras
+- NVRs are network video recording systems
+- Intercoms are communication/intercom systems
+- Telephones are IP/VoIP phones for communication
 
-Brands to include: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary, Screen Innovations.
+Brands to include: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary, Screen Innovations, CommScope, Leviton, Panduit, Polycom, Cisco, Yealink, Avaya, Panasonic, Aiphone, Legrand, Hikvision, Uniview, Dahua, Axis, Amcrest.
 
 For each product provide: brand, model, category (EXACT name from list above), description (brief), price in USD.
 
