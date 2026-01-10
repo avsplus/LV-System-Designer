@@ -658,14 +658,18 @@ function AVCanvasContent() {
       const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
       const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
+      const currentPos = { x: floorplan.position?.x || 0, y: floorplan.position?.y || 0 };
+
       setDraggingFloorplan(floorplanId);
       setFloorplanDragStart({
-        offsetX: mouseWorldX - (floorplan.position?.x || 0),
-        offsetY: mouseWorldY - (floorplan.position?.y || 0),
-        startPos: { x: floorplan.position?.x || 0, y: floorplan.position?.y || 0 },
+        offsetX: mouseWorldX - currentPos.x,
+        offsetY: mouseWorldY - currentPos.y,
+        startPos: currentPos,
         startMouseX: e.clientX,
         startMouseY: e.clientY
       });
+      // Initialize drag offset to current position to prevent jump
+      setFloorplanDragOffset(currentPos);
     };
 
   const handleFloorplanClick = (e, floorplanId) => {
