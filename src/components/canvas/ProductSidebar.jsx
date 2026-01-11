@@ -520,17 +520,22 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                         >
                                           <div className="flex items-start gap-3">
                                             <div className="mt-1">
-                                              <Grip className="w-4 h-4 text-gray-600 group-hover:text-gray-400" />
+                                              <Grip className={`w-4 h-4 ${isDemoProduct ? 'text-gray-400 group-hover:text-gray-300' : 'text-gray-600 group-hover:text-gray-400'}`} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                              <h3 className="font-medium text-white text-sm truncate">
-                                                {product.brand}
-                                              </h3>
-                                              <p className="text-xs text-gray-400 truncate">{product.model}</p>
+                                              <div className="flex items-center gap-2">
+                                                <h3 className="font-medium text-white text-sm truncate">
+                                                  {product.brand}
+                                                </h3>
+                                                {isDemoProduct && (
+                                                  <span className="text-[9px] px-1.5 py-0.5 bg-purple-500/30 text-purple-300 rounded uppercase font-bold">Demo</span>
+                                                )}
+                                              </div>
+                                              <p className={`text-xs truncate ${isDemoProduct ? 'text-gray-300' : 'text-gray-400'}`}>{product.model}</p>
                                               {product.description && (
                                                 <p className="text-xs text-gray-500 truncate mt-1">{product.description}</p>
                                               )}
-                                              {product.price && (
+                                              {product.price > 0 && (
                                                 <p className="text-xs text-blue-400 mt-1">${product.price.toLocaleString()}</p>
                                               )}
                                             </div>
