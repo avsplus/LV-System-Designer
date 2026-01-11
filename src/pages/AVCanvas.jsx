@@ -549,13 +549,15 @@ function AVCanvasContent() {
       const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
       const fromIsNetworkDevice = isNetworkDevice(fromDevice);
       const toIsNetworkDevice = isNetworkDevice(toDevice);
-      
-      // Network devices allow any direction; other devices require input->output
-      const validDirection = (fromIsNetworkDevice && toIsNetworkDevice) || 
+
+      // Network devices with same connection type allow any direction
+      const isNetworkEthernet = currentState.fromPort.connectionType === 'Ethernet' && hitPort.connectionType === 'Ethernet' && 
+                               fromIsNetworkDevice && toIsNetworkDevice;
+      const validDirection = isNetworkEthernet || 
                             currentState.fromPort.isInput !== hitPort.isInput;
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
-      
+
       if (validDirection && sameType && differentDevice) {
         validHitPort = hitPort;
       }
