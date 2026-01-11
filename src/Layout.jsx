@@ -27,6 +27,7 @@ export default function Layout({ children }) {
         * {
           scrollbar-width: thin;
           scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+          scrollbar-gutter: stable !important;
         }
       `}</style>
       <OrganizationGuard>
