@@ -20,9 +20,40 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
     return null;
   }
   
-  const pathLengthPx = calculatePathLength(from, to, waypoints);
+  // Account for floorplan position and scale
+  // Device positions are in canvas coordinates; we need to normalize them to floorplan space
+  const floorplanScale = (floorplan.scale || 1);
+  const floorplanPos = floorplan.position || { x: 0, y: 0 };
+  
+  // Adjust positions relative to floorplan and undo the floorplan's scale transform
+  const scaleFactor = 1 / floorplanScale;
+  const adjustedFrom = {
+    x: (from.x - floorplanPos.x) * scaleFactor,
+    y: (from.y - floorplanPos.y) * scaleFactor
+  };
+  const adjustedTo = {
+    x: (to.x - floorplanPos.x) * scaleFactor,
+    y: (to.y - floorplanPos.y) * scaleFactor
+  };
+  
+  // Adjust waypoints if they exist
+  const adjustedWaypoints = waypoints?.map(wp => ({
+    x: (wp.x - floorplanPos.x) * scaleFactor,
+    y: (wp.y - floorplanPos.y) * scaleFactor
+  })) || [];
+  
+  const pathLengthPx = calculatePathLength(adjustedFrom, adjustedTo, adjustedWaypoints);
   const inches = pathLengthPx / floorplan.pixelsPerInch;
   const feet = inches / 12;
+  
+  console.log('Wire length calculation:', {
+    floorplanScale,
+    floorplanPos,
+    pathLengthPx,
+    pixelsPerInch: floorplan.pixelsPerInch,
+    inches,
+    feet
+  });
   
   return {
     feet: feet.toFixed(2),
