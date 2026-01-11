@@ -224,6 +224,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
       ...prev,
       [category]: !prev[category]
     }));
+    // Mark category as viewed when clicked
+    setViewedCategories(prev => ({
+      ...prev,
+      [category]: true
+    }));
   };
 
   const toggleMasterCategory = (masterCat) => {
