@@ -560,8 +560,8 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
                     <div className="space-y-1 mt-2">
-                      {output.ports.map((port) => {
-                        const portLabel = typeof port === 'string' ? port : port.label;
+                      {(output.ports || []).map((port) => {
+                        const portLabel = typeof port === 'string' ? port : (port?.label || '');
                         const isUsed = usedPorts.has(portLabel);
                         const connectedInfo = isUsed ? getConnectedDevice(output.type, portLabel, false) : null;
                         const connectionIdx = connectedInfo?.conn ? activeConnections.indexOf(connectedInfo.conn) : -1;
