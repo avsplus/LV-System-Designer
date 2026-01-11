@@ -1208,6 +1208,14 @@ function AVCanvasContent() {
         { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
         { type: "Optical", ports: ["Optical-Out"] }
       ]
+    },
+    network_switches: {
+      inputs: [
+        { type: "Ethernet", ports: [] }
+      ],
+      outputs: [
+        { type: "Ethernet", ports: [] }
+      ]
     }
   };
 
