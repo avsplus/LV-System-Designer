@@ -236,7 +236,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   const hasDbConnections = (productData.input_connections && productData.input_connections.length > 0) || 
                             (productData.output_connections && productData.output_connections.length > 0);
 
-  const connections = hasDbConnections ? {
+  let connections = hasDbConnections ? {
     inputs: productData.input_connections || [],
     outputs: productData.output_connections || [],
     description: defaultConnections.description
