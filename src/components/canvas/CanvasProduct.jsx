@@ -815,11 +815,15 @@ Only return URLs that:
                   }
                 }}
                 onMouseEnter={(e) => {
+                  const isBidirectional = connType.isInput 
+                    ? outputTypes.some(out => out.type === connType.type)
+                    : inputTypes.some(inp => inp.type === connType.type);
                   setTooltipInfo({
                     type: connType.type,
                     portCount: connType.ports.length,
                     color: connType.color,
                     isInput: connType.isInput,
+                    isBidirectional,
                     element: e.currentTarget
                   });
                 }}
