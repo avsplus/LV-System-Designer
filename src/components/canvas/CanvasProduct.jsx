@@ -201,7 +201,8 @@ const connectionsByCategory = {
   },
   network_switches: {
     inputs: [
-      { type: "Power", ports: ["AC"] }
+      { type: "Power", ports: ["AC"] },
+      { type: "Ethernet", ports: [] }
     ],
     outputs: [
       { type: "Ethernet", ports: [] }
