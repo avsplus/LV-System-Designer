@@ -161,10 +161,11 @@ function AVCanvasContent() {
   const portRefs = useRef(new Map());
   const connectingStateRef = useRef(null);
   
-  const PORT_HIT_RADIUS = 50;
-  const PORT_OFFSET = 20;
+  const PORT_HIT_RADIUS = 50; // Hit detection radius for port snapping
+  const PORT_OFFSET = 20;    // Offset from port dots when drawing temporary connection lines
   
-  // Generate orthogonal path for connection routing
+  // Generates orthogonal (right-angle) connection routing to avoid cluttered visual paths
+  // Handles different direction combinations (left/right to left/right edges)
   const generateOrthogonalPath = (fromPos, toPos, fromIsInput, toIsInput) => {
     const fromDirection = fromIsInput ? 'left' : 'right';
     const toDirection = toIsInput ? 'left' : 'right';
@@ -217,6 +218,8 @@ function AVCanvasContent() {
     return points;
   };
   
+  // Converts array of {x,y} points to SVG path data format
+  // Used for rendering both permanent connections and temporary drag-preview lines
   const pointsToPathData = (points) => {
     if (points.length < 2) return '';
     let path = `M ${points[0].x} ${points[0].y}`;
@@ -1063,6 +1066,8 @@ function AVCanvasContent() {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
 
+  // Default port definitions by product category - fallback when database doesn't have connections
+  // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
   const connectionsByCategory = {
     televisions: {
       inputs: [
@@ -1236,6 +1241,8 @@ function AVCanvasContent() {
   const PORT_DOT_SIZE = 20;
   const PORT_GAP = 12;
 
+  // Calculates world position of a connection port on the canvas
+  // Used to position connection line endpoints and determine visual port locations
   const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!product) return null;
@@ -1279,10 +1286,14 @@ function AVCanvasContent() {
     return { x: portX, y: portY };
   };
 
+  // Wrapper for consistency - gets port position by connection type
+  // Delegates to getPortWorldPosition for actual calculation
   const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
     return getPortWorldPosition(instanceId, connectionType, isOutput);
   };
 
+  // Pre-calculates all connection endpoint positions and edge sides (for visual routing)
+  // Cached to avoid recalculating during every render
   const connectionPositions = connections.map((connection, index) => {
     const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
     const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
@@ -1333,6 +1344,8 @@ function AVCanvasContent() {
     return { fromPoint, toPoint, fromEdge, toEdge };
   });
 
+  // Calculates which edge of a product card a connection should exit/enter
+  // Determines smart routing by finding which devices are connected and their relative positions
   const getProductEdgePoint = (fromId, toId, connectionIndex) => {
     const connection = connections[connectionIndex];
     if (!connection) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
@@ -1357,6 +1370,7 @@ function AVCanvasContent() {
     const dx = toCenter.x - fromCenter.x;
     const dy = toCenter.y - fromCenter.y;
 
+    // Helper: Finds all connections on a specific edge, used to distribute multiple wires
     const getEdgeConnectionIndices = (deviceId, edge) => {
       const indices = [];
       connections.forEach((c, idx) => {
