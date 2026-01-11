@@ -337,61 +337,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
             </div>
           )}
 
-          {isNetworkDevice && activeTab === 'connections' && (
-            <div>
-              <p className="text-xs text-gray-500 mb-3">Define bidirectional connection types and their ports</p>
-              <div className="space-y-3">
-                {formData.input_connections.map((conn, idx) => (
-                  <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <select
-                        value={conn.type}
-                        onChange={(e) => handleConnectionTypeChange('input', idx, e.target.value)}
-                        className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1"
-                      >
-                        {commonConnectionTypes.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </select>
-                      <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 ml-2">
-                        Bidirectional
-                      </Badge>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleRemoveConnection('input', idx)}
-                        className="h-6 w-6 text-gray-500 hover:text-red-400"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Ports (comma-separated)</label>
-                      <input
-                        type="text"
-                        value={portInputValues[`input_${idx}`] ?? conn.ports?.join(', ') ?? ''}
-                        onChange={(e) => handlePortsChange('input', idx, e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Port-1, Port-2"
-                        className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddConnection('input')}
-                  className="w-full border-gray-700 text-gray-400 hover:text-white"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Port Type
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {!isNetworkDevice && activeTab === 'inputs' && (
+          {activeTab === 'inputs' && (
             <div>
               <p className="text-xs text-gray-500 mb-3">Define input connection types and their ports</p>
               {renderConnectionEditor('input')}
