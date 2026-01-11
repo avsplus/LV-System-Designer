@@ -548,11 +548,16 @@ export default function ProductSidebar({ products, onProductSelect }) {
                         {masterCat}
                       </div>
                     </div>
-                    {masterCatExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
-                    )}
+                    <div className="flex items-center gap-2">
+                      {categoriesInMaster.some(cat => categoriesWithNewProducts[cat]) && (
+                        <span className="text-[11px] text-red-400 font-bold">New Products</span>
+                      )}
+                      {masterCatExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      )}
+                    </div>
                   </button>
 
                   {masterCatExpanded && (
