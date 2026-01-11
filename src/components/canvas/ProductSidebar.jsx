@@ -542,12 +542,16 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                           </div>
                                         </div>
                                         {snapshot.isDragging && (
-                                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 opacity-50">
+                                          <div className={`${
+                                            isDemoProduct 
+                                              ? 'bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-500/50'
+                                              : 'bg-gray-800 border-gray-700'
+                                          } border rounded-lg p-3 opacity-50`}>
                                             <div className="flex items-start gap-3">
-                                              <Grip className="w-4 h-4 text-gray-600 mt-1" />
+                                              <Grip className={`w-4 h-4 mt-1 ${isDemoProduct ? 'text-gray-400' : 'text-gray-600'}`} />
                                               <div className="flex-1">
-                                                <h3 className="font-medium text-white text-sm">{product.brand}</h3>
-                                                <p className="text-xs text-gray-400">{product.model}</p>
+                                                <h3 className="font-medium text-white text-sm truncate">{product.brand}</h3>
+                                                <p className={`text-xs truncate ${isDemoProduct ? 'text-gray-300' : 'text-gray-400'}`}>{product.model}</p>
                                               </div>
                                             </div>
                                           </div>
