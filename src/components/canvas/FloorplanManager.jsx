@@ -196,8 +196,11 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
       Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
     );
     
+    console.log(`Calibration: pixel distance=${pixelDistance}, known distance=${knownDistance} inches`);
+    
     // Store as pixels per inch for distance calculations
     const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
+    console.log(`Calculated pixelsPerInch: ${pixelsPerInch}`);
 
     const updatedFloorplans = calibrating.isRecalibrating 
       ? floorplans.map(fp => 
