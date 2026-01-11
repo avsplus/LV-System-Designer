@@ -294,10 +294,31 @@ Deno.serve(async (req) => {
                 console.log('[DEBUG] Enriching product with connections...');
                 debugLogs.push(`Enriching ${product.brand} ${product.model}`);
                 
+                // Group ports by type (one connection object per type)
+                const groupedInputs = inputs.reduce((acc, p) => {
+                    const existing = acc.find(c => c.type === p.type);
+                    if (existing) {
+                        existing.ports.push(p.label);
+                    } else {
+                        acc.push({ type: p.type, ports: [p.label], capacity: p.capacity });
+                    }
+                    return acc;
+                }, []);
+                
+                const groupedOutputs = outputs.reduce((acc, p) => {
+                    const existing = acc.find(c => c.type === p.type);
+                    if (existing) {
+                        existing.ports.push(p.label);
+                    } else {
+                        acc.push({ type: p.type, ports: [p.label], capacity: p.capacity });
+                    }
+                    return acc;
+                }, []);
+                
                 // Update product
                 await base44.asServiceRole.entities.AVProduct.update(product.id, {
-                    input_connections: inputs.map(p => ({ type: p.type, ports: [p.label], capacity: p.capacity })),
-                    output_connections: outputs.map(p => ({ type: p.type, ports: [p.label], capacity: p.capacity }))
+                    input_connections: groupedInputs,
+                    output_connections: groupedOutputs
                 });
                 
                 console.log('[DEBUG] Product updated');
