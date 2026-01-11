@@ -196,42 +196,37 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     // Store as pixels per inch for distance calculations
     const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
 
-    if (calibrating.isRecalibrating) {
-      // Update existing floorplan
-      onUpdate(floorplans.map(fp => 
-        fp.id === calibrating.id ? { ...fp, pixelsPerInch } : fp
-      ));
-      toast.success('Floorplan recalibrated');
-    } else {
-      // Get image dimensions from calibrating object (captured during upload)
-      const imageWidth = calibrating.naturalWidth;
-      const imageHeight = calibrating.naturalHeight;
-      
-      // Calculate position offset for new floorplan (200px right of last one)
-      const lastFloorplan = floorplans[floorplans.length - 1];
-      const position = lastFloorplan && lastFloorplan.position
-        ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
-        : { x: 0, y: 0 };
+    const updatedFloorplans = calibrating.isRecalibrating 
+      ? floorplans.map(fp => 
+          fp.id === calibrating.id ? { ...fp, pixelsPerInch } : fp
+        )
+      : (() => {
+          const imageWidth = calibrating.naturalWidth;
+          const imageHeight = calibrating.naturalHeight;
+          const lastFloorplan = floorplans[floorplans.length - 1];
+          const position = lastFloorplan && lastFloorplan.position
+            ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
+            : { x: 0, y: 0 };
 
-      const newFloorplan = {
-        id: calibrating.id,
-        name: calibrating.name,
-        url: calibrating.url,
-        originalUrl: calibrating.originalUrl || calibrating.url,
-        isPdf: calibrating.isPdf,
-        pixelsPerInch: pixelsPerInch,
-        imageWidth: imageWidth,
-        imageHeight: imageHeight,
-        scale: 1,
-        position: position,
-        visible: true,
-        opacity: 0.3
-      };
+          return [...floorplans, {
+            id: calibrating.id,
+            name: calibrating.name,
+            url: calibrating.url,
+            originalUrl: calibrating.originalUrl || calibrating.url,
+            isPdf: calibrating.isPdf,
+            pixelsPerInch: pixelsPerInch,
+            imageWidth: imageWidth,
+            imageHeight: imageHeight,
+            scale: 1,
+            position: position,
+            visible: true,
+            opacity: 0.3
+          }];
+        })();
 
-      onUpdate([...floorplans, newFloorplan]);
-      setUploadForm({ name: '' });
-      toast.success('Floorplan calibrated and added');
-    }
+    onUpdate(updatedFloorplans);
+    setUploadForm({ name: '' });
+    toast.success(calibrating.isRecalibrating ? 'Floorplan recalibrated' : 'Floorplan calibrated and added');
     
     setCalibrating(null);
     setCalibrationPoints([]);
