@@ -5,8 +5,9 @@ const categories = [
   'matrix_switchers', 'audio_streamers', 'media_streamers', 'speakers',
   'soundbars', 'subwoofers', 'stereo_amps', 'multizone_amps',
   'surround_processors', 'av_receivers', 'network_switches', 'control_processors',
-  'hdmi_extenders', 'routers', 'access_points', 'patch_panels', 'data_jacks',
-  'telephones', 'phone_jacks', 'intercoms', 'nvrs', 'ip_cameras'
+  'touch_panels', 'remotes', 'hdmi_extenders', 'routers', 'access_points', 
+  'patch_panels', 'data_jacks', 'telephones', 'phone_jacks', 'intercoms', 
+  'nvrs', 'ip_cameras'
 ];
 
 Deno.serve(async (req) => {
