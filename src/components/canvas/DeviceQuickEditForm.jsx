@@ -97,7 +97,16 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     
     const key = direction === 'input' ? 'input_connections' : 'output_connections';
     const updated = [...formData[key]];
-    const ports = portsString.split(',').map(p => p.trim()).filter(p => p);
+    const portLabels = portsString.split(',').map(p => p.trim()).filter(p => p);
+    
+    // Convert port labels to objects with IDs
+    const ports = portLabels.map((label, i) => ({
+      id: `${updated[index].type.toLowerCase().replace(/\s+/g, '-')}-${i + 1}`,
+      label,
+      type: updated[index].type,
+      auto_generated: false
+    }));
+    
     updated[index] = { ...updated[index], ports: ports.length > 0 ? ports : [] };
     setFormData({ ...formData, [key]: updated });
   };
