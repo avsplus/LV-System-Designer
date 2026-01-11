@@ -1066,16 +1066,16 @@ function AVCanvasContent() {
   const connectionsByCategory = {
     televisions: {
       inputs: [
-        { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
-        { type: "Component", ports: ["Component-1"] },
-        { type: "Composite", ports: ["Composite-1"] },
-        { type: "Optical", ports: ["Optical-In"] },
-        { type: "Ethernet", ports: ["LAN"] },
-        { type: "IR", ports: ["IR-In"] }
+        { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }, { id: "hdmi-3", label: "HDMI-3", direction: "input" }, { id: "hdmi-4", label: "HDMI-4", direction: "input" }] },
+        { type: "Component", ports: [{ id: "component-1", label: "Component-1", direction: "input" }] },
+        { type: "Composite", ports: [{ id: "composite-1", label: "Composite-1", direction: "input" }] },
+        { type: "Optical", ports: [{ id: "optical-in", label: "Optical-In", direction: "input" }] },
+        { type: "Ethernet", ports: [{ id: "eth-lan", label: "LAN", direction: "input" }] },
+        { type: "IR", ports: [{ id: "ir-in", label: "IR-In", direction: "input" }] }
       ],
       outputs: [
-        { type: "Optical", ports: ["Optical-Out"] },
-        { type: "3.5mm Jack", ports: ["Headphone"] }
+        { type: "Optical", ports: [{ id: "optical-out", label: "Optical-Out", direction: "output" }] },
+        { type: "3.5mm Jack", ports: [{ id: "headphone", label: "Headphone", direction: "output" }] }
       ]
     },
     projectors: {
