@@ -1243,9 +1243,15 @@ function AVCanvasContent() {
     const defaultConnections = connectionsByCategory[product.product.category] || { inputs: [], outputs: [] };
     const hasDbConnections = (product.product.input_connections?.length > 0) || 
                               (product.product.output_connections?.length > 0);
-    const conns = hasDbConnections ? {
-      inputs: product.product.input_connections || [],
-      outputs: product.product.output_connections || []
+    let conns = hasDbConnections ? {
+      inputs: (product.product.input_connections || []).map(conn => ({
+        type: conn.type,
+        ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'input' } : p)
+      })),
+      outputs: (product.product.output_connections || []).map(conn => ({
+        type: conn.type,
+        ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'output' } : p)
+      }))
     } : defaultConnections;
 
     const types = isOutput ? conns.outputs : conns.inputs;
