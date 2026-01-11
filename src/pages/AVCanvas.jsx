@@ -733,7 +733,13 @@ function AVCanvasContent() {
 
   const handleFloorplansUpdate = (updatedFloorplans) => {
     setFloorplans(updatedFloorplans);
-    markLocalChange(); // Mark local change for sync
+    markLocalChange();
+    // Immediately persist floorplan changes to database
+    if (currentProject?.id) {
+      base44.entities.AVProject.update(currentProject.id, {
+        floorplans: updatedFloorplans
+      }).catch(err => console.error('Failed to save floorplans:', err));
+    }
   };
 
   const handleResizeStart = useCallback((e, floorplanId, corner) => {
