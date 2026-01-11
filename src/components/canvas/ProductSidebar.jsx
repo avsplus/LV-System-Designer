@@ -321,16 +321,16 @@ export default function ProductSidebar({ products, onProductSelect }) {
         <img 
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
           alt="AV System Design Logo" 
-          className="h-10 w-auto object-contain flex-shrink-0"
+          className="h-14 w-auto object-contain flex-shrink-0"
         />
         
         {(settings?.logo_url || organization?.logo_url) && (
           <>
-            <div className="h-7 w-px bg-gray-700"></div>
+            <div className="h-8 w-px bg-gray-700"></div>
             <img 
               src={settings?.logo_url || organization?.logo_url} 
               alt={settings?.name || organization?.name || 'Organization Logo'} 
-              className="h-9 w-auto object-contain flex-shrink-0"
+              className="h-12 w-auto object-contain flex-shrink-0"
             />
           </>
         )}
