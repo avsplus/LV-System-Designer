@@ -486,10 +486,9 @@ export default function ProductSidebar({ products, onProductSelect }) {
       <Droppable droppableId="sidebar" isDropDisabled={true}>
         {(provided) => (
           <div 
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="flex-1 overflow-y-auto p-3 space-y-3"
-            style={{ scrollbarGutter: 'stable' }}
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          className="flex-1 overflow-y-auto p-3 space-y-3"
           >
             {masterCategories.map((masterCat, masterIdx) => {
               const categoriesInMaster = allMasterCategoryMappings[masterCat] || [];
