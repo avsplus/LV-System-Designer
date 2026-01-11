@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Save, Loader2, Plus, Trash2, Upload, Image } from "lucide-react";
+import { X, Save, Loader2, Plus, Trash2, Upload, Image, ChevronUp, ChevronDown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const commonConnectionTypes = [
@@ -80,6 +80,17 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     return initial;
   });
 
+  const [portQuantities, setPortQuantities] = useState({});
+
+  const handleGeneratePorts = (direction, index, quantity) => {
+    const ports = [];
+    for (let i = 1; i <= quantity; i++) {
+      ports.push(`Port-${String(i).padStart(2, '0')}`);
+    }
+    handlePortsChange(direction, index, ports.join(', '));
+    setPortQuantities(prev => ({ ...prev, [`${direction}_${index}`]: quantity }));
+  };
+
   const handlePortsChange = (direction, index, portsString) => {
     const inputKey = `${direction}_${index}`;
     setPortInputValues(prev => ({ ...prev, [inputKey]: portsString }));
@@ -124,7 +135,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
       <div className="space-y-3">
         {connections.map((conn, idx) => (
           <div key={idx} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <select
                 value={conn.type}
                 onChange={(e) => handleConnectionTypeChange(direction, idx, e.target.value)}
@@ -143,6 +154,52 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
                 <Trash2 className="w-3 h-3" />
               </Button>
             </div>
+
+            <div className="space-y-2 mb-2">
+              <label className="text-xs text-gray-500">Quick Add</label>
+              <div className="flex gap-2">
+                <div className="flex items-center border border-gray-700 rounded bg-gray-900">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => {
+                      const qty = (portQuantities[`${direction}_${idx}`] || 1) - 1;
+                      if (qty > 0) setPortQuantities(prev => ({ ...prev, [`${direction}_${idx}`]: qty }));
+                    }}
+                    className="h-8 w-8 text-gray-400 hover:text-white"
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={portQuantities[`${direction}_${idx}`] || 1}
+                    onChange={(e) => setPortQuantities(prev => ({ ...prev, [`${direction}_${idx}`]: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="w-12 bg-gray-900 text-white text-center text-sm border-0 focus:outline-none"
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => {
+                      const qty = (portQuantities[`${direction}_${idx}`] || 1) + 1;
+                      setPortQuantities(prev => ({ ...prev, [`${direction}_${idx}`]: qty }));
+                    }}
+                    className="h-8 w-8 text-gray-400 hover:text-white"
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </Button>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => handleGeneratePorts(direction, idx, portQuantities[`${direction}_${idx}`] || 1)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                >
+                  Generate
+                </Button>
+              </div>
+            </div>
+
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Ports (comma-separated)</label>
               <input
