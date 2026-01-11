@@ -359,6 +359,14 @@ Search patterns to find manuals:
                 console.log(`Invalid category "${p.category}" -> "${category}", skipping product`);
                 return null;
             }
+            
+            // Apply device type validation to correct access_point/network_switch misclassification
+            const correctedCategory = correctDeviceType(category, p.brand, p.model);
+            if (correctedCategory !== category) {
+              console.log(`Corrected category for ${p.brand} ${p.model}: ${category} -> ${correctedCategory}`);
+              category = correctedCategory;
+            }
+            
             return { ...p, category };
         }).filter(p => p !== null);
 
