@@ -48,14 +48,19 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
   const inches = pathLengthPx / floorplan.pixelsPerInch;
   const feet = inches / 12;
   
-  console.log('Wire length calculation:', {
-    floorplanScale,
-    floorplanPos,
-    pathLengthPx,
-    pixelsPerInch: floorplan.pixelsPerInch,
-    inches,
-    feet
+  console.log('=== WIRE LENGTH CALCULATION DEBUG ===');
+  console.log('Raw device positions:', { from, to });
+  console.log('Floorplan data:', {
+    scale: floorplanScale,
+    calibrationScale: calibrationScale,
+    position: floorplanPos,
+    pixelsPerInch: floorplan.pixelsPerInch
   });
+  console.log('Scale factor applied:', scaleFactor);
+  console.log('Adjusted positions:', { adjustedFrom, adjustedTo });
+  console.log('Path length (pixels):', pathLengthPx);
+  console.log('Result:', { inches, feet });
+  console.log('====================================');
   
   return {
     feet: feet.toFixed(2),
