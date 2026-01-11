@@ -504,7 +504,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                     index={filteredProducts.findIndex(p => p.id === product.id)}
                                   >
                                     {(provided, snapshot) => (
-                                      <>
+                                  <>
                                         <div
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
