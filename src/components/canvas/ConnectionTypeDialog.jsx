@@ -278,8 +278,10 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
   const selectedCompatible = compatibleTypes.find(c => c.type === selectedType);
   const usedFromPorts = selectedCompatible ? getUsedPorts(fromProduct.instanceId, selectedType, false) : new Set();
   const usedToPorts = selectedCompatible ? getUsedPorts(toProduct.instanceId, selectedType, true) : new Set();
-  const availableFromPorts = selectedCompatible?.fromPorts.filter(p => !usedFromPorts.has(p)) || [];
-  const availableToPorts = selectedCompatible?.toPorts.filter(p => !usedToPorts.has(p)) || [];
+  // Filter ports - handle both object and string formats for backward compatibility
+  const normalizePortName = (p) => typeof p === 'string' ? p : p.label;
+  const availableFromPorts = selectedCompatible?.fromPorts.filter(p => !usedFromPorts.has(normalizePortName(p))) || [];
+  const availableToPorts = selectedCompatible?.toPorts.filter(p => !usedToPorts.has(normalizePortName(p))) || [];
 
   // Auto-select first available port and wire spec when type changes
   React.useEffect(() => {
@@ -385,17 +387,19 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
                         <SelectValue placeholder="Select output port" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableFromPorts.map(port => (
-                          <SelectItem key={port} value={port}>{port}</SelectItem>
-                        ))}
+                        {availableFromPorts.map(port => {
+                            const portLabel = typeof port === 'string' ? port : port.label;
+                            const portValue = typeof port === 'string' ? port : port.label;
+                            return <SelectItem key={portValue} value={portValue}>{portLabel}</SelectItem>;
+                          })}
                         {usedFromPorts.size > 0 && (
                           <>
                             <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
-                            {selectedCompatible.fromPorts.filter(p => usedFromPorts.has(p)).map(port => (
-                              <SelectItem key={port} value={port} disabled>
-                                {port} (in use)
-                              </SelectItem>
-                            ))}
+                            {selectedCompatible.fromPorts.filter(p => usedFromPorts.has(normalizePortName(p))).map(port => {
+                              const portLabel = typeof port === 'string' ? port : port.label;
+                              const portValue = typeof port === 'string' ? port : port.label;
+                              return <SelectItem key={portValue} value={portValue} disabled>{portLabel} (in use)</SelectItem>;
+                            })}
                           </>
                         )}
                       </SelectContent>
@@ -412,17 +416,19 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
                         <SelectValue placeholder="Select input port" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableToPorts.map(port => (
-                          <SelectItem key={port} value={port}>{port}</SelectItem>
-                        ))}
+                        {availableToPorts.map(port => {
+                          const portLabel = typeof port === 'string' ? port : port.label;
+                          const portValue = typeof port === 'string' ? port : port.label;
+                          return <SelectItem key={portValue} value={portValue}>{portLabel}</SelectItem>;
+                        })}
                         {usedToPorts.size > 0 && (
                           <>
                             <div className="px-2 py-1.5 text-xs text-gray-500">Used ports:</div>
-                            {selectedCompatible.toPorts.filter(p => usedToPorts.has(p)).map(port => (
-                              <SelectItem key={port} value={port} disabled>
-                                {port} (in use)
-                              </SelectItem>
-                            ))}
+                            {selectedCompatible.toPorts.filter(p => usedToPorts.has(normalizePortName(p))).map(port => {
+                              const portLabel = typeof port === 'string' ? port : port.label;
+                              const portValue = typeof port === 'string' ? port : port.label;
+                              return <SelectItem key={portValue} value={portValue} disabled>{portLabel} (in use)</SelectItem>;
+                            })}
                           </>
                         )}
                       </SelectContent>
