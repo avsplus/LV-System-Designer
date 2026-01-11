@@ -55,12 +55,10 @@ export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => 
   
   // The issue: if scale is being applied WITHIN the device positions, we're double-converting
   // Check if just dividing canvas path by scale gives us the right answer
-  const pathIfWeJustDivideByScale = pathLengthCanvasPx / floorplanScale;
-  const inchesIfWeJustDivideByScale = pathIfWeJustDivideByScale / pixelsPerInch;
-  
-  console.log('Canvas path length (before conversion):', pathLengthCanvasPx);
-  console.log('If we just divide by scale:', { pathPixels: pathIfWeJustDivideByScale, inches: inchesIfWeJustDivideByScale });
-  const inches = pathLengthPx / pixelsPerInch;
+  // Device positions on canvas already include floorplan scale
+  // So just divide canvas path by scale, then by pixelsPerInch
+  const pathLengthImagePx = pathLengthCanvasPx / floorplanScale;
+  const inches = pathLengthImagePx / pixelsPerInch;
   const feet = inches / 12;
   
   console.log('=== WIRE LENGTH CALCULATION ===');
