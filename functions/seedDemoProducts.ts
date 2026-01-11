@@ -47,11 +47,6 @@ Deno.serve(async (req) => {
       }
 
       // Create demo product
-      const capitalizedName = category.replace(/_/g, ' ')
-        .split(' ')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-
       await base44.asServiceRole.entities.AVProduct.create({
         organization_id: organizationId,
         brand: `Demo ${capitalizedName}`,
