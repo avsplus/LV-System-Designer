@@ -105,7 +105,6 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     const ports = portLabels.map((label, i) => ({
       id: `${updated[index].type.toLowerCase().replace(/\s+/g, '-')}-${i + 1}`,
       label,
-      type: updated[index].type,
       auto_generated: false
     }));
     
