@@ -297,7 +297,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
   // Populate with filtered products
   filteredProducts.forEach(product => {
-    const masterCat = masterCategoryMap[product.category] || 'Other';
+    const masterCat = masterCategoryMap[product.category];
+    if (!masterCat) {
+      console.warn(`⚠️ Unmapped category: ${product.category}`);
+      return; // Skip products with unmapped categories
+    }
     if (!productsByMasterCategory[masterCat]) {
       productsByMasterCategory[masterCat] = {};
     }
