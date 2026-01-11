@@ -146,7 +146,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
       return {};
     }
   });
-  const [prevProductCount, setPrevProductCount] = useState(products.length);
   const [categoryProductCounts, setCategoryProductCounts] = useState(() => {
     // Load category product counts from localStorage on mount
     try {
@@ -156,6 +155,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
       return {};
     }
   });
+  const [categoriesWithNewProducts, setCategoriesWithNewProducts] = useState({});
 
   // Persist viewed categories and expanded state to localStorage
   React.useEffect(() => {
