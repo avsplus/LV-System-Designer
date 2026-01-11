@@ -1264,7 +1264,7 @@ function AVCanvasContent() {
     
     if (portIndex === -1) return null;
 
-    const totalPorts = Math.min(types.length, 6);
+    const totalPorts = Math.min(normalizedTypes.length, 6);
     const totalHeight = (totalPorts - 1) * (PORT_DOT_SIZE + PORT_GAP);
     const startY = product.position.y + CARD_HEIGHT / 2 - totalHeight / 2;
     const portY = startY + portIndex * (PORT_DOT_SIZE + PORT_GAP);
