@@ -402,7 +402,9 @@ Only return URLs that:
     const types = [];
     connections[type].forEach(conn => {
       const color = connectionTypeColors[conn.type] || "#6b7280";
-      types.push({ type: conn.type, color, ports: conn.ports || [] });
+      // Handle both old string format and new object format ports
+      const ports = (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: type === 'inputs' ? 'input' : 'output' } : p);
+      types.push({ type: conn.type, color, ports });
     });
     return types;
   };
