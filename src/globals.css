@@ -28,3 +28,8 @@ css
   scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
   scrollbar-gutter: stable;
 }
+
+.stable-scrollbar {
+  scrollbar-gutter: stable !important;
+  overflow-y: scroll !important;
+}
