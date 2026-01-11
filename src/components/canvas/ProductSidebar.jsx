@@ -631,9 +631,9 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                       </>
                                     )}
                                   </Draggable>
-                                );
-                              })}
-                              </div>
+                                  );
+                                  })}
+                                  </div>
                             )}
                           </div>
                         );
