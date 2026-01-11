@@ -457,8 +457,8 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
                   {masterCatExpanded && (
                     <div className="space-y-2 pl-2">
-                      {categoriesInMaster.map((category) => {
-                        const categoryProducts = productsByMasterCategory[masterCat][category];
+                      {categoriesInMaster.map((category, catIndex) => {
+                        const categoryProducts = productsByMasterCategory[masterCat][category] || [];
                         const isExpanded = expandedCategories[category] === true;
 
                         return (
@@ -483,7 +483,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 }`}>
                                   {category.replace(/_/g, ' ')}
                                 </div>
-                                <span className="text-[9px] text-gray-600">({categoryProducts.length})</span>
+                                <span className="text-[9px] text-gray-600">({categoryProducts.length + 1})</span>
                               </div>
                               {isExpanded ? (
                                 <ChevronDown className="w-3 h-3 text-gray-400" />
@@ -498,7 +498,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 <Draggable 
                                   key={`demo-${category}`}
                                   draggableId={`demo-${category}`}
-                                  index={-1}
+                                  index={filteredProducts.length + catIndex}
                                 >
                                   {(provided, snapshot) => (
                                     <>
