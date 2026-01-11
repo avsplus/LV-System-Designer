@@ -155,7 +155,15 @@ export default function ProductSidebar({ products, onProductSelect }) {
       return {};
     }
   });
-  const [categoriesWithNewProducts, setCategoriesWithNewProducts] = useState({});
+  const [categoriesWithNewProducts, setCategoriesWithNewProducts] = useState(() => {
+    // Load categories with new products from localStorage on mount
+    try {
+      const saved = localStorage.getItem('categoriesWithNewProducts');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Persist viewed categories and expanded state to localStorage
   React.useEffect(() => {
