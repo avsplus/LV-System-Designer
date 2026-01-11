@@ -29,11 +29,15 @@ Deno.serve(async (req) => {
     const existing = [];
 
     for (const category of categories) {
-      const demoId = `demo-${category}`;
+      // Check if demo product already exists by brand name pattern
+      const capitalizedName = category.replace(/_/g, ' ')
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
       
-      // Check if demo product already exists
       const existingProducts = await base44.asServiceRole.entities.AVProduct.filter({
-        id: demoId,
+        brand: `Demo ${capitalizedName}`,
+        category: category,
         organization_id: organizationId
       });
 
