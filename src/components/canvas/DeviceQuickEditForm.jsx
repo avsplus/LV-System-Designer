@@ -188,63 +188,36 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
         </div>
 
         <div className="flex border-b border-gray-800">
-          {isNetworkDevice ? (
-            <>
-              <button
-                onClick={() => setActiveTab('basic')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === 'basic' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Basic Info
-              </button>
-              <button
-                onClick={() => setActiveTab('connections')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === 'connections' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Bidirectional Ports
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setActiveTab('basic')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === 'basic' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Basic Info
-              </button>
-              <button
-                onClick={() => setActiveTab('inputs')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === 'inputs' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Inputs
-              </button>
-              <button
-                onClick={() => setActiveTab('outputs')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === 'outputs' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Outputs
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => setActiveTab('basic')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'basic' 
+                ? 'text-blue-400 border-b-2 border-blue-400' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Basic Info
+          </button>
+          <button
+            onClick={() => setActiveTab('inputs')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'inputs' 
+                ? 'text-blue-400 border-b-2 border-blue-400' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Inputs
+          </button>
+          <button
+            onClick={() => setActiveTab('outputs')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'outputs' 
+                ? 'text-blue-400 border-b-2 border-blue-400' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Outputs
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
