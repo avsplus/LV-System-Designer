@@ -176,9 +176,12 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
+    // The canvas is scaled by CSS transform, so we need to account for the zoom
+    // Click position relative to canvas, then convert to canvas coordinates
     const x = (e.clientX - rect.left) / calibrationZoom;
     const y = (e.clientY - rect.top) / calibrationZoom;
 
+    console.log(`Calibration point: x=${x}, y=${y}, zoom=${calibrationZoom}, pixelDist from first point will be calculated`);
     setCalibrationPoints([...calibrationPoints, { x, y }]);
   };
 
