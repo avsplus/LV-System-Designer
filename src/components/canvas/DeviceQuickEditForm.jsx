@@ -72,12 +72,10 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
   const [portInputValues, setPortInputValues] = useState(() => {
     const initial = {};
     (product.input_connections || []).forEach((conn, idx) => {
-      const portLabels = (conn.ports || []).map(p => typeof p === 'string' ? p : p.label).join(', ');
-      initial[`input_${idx}`] = portLabels || '';
+      initial[`input_${idx}`] = conn.ports?.join(', ') || '';
     });
     (product.output_connections || []).forEach((conn, idx) => {
-      const portLabels = (conn.ports || []).map(p => typeof p === 'string' ? p : p.label).join(', ');
-      initial[`output_${idx}`] = portLabels || '';
+      initial[`output_${idx}`] = conn.ports?.join(', ') || '';
     });
     return initial;
   });
@@ -105,6 +103,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     const ports = portLabels.map((label, i) => ({
       id: `${updated[index].type.toLowerCase().replace(/\s+/g, '-')}-${i + 1}`,
       label,
+      type: updated[index].type,
       auto_generated: false
     }));
     
@@ -213,12 +212,12 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Ports (comma-separated)</label>
               <input
-               type="text"
-               value={portInputValues[`${direction}_${idx}`] ?? (conn.ports || []).map(p => typeof p === 'string' ? p : p.label).join(', ') ?? ''}
-               onChange={(e) => handlePortsChange(direction, idx, e.target.value)}
-               onKeyDown={(e) => e.stopPropagation()}
-               placeholder="Port-1, Port-2"
-               className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                type="text"
+                value={portInputValues[`${direction}_${idx}`] ?? conn.ports?.join(', ') ?? ''}
+                onChange={(e) => handlePortsChange(direction, idx, e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder="Port-1, Port-2"
+                className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>

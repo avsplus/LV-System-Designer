@@ -657,6 +657,6 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
             onClose={() => setShowQuickEdit(false)}
           />
         )}
-      </div>
-    );
-  }
+        </div>
+        );
+        }
