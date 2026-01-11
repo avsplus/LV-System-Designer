@@ -601,8 +601,10 @@ function AVCanvasContent() {
       const fromIsNetworkDevice = isNetworkDevice(fromDevice);
       const toIsNetworkDevice = isNetworkDevice(toDevice);
       
-      // Network devices allow any direction; other devices require input->output
-      const validDirection = (fromIsNetworkDevice && toIsNetworkDevice) || 
+      // Network devices with same connection type allow any direction
+      const isNetworkEthernet = fromPort.connectionType === 'Ethernet' && toPort.connectionType === 'Ethernet' && 
+                               fromIsNetworkDevice && toIsNetworkDevice;
+      const validDirection = isNetworkEthernet || 
                             fromPort.isInput !== toPort.isInput;
       const sameType = fromPort.connectionType === toPort.connectionType;
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
