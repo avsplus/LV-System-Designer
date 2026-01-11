@@ -54,7 +54,9 @@ Deno.serve(async (req) => {
         model: 'Demonstration Unit',
         category: category,
         description: 'Demo product for demonstration purposes',
-        price: 0
+        price: 0,
+        needs_enrich: true,
+        connections_locked: false
       });
 
       created.push(category);

@@ -450,6 +450,13 @@ Deno.serve(async (req) => {
             debugLogs.push(`\n=== Processing ${product.brand} ${product.model} ===`);
             console.log(`[DEBUG] Processing product: ${product.brand} ${product.model}`);
             
+            // Skip if already enriched or connections are locked by user
+            if (!product.needs_enrich || product.connections_locked) {
+                console.log(`[DEBUG] Skipping ${product.brand} ${product.model} (needs_enrich=${product.needs_enrich}, connections_locked=${product.connections_locked})`);
+                debugLogs.push(`Skipped (already enriched or user-locked)`);
+                continue;
+            }
+            
             // Call LLM to extract specs AND device type
             console.log('[DEBUG] Calling LLM for specs extraction...');
             const llmResponse = await base44.integrations.Core.InvokeLLM({
@@ -594,13 +601,14 @@ Deno.serve(async (req) => {
                 
                 debugLogs.push(`After merge: ${mergedInputs.length} input types, ${mergedOutputs.length} output types`);
                 
-                // Update product with merged connections
+                // Update product with merged connections and mark as enriched
                 await base44.asServiceRole.entities.AVProduct.update(product.id, {
                     input_connections: mergedInputs,
-                    output_connections: mergedOutputs
+                    output_connections: mergedOutputs,
+                    needs_enrich: false
                 });
                 
-                console.log('[DEBUG] Product updated');
+                console.log('[DEBUG] Product updated and marked as enriched');
 
                 // Mark spec as approved
                 await base44.asServiceRole.entities.DeviceSpec.update(deviceSpec.id, {
