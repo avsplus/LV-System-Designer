@@ -179,11 +179,14 @@ export default function EnrichConnectionsDialog({ open, onClose, onEnrich, isEnr
                   {matchingProducts.map(p => (
                     <button
                       key={p.id}
-                      onClick={() => {
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setBrand(p.brand);
                         setModel(p.model);
                       }}
-                      className="block w-full text-left px-2 py-1 rounded hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200"
+                      className="block w-full text-left px-2 py-1 rounded hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
                     >
                       {p.brand} {p.model}
                     </button>
