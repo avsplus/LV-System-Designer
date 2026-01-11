@@ -20,47 +20,18 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
     return null;
   }
   
-  // Account for floorplan position and scale
-  // Device positions are in canvas coordinates; we need to normalize them to floorplan space
-  const floorplanScale = (floorplan.scale || 1);
-  const calibrationScale = (floorplan.calibrationScale || 1); // Scale at time of calibration
-  const floorplanPos = floorplan.position || { x: 0, y: 0 };
-  
-  // Adjust for scale changes since calibration
-  const scaleAdjustment = floorplanScale / calibrationScale;
-  const scaleFactor = 1 / scaleAdjustment;
-  const adjustedFrom = {
-    x: (from.x - floorplanPos.x) * scaleFactor,
-    y: (from.y - floorplanPos.y) * scaleFactor
-  };
-  const adjustedTo = {
-    x: (to.x - floorplanPos.x) * scaleFactor,
-    y: (to.y - floorplanPos.y) * scaleFactor
-  };
-  
-  // Adjust waypoints if they exist
-  const adjustedWaypoints = waypoints?.map(wp => ({
-    x: (wp.x - floorplanPos.x) * scaleFactor,
-    y: (wp.y - floorplanPos.y) * scaleFactor
-  })) || [];
-  
-  const pathLengthPx = calculatePathLength(adjustedFrom, adjustedTo, adjustedWaypoints);
+  // Device positions and calibration are both in raw image pixels
+  // No need to adjust for position or scale since everything is relative to the image
+  const pathLengthPx = calculatePathLength(from, to, waypoints);
   const inches = pathLengthPx / floorplan.pixelsPerInch;
   const feet = inches / 12;
   
-  console.log('=== WIRE LENGTH CALCULATION DEBUG ===');
-  console.log('Raw device positions:', { from, to });
-  console.log('Floorplan data:', {
-    scale: floorplanScale,
-    calibrationScale: calibrationScale,
-    position: floorplanPos,
-    pixelsPerInch: floorplan.pixelsPerInch
-  });
-  console.log('Scale factor applied:', scaleFactor);
-  console.log('Adjusted positions:', { adjustedFrom, adjustedTo });
-  console.log('Path length (pixels):', pathLengthPx);
+  console.log('=== WIRE LENGTH CALCULATION ===');
+  console.log('Device positions (px):', { from, to });
+  console.log('Path length (px):', pathLengthPx);
+  console.log('pixelsPerInch:', floorplan.pixelsPerInch);
   console.log('Result:', { inches, feet });
-  console.log('====================================');
+  console.log('================================');
   
   return {
     feet: feet.toFixed(2),
