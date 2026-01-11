@@ -266,10 +266,10 @@ function generatePortsFromRule(spec, rule) {
       : `${action.type.toLowerCase().replace(/\s+/g, '-')}-${i}`;
     
     ports.push({
-      id: id,
+      id,
+      label,
       type: action.type,
       direction: action.direction || 'bidirectional',
-      label,
       category: action.port_category || 'general',
       source: 'rule_engine',
       capacity,
@@ -287,23 +287,23 @@ function mergeConnectionsByType(existing, generated, debugLogs = []) {
   (existing || []).forEach(conn => {
     byType.set(conn.type, {
       ...conn,
-      ports: conn.ports || []
+      ports: conn.ports || [],
+      port_data: conn.port_data || []
     });
   });
 
   // Merge generated ports into existing by type
   (generated || []).forEach(genConn => {
     if (byType.has(genConn.type)) {
-      // Type exists - merge ports by ID
+      // Type exists - merge ports by ID using port_data
       const existing = byType.get(genConn.type);
       const existingPortsById = new Map(
-        (existing.ports || [])
-          .filter(p => p.id) // Only match ports with IDs
+        (existing.port_data || [])
           .map(p => [p.id, p])
       );
 
       // Add/update auto-generated ports, preserve user-modified ports
-      (genConn.ports || []).forEach(genPort => {
+      (genConn.port_data || []).forEach(genPort => {
         if (genPort.auto_generated) {
           // Always update auto-generated ports
           existingPortsById.set(genPort.id, genPort);
@@ -313,22 +313,15 @@ function mergeConnectionsByType(existing, generated, debugLogs = []) {
         }
       });
 
-      // Preserve any user-added ports (non-auto-generated with IDs)
-      existing.ports
-        .filter(p => p.id && !p.auto_generated)
-        .forEach(p => {
-          if (!existingPortsById.has(p.id)) {
-            existingPortsById.set(p.id, p);
-          }
-        });
-
+      const mergedPorts = Array.from(existingPortsById.values());
       byType.set(genConn.type, {
-        ...existing,
-        ports: Array.from(existingPortsById.values()),
+        type: genConn.type,
+        ports: mergedPorts.map(p => p.label), // Store labels as strings
+        port_data: mergedPorts,
         capacity: genConn.capacity || existing.capacity
       });
       
-      debugLogs.push(`  Merged ${genConn.type}: ${existingPortsById.size} total ports`);
+      debugLogs.push(`  Merged ${genConn.type}: ${mergedPorts.length} total ports`);
     } else {
       // New type - add it
       byType.set(genConn.type, genConn);
@@ -336,7 +329,12 @@ function mergeConnectionsByType(existing, generated, debugLogs = []) {
     }
   });
 
-  return Array.from(byType.values());
+  // Remove port_data before returning (not saved to entity)
+  return Array.from(byType.values()).map(conn => ({
+    type: conn.type,
+    ports: conn.ports,
+    capacity: conn.capacity
+  }));
 }
 
 function generateConnectionsFromSpec(spec, allRules) {
@@ -565,13 +563,20 @@ Deno.serve(async (req) => {
                     continue;
                 }
                 
-                // Group ports by type (keep as objects with IDs, not string labels)
+                // Group ports by type (store labels as strings for entity schema, preserve IDs internally)
                 const groupedInputs = inputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
                     if (existing) {
-                        existing.ports.push(p);
+                        existing.ports.push(p.label);
+                        existing.port_data = existing.port_data || [];
+                        existing.port_data.push(p);
                     } else {
-                        acc.push({ type: p.type, ports: [p], capacity: p.capacity });
+                        acc.push({ 
+                          type: p.type, 
+                          ports: [p.label], 
+                          port_data: [p],
+                          capacity: p.capacity 
+                        });
                     }
                     return acc;
                 }, []);
@@ -579,9 +584,16 @@ Deno.serve(async (req) => {
                 const groupedOutputs = outputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
                     if (existing) {
-                        existing.ports.push(p);
+                        existing.ports.push(p.label);
+                        existing.port_data = existing.port_data || [];
+                        existing.port_data.push(p);
                     } else {
-                        acc.push({ type: p.type, ports: [p], capacity: p.capacity });
+                        acc.push({ 
+                          type: p.type, 
+                          ports: [p.label],
+                          port_data: [p],
+                          capacity: p.capacity 
+                        });
                     }
                     return acc;
                 }, []);
