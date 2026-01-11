@@ -555,8 +555,6 @@ Deno.serve(async (req) => {
                 debugLogs.push(`Enriching ${product.brand} ${product.model}`);
                 
                 // Validate inputs and outputs have matching types
-                const inputTypes = new Set(inputs.map(p => p.type));
-                const outputTypes = new Set(outputs.map(p => p.type));
                 const invalidInputs = inputs.filter(p => !p.type || !p.label || !p.id);
                 const invalidOutputs = outputs.filter(p => !p.type || !p.label || !p.id);
                 
@@ -568,23 +566,43 @@ Deno.serve(async (req) => {
                     continue;
                 }
                 
-                // Group ports by type (keep as objects with IDs, not string labels)
+                // Group ports by type with proper structure (category is a port-level field, not connection-level)
                 const groupedInputs = inputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
+                    const port = {
+                        id: p.id,
+                        label: p.label,
+                        direction: p.direction || 'input'
+                    };
                     if (existing) {
-                        existing.ports.push(p);
+                        existing.ports.push(port);
                     } else {
-                        acc.push({ type: p.type, ports: [p], capacity: p.capacity });
+                        acc.push({ 
+                            type: p.type, 
+                            ports: [port],
+                            category: p.category,
+                            capacity: p.capacity 
+                        });
                     }
                     return acc;
                 }, []);
                 
                 const groupedOutputs = outputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
+                    const port = {
+                        id: p.id,
+                        label: p.label,
+                        direction: p.direction || 'output'
+                    };
                     if (existing) {
-                        existing.ports.push(p);
+                        existing.ports.push(port);
                     } else {
-                        acc.push({ type: p.type, ports: [p], capacity: p.capacity });
+                        acc.push({ 
+                            type: p.type, 
+                            ports: [port],
+                            category: p.category,
+                            capacity: p.capacity 
+                        });
                     }
                     return acc;
                 }, []);
