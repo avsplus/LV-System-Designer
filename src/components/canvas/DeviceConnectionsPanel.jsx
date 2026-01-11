@@ -267,12 +267,13 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
       
       // Find matching port - exact match or fuzzy match (e.g., "Front-L" matches "Speaker-Front-Left")
       const matchingPort = ports.find(p => {
-        const pNorm = p.toLowerCase().replace(/[-_]/g, '');
+        const portLabel = typeof p === 'string' ? p : p.label;
+        const pNorm = portLabel.toLowerCase().replace(/[-_]/g, '');
         const cNorm = connPort.toLowerCase().replace(/[-_]/g, '');
-        return p === connPort || pNorm.includes(cNorm) || cNorm.includes(pNorm);
+        return portLabel === connPort || pNorm.includes(cNorm) || cNorm.includes(pNorm);
       });
       
-      if (matchingPort) used.add(matchingPort);
+      if (matchingPort) used.add(typeof matchingPort === 'string' ? matchingPort : matchingPort.label);
     });
     return used;
   };
@@ -492,13 +493,14 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
                     <div className="space-y-1 mt-2">
                       {input.ports.map((port) => {
-                        const isUsed = usedPorts.has(port);
-                        const connectedInfo = isUsed ? getConnectedDevice(input.type, port, true) : null;
+                        const portLabel = typeof port === 'string' ? port : port.label;
+                        const isUsed = usedPorts.has(portLabel);
+                        const connectedInfo = isUsed ? getConnectedDevice(input.type, portLabel, true) : null;
                         const connectionIdx = connectedInfo?.conn ? activeConnections.indexOf(connectedInfo.conn) : -1;
 
                         return (
                           <div 
-                            key={port}
+                            key={portLabel}
                             className={`flex items-center justify-between p-2 rounded text-xs transition-all ${
                               isUsed 
                                 ? `${highlightColor.bg} border ${highlightColor.border} ${highlightColor.hover} cursor-pointer` 
@@ -507,7 +509,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                             onMouseEnter={() => isUsed && connectionIdx !== -1 && onHighlightConnections && onHighlightConnections([connectionIdx])}
                             onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
                           >
-                            <span className={isUsed ? `${highlightColor.text} font-medium` : 'text-gray-500'}>{port}</span>
+                            <span className={isUsed ? `${highlightColor.text} font-medium` : 'text-gray-500'}>{portLabel}</span>
                             {isUsed && connectedInfo?.device && (
                               <span className="text-gray-400 text-[10px] truncate ml-2">
                                 ← {connectedInfo.device.label || connectedInfo.device.brand} ({connectedInfo.port})
@@ -553,13 +555,14 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                     <p className="text-xs text-gray-400 mb-2">{info.signals}</p>
                     <div className="space-y-1 mt-2">
                       {output.ports.map((port) => {
-                        const isUsed = usedPorts.has(port);
-                        const connectedInfo = isUsed ? getConnectedDevice(output.type, port, false) : null;
+                        const portLabel = typeof port === 'string' ? port : port.label;
+                        const isUsed = usedPorts.has(portLabel);
+                        const connectedInfo = isUsed ? getConnectedDevice(output.type, portLabel, false) : null;
                         const connectionIdx = connectedInfo?.conn ? activeConnections.indexOf(connectedInfo.conn) : -1;
 
                         return (
                           <div 
-                            key={port}
+                            key={portLabel}
                             className={`flex items-center justify-between p-2 rounded text-xs transition-all ${
                               isUsed 
                                 ? `${highlightColor.bg} border ${highlightColor.border} ${highlightColor.hover} cursor-pointer` 
@@ -568,7 +571,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                             onMouseEnter={() => isUsed && connectionIdx !== -1 && onHighlightConnections && onHighlightConnections([connectionIdx])}
                             onMouseLeave={() => onHighlightConnections && onHighlightConnections([])}
                           >
-                            <span className={isUsed ? `${highlightColor.text} font-medium` : 'text-gray-500'}>{port}</span>
+                            <span className={isUsed ? `${highlightColor.text} font-medium` : 'text-gray-500'}>{portLabel}</span>
                             {isUsed && connectedInfo?.device && (
                               <span className="text-gray-400 text-[10px] truncate ml-2">
                                 → {connectedInfo.device.label || connectedInfo.device.brand} ({connectedInfo.port})
