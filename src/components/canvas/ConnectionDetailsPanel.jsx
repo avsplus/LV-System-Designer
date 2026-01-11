@@ -72,6 +72,17 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
   const wireLength = !isEmpty && fromPosition && toPosition && activeFloorplan
     ? getWireLength(fromPosition, toPosition, connection.waypoints || [], activeFloorplan)
     : null;
+  
+  // Debug logging
+  if (!isEmpty) {
+    console.log('ConnectionDetailsPanel debug:', {
+      fromPosition,
+      toPosition,
+      activeFloorplan: activeFloorplan ? { pixelsPerInch: activeFloorplan.pixelsPerInch, visible: activeFloorplan.visible } : null,
+      wireLength,
+      waypoints: connection.waypoints
+    });
+  }
 
   return (
     <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
