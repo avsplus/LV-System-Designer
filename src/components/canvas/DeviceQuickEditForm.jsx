@@ -72,10 +72,12 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
   const [portInputValues, setPortInputValues] = useState(() => {
     const initial = {};
     (product.input_connections || []).forEach((conn, idx) => {
-      initial[`input_${idx}`] = conn.ports?.join(', ') || '';
+      const portLabels = (conn.ports || []).map(p => typeof p === 'string' ? p : p.label).join(', ');
+      initial[`input_${idx}`] = portLabels || '';
     });
     (product.output_connections || []).forEach((conn, idx) => {
-      initial[`output_${idx}`] = conn.ports?.join(', ') || '';
+      const portLabels = (conn.ports || []).map(p => typeof p === 'string' ? p : p.label).join(', ');
+      initial[`output_${idx}`] = portLabels || '';
     });
     return initial;
   });
