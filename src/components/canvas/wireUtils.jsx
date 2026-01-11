@@ -23,10 +23,12 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
   // Account for floorplan position and scale
   // Device positions are in canvas coordinates; we need to normalize them to floorplan space
   const floorplanScale = (floorplan.scale || 1);
+  const calibrationScale = (floorplan.calibrationScale || 1); // Scale at time of calibration
   const floorplanPos = floorplan.position || { x: 0, y: 0 };
   
-  // Adjust positions relative to floorplan and undo the floorplan's scale transform
-  const scaleFactor = 1 / floorplanScale;
+  // Adjust for scale changes since calibration
+  const scaleAdjustment = floorplanScale / calibrationScale;
+  const scaleFactor = 1 / scaleAdjustment;
   const adjustedFrom = {
     x: (from.x - floorplanPos.x) * scaleFactor,
     y: (from.y - floorplanPos.y) * scaleFactor
