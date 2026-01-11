@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -122,6 +123,19 @@ const masterCategoryIcons = {
 };
 
 export default function ProductSidebar({ products, onProductSelect }) {
+  React.useEffect(() => {
+    // Apply scrollbar-gutter: stable to the main scrollable container
+    const style = document.createElement('style');
+    style.innerHTML = `
+      [data-sidebar-scrollable] {
+        scrollbar-gutter: stable !important;
+        overflow-y: scroll !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   const { settings } = useSettings();
   const { organization } = useOrganization();
   const [searchTerm, setSearchTerm] = useState('');
@@ -489,6 +503,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
             ref={provided.innerRef}
             {...provided.droppableProps}
             className="flex-1 overflow-y-auto p-3 space-y-3"
+            data-sidebar-scrollable // Add the data attribute here
           >
             {masterCategories.map((masterCat, masterIdx) => {
               const categoriesInMaster = allMasterCategoryMappings[masterCat] || [];
