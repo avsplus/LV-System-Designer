@@ -145,6 +145,29 @@ export default function ProductSidebar({ products, onProductSelect }) {
     localStorage.setItem('viewedProductCategories', JSON.stringify(viewedCategories));
   }, [viewedCategories]);
 
+  // Track product counts per category and reset "new" badge if count hasn't changed
+  React.useEffect(() => {
+    const currentCounts = {};
+    Object.entries(productsByCategory).forEach(([category, prods]) => {
+      currentCounts[category] = prods.length;
+    });
+
+    // If category exists in localStorage but product count hasn't changed since last view, mark as viewed
+    const updatedViewed = { ...viewedCategories };
+    Object.entries(currentCounts).forEach(([category, count]) => {
+      if (categoryProductCounts[category] !== undefined && categoryProductCounts[category] === count && !viewedCategories[category]) {
+        updatedViewed[category] = true;
+      }
+    });
+
+    setCategoryProductCounts(currentCounts);
+    localStorage.setItem('categoryProductCounts', JSON.stringify(currentCounts));
+    
+    if (Object.keys(updatedViewed).length > Object.keys(viewedCategories).length) {
+      setViewedCategories(updatedViewed);
+    }
+  }, [products]);
+
   // Extract unique values for filters
   const allCategories = [...new Set(products.map(p => p.category))].sort();
   const allBrands = [...new Set(products.map(p => p.brand))].sort();
