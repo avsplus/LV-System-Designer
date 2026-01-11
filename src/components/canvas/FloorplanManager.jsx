@@ -209,9 +209,13 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     console.log('========================');
 
     const updatedFloorplans = calibrating.isRecalibrating 
-      ? floorplans.map(fp => 
-          fp.id === calibrating.id ? { ...fp, pixelsPerInch } : fp
-        )
+      ? floorplans.map(fp => {
+          if (fp.id === calibrating.id) {
+            console.log(`Recalibrating floorplan "${fp.name}": old=${fp.pixelsPerInch?.toFixed(2)}, new=${pixelsPerInch.toFixed(2)}`);
+            return { ...fp, pixelsPerInch };
+          }
+          return fp;
+        })
       : (() => {
           const imageWidth = calibrating.naturalWidth;
           const imageHeight = calibrating.naturalHeight;
@@ -219,6 +223,8 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
           const position = lastFloorplan && lastFloorplan.position
             ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
             : { x: 0, y: 0 };
+
+          console.log(`Creating new calibrated floorplan "${calibrating.name}" with pixelsPerInch=${pixelsPerInch.toFixed(2)}`);
 
           return [...floorplans, {
             id: calibrating.id,
@@ -230,7 +236,6 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
             imageWidth: imageWidth,
             imageHeight: imageHeight,
             scale: 1,
-            calibrationScale: 1,
             position: position,
             visible: true,
             opacity: 0.3
@@ -240,7 +245,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     onUpdate(updatedFloorplans);
     setUploadForm({ name: '' });
     toast.success(calibrating.isRecalibrating ? 'Floorplan recalibrated' : 'Floorplan calibrated and added');
-    
+
     setCalibrating(null);
     setCalibrationPoints([]);
     setKnownDistance('');
