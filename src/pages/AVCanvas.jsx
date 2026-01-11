@@ -231,6 +231,14 @@ function AVCanvasContent() {
     queryFn: () => base44.entities.AVProduct.list(),
   });
 
+  // Subscribe to real-time product changes
+  useEffect(() => {
+    const unsubscribe = base44.entities.AVProduct.subscribe((event) => {
+      queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+    });
+    return unsubscribe;
+  }, [queryClient]);
+
   // Project load handler
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
