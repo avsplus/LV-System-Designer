@@ -560,7 +560,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                   <Draggable 
                                     key={product.id} 
                                     draggableId={product.id} 
-                                    index={filteredProducts.findIndex(p => p.id === product.id)}
+                                    index={demoProductIndex + 1 + prodIndex}
                                   >
                                     {(provided, snapshot) => (
                                       <>
