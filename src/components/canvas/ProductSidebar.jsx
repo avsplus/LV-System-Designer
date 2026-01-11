@@ -424,12 +424,12 @@ export default function ProductSidebar({ products, onProductSelect }) {
             {...provided.droppableProps}
             className="flex-1 overflow-y-auto p-3 space-y-3"
           >
-            {masterCategories.map((masterCat) => {
-              const categoriesInMaster = Object.keys(productsByMasterCategory[masterCat]).sort((a, b) =>
-                a.replace(/_/g, ' ').localeCompare(b.replace(/_/g, ' '))
-              );
+            {masterCategories.map((masterCat, masterIdx) => {
+              const categoriesInMaster = allMasterCategoryMappings[masterCat] || [];
               const masterCatExpanded = expandedCategories[`master-${masterCat}`] === true;
-              const totalProductsInMaster = categoriesInMaster.reduce((sum, cat) => sum + productsByMasterCategory[masterCat][cat].length, 0);
+              const totalProductsInMaster = categoriesInMaster.reduce((sum, cat) => 
+                sum + (productsByMasterCategory[masterCat][cat]?.length || 0), 0
+              );
 
               return (
                 <div key={masterCat} className="space-y-2">
@@ -446,7 +446,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       <div className="px-2 py-1 rounded text-white text-sm font-bold">
                         {masterCat}
                       </div>
-                      <span className="text-[10px] text-gray-500">({totalProductsInMaster})</span>
+                      <span className="text-[10px] text-gray-500">({totalProductsInMaster + categoriesInMaster.length})</span>
                     </div>
                     {masterCatExpanded ? (
                       <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -457,9 +457,18 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
                   {masterCatExpanded && (
                     <div className="space-y-2 pl-2">
-                      {categoriesInMaster.map((category, catIndex) => {
+                      {categoriesInMaster.map((category) => {
                         const categoryProducts = productsByMasterCategory[masterCat][category] || [];
                         const isExpanded = expandedCategories[category] === true;
+                        
+                        // Calculate a unique base index for this category's demo product
+                        const prevCategoriesCount = allMasterCategoryMappings[masterCat].slice(0, 
+                          allMasterCategoryMappings[masterCat].indexOf(category)
+                        ).reduce((sum, cat) => {
+                          return sum + 1 + (productsByMasterCategory[masterCat][cat]?.length || 0);
+                        }, 0);
+                        
+                        const demoProductIndex = prevCategoriesCount;
 
                         return (
                           <div key={category} className="space-y-2" onClick={(e) => e.stopPropagation()}>
@@ -498,7 +507,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 <Draggable 
                                   key={`demo-${category}`}
                                   draggableId={`demo-${category}`}
-                                  index={filteredProducts.length + catIndex}
+                                  index={demoProductIndex}
                                 >
                                   {(provided, snapshot) => (
                                     <>
