@@ -37,6 +37,8 @@ const CATEGORIES = [
   { value: 'av_receivers', label: 'AV Receivers' },
   { value: 'network_switches', label: 'Network Switches' },
   { value: 'control_processors', label: 'Control Processors' },
+  { value: 'touch_panels', label: 'Touch Panels' },
+  { value: 'remotes', label: 'Remotes' },
   { value: 'hdmi_extenders', label: 'HDMI Extenders' },
 ];
 
