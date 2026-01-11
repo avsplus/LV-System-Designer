@@ -1255,7 +1255,12 @@ function AVCanvasContent() {
     } : defaultConnections;
 
     const types = isOutput ? conns.outputs : conns.inputs;
-    const portIndex = types.findIndex(t => t.type === connectionType);
+    // Normalize ports to objects
+    const normalizedTypes = types.map(t => ({
+      ...t,
+      ports: (t.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: isOutput ? 'output' : 'input' } : p)
+    }));
+    const portIndex = normalizedTypes.findIndex(t => t.type === connectionType);
     
     if (portIndex === -1) return null;
 
