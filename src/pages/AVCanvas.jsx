@@ -249,6 +249,7 @@ function AVCanvasContent() {
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
+    console.log('📋 FLOORPLANS LOADED:', project.floorplans);
   };
 
 
