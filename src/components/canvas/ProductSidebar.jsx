@@ -125,7 +125,14 @@ export default function ProductSidebar({ products, onProductSelect }) {
   const { settings } = useSettings();
   const { organization } = useOrganization();
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState({ 'master-AV': true });
+  const [expandedCategories, setExpandedCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('expandedCategories');
+      return saved ? JSON.parse(saved) : { 'master-AV': true };
+    } catch {
+      return { 'master-AV': true };
+    }
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
@@ -150,10 +157,14 @@ export default function ProductSidebar({ products, onProductSelect }) {
     }
   });
 
-  // Persist viewed categories to localStorage
+  // Persist viewed categories and expanded state to localStorage
   React.useEffect(() => {
     localStorage.setItem('viewedProductCategories', JSON.stringify(viewedCategories));
   }, [viewedCategories]);
+
+  React.useEffect(() => {
+    localStorage.setItem('expandedCategories', JSON.stringify(expandedCategories));
+  }, [expandedCategories]);
 
   // Track product counts per category and reset "new" badge if count hasn't changed
   React.useEffect(() => {
