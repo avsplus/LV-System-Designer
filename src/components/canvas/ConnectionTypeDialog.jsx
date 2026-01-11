@@ -56,155 +56,157 @@ const connectionTypes = [
   }
 ];
 
+// Default port definitions by product category - ports MUST be normalized objects {id, label, direction}
+// to prevent React error #31 from inconsistent data types between renders
 const connectionsByCategory = {
   televisions: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
-      { type: "Component", ports: ["Component-1"] },
-      { type: "Composite", ports: ["Composite-1"] },
-      { type: "Optical", ports: ["Optical-In"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }, { id: "hdmi-3", label: "HDMI-3", direction: "input" }, { id: "hdmi-4", label: "HDMI-4", direction: "input" }] },
+      { type: "Component", ports: [{ id: "component-1", label: "Component-1", direction: "input" }] },
+      { type: "Composite", ports: [{ id: "composite-1", label: "Composite-1", direction: "input" }] },
+      { type: "Optical", ports: [{ id: "optical-in", label: "Optical-In", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "Optical", ports: ["Optical-Out"] },
-      { type: "3.5mm Jack", ports: ["Headphone"] }
+      { type: "Optical", ports: [{ id: "optical-out", label: "Optical-Out", direction: "output" }] },
+      { type: "3.5mm Jack", ports: [{ id: "headphone", label: "Headphone", direction: "output" }] }
     ]
   },
   projectors: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
-      { type: "VGA", ports: ["VGA"] },
-      { type: "Component", ports: ["Component-1"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }] },
+      { type: "VGA", ports: [{ id: "vga", label: "VGA", direction: "input" }] },
+      { type: "Component", ports: [{ id: "component-1", label: "Component-1", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "3.5mm Jack", ports: ["Audio-Out"] }
+      { type: "3.5mm Jack", ports: [{ id: "audio-out", label: "Audio-Out", direction: "output" }] }
     ]
   },
   projector_screens: {
     inputs: [
-      { type: "Control", ports: ["Trigger-1", "Trigger-2"] },
-      { type: "RS232", ports: ["RS232"] }
+      { type: "Control", ports: [{ id: "trigger-1", label: "Trigger-1", direction: "input" }, { id: "trigger-2", label: "Trigger-2", direction: "input" }] },
+      { type: "RS232", ports: [{ id: "rs232", label: "RS232", direction: "input" }] }
     ],
     outputs: []
   },
   video_distribution: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }, { id: "hdmi-3", label: "HDMI-3", direction: "input" }, { id: "hdmi-4", label: "HDMI-4", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6"] },
-      { type: "HDBaseT", ports: ["HDBaseT-1", "HDBaseT-2", "HDBaseT-3", "HDBaseT-4"] }
+      { type: "HDMI", ports: [{ id: "hdmi-out-1", label: "HDMI-Out-1", direction: "output" }, { id: "hdmi-out-2", label: "HDMI-Out-2", direction: "output" }, { id: "hdmi-out-3", label: "HDMI-Out-3", direction: "output" }, { id: "hdmi-out-4", label: "HDMI-Out-4", direction: "output" }, { id: "hdmi-out-5", label: "HDMI-Out-5", direction: "output" }, { id: "hdmi-out-6", label: "HDMI-Out-6", direction: "output" }] },
+      { type: "HDBaseT", ports: [{ id: "hdbaset-1", label: "HDBaseT-1", direction: "output" }, { id: "hdbaset-2", label: "HDBaseT-2", direction: "output" }, { id: "hdbaset-3", label: "HDBaseT-3", direction: "output" }, { id: "hdbaset-4", label: "HDBaseT-4", direction: "output" }] }
     ]
   },
   matrix_switchers: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7", "HDMI-8"] },
-      { type: "Ethernet", ports: ["LAN"] },
-      { type: "RS232", ports: ["RS232"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }, { id: "hdmi-3", label: "HDMI-3", direction: "input" }, { id: "hdmi-4", label: "HDMI-4", direction: "input" }, { id: "hdmi-5", label: "HDMI-5", direction: "input" }, { id: "hdmi-6", label: "HDMI-6", direction: "input" }, { id: "hdmi-7", label: "HDMI-7", direction: "input" }, { id: "hdmi-8", label: "HDMI-8", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] },
+      { type: "RS232", ports: [{ id: "rs232", label: "RS232", direction: "input" }] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2", "HDMI-Out-3", "HDMI-Out-4", "HDMI-Out-5", "HDMI-Out-6", "HDMI-Out-7", "HDMI-Out-8"] }
+      { type: "HDMI", ports: [{ id: "hdmi-out-1", label: "HDMI-Out-1", direction: "output" }, { id: "hdmi-out-2", label: "HDMI-Out-2", direction: "output" }, { id: "hdmi-out-3", label: "HDMI-Out-3", direction: "output" }, { id: "hdmi-out-4", label: "HDMI-Out-4", direction: "output" }, { id: "hdmi-out-5", label: "HDMI-Out-5", direction: "output" }, { id: "hdmi-out-6", label: "HDMI-Out-6", direction: "output" }, { id: "hdmi-out-7", label: "HDMI-Out-7", direction: "output" }, { id: "hdmi-out-8", label: "HDMI-Out-8", direction: "output" }] }
     ]
   },
   audio_streamers: {
     inputs: [
-      { type: "Ethernet", ports: ["LAN"] },
-      { type: "USB", ports: ["USB"] },
-      { type: "Optical", ports: ["Optical-In"] }
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] },
+      { type: "USB", ports: [{ id: "usb", label: "USB", direction: "input" }] },
+      { type: "Optical", ports: [{ id: "optical-in", label: "Optical-In", direction: "input" }] }
     ],
     outputs: [
-      { type: "RCA", ports: ["Out-L", "Out-R"] },
-      { type: "Optical", ports: ["Optical-Out"] },
-      { type: "Coaxial", ports: ["Coaxial-Out"] },
-      { type: "XLR", ports: ["XLR-L", "XLR-R"] }
+      { type: "RCA", ports: [{ id: "out-l", label: "Out-L", direction: "output" }, { id: "out-r", label: "Out-R", direction: "output" }] },
+      { type: "Optical", ports: [{ id: "optical-out", label: "Optical-Out", direction: "output" }] },
+      { type: "Coaxial", ports: [{ id: "coaxial-out", label: "Coaxial-Out", direction: "output" }] },
+      { type: "XLR", ports: [{ id: "xlr-l", label: "XLR-L", direction: "output" }, { id: "xlr-r", label: "XLR-R", direction: "output" }] }
     ]
   },
   media_streamers: {
     inputs: [
-      { type: "Ethernet", ports: ["LAN"] },
-      { type: "USB", ports: ["USB"] }
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] },
+      { type: "USB", ports: [{ id: "usb", label: "USB", direction: "input" }] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out"] }
+      { type: "HDMI", ports: [{ id: "hdmi-out", label: "HDMI-Out", direction: "output" }] }
     ]
   },
   speakers: {
     inputs: [
-      { type: "Speaker Wire", ports: ["Input"] }
+      { type: "Speaker Wire", ports: [{ id: "input", label: "Input", direction: "input" }] }
     ],
     outputs: []
   },
   soundbars: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2"] },
-      { type: "Optical", ports: ["Optical-In"] },
-      { type: "RCA", ports: ["RCA-L", "RCA-R"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }] },
+      { type: "Optical", ports: [{ id: "optical-in", label: "Optical-In", direction: "input" }] },
+      { type: "RCA", ports: [{ id: "rca-l", label: "RCA-L", direction: "input" }, { id: "rca-r", label: "RCA-R", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out"] },
-      { type: "Subwoofer", ports: ["Sub-Out"] }
+      { type: "HDMI", ports: [{ id: "hdmi-out", label: "HDMI-Out", direction: "output" }] },
+      { type: "Subwoofer", ports: [{ id: "sub-out", label: "Sub-Out", direction: "output" }] }
     ]
   },
   subwoofers: {
     inputs: [
-      { type: "Subwoofer", ports: ["Input"] }
+      { type: "Subwoofer", ports: [{ id: "input", label: "Input", direction: "input" }] }
     ],
     outputs: []
   },
   stereo_amps: {
     inputs: [
-      { type: "RCA", ports: ["RCA-1", "RCA-2"] },
-      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
-      { type: "Optical", ports: ["Optical-1"] },
-      { type: "Coaxial", ports: ["Coaxial"] }
+      { type: "RCA", ports: [{ id: "rca-1", label: "RCA-1", direction: "input" }, { id: "rca-2", label: "RCA-2", direction: "input" }] },
+      { type: "XLR", ports: [{ id: "xlr-l", label: "XLR-L", direction: "input" }, { id: "xlr-r", label: "XLR-R", direction: "input" }] },
+      { type: "Optical", ports: [{ id: "optical-1", label: "Optical-1", direction: "input" }] },
+      { type: "Coaxial", ports: [{ id: "coaxial", label: "Coaxial", direction: "input" }] }
     ],
     outputs: [
-      { type: "Speaker Wire", ports: ["Speaker-L", "Speaker-R"] },
-      { type: "RCA", ports: ["Pre-Out-L", "Pre-Out-R"] }
+      { type: "Speaker Wire", ports: [{ id: "speaker-l", label: "Speaker-L", direction: "output" }, { id: "speaker-r", label: "Speaker-R", direction: "output" }] },
+      { type: "RCA", ports: [{ id: "pre-out-l", label: "Pre-Out-L", direction: "output" }, { id: "pre-out-r", label: "Pre-Out-R", direction: "output" }] }
     ]
   },
   multizone_amps: {
     inputs: [
-      { type: "RCA", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] },
-      { type: "XLR", ports: ["XLR-1-L", "XLR-1-R", "XLR-2-L", "XLR-2-R"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "RCA", ports: [{ id: "zone-1-l", label: "Zone-1-L", direction: "input" }, { id: "zone-1-r", label: "Zone-1-R", direction: "input" }, { id: "zone-2-l", label: "Zone-2-L", direction: "input" }, { id: "zone-2-r", label: "Zone-2-R", direction: "input" }, { id: "zone-3-l", label: "Zone-3-L", direction: "input" }, { id: "zone-3-r", label: "Zone-3-R", direction: "input" }, { id: "zone-4-l", label: "Zone-4-L", direction: "input" }, { id: "zone-4-r", label: "Zone-4-R", direction: "input" }] },
+      { type: "XLR", ports: [{ id: "xlr-1-l", label: "XLR-1-L", direction: "input" }, { id: "xlr-1-r", label: "XLR-1-R", direction: "input" }, { id: "xlr-2-l", label: "XLR-2-L", direction: "input" }, { id: "xlr-2-r", label: "XLR-2-R", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "Speaker Wire", ports: ["Zone-1-L", "Zone-1-R", "Zone-2-L", "Zone-2-R", "Zone-3-L", "Zone-3-R", "Zone-4-L", "Zone-4-R"] }
+      { type: "Speaker Wire", ports: [{ id: "zone-1-l", label: "Zone-1-L", direction: "output" }, { id: "zone-1-r", label: "Zone-1-R", direction: "output" }, { id: "zone-2-l", label: "Zone-2-L", direction: "output" }, { id: "zone-2-r", label: "Zone-2-R", direction: "output" }, { id: "zone-3-l", label: "Zone-3-L", direction: "output" }, { id: "zone-3-r", label: "Zone-3-R", direction: "output" }, { id: "zone-4-l", label: "Zone-4-L", direction: "output" }, { id: "zone-4-r", label: "Zone-4-R", direction: "output" }] }
     ]
   },
   surround_processors: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
-      { type: "RCA", ports: ["RCA-1", "RCA-2"] },
-      { type: "XLR", ports: ["XLR-L", "XLR-R"] },
-      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
-      { type: "Coaxial", ports: ["Coaxial-1"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }, { id: "hdmi-3", label: "HDMI-3", direction: "input" }, { id: "hdmi-4", label: "HDMI-4", direction: "input" }, { id: "hdmi-5", label: "HDMI-5", direction: "input" }, { id: "hdmi-6", label: "HDMI-6", direction: "input" }, { id: "hdmi-7", label: "HDMI-7", direction: "input" }] },
+      { type: "RCA", ports: [{ id: "rca-1", label: "RCA-1", direction: "input" }, { id: "rca-2", label: "RCA-2", direction: "input" }] },
+      { type: "XLR", ports: [{ id: "xlr-l", label: "XLR-L", direction: "input" }, { id: "xlr-r", label: "XLR-R", direction: "input" }] },
+      { type: "Optical", ports: [{ id: "optical-1", label: "Optical-1", direction: "input" }, { id: "optical-2", label: "Optical-2", direction: "input" }] },
+      { type: "Coaxial", ports: [{ id: "coaxial-1", label: "Coaxial-1", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
-      { type: "RCA", ports: ["FL", "FR", "C", "SL", "SR", "SBL", "SBR", "Sub"] },
-      { type: "XLR", ports: ["XLR-FL", "XLR-FR", "XLR-C", "XLR-SL", "XLR-SR", "XLR-Sub"] }
+      { type: "HDMI", ports: [{ id: "hdmi-out-1", label: "HDMI-Out-1", direction: "output" }, { id: "hdmi-out-2", label: "HDMI-Out-2", direction: "output" }] },
+      { type: "RCA", ports: [{ id: "fl", label: "FL", direction: "output" }, { id: "fr", label: "FR", direction: "output" }, { id: "c", label: "C", direction: "output" }, { id: "sl", label: "SL", direction: "output" }, { id: "sr", label: "SR", direction: "output" }, { id: "sbl", label: "SBL", direction: "output" }, { id: "sbr", label: "SBR", direction: "output" }, { id: "sub", label: "Sub", direction: "output" }] },
+      { type: "XLR", ports: [{ id: "xlr-fl", label: "XLR-FL", direction: "output" }, { id: "xlr-fr", label: "XLR-FR", direction: "output" }, { id: "xlr-c", label: "XLR-C", direction: "output" }, { id: "xlr-sl", label: "XLR-SL", direction: "output" }, { id: "xlr-sr", label: "XLR-SR", direction: "output" }, { id: "xlr-sub", label: "XLR-Sub", direction: "output" }] }
     ]
   },
   av_receivers: {
     inputs: [
-      { type: "HDMI", ports: ["HDMI-1", "HDMI-2", "HDMI-3", "HDMI-4", "HDMI-5", "HDMI-6", "HDMI-7"] },
-      { type: "RCA", ports: ["CD", "Phono", "AUX-1", "AUX-2"] },
-      { type: "Optical", ports: ["Optical-1", "Optical-2"] },
-      { type: "Coaxial", ports: ["Coaxial"] },
-      { type: "USB", ports: ["USB-A", "USB-B"] },
-      { type: "Ethernet", ports: ["LAN"] }
+      { type: "HDMI", ports: [{ id: "hdmi-1", label: "HDMI-1", direction: "input" }, { id: "hdmi-2", label: "HDMI-2", direction: "input" }, { id: "hdmi-3", label: "HDMI-3", direction: "input" }, { id: "hdmi-4", label: "HDMI-4", direction: "input" }, { id: "hdmi-5", label: "HDMI-5", direction: "input" }, { id: "hdmi-6", label: "HDMI-6", direction: "input" }, { id: "hdmi-7", label: "HDMI-7", direction: "input" }] },
+      { type: "RCA", ports: [{ id: "cd", label: "CD", direction: "input" }, { id: "phono", label: "Phono", direction: "input" }, { id: "aux-1", label: "AUX-1", direction: "input" }, { id: "aux-2", label: "AUX-2", direction: "input" }] },
+      { type: "Optical", ports: [{ id: "optical-1", label: "Optical-1", direction: "input" }, { id: "optical-2", label: "Optical-2", direction: "input" }] },
+      { type: "Coaxial", ports: [{ id: "coaxial", label: "Coaxial", direction: "input" }] },
+      { type: "USB", ports: [{ id: "usb-a", label: "USB-A", direction: "input" }, { id: "usb-b", label: "USB-B", direction: "input" }] },
+      { type: "Ethernet", ports: [{ id: "lan", label: "LAN", direction: "input" }] }
     ],
     outputs: [
-      { type: "HDMI", ports: ["HDMI-Out-1", "HDMI-Out-2"] },
-      { type: "Speaker Wire", ports: ["Front-L", "Front-R", "Center", "Surround-L", "Surround-R", "Surround-Back-L", "Surround-Back-R", "Sub"] },
-      { type: "RCA", ports: ["Zone-2-L", "Zone-2-R"] },
-      { type: "Optical", ports: ["Optical-Out"] }
+      { type: "HDMI", ports: [{ id: "hdmi-out-1", label: "HDMI-Out-1", direction: "output" }, { id: "hdmi-out-2", label: "HDMI-Out-2", direction: "output" }] },
+      { type: "Speaker Wire", ports: [{ id: "front-l", label: "Front-L", direction: "output" }, { id: "front-r", label: "Front-R", direction: "output" }, { id: "center", label: "Center", direction: "output" }, { id: "surround-l", label: "Surround-L", direction: "output" }, { id: "surround-r", label: "Surround-R", direction: "output" }, { id: "surround-back-l", label: "Surround-Back-L", direction: "output" }, { id: "surround-back-r", label: "Surround-Back-R", direction: "output" }, { id: "sub", label: "Sub", direction: "output" }] },
+      { type: "RCA", ports: [{ id: "zone-2-l", label: "Zone-2-L", direction: "output" }, { id: "zone-2-r", label: "Zone-2-R", direction: "output" }] },
+      { type: "Optical", ports: [{ id: "optical-out", label: "Optical-Out", direction: "output" }] }
     ]
   }
 };
