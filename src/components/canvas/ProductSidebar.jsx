@@ -270,11 +270,22 @@ export default function ProductSidebar({ products, onProductSelect }) {
       ...prev,
       [category]: !prev[category]
     }));
-    // Mark category as viewed when clicked
+    // Mark category as viewed and update the stored count when clicked
     setViewedCategories(prev => ({
       ...prev,
       [category]: true
     }));
+    setCategoriesWithNewProducts(prev => ({
+      ...prev,
+      [category]: false
+    }));
+    // Update stored count to current count (acknowledging the new products)
+    setCategoryProductCounts(prev => {
+      const updated = { ...prev };
+      updated[category] = productsByCategory[category]?.length || 0;
+      localStorage.setItem('categoryProductCounts', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const toggleMasterCategory = (masterCat) => {
