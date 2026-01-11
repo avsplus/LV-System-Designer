@@ -26,12 +26,15 @@ export default function ProductDetailsPanel({ product, onClose, onDeviceUpdate }
   
   if (!product) return null;
 
+  // Check if this is a demo product (cannot be edited)
+  const isDemoProduct = product.id?.startsWith('demo-');
+
   return (
     <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Product Details</h2>
         <div className="flex items-center gap-1">
-          {onDeviceUpdate && (
+          {onDeviceUpdate && !isDemoProduct && (
             <Button
               size="icon"
               variant="ghost"
