@@ -247,13 +247,19 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
     conn => conn.from === instanceId || conn.to === instanceId
   );
   
-  // DEBUG: Log connection data
-  console.log('=== DeviceConnectionsPanel Debug ===');
-  console.log('Instance ID:', instanceId);
-  console.log('Product:', productData.brand, productData.model);
-  console.log('All connections:', activeConnections);
-  console.log('Device connections:', deviceConnections);
-  console.log('Connection definitions:', connections);
+  // Normalize database connections to match expected format
+  const normalizedConnections = connections;
+  if (hasDbConnections) {
+    // Ensure ports are in correct format for database connections
+    normalizedConnections.inputs = (productData.input_connections || []).map(conn => ({
+      type: conn.type,
+      ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'input' } : p)
+    }));
+    normalizedConnections.outputs = (productData.output_connections || []).map(conn => ({
+      type: conn.type,
+      ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'output' } : p)
+    }));
+  }
   
   // Get used ports for a connection type
   const getUsedPorts = (connectionType, ports, isInput) => {
