@@ -111,6 +111,16 @@ const allMasterCategoryMappings = {
   'Surveillance': ['nvrs', 'ip_cameras']
 };
 
+const masterCategoryIcons = {
+  'AV': Video,
+  'Audio': Music,
+  'Communication': MessageCircle,
+  'Control': Zap,
+  'Displays': Monitor,
+  'Network': Network,
+  'Surveillance': Eye
+};
+
 export default function ProductSidebar({ products, onProductSelect }) {
   const { settings } = useSettings();
   const { organization } = useOrganization();
