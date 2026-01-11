@@ -1243,6 +1243,8 @@ function AVCanvasContent() {
     const defaultConnections = connectionsByCategory[product.product.category] || { inputs: [], outputs: [] };
     const hasDbConnections = (product.product.input_connections?.length > 0) || 
                               (product.product.output_connections?.length > 0);
+    // NOTE: Database connections might have string ports from legacy data, so normalize to {id, label, direction} objects
+    // This prevents React error #31 which occurs when component children use inconsistent data types
     let conns = hasDbConnections ? {
       inputs: (product.product.input_connections || []).map(conn => ({
         type: conn.type,
@@ -1255,7 +1257,8 @@ function AVCanvasContent() {
     } : defaultConnections;
 
     const types = isOutput ? conns.outputs : conns.inputs;
-    // Normalize ports to objects
+    // Normalize ports to objects - ensures consistent data structure throughout rendering
+    // Handles both old string format and new {id, label, direction} object format
     const normalizedTypes = types.map(t => ({
       ...t,
       ports: (t.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: isOutput ? 'output' : 'input' } : p)
