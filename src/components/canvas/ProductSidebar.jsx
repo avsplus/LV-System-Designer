@@ -498,7 +498,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 {categoryProducts.map((product, prodIndex) => {
                                   const isDemoProduct = product.id?.startsWith('demo-');
                                   return (
-                                  <Draggable 
+                                    <Draggable 
                                     key={product.id} 
                                     draggableId={product.id} 
                                     index={filteredProducts.findIndex(p => p.id === product.id)}
