@@ -541,7 +541,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 }`}>
                                   {category.replace(/_/g, ' ')}
                                 </div>
-                                <span className="text-[9px] text-gray-600">({categoryProducts.length})</span>
                                 {!viewedCategories[category] && (
                                   <Badge className="ml-1 bg-red-500 text-white text-[8px] px-1.5 py-0.5 h-auto">New</Badge>
                                 )}
