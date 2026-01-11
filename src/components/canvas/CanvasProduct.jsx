@@ -703,11 +703,13 @@ Only return URLs that:
                   }
                 }}
                 onMouseEnter={(e) => {
+                  const isBidirectional = outputTypes.some(out => out.type === connType.type);
                   setTooltipInfo({
                     type: connType.type,
                     portCount: connType.ports.length,
                     color: connType.color,
                     isInput: true,
+                    isBidirectional,
                     element: e.currentTarget
                   });
                 }}
