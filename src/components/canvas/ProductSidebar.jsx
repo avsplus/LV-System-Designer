@@ -496,6 +496,33 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
                             {isExpanded && (
                               <div className="space-y-2 pl-1">
+                                {/* Static Demo Product */}
+                                <div
+                                  onClick={() => onProductSelect({
+                                    id: `demo-${category}`,
+                                    brand: 'Demo',
+                                    model: category.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+                                    category: category,
+                                    description: 'Demo product for testing',
+                                    price: 0
+                                  })}
+                                  className="group bg-gradient-to-r from-purple-900/50 to-blue-900/50 hover:from-purple-800/50 hover:to-blue-800/50 border border-purple-500/50 rounded-lg p-3 cursor-pointer transition-all"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="mt-1 opacity-30">
+                                      <Grip className="w-4 h-4 text-gray-500" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h3 className="font-medium text-white text-sm">Demo</h3>
+                                        <span className="text-[9px] px-1.5 py-0.5 bg-purple-500/30 text-purple-300 rounded uppercase font-bold">Static</span>
+                                      </div>
+                                      <p className="text-xs text-gray-300 truncate">Demo product for testing</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Regular Products */}
                                 {categoryProducts.map((product, prodIndex) => (
                                   <Draggable 
                                     key={product.id} 
