@@ -344,7 +344,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
             </div>
           )}
 
-          {!isNetworkDevice && activeTab === 'outputs' && (
+          {activeTab === 'outputs' && (
             <div>
               <p className="text-xs text-gray-500 mb-3">Define output connection types and their ports</p>
               {renderConnectionEditor('output')}
