@@ -284,10 +284,12 @@ export default function ProductSidebar({ products, onProductSelect }) {
       ...prev,
       [category]: true
     }));
-    setCategoriesWithNewProducts(prev => ({
-      ...prev,
-      [category]: false
-    }));
+    setCategoriesWithNewProducts(prev => {
+      const updated = { ...prev };
+      delete updated[category];
+      localStorage.setItem('categoriesWithNewProducts', JSON.stringify(updated));
+      return updated;
+    });
     // Update stored count to current count (acknowledging the new products)
     setCategoryProductCounts(prev => {
       const updated = { ...prev };
@@ -295,11 +297,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
       localStorage.setItem('categoryProductCounts', JSON.stringify(updated));
       return updated;
     });
-    localStorage.setItem('categoriesWithNewProducts', JSON.stringify(prev => {
-      const updated = { ...prev };
-      delete updated[category];
-      return updated;
-    }));
   };
 
   const toggleMasterCategory = (masterCat) => {
