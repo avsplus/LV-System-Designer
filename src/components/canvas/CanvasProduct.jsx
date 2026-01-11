@@ -409,7 +409,9 @@ Only return URLs that:
     return types;
   };
 
-  // Use database connections if available, otherwise use category defaults
+  // NOTE: Normalize all ports to {id, label, direction} objects to prevent React error #31
+  // The API may return ports as strings for legacy data, so we convert them here
+  // This ensures consistent data structure across all rendering paths
   const defaultConnections = connectionsByCategory[product.category] || { inputs: [], outputs: [] };
   const hasDbConnections = (product.input_connections && product.input_connections.length > 0) || 
                             (product.output_connections && product.output_connections.length > 0);
