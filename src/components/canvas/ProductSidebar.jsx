@@ -47,7 +47,14 @@ const MASTER_CATEGORIES = {
 export default function ProductSidebar({ products, onProductSelect }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMasterCategory, setSelectedMasterCategory] = useState('AV');
-  const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState(() => {
+    // Start all collapsed
+    const initial = {};
+    Object.values(MASTER_CATEGORIES).flat().forEach(cat => {
+      initial[cat] = false;
+    });
+    return initial;
+  });
 
   const filteredProducts = products.filter(p =>
     p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
