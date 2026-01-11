@@ -530,6 +530,10 @@ function AVCanvasContent() {
     connectingStateRef.current = newState;
   };
 
+  const isNetworkDevice = (device) => {
+    return device && ['network_switches', 'routers'].includes(device.product.category);
+  };
+
   const handleGlobalMouseMove = React.useCallback((e) => {
     const currentState = connectingStateRef.current;
     if (!currentState) return;
@@ -541,7 +545,14 @@ function AVCanvasContent() {
     
     let validHitPort = null;
     if (hitPort) {
-      const validDirection = currentState.fromPort.isInput !== hitPort.isInput;
+      const fromDevice = canvasProducts.find(cp => cp.instanceId === currentState.fromPort.instanceId);
+      const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
+      const fromIsNetworkDevice = isNetworkDevice(fromDevice);
+      const toIsNetworkDevice = isNetworkDevice(toDevice);
+      
+      // Network devices allow any direction; other devices require input->output
+      const validDirection = (fromIsNetworkDevice && toIsNetworkDevice) || 
+                            currentState.fromPort.isInput !== hitPort.isInput;
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
       
@@ -585,7 +596,14 @@ function AVCanvasContent() {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
       
-      const validDirection = fromPort.isInput !== toPort.isInput;
+      const fromDevice = canvasProducts.find(cp => cp.instanceId === fromPort.instanceId);
+      const toDevice = canvasProducts.find(cp => cp.instanceId === toPort.instanceId);
+      const fromIsNetworkDevice = isNetworkDevice(fromDevice);
+      const toIsNetworkDevice = isNetworkDevice(toDevice);
+      
+      // Network devices allow any direction; other devices require input->output
+      const validDirection = (fromIsNetworkDevice && toIsNetworkDevice) || 
+                            fromPort.isInput !== toPort.isInput;
       const sameType = fromPort.connectionType === toPort.connectionType;
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
       
