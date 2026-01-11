@@ -130,6 +130,15 @@ export default function ProductSidebar({ products, onProductSelect }) {
     }
   });
   const [prevProductCount, setPrevProductCount] = useState(products.length);
+  const [categoryProductCounts, setCategoryProductCounts] = useState(() => {
+    // Load category product counts from localStorage on mount
+    try {
+      const saved = localStorage.getItem('categoryProductCounts');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Persist viewed categories to localStorage
   React.useEffect(() => {
