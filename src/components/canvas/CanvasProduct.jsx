@@ -414,9 +414,15 @@ Only return URLs that:
   const hasDbConnections = (product.input_connections && product.input_connections.length > 0) || 
                             (product.output_connections && product.output_connections.length > 0);
 
-  const connections = hasDbConnections ? {
-    inputs: product.input_connections || [],
-    outputs: product.output_connections || []
+  let connections = hasDbConnections ? {
+    inputs: (product.input_connections || []).map(conn => ({
+      type: conn.type,
+      ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'input' } : p)
+    })),
+    outputs: (product.output_connections || []).map(conn => ({
+      type: conn.type,
+      ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'output' } : p)
+    }))
   } : defaultConnections;
 
   const inputTypes = getConnectionTypes(connections, 'inputs');
