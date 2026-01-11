@@ -271,6 +271,13 @@ function AVCanvasContent() {
   };
 
   const handleRemoveProductWithSelection = (instanceId) => {
+    // Prevent deletion of demo products
+    const product = canvasProducts.find(cp => cp.instanceId === instanceId);
+    if (product?.product?.id?.startsWith('demo-')) {
+      toast.warning('Demo products cannot be deleted');
+      return;
+    }
+    
     if (selectedCanvasProduct?.instanceId === instanceId) {
       setSelectedCanvasProduct(null);
     }
