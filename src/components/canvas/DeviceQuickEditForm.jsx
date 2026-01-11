@@ -7,7 +7,7 @@ import { X, Save, Loader2, Plus, Trash2, Upload, Image } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const commonConnectionTypes = [
-  "HDMI", "Optical", "RCA", "XLR", "Speaker Wire", "Ethernet", 
+  "HDMI", "Optical", "Fiber", "RCA", "XLR", "Speaker Wire", "Ethernet", "SFP",
   "USB", "Coaxial", "3.5mm Jack", "Component", "Composite", 
   "VGA", "RS232", "HDBaseT", "Control", "Subwoofer", "IR", "Power"
 ];
