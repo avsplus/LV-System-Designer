@@ -585,11 +585,16 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 </div>
                                 <span className="text-[9px] text-gray-600">({categoryProducts.length})</span>
                               </div>
-                              {isExpanded ? (
-                                <ChevronDown className="w-3 h-3 text-gray-400" />
-                              ) : (
-                                <ChevronRight className="w-3 h-3 text-gray-400" />
-                              )}
+                              <div className="flex items-center gap-1">
+                                {categoriesWithNewProducts[category] && (
+                                  <span className="text-[10px] text-red-400 font-bold">new</span>
+                                )}
+                                {isExpanded ? (
+                                  <ChevronDown className="w-3 h-3 text-gray-400" />
+                                ) : (
+                                  <ChevronRight className="w-3 h-3 text-gray-400" />
+                                )}
+                              </div>
                             </button>
 
                             {isExpanded && (
