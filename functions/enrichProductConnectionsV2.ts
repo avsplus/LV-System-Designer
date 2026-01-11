@@ -260,17 +260,83 @@ function generatePortsFromRule(spec, rule) {
 
   for (let i = 1; i <= portCount; i++) {
     const label = action.label_format.replace('{n}', i);
+    // Generate stable ID from type and index
+    const id = action.id_format 
+      ? action.id_format.replace('{n}', i)
+      : `${action.type.toLowerCase().replace(/\s+/g, '-')}-${i}`;
+    
     ports.push({
+      id: id,
       type: action.type,
       direction: action.direction || 'bidirectional',
       label,
       category: action.port_category || 'general',
       source: 'rule_engine',
-      capacity
+      capacity,
+      auto_generated: true
     });
   }
 
   return ports;
+}
+
+function mergeConnectionsByType(existing, generated, debugLogs = []) {
+  // Create map of existing connections by type
+  const byType = new Map();
+  
+  (existing || []).forEach(conn => {
+    byType.set(conn.type, {
+      ...conn,
+      ports: conn.ports || []
+    });
+  });
+
+  // Merge generated ports into existing by type
+  (generated || []).forEach(genConn => {
+    if (byType.has(genConn.type)) {
+      // Type exists - merge ports by ID
+      const existing = byType.get(genConn.type);
+      const existingPortsById = new Map(
+        (existing.ports || [])
+          .filter(p => p.id) // Only match ports with IDs
+          .map(p => [p.id, p])
+      );
+
+      // Add/update auto-generated ports, preserve user-modified ports
+      (genConn.ports || []).forEach(genPort => {
+        if (genPort.auto_generated) {
+          // Always update auto-generated ports
+          existingPortsById.set(genPort.id, genPort);
+        } else if (!existingPortsById.has(genPort.id)) {
+          // Add new non-auto-generated ports
+          existingPortsById.set(genPort.id, genPort);
+        }
+      });
+
+      // Preserve any user-added ports (non-auto-generated with IDs)
+      existing.ports
+        .filter(p => p.id && !p.auto_generated)
+        .forEach(p => {
+          if (!existingPortsById.has(p.id)) {
+            existingPortsById.set(p.id, p);
+          }
+        });
+
+      byType.set(genConn.type, {
+        ...existing,
+        ports: Array.from(existingPortsById.values()),
+        capacity: genConn.capacity || existing.capacity
+      });
+      
+      debugLogs.push(`  Merged ${genConn.type}: ${existingPortsById.size} total ports`);
+    } else {
+      // New type - add it
+      byType.set(genConn.type, genConn);
+      debugLogs.push(`  Added new type ${genConn.type}: ${(genConn.ports || []).length} ports`);
+    }
+  });
+
+  return Array.from(byType.values());
 }
 
 function generateConnectionsFromSpec(spec, allRules) {
@@ -488,24 +554,24 @@ Deno.serve(async (req) => {
                 // Validate inputs and outputs have matching types
                 const inputTypes = new Set(inputs.map(p => p.type));
                 const outputTypes = new Set(outputs.map(p => p.type));
-                const invalidInputs = inputs.filter(p => !p.type || !p.label);
-                const invalidOutputs = outputs.filter(p => !p.type || !p.label);
+                const invalidInputs = inputs.filter(p => !p.type || !p.label || !p.id);
+                const invalidOutputs = outputs.filter(p => !p.type || !p.label || !p.id);
                 
                 if (invalidInputs.length > 0 || invalidOutputs.length > 0) {
-                    const msg = `Validation failed: Invalid ports detected (missing type or label)`;
+                    const msg = `Validation failed: Invalid ports detected (missing type, label, or id)`;
                     console.log('[DEBUG]', msg);
                     debugLogs.push(`⚠ ${msg}`);
                     failedProducts.push(`${product.brand} ${product.model}: ${msg}`);
                     continue;
                 }
                 
-                // Group ports by type (one connection object per type)
+                // Group ports by type (keep as objects with IDs, not string labels)
                 const groupedInputs = inputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
                     if (existing) {
-                        existing.ports.push(p.label);
+                        existing.ports.push(p);
                     } else {
-                        acc.push({ type: p.type, ports: [p.label], capacity: p.capacity });
+                        acc.push({ type: p.type, ports: [p], capacity: p.capacity });
                     }
                     return acc;
                 }, []);
@@ -513,19 +579,25 @@ Deno.serve(async (req) => {
                 const groupedOutputs = outputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
                     if (existing) {
-                        existing.ports.push(p.label);
+                        existing.ports.push(p);
                     } else {
-                        acc.push({ type: p.type, ports: [p.label], capacity: p.capacity });
+                        acc.push({ type: p.type, ports: [p], capacity: p.capacity });
                     }
                     return acc;
                 }, []);
                 
                 debugLogs.push(`Grouped connections: ${groupedInputs.length} input types, ${groupedOutputs.length} output types`);
                 
-                // Update product
+                // Merge with existing connections instead of replacing (idempotent enrichment)
+                const mergedInputs = mergeConnectionsByType(product.input_connections || [], groupedInputs, debugLogs);
+                const mergedOutputs = mergeConnectionsByType(product.output_connections || [], groupedOutputs, debugLogs);
+                
+                debugLogs.push(`After merge: ${mergedInputs.length} input types, ${mergedOutputs.length} output types`);
+                
+                // Update product with merged connections
                 await base44.asServiceRole.entities.AVProduct.update(product.id, {
-                    input_connections: groupedInputs,
-                    output_connections: groupedOutputs
+                    input_connections: mergedInputs,
+                    output_connections: mergedOutputs
                 });
                 
                 console.log('[DEBUG] Product updated');
