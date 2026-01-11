@@ -191,20 +191,22 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     }
 
     const [p1, p2] = calibrationPoints;
-      const pixelDistance = Math.sqrt(
-        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
-      );
+    const pixelDistance = Math.sqrt(
+      Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+    );
+    const knownDistanceValue = parseFloat(knownDistance);
 
-      console.log('=== CALIBRATION DEBUG ===');
-      console.log(`Point 1: (${p1.x}, ${p1.y})`);
-      console.log(`Point 2: (${p2.x}, ${p2.y})`);
-      console.log(`Pixel distance: ${pixelDistance}`);
-      console.log(`Known distance entered: ${knownDistance} inches`);
+    console.log('=== CALIBRATION DEBUG ===');
+    console.log(`Point A: (${p1.x.toFixed(2)}, ${p1.y.toFixed(2)})`);
+    console.log(`Point B: (${p2.x.toFixed(2)}, ${p2.y.toFixed(2)})`);
+    console.log(`Pixel distance: ${pixelDistance.toFixed(2)} px`);
+    console.log(`Known distance: ${knownDistanceValue} inches`);
 
-      // Store as pixels per inch for distance calculations
-      const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
-      console.log(`Calculated pixelsPerInch: ${pixelsPerInch}`);
-      console.log('========================');
+    // Calculate pixels per inch
+    const pixelsPerInch = pixelDistance / knownDistanceValue;
+    console.log(`Calculated pixelsPerInch: ${pixelsPerInch.toFixed(2)}`);
+    console.log('Expected: ~96 for 1:1 screen ratio, or >50 typically');
+    console.log('========================');
 
     const updatedFloorplans = calibrating.isRecalibrating 
       ? floorplans.map(fp => 
