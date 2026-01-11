@@ -510,8 +510,12 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
                                           onClick={() => onProductSelect(product)}
-                                          className={`group bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-lg p-3 cursor-pointer transition-all ${
-                                            snapshot.isDragging ? 'shadow-xl shadow-blue-500/20 border-blue-500' : ''
+                                          className={`group ${
+                                            isDemoProduct 
+                                              ? 'bg-gradient-to-r from-purple-900/50 to-blue-900/50 hover:from-purple-800/50 hover:to-blue-800/50 border-purple-500/50'
+                                              : 'bg-gray-800 hover:bg-gray-750 border-gray-700'
+                                          } border rounded-lg p-3 cursor-pointer transition-all ${
+                                            snapshot.isDragging ? `shadow-xl ${isDemoProduct ? 'shadow-purple-500/20 border-purple-500' : 'shadow-blue-500/20 border-blue-500'}` : ''
                                           }`}
                                         >
                                           <div className="flex items-start gap-3">
