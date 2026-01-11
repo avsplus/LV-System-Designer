@@ -85,6 +85,12 @@ function generatePortsFromRule(spec, rule) {
     return ports;
   }
 
+  // Get capacity if specified
+  let capacity = 1; // Default: 1-to-1
+  if (action.capacity_from) {
+    capacity = getValueByPath(spec, action.capacity_from) || 1;
+  }
+
   for (let i = 1; i <= portCount; i++) {
     const label = action.label_format.replace('{n}', i);
     ports.push({
@@ -92,7 +98,8 @@ function generatePortsFromRule(spec, rule) {
       direction: action.direction || 'bidirectional',
       label,
       category: action.port_category || 'general',
-      source: 'rule_engine'
+      source: 'rule_engine',
+      capacity
     });
   }
 
@@ -267,8 +274,8 @@ Deno.serve(async (req) => {
                 
                 // Update product
                 await base44.asServiceRole.entities.AVProduct.update(product.id, {
-                    input_connections: inputs.map(p => ({ type: p.type, ports: [p.label] })),
-                    output_connections: outputs.map(p => ({ type: p.type, ports: [p.label] }))
+                    input_connections: inputs.map(p => ({ type: p.type, ports: [p.label], capacity: p.capacity })),
+                    output_connections: outputs.map(p => ({ type: p.type, ports: [p.label], capacity: p.capacity }))
                 });
                 
                 console.log('[DEBUG] Product updated');
