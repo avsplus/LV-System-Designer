@@ -13,8 +13,6 @@ const commonConnectionTypes = [
 ];
 
 export default function DeviceQuickEditForm({ product, onSave, onClose }) {
-  const isNetworkDevice = ['network_switches', 'routers', 'access_points'].includes(product.category);
-  
   const [formData, setFormData] = useState({
     brand: product.brand || '',
     model: product.model || '',
@@ -27,7 +25,7 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
     output_connections: product.output_connections || []
   });
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState(isNetworkDevice ? 'connections' : 'basic');
+  const [activeTab, setActiveTab] = useState('basic');
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleImageUpload = async (e) => {
