@@ -295,6 +295,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
       localStorage.setItem('categoryProductCounts', JSON.stringify(updated));
       return updated;
     });
+    localStorage.setItem('categoriesWithNewProducts', JSON.stringify(prev => {
+      const updated = { ...prev };
+      delete updated[category];
+      return updated;
+    }));
   };
 
   const toggleMasterCategory = (masterCat) => {
