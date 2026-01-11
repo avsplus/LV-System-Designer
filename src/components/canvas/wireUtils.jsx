@@ -58,14 +58,13 @@ export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => 
   // Canvas path is in scaled coordinates - divide by scale to get image pixels, then by pixelsPerInch for inches
   const inches = (pathLengthCanvasPx / floorplanScale) / pixelsPerInch;
   const feet = inches / 12;
-  
+
   console.log('=== WIRE LENGTH CALCULATION ===');
-  console.log('Canvas positions:', { from, to });
-  console.log('Floorplan data:', { position: floorplanPos, scale: floorplanScale, pixelsPerInch });
-  console.log('Canvas to image scale:', canvasToImageScale);
-  console.log('Image positions:', { imageFrom, imageTo });
-  console.log('Path length (px):', pathLengthPx);
-  console.log('Result:', { inches, feet });
+  console.log('Canvas path length:', pathLengthCanvasPx);
+  console.log('Floorplan scale:', floorplanScale);
+  console.log('Pixels per inch:', pixelsPerInch);
+  console.log('Path in image px:', pathLengthCanvasPx / floorplanScale);
+  console.log('Result inches:', inches, 'feet:', feet);
   console.log('================================');
   
   return {
