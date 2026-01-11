@@ -459,37 +459,33 @@ Deno.serve(async (req) => {
             
             // Call LLM to extract specs AND device type
             console.log('[DEBUG] Calling LLM for specs extraction...');
-            const llmResponse = await base44.integrations.Core.InvokeLLM({
-                prompt: `Extract detailed technical specifications and device type for: ${product.brand} ${product.model}. 
-
-            IMPORTANT: Determine the CORRECT device_type:
-            - "access_point": Wireless access point, Wi-Fi access point (standalone), NOT a switch
-            - "network_switch": Ethernet switch for wired connections with Ethernet ports
-            - Check if product name/description contains: "wireless", "wifi", "access point", "AP" → device_type should be "access_point"
-            - Check if product is primarily for wired Ethernet connections → device_type should be "network_switch"
-
-            Include ethernet_ports, sfp_ports, hdmi_inputs, hdmi_outputs, and device_type as applicable.`,
-                add_context_from_internet: true,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        device_type: { 
-                            type: "string",
-                            enum: ["access_point", "network_switch", "router", "other"]
-                        },
-                        attributes: {
-                            type: "object",
-                            properties: {
-                                ethernet_ports: { type: "integer" },
-                                sfp_ports: { type: "integer" },
-                                hdmi_inputs: { type: "integer" },
-                                hdmi_outputs: { type: "integer" }
+            let llmResponse;
+            try {
+                llmResponse = await base44.integrations.Core.InvokeLLM({
+                    prompt: `Extract specs for: ${product.brand} ${product.model}. Return only valid JSON with attributes object containing: ethernet_ports (integer), sfp_ports (integer), hdmi_inputs (integer), hdmi_outputs (integer). All values optional. Example: {"attributes": {"ethernet_ports": 4}}`,
+                    add_context_from_internet: true,
+                    response_json_schema: {
+                        type: "object",
+                        properties: {
+                            attributes: {
+                                type: "object",
+                                properties: {
+                                    ethernet_ports: { type: ["integer", "null"] },
+                                    sfp_ports: { type: ["integer", "null"] },
+                                    hdmi_inputs: { type: ["integer", "null"] },
+                                    hdmi_outputs: { type: ["integer", "null"] }
+                                }
                             }
-                        }
-                    },
-                    required: ["attributes"]
-                }
-            });
+                        },
+                        required: ["attributes"]
+                    }
+                });
+            } catch (llmError) {
+                console.error('[ERROR] LLM parsing failed:', llmError.message);
+                debugLogs.push(`⚠ LLM JSON parsing error for ${product.brand} ${product.model}: ${llmError.message}`);
+                failedProducts.push(`${product.brand} ${product.model}: LLM JSON parsing failed`);
+                continue;
+            }
 
             console.log('[DEBUG] LLM response:', llmResponse);
 
