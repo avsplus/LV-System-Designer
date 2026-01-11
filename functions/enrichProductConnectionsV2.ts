@@ -217,14 +217,26 @@ Deno.serve(async (req) => {
             debugLogs.push(`\n=== Processing ${product.brand} ${product.model} ===`);
             console.log(`[DEBUG] Processing product: ${product.brand} ${product.model}`);
             
-            // Call LLM to extract specs
+            // Call LLM to extract specs AND device type
             console.log('[DEBUG] Calling LLM for specs extraction...');
             const llmResponse = await base44.integrations.Core.InvokeLLM({
-                prompt: `Extract detailed technical specifications for: ${product.brand} ${product.model}. Include ethernet_ports, sfp_ports, hdmi_inputs, hdmi_outputs, etc. as applicable.`,
+                prompt: `Extract detailed technical specifications and device type for: ${product.brand} ${product.model}. 
+
+            IMPORTANT: Determine the CORRECT device_type:
+            - "access_point": Wireless access point, Wi-Fi access point (standalone), NOT a switch
+            - "network_switch": Ethernet switch for wired connections with Ethernet ports
+            - Check if product name/description contains: "wireless", "wifi", "access point", "AP" → device_type should be "access_point"
+            - Check if product is primarily for wired Ethernet connections → device_type should be "network_switch"
+
+            Include ethernet_ports, sfp_ports, hdmi_inputs, hdmi_outputs, and device_type as applicable.`,
                 add_context_from_internet: true,
                 response_json_schema: {
                     type: "object",
                     properties: {
+                        device_type: { 
+                            type: "string",
+                            enum: ["access_point", "network_switch", "router", "other"]
+                        },
                         attributes: {
                             type: "object",
                             properties: {
