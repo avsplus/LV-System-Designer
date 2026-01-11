@@ -2468,7 +2468,16 @@ function AVCanvasContent() {
                   const { data } = await base44.functions.invoke('enrichProductConnectionsV2', params);
                   setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
                   toast.success(`Successfully enriched ${data.enriched} products with real connection data!`);
-                  queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+
+                  // Refetch products and update canvas
+                  await queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                  const updatedProducts = await queryClient.getQueryData(['avProducts']);
+                  if (updatedProducts && canvasProducts.length > 0) {
+                    projectData.setCanvasProducts(prev => prev.map(cp => {
+                      const updated = updatedProducts.find(p => p.id === cp.product.id);
+                      return updated ? { ...cp, product: updated } : cp;
+                    }));
+                  }
                 } catch (error) {
                   console.error('Enrichment error:', error);
                   const errorMsg = error.response?.data?.error || error.message;
@@ -2495,7 +2504,7 @@ function AVCanvasContent() {
                 const { data } = await base44.functions.invoke('scrapeSnapAV', params);
                 setImportProgress({ status: 'complete', imported: data.productsFound, skipped: data.skippedDuplicates || 0 });
                 toast.success(`Imported ${data.productsFound} new products${data.skippedDuplicates ? `, skipped ${data.skippedDuplicates} duplicates` : ''}`);
-                
+
                 // Auto-trigger enrichment for imported products
                 setTimeout(async () => {
                   try {
@@ -2504,15 +2513,23 @@ function AVCanvasContent() {
                     const enrichParams = params.mode === 'search' 
                           ? { mode: 'search', brand: params.brand, model: params.model }
                           : { mode: 'category', category: params.category };
-                        const { data: enrichData } = await base44.functions.invoke('enrichProductConnectionsV2', enrichParams);
-                        setEnrichmentProgress({ status: 'complete', enriched: enrichData.enriched, total: enrichData.total });
-                        toast.success(`Enriched ${enrichData.enriched} products with connection data!`);
-                        setEnrichmentProgress(null);
-                        queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                    const { data: enrichData } = await base44.functions.invoke('enrichProductConnectionsV2', enrichParams);
+                    setEnrichmentProgress({ status: 'complete', enriched: enrichData.enriched, total: enrichData.total });
+                    toast.success(`Enriched ${enrichData.enriched} products with connection data!`);
+
+                    // Refetch products and update canvas
+                    await queryClient.invalidateQueries({ queryKey: ['avProducts'] });
+                    const updatedProducts = await queryClient.getQueryData(['avProducts']);
+                    if (updatedProducts && canvasProducts.length > 0) {
+                      projectData.setCanvasProducts(prev => prev.map(cp => {
+                        const updated = updatedProducts.find(p => p.id === cp.product.id);
+                        return updated ? { ...cp, product: updated } : cp;
+                      }));
+                    }
+                    setEnrichmentProgress(null);
                   } catch (enrichError) {
                     console.error('Auto-enrichment error:', enrichError);
                     setEnrichmentProgress(null);
-                    window.location.reload();
                   }
                 }, 500);
               } catch (error) {
