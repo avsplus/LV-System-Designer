@@ -20,16 +20,45 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
     return null;
   }
   
-  // Device positions and calibration are both in raw image pixels
-  // No need to adjust for position or scale since everything is relative to the image
-  const pathLengthPx = calculatePathLength(from, to, waypoints);
-  const inches = pathLengthPx / floorplan.pixelsPerInch;
+  // Device positions are in CANVAS coordinates (after all zoom/pan/scale transforms)
+  // But calibration was done in RAW IMAGE pixel coordinates
+  // We need to convert device positions back to image space
+  
+  const floorplanPos = floorplan.position || { x: 0, y: 0 };
+  const floorplanScale = floorplan.scale || 1;
+  const pixelsPerInch = floorplan.pixelsPerInch;
+  
+  // Calculate the scale factor applied to the floorplan display
+  // Floorplan width in canvas = imageWidth * (1/pixelsPerInch) * floorplanScale
+  // So to convert canvas px back to image px:
+  const canvasToImageScale = pixelsPerInch / floorplanScale;
+  
+  // Convert device positions from canvas coordinates to image pixel coordinates
+  const imageFrom = {
+    x: (from.x - floorplanPos.x) * canvasToImageScale,
+    y: (from.y - floorplanPos.y) * canvasToImageScale
+  };
+  
+  const imageTo = {
+    x: (to.x - floorplanPos.x) * canvasToImageScale,
+    y: (to.y - floorplanPos.y) * canvasToImageScale
+  };
+  
+  const imageWaypoints = waypoints?.map(wp => ({
+    x: (wp.x - floorplanPos.x) * canvasToImageScale,
+    y: (wp.y - floorplanPos.y) * canvasToImageScale
+  })) || [];
+  
+  const pathLengthPx = calculatePathLength(imageFrom, imageTo, imageWaypoints);
+  const inches = pathLengthPx / pixelsPerInch;
   const feet = inches / 12;
   
   console.log('=== WIRE LENGTH CALCULATION ===');
-  console.log('Device positions (px):', { from, to });
+  console.log('Canvas positions:', { from, to });
+  console.log('Floorplan data:', { position: floorplanPos, scale: floorplanScale, pixelsPerInch });
+  console.log('Canvas to image scale:', canvasToImageScale);
+  console.log('Image positions:', { imageFrom, imageTo });
   console.log('Path length (px):', pathLengthPx);
-  console.log('pixelsPerInch:', floorplan.pixelsPerInch);
   console.log('Result:', { inches, feet });
   console.log('================================');
   
