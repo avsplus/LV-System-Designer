@@ -315,7 +315,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
   const masterCategories = Object.keys(allMasterCategoryMappings).sort();
 
   return (
-    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
+    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200" style={{ scrollbarGutter: 'stable' }}>
       {/* Logo */}
       <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center gap-4">
         <img 
