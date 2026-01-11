@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized - admin access required' }, { status: 403 });
     }
 
-    // Fetch all products
+    // Fetch all products with pagination to handle large datasets
     const allProducts = await base44.asServiceRole.entities.AVProduct.list();
     
     // Filter out demo products
@@ -17,14 +17,31 @@ Deno.serve(async (req) => {
     
     console.log(`Found ${allProducts.length} total products, ${nonDemoProducts.length} non-demo products to delete`);
 
-    // Delete each non-demo product
+    // Delete with batching and rate limit handling
     let deletedCount = 0;
-    for (const product of nonDemoProducts) {
-      try {
-        await base44.asServiceRole.entities.AVProduct.delete(product.id);
-        deletedCount++;
-      } catch (error) {
-        console.error(`Failed to delete product ${product.id}:`, error.message);
+    const batchSize = 5;
+    for (let i = 0; i < nonDemoProducts.length; i += batchSize) {
+      const batch = nonDemoProducts.slice(i, i + batchSize);
+      
+      // Process batch in parallel
+      const results = await Promise.allSettled(
+        batch.map(product => 
+          base44.asServiceRole.entities.AVProduct.delete(product.id)
+        )
+      );
+      
+      // Count successful deletions
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled') {
+          deletedCount++;
+        } else {
+          console.error(`Failed to delete product ${batch[idx].id}:`, result.reason?.message || result.reason);
+        }
+      });
+      
+      // Wait between batches to avoid rate limits
+      if (i + batchSize < nonDemoProducts.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
