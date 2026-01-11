@@ -308,17 +308,12 @@ Deno.serve(async (req) => {
             // Use LLM-detected device type if available, otherwise use product category
             let detectedDeviceType = llmResponse.device_type || product.category;
 
-            // Validate device type - if access point was misidentified as network_switch, correct it
-            const productNameLower = `${product.brand} ${product.model}`.toLowerCase();
-            if (detectedDeviceType === 'network_switch' && 
-                (productNameLower.includes('access point') || 
-                 productNameLower.includes('wifi') || 
-                 productNameLower.includes('wireless') ||
-                 productNameLower.includes(' ap-') ||
-                 productNameLower.includes(' ap '))) {
-                console.log('[DEBUG] Correcting misidentified access point');
-                detectedDeviceType = 'access_point';
-                debugLogs.push(`⚠ Corrected device_type from network_switch to access_point`);
+            // Validate and correct device type using the validation function
+            const correctedDeviceType = correctDeviceType(detectedDeviceType, product.brand, product.model);
+            if (correctedDeviceType !== detectedDeviceType) {
+              console.log(`[DEBUG] Correcting device_type from ${detectedDeviceType} to ${correctedDeviceType}`);
+              debugLogs.push(`⚠ Corrected device_type from ${detectedDeviceType} to ${correctedDeviceType}`);
+              detectedDeviceType = correctedDeviceType;
             }
 
             debugLogs.push(`Got attributes: ${JSON.stringify(llmResponse.attributes)}`);
