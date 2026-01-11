@@ -53,7 +53,12 @@ export default function DeviceManager() {
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['avProducts', organizationId],
-    queryFn: () => base44.entities.AVProduct.filter(orgFilter),
+    queryFn: async () => {
+      // Get all products (no org filter for device library)
+      const allProducts = await base44.entities.AVProduct.list();
+      // Filter to only show products with no org_id OR matching org_id
+      return allProducts.filter(p => !p.organization_id || p.organization_id === organizationId);
+    },
     enabled: !!organizationId
   });
 
