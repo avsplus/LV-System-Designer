@@ -260,15 +260,32 @@ Deno.serve(async (req) => {
                 failedProducts.push(msg);
                 continue;
             }
-            
+
+            // Use LLM-detected device type if available, otherwise use product category
+            let detectedDeviceType = llmResponse.device_type || product.category;
+
+            // Validate device type - if access point was misidentified as network_switch, correct it
+            const productNameLower = `${product.brand} ${product.model}`.toLowerCase();
+            if (detectedDeviceType === 'network_switch' && 
+                (productNameLower.includes('access point') || 
+                 productNameLower.includes('wifi') || 
+                 productNameLower.includes('wireless') ||
+                 productNameLower.includes(' ap-') ||
+                 productNameLower.includes(' ap '))) {
+                console.log('[DEBUG] Correcting misidentified access point');
+                detectedDeviceType = 'access_point';
+                debugLogs.push(`⚠ Corrected device_type from network_switch to access_point`);
+            }
+
             debugLogs.push(`Got attributes: ${JSON.stringify(llmResponse.attributes)}`);
+            debugLogs.push(`Device type: ${detectedDeviceType}`);
             console.log('[DEBUG] LLM attributes:', llmResponse.attributes);
 
             // Create DeviceSpec
             console.log('[DEBUG] Creating DeviceSpec...');
             const deviceSpec = await base44.asServiceRole.entities.DeviceSpec.create({
                 product_id: product.id,
-                device_type: product.category,
+                device_type: detectedDeviceType,
                 brand: product.brand,
                 model: product.model,
                 attributes: llmResponse.attributes,
