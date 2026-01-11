@@ -120,23 +120,21 @@ export default function ProductSidebar({ products, onProductSelect }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedConnectionTypes, setSelectedConnectionTypes] = useState([]);
-  const [viewedCategories, setViewedCategories] = useState({});
+  const [viewedCategories, setViewedCategories] = useState(() => {
+    // Load viewed categories from localStorage on mount
+    try {
+      const saved = localStorage.getItem('viewedProductCategories');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [prevProductCount, setPrevProductCount] = useState(products.length);
 
-  // Track new products added by category
+  // Persist viewed categories to localStorage
   React.useEffect(() => {
-    if (products.length > prevProductCount) {
-      // Reset viewed status for categories with new products
-      const newProductsByCategory = {};
-      products.forEach(product => {
-        if (!newProductsByCategory[product.category]) {
-          newProductsByCategory[product.category] = 0;
-        }
-        newProductsByCategory[product.category]++;
-      });
-      setPrevProductCount(products.length);
-    }
-  }, [products.length]);
+    localStorage.setItem('viewedProductCategories', JSON.stringify(viewedCategories));
+  }, [viewedCategories]);
 
   // Extract unique values for filters
   const allCategories = [...new Set(products.map(p => p.category))].sort();
