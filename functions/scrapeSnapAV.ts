@@ -212,25 +212,23 @@ Deno.serve(async (req) => {
             const productCount = searchModel ? 1 : 10;
 
             const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `Find ${productCount} ${searchQuery} product(s). Search the web for official specifications.
+                prompt: `Find ${productCount} ${searchQuery} product(s). Search the web for official specifications. Return VALID JSON only.
 
 ${searchModel ? `Find the EXACT product: ${searchBrand} ${searchModel}` : `Find popular ${searchBrand} AV products from these categories: televisions, projectors, AV receivers, speakers, soundbars, control processors, etc.`}
 
-For each product provide:
-- brand: exact brand name
-- model: exact model number
-- category: one of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, routers, control_processors, hdmi_extenders, access_points, patch_panels, data_jacks, telephones, phone_jacks, intercoms, nvrs, ip_cameras]
-- description: brief product description
-- price: estimated USD price
-- installation_manual_url: URL to official installation PDF (if found)
-- user_manual_url: URL to official user manual PDF (if found)
+For each product provide ONLY these fields:
+- brand: exact brand name (string, no special chars)
+- model: exact model number (string, no special chars)
+- category: ONE of [televisions, projectors, projector_screens, video_distribution, matrix_switchers, audio_streamers, media_streamers, speakers, soundbars, subwoofers, stereo_amps, multizone_amps, surround_processors, av_receivers, network_switches, routers, control_processors, hdmi_extenders, access_points, patch_panels, data_jacks, telephones, phone_jacks, intercoms, nvrs, ip_cameras]
+- description: brief product description (plain text, max 200 chars, escape quotes with backslash)
+- price: number only, no currency symbol
 
 CATEGORY RULES:
-- AV Receivers have built-in amplification (Denon AVR, Yamaha RX = av_receivers)
-- Surround Processors have NO amplification (Marantz AV10 = surround_processors)
-- Control Processors are automation systems (Crestron, Control4, RTI, Savant = control_processors)
-- Media Streamers are video devices (Apple TV, Roku = media_streamers)
-- Audio Streamers are audio-only (Sonos Port = audio_streamers)`,
+- AV Receivers = Denon AVR, Yamaha RX (built-in amplification)
+- Surround Processors = Marantz AV10 (NO amplification, just processor)
+- Control Processors = Crestron, Control4, RTI, Savant (automation)
+- Media Streamers = Apple TV, Roku (video)
+- Audio Streamers = Sonos Port (audio-only)`,
                 add_context_from_internet: true,
                 response_json_schema: {
                     type: "object",
@@ -244,9 +242,7 @@ CATEGORY RULES:
                                     model: { type: "string" },
                                     category: { type: "string" },
                                     description: { type: "string" },
-                                    price: { type: "number" },
-                                    installation_manual_url: { type: "string" },
-                                    user_manual_url: { type: "string" }
+                                    price: { type: "number" }
                                 },
                                 required: ["brand", "model", "category"]
                             }
