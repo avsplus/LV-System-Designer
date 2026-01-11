@@ -2467,10 +2467,8 @@ function AVCanvasContent() {
                   setEnrichmentProgress({ status: 'running', message: `Enriching ${desc}...` });
                   const { data } = await base44.functions.invoke('enrichProductConnectionsV2', params);
                   setEnrichmentProgress({ status: 'complete', enriched: data.enriched, total: data.total, failed: data.failed });
-                  setTimeout(() => {
-                    toast.success(`Successfully enriched ${data.enriched} products with real connection data!`);
-                    window.location.reload();
-                  }, 500);
+                  toast.success(`Successfully enriched ${data.enriched} products with real connection data!`);
+                  queryClient.invalidateQueries({ queryKey: ['avProducts'] });
                 } catch (error) {
                   console.error('Enrichment error:', error);
                   const errorMsg = error.response?.data?.error || error.message;
@@ -2504,15 +2502,13 @@ function AVCanvasContent() {
                     setImportProgress(null);
                     setEnrichmentProgress({ status: 'running', message: `Enriching ${data.productsFound} products...` });
                     const enrichParams = params.mode === 'search' 
-                      ? { mode: 'search', brand: params.brand, model: params.model }
-                      : { mode: 'category', category: params.category };
-                    const { data: enrichData } = await base44.functions.invoke('enrichProductConnectionsV2', enrichParams);
-                    setEnrichmentProgress({ status: 'complete', enriched: enrichData.enriched, total: enrichData.total });
-                    toast.success(`Enriched ${enrichData.enriched} products with connection data!`);
-                    setTimeout(() => {
-                      setEnrichmentProgress(null);
-                      window.location.reload();
-                    }, 1000);
+                          ? { mode: 'search', brand: params.brand, model: params.model }
+                          : { mode: 'category', category: params.category };
+                        const { data: enrichData } = await base44.functions.invoke('enrichProductConnectionsV2', enrichParams);
+                        setEnrichmentProgress({ status: 'complete', enriched: enrichData.enriched, total: enrichData.total });
+                        toast.success(`Enriched ${enrichData.enriched} products with connection data!`);
+                        setEnrichmentProgress(null);
+                        queryClient.invalidateQueries({ queryKey: ['avProducts'] });
                   } catch (enrichError) {
                     console.error('Auto-enrichment error:', enrichError);
                     setEnrichmentProgress(null);
