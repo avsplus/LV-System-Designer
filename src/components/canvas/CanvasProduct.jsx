@@ -524,6 +524,7 @@ Only return URLs that:
     "XLR": "#1ABC9C",
     "Speaker Wire": "#8E5C2C",
     "Ethernet": "#27AE60",
+    "SFP": "#00CED1",
     "USB": "#2A7FDB",
     "Coaxial": "#2A7FDB",
     "3.5mm Jack": "#F4D03F",
