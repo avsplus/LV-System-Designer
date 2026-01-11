@@ -155,8 +155,9 @@ function generateConnectionsFromSpec(spec, allRules) {
     allPorts.push(...ports);
   }
 
+  // For bidirectional ports, only add to inputs (to avoid duplicate dots on canvas)
   const inputs = allPorts.filter(p => p.direction === 'input' || p.direction === 'bidirectional');
-  const outputs = allPorts.filter(p => p.direction === 'output' || p.direction === 'bidirectional');
+  const outputs = allPorts.filter(p => p.direction === 'output');
 
   return { inputs, outputs, ruleLogs };
 }
