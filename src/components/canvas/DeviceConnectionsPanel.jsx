@@ -236,6 +236,9 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   const hasDbConnections = (productData.input_connections && productData.input_connections.length > 0) || 
                             (productData.output_connections && productData.output_connections.length > 0);
 
+  // NOTE: Normalize database connections to ensure ports are objects, not strings
+  // This prevents React error #31: "object with keys {id, label, direction}"
+  // Legacy database entries might have ports as strings; normalize to consistent {id, label, direction} format
   let connections = hasDbConnections ? {
     inputs: (productData.input_connections || []).map(conn => ({
       type: conn.type,
