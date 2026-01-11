@@ -317,20 +317,20 @@ export default function ProductSidebar({ products, onProductSelect }) {
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-gray-800 bg-gray-900 flex items-center justify-center gap-4">
+      <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center gap-4">
         <img 
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
           alt="AV System Design Logo" 
-          className="h-8 w-auto object-contain flex-shrink-0"
+          className="h-10 w-auto object-contain flex-shrink-0"
         />
         
         {(settings?.logo_url || organization?.logo_url) && (
           <>
-            <div className="h-6 w-px bg-gray-700"></div>
+            <div className="h-7 w-px bg-gray-700"></div>
             <img 
               src={settings?.logo_url || organization?.logo_url} 
               alt={settings?.name || organization?.name || 'Organization Logo'} 
-              className="h-7 w-auto object-contain flex-shrink-0"
+              className="h-9 w-auto object-contain flex-shrink-0"
             />
           </>
         )}
