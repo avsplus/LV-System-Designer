@@ -294,6 +294,20 @@ Deno.serve(async (req) => {
                 console.log('[DEBUG] Enriching product with connections...');
                 debugLogs.push(`Enriching ${product.brand} ${product.model}`);
                 
+                // Validate inputs and outputs have matching types
+                const inputTypes = new Set(inputs.map(p => p.type));
+                const outputTypes = new Set(outputs.map(p => p.type));
+                const invalidInputs = inputs.filter(p => !p.type || !p.label);
+                const invalidOutputs = outputs.filter(p => !p.type || !p.label);
+                
+                if (invalidInputs.length > 0 || invalidOutputs.length > 0) {
+                    const msg = `Validation failed: Invalid ports detected (missing type or label)`;
+                    console.log('[DEBUG]', msg);
+                    debugLogs.push(`⚠ ${msg}`);
+                    failedProducts.push(`${product.brand} ${product.model}: ${msg}`);
+                    continue;
+                }
+                
                 // Group ports by type (one connection object per type)
                 const groupedInputs = inputs.reduce((acc, p) => {
                     const existing = acc.find(c => c.type === p.type);
@@ -314,6 +328,8 @@ Deno.serve(async (req) => {
                     }
                     return acc;
                 }, []);
+                
+                debugLogs.push(`Grouped connections: ${groupedInputs.length} input types, ${groupedOutputs.length} output types`);
                 
                 // Update product
                 await base44.asServiceRole.entities.AVProduct.update(product.id, {
