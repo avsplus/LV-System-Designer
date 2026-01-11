@@ -315,7 +315,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
   const masterCategories = Object.keys(allMasterCategoryMappings).sort();
 
   return (
-    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200" style={{ scrollbarGutter: 'stable', overflowY: 'scroll' }}>
+    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
       {/* Logo */}
       <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center gap-4">
         <img 
@@ -489,7 +489,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
             ref={provided.innerRef}
             {...provided.droppableProps}
             className="flex-1 overflow-y-auto p-3 space-y-3"
-            style={{ scrollbarGutter: 'stable', overflowY: 'scroll' }}
           >
             {masterCategories.map((masterCat, masterIdx) => {
               const categoriesInMaster = allMasterCategoryMappings[masterCat] || [];
