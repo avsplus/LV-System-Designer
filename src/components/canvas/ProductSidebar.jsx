@@ -317,27 +317,23 @@ export default function ProductSidebar({ products, onProductSelect }) {
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
       {/* Logo */}
-      <div className="p-3 border-b border-gray-800 flex items-center justify-center gap-3 bg-gray-950">
-        <div className="flex-shrink-0 h-12 flex items-center">
+      <div className="p-3 border-b border-gray-800 flex items-center justify-between gap-3 bg-gray-950">
+        <div className="flex-1 flex items-center justify-start">
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
             alt="AV System Design Logo" 
-            className="h-12 w-auto object-contain"
-            onError={(e) => console.log('Logo load error:', e)}
+            className="h-10 w-auto object-contain"
           />
         </div>
         
         {(settings?.logo_url || organization?.logo_url) && (
-          <>
-            <div className="h-8 w-px bg-gray-700"></div>
-            <div className="flex-shrink-0 h-8 flex items-center">
-              <img 
-                src={settings?.logo_url || organization?.logo_url} 
-                alt={settings?.name || organization?.name || 'Organization Logo'} 
-                className="h-8 w-auto object-contain max-w-[80px]"
-              />
-            </div>
-          </>
+          <div className="flex-1 flex items-center justify-end">
+            <img 
+              src={settings?.logo_url || organization?.logo_url} 
+              alt={settings?.name || organization?.name || 'Organization Logo'} 
+              className="h-10 w-auto object-contain"
+            />
+          </div>
         )}
       </div>
 
