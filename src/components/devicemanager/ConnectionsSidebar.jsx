@@ -16,6 +16,7 @@ const connectionTypes = [
   { type: "Subwoofer", color: "#8E5C2C", category: "audio" },
   { type: "3.5mm Jack", color: "#F4D03F", category: "audio" },
   { type: "Ethernet", color: "#27AE60", category: "network" },
+  { type: "SFP", color: "#00CED1", category: "network" },
   { type: "USB", color: "#2A7FDB", category: "network" },
   { type: "RS232", color: "#7F8C8D", category: "control" },
   { type: "IR", color: "#7F8C8D", category: "control" },
