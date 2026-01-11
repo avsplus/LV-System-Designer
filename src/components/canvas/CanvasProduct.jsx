@@ -891,17 +891,19 @@ Only return URLs that:
               )}
             </Button>
           )}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-red-500/10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(instanceId);
-            }}
-          >
-            <X className="w-3 h-3" />
-          </Button>
+          {!product.id?.startsWith('demo-') && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(instanceId);
+              }}
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          )}
         </div>
       </div>
       
