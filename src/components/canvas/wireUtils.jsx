@@ -21,10 +21,7 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
   }
   
   const pathLengthPx = calculatePathLength(from, to, waypoints);
-  // Account for both pixelsPerInch calibration AND the floorplan's scale property
-  // Scale affects the displayed size, so it must be factored into real-world distance
-  const scale = floorplan.scale || 1;
-  const inches = (pathLengthPx / floorplan.pixelsPerInch) * scale;
+  const inches = pathLengthPx / floorplan.pixelsPerInch;
   const feet = inches / 12;
   
   return {
