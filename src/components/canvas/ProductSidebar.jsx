@@ -460,15 +460,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
                       {categoriesInMaster.map((category) => {
                         const categoryProducts = productsByMasterCategory[masterCat][category] || [];
                         const isExpanded = expandedCategories[category] === true;
-                        
-                        // Calculate a unique base index for this category's demo product
-                        const prevCategoriesCount = allMasterCategoryMappings[masterCat].slice(0, 
-                          allMasterCategoryMappings[masterCat].indexOf(category)
-                        ).reduce((sum, cat) => {
-                          return sum + 1 + (productsByMasterCategory[masterCat][cat]?.length || 0);
-                        }, 0);
-                        
-                        const demoProductIndex = prevCategoriesCount;
 
                         return (
                           <div key={category} className="space-y-2" onClick={(e) => e.stopPropagation()}>
@@ -492,7 +483,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                 }`}>
                                   {category.replace(/_/g, ' ')}
                                 </div>
-                                <span className="text-[9px] text-gray-600">({categoryProducts.length + 1})</span>
+                                <span className="text-[9px] text-gray-600">({categoryProducts.length})</span>
                               </div>
                               {isExpanded ? (
                                 <ChevronDown className="w-3 h-3 text-gray-400" />
@@ -503,64 +494,14 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
                             {isExpanded && (
                               <div className="space-y-2 pl-1">
-                                {/* Static Demo Product */}
-                                <Draggable 
-                                  key={`demo-${category}`}
-                                  draggableId={`demo-${category}`}
-                                  index={demoProductIndex}
-                                >
-                                  {(provided, snapshot) => (
-                                    <>
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        onClick={() => onProductSelect({
-                                          id: `demo-${category}`,
-                                          brand: `Demo ${category.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`,
-                                          model: 'Demonstration Unit',
-                                          category: category,
-                                          description: 'Demo product for demonstration purposes',
-                                          price: 0
-                                        })}
-                                        className={`group bg-gradient-to-r from-purple-900/50 to-blue-900/50 hover:from-purple-800/50 hover:to-blue-800/50 border border-purple-500/50 rounded-lg p-3 cursor-pointer transition-all ${
-                                          snapshot.isDragging ? 'shadow-xl shadow-purple-500/20 border-purple-500' : ''
-                                        }`}
-                                      >
-                                        <div className="flex items-start gap-3">
-                                          <div className="mt-1">
-                                            <Grip className="w-4 h-4 text-gray-400 group-hover:text-gray-300" />
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                              <h3 className="font-medium text-white text-sm truncate">Demo {category.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</h3>
-                                              <span className="text-[9px] px-1.5 py-0.5 bg-purple-500/30 text-purple-300 rounded uppercase font-bold">Demo</span>
-                                            </div>
-                                            <p className="text-xs text-gray-300 truncate">Demonstration Unit</p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      {snapshot.isDragging && (
-                                        <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-500/50 rounded-lg p-3 opacity-50">
-                                          <div className="flex items-start gap-3">
-                                            <Grip className="w-4 h-4 text-gray-400 mt-1" />
-                                            <div className="flex-1">
-                                              <h3 className="font-medium text-white text-sm truncate">Demo {category.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</h3>
-                                              <p className="text-xs text-gray-300">Demonstration Unit</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-                                </Draggable>
-
-                                {/* Regular Products */}
-                                {categoryProducts.map((product, prodIndex) => (
+                                {/* Regular Products (includes demo products from database) */}
+                                {categoryProducts.map((product, prodIndex) => {
+                                  const isDemoProduct = product.id?.startsWith('demo-');
+                                  return (
                                   <Draggable 
                                     key={product.id} 
                                     draggableId={product.id} 
-                                    index={demoProductIndex + 1 + prodIndex}
+                                    index={filteredProducts.findIndex(p => p.id === product.id)}
                                   >
                                     {(provided, snapshot) => (
                                       <>
