@@ -336,40 +336,39 @@ CATEGORY RULES:
 
         // Use LLM with web search to get current AV products
         const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find ${productCount} popular professional products from these categories: ${categoryList}. You MUST categorize each product EXACTLY according to these definitions:
+            prompt: `Find ${productCount} popular professional products from these categories: ${categoryList}. Return VALID JSON only.
 
-CATEGORY DEFINITIONS (use ONLY these exact category names):
+You MUST use ONLY these exact category names - no variations or misspellings:
 ${categoryExamples}
 
-CRITICAL CLASSIFICATION RULES:
-- AV Receivers have BUILT-IN amplification (Denon AVR-X3800H = av_receivers)
-- Surround Processors have NO amplification, just processing (Marantz AV10 = surround_processors)
-- Media Streamers are VIDEO streaming devices (Apple TV, Roku = media_streamers)
-- Audio Streamers are AUDIO-ONLY network players (Sonos Port = audio_streamers)
-- Video Distribution SPLITS one source to many displays
-- Matrix Switchers ROUTE multiple sources to multiple displays
-- Speakers are loudspeakers (NOT soundbars, NOT subwoofers)
-- Control Processors are automation systems (Crestron, Control4)
-- Patch Panels are network cabling/management infrastructure (not devices)
-- Data Jacks are network keystones/connectors
-- Access Points are WiFi routers/wireless infrastructure
-- IP Cameras are network video surveillance cameras
-- NVRs are network video recording systems
-- Intercoms are communication/intercom systems
-- Telephones are IP/VoIP phones for communication
+CRITICAL RULES:
+- AV Receivers = Denon AVR, Yamaha RX (built-in amplification)
+- Surround Processors = Marantz AV10, Anthem AVM (NO amplification)
+- Media Streamers = Apple TV, Roku, NVIDIA Shield (VIDEO streaming)
+- Audio Streamers = Sonos Port, Bluesound (AUDIO-ONLY network)
+- Control Processors = Crestron, Control4, RTI (automation)
+- Speakers = loudspeakers only (not soundbars or subs)
+- Soundbars = all-in-one speaker bars
+- Subwoofers = bass only
+- Video Distribution = HDMI splitters (1 to many)
+- Matrix Switchers = video routers (many to many)
+- Network Switches = ethernet switches
+- Access Points = WiFi routers
+- IP Cameras = network cameras
+- NVRs = video recorders
+- Telephones = IP/VoIP phones
+- Intercoms = intercom systems
+- Patch Panels, Data Jacks = cabling infrastructure
+- HDMI Extenders = HDMI over Cat6 or AVoIP
 
-Brands to include: Sony, Samsung, LG, Epson, JVC, RTI, Crestron, Control4, Savant, Sonos, Denon, Marantz, Yamaha, KEF, Klipsch, SVS, Ubiquiti, Araknis, Luxul, AVPro Edge, Atlona, Just Add Power, Binary, Screen Innovations, CommScope, Leviton, Panduit, Polycom, Cisco, Yealink, Avaya, Panasonic, Aiphone, Legrand, Hikvision, Uniview, Dahua, Axis, Amcrest.
+For EACH product return:
+- brand: manufacturer name (string only)
+- model: model number (string only)
+- category: EXACT name from the list above (string only)
+- description: brief 1-2 sentence description (plain text, no quotes, max 150 chars)
+- price: number only (estimated USD)
 
-For each product provide: brand, model, category (EXACT name from list above), description (brief), price in USD.
-
-ALSO for each product, search for official PDF manuals:
-- installation_manual_url: Direct URL to the official installation/quick start guide PDF from the manufacturer
-- user_manual_url: Direct URL to the official user/owner's manual PDF from the manufacturer
-
-Search patterns to find manuals:
-- site:brand.com "model" filetype:pdf installation
-- site:brand.com "model" filetype:pdf manual
-- Only include URLs that end in .pdf and are from official manufacturer sites`,
+NO manual URLs needed - just these 5 fields.`,
             add_context_from_internet: true,
             response_json_schema: {
                 type: "object",
@@ -383,9 +382,7 @@ Search patterns to find manuals:
                                 model: { type: "string" },
                                 category: { type: "string" },
                                 description: { type: "string" },
-                                price: { type: "number" },
-                                installation_manual_url: { type: "string" },
-                                user_manual_url: { type: "string" }
+                                price: { type: "number" }
                             },
                             required: ["brand", "model", "category"]
                         }
