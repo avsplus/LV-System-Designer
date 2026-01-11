@@ -223,14 +223,6 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
   // Group products by master category, then by individual category
   const productsByMasterCategory = {};
-  
-  // Initialize all master categories with all their subcategories
-  Object.entries(allMasterCategoryMappings).forEach(([masterCat, categories]) => {
-    productsByMasterCategory[masterCat] = {};
-    categories.forEach(cat => {
-      productsByMasterCategory[masterCat][cat] = [];
-    });
-  });
 
   // Populate with filtered products
   filteredProducts.forEach(product => {
@@ -244,7 +236,13 @@ export default function ProductSidebar({ products, onProductSelect }) {
     productsByMasterCategory[masterCat][product.category].push(product);
   });
 
-  const masterCategories = Object.keys(productsByMasterCategory).sort();
+  // Only show master categories that have products
+  const masterCategories = Object.keys(productsByMasterCategory)
+    .filter(masterCat => {
+      const categories = Object.keys(productsByMasterCategory[masterCat]);
+      return categories.some(cat => productsByMasterCategory[masterCat][cat].length > 0);
+    })
+    .sort();
 
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
@@ -461,7 +459,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
                   {masterCatExpanded && (
                     <div className="space-y-2 pl-2">
-                      {categoriesInMaster.map((category) => {
+                      {categoriesInMaster.filter(cat => productsByMasterCategory[masterCat][cat].length > 0).map((category) => {
                         const categoryProducts = productsByMasterCategory[masterCat][category];
                         const isExpanded = expandedCategories[category] === true;
 
