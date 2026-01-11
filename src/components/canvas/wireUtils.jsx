@@ -49,7 +49,9 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
     y: (wp.y - floorplanPos.y) * canvasToImageScale
   })) || [];
   
+  const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
   const pathLengthPx = calculatePathLength(imageFrom, imageTo, imageWaypoints);
+  console.log('Canvas path length (before conversion):', pathLengthCanvasPx);
   const inches = pathLengthPx / pixelsPerInch;
   const feet = inches / 12;
   
