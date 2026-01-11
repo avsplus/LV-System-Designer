@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+// Maps connection types to visual colors for easy identification on canvas
+// Used for coloring connection lines and waypoint handles
 const connectionTypeColors = {
   "HDMI": "#E74C3C",
   "Optical": "#2A7FDB",
@@ -30,7 +32,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
-  // Simple path: connect from → all waypoints → to
+  // Generates SVG path by connecting start point → waypoints → end point
+  // Waypoints allow users to manually route connections around obstacles
   const generatePath = () => {
     const points = [from, ...waypoints, to];
     let path = '';
@@ -48,7 +51,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   const pathData = generatePath();
 
-  // Calculate midpoint for delete button
+  // Calculates midpoint of connection line for positioning delete button and wire ID label
+  // Uses middle waypoint if available, otherwise calculates geometric center
   const getMidpoint = () => {
     if (waypoints.length > 0) {
       const mid = Math.floor(waypoints.length / 2);
@@ -83,11 +87,13 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     }
   };
 
+  // Handles waypoint dragging with zoom-aware calculations
+  // Updates waypoint position as user drags it across the canvas
   const handleWindowMouseMove = (e) => {
     if (draggingIndex !== null && dragStateRef.current) {
       const { startX, startY, index } = dragStateRef.current;
       
-      // Calculate delta in screen space
+      // Calculate delta in world space (accounts for zoom level to maintain smooth dragging)
       const dx = (e.clientX - startX) / zoom;
       const dy = (e.clientY - startY) / zoom;
       
@@ -123,9 +129,10 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     }
   }, [draggingIndex, zoom]);
 
+  // Double-click to add waypoint at click location
+  // Converts screen coordinates to world coordinates accounting for pan and zoom
   const handlePathDoubleClick = (e) => {
     e.stopPropagation();
-    // Get SVG element to convert screen coords to world coords
     const svg = e.target.closest('svg');
     if (!svg) return;
     
@@ -167,8 +174,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
           if (onLeave) onLeave();
         }}
       />
-      {/* Invisible larger hit area */}
-      <path
+      {/* Invisible larger hit area - makes thin lines easier to click/hover on */}
+       <path
         d={pathData}
         stroke="transparent"
         strokeWidth="20"
@@ -186,8 +193,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         }}
       />
       
-      {/* Waypoint hit area (larger, invisible) */}
-      {waypoints.map((wp, index) => (
+      {/* Waypoint hit area - larger invisible target for easier interaction */}
+       {waypoints.map((wp, index) => (
         <circle
           key={`waypoint-hit-${index}`}
           cx={wp.x}
@@ -241,8 +248,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         </g>
       )}
 
-      {/* Delete button */}
-      <circle
+      {/* Delete button - invisible hit area, visible indicator on hover */}
+       <circle
         cx={midpoint.x}
         cy={midpoint.y}
         r="20"
