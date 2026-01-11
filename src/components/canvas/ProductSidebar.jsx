@@ -166,25 +166,22 @@ export default function ProductSidebar({ products, onProductSelect }) {
     localStorage.setItem('expandedCategories', JSON.stringify(expandedCategories));
   }, [expandedCategories]);
 
-  // Track product counts per category and reset viewed status when count increases
+  // Track product counts per category and mark categories with new products
   React.useEffect(() => {
     const currentCounts = {};
+    const newCategories = {};
+    
     Object.entries(productsByCategory).forEach(([category, prods]) => {
       currentCounts[category] = prods.length;
-    });
-
-    // Reset viewed status if count increased (new products added)
-    const updatedViewed = { ...viewedCategories };
-    Object.entries(currentCounts).forEach(([category, count]) => {
-      if (categoryProductCounts[category] !== undefined && count > categoryProductCounts[category]) {
-        updatedViewed[category] = false;
+      // Mark category as having new products if count increased
+      if (categoryProductCounts[category] !== undefined && prods.length > categoryProductCounts[category]) {
+        newCategories[category] = true;
       }
     });
 
+    setCategoriesWithNewProducts(newCategories);
     setCategoryProductCounts(currentCounts);
-    setViewedCategories(updatedViewed);
     localStorage.setItem('categoryProductCounts', JSON.stringify(currentCounts));
-    localStorage.setItem('viewedProductCategories', JSON.stringify(updatedViewed));
   }, [products]);
 
   // Extract unique values for filters
