@@ -201,11 +201,10 @@ const connectionsByCategory = {
   },
   network_switches: {
     inputs: [
-      { type: "Power", ports: ["AC"] },
-      { type: "Ethernet", ports: ["Uplink-1", "Uplink-2"] }
+      { type: "Power", ports: ["AC"] }
     ],
     outputs: [
-      { type: "Ethernet", ports: ["Port-1", "Port-2", "Port-3", "Port-4", "Port-5", "Port-6", "Port-7", "Port-8"] }
+      { type: "Ethernet", ports: [] }
     ]
   },
   hdmi_extenders: {
