@@ -171,16 +171,37 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const categoryFilter = body.category;
+    const { mode, category, brand, model } = body;
 
-    console.log('[DEBUG] enrichProductConnectionsV2 - Request received with category:', categoryFilter);
+    console.log('[DEBUG] enrichProductConnectionsV2 - Request received:', { mode, category, brand, model });
 
-    // Fetch products
+    // Fetch products based on mode
     let products = [];
-    if (categoryFilter) {
-        products = await base44.asServiceRole.entities.AVProduct.filter({ category: categoryFilter });
+    if (mode === 'search') {
+        // Search by brand/model
+        const filter = {};
+        if (brand) {
+            filter.brand = { $regex: brand, $options: 'i' };
+        }
+        if (model) {
+            filter.model = { $regex: model, $options: 'i' };
+        }
+        console.log('[DEBUG] Searching with filter:', filter);
+        products = await base44.asServiceRole.entities.AVProduct.filter(filter);
+    } else if (mode === 'category') {
+        // Filter by category
+        if (category) {
+            products = await base44.asServiceRole.entities.AVProduct.filter({ category });
+        } else {
+            products = await base44.asServiceRole.entities.AVProduct.list();
+        }
     } else {
-        products = await base44.asServiceRole.entities.AVProduct.list();
+        // Legacy: just category filter
+        if (body.category) {
+            products = await base44.asServiceRole.entities.AVProduct.filter({ category: body.category });
+        } else {
+            products = await base44.asServiceRole.entities.AVProduct.list();
+        }
     }
 
     let enriched = 0;
