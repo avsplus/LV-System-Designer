@@ -49,7 +49,6 @@ Deno.serve(async (req) => {
         .join(' ');
 
       await base44.asServiceRole.entities.AVProduct.create({
-        id: demoId,
         organization_id: organizationId,
         brand: `Demo ${capitalizedName}`,
         model: 'Demonstration Unit',
