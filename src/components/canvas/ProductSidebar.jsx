@@ -221,8 +221,11 @@ export default function ProductSidebar({ products, onProductSelect }) {
     });
   };
 
-  // Group products by master category, then by individual category
+  // Initialize all master categories with empty objects
   const productsByMasterCategory = {};
+  Object.keys(allMasterCategoryMappings).forEach(masterCat => {
+    productsByMasterCategory[masterCat] = {};
+  });
 
   // Populate with filtered products
   filteredProducts.forEach(product => {
@@ -236,13 +239,8 @@ export default function ProductSidebar({ products, onProductSelect }) {
     productsByMasterCategory[masterCat][product.category].push(product);
   });
 
-  // Only show master categories that have products
-  const masterCategories = Object.keys(productsByMasterCategory)
-    .filter(masterCat => {
-      const categories = Object.keys(productsByMasterCategory[masterCat]);
-      return categories.some(cat => productsByMasterCategory[masterCat][cat].length > 0);
-    })
-    .sort();
+  // Show all master categories, sorted alphabetically
+  const masterCategories = Object.keys(allMasterCategoryMappings).sort();
 
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
