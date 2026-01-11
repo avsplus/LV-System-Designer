@@ -15,7 +15,8 @@ export const calculatePathLength = (from, to, waypoints = []) => {
 };
 
 // Convert pixels to feet using floorplan scale
-export const getWireLength = (from, to, waypoints = [], floorplan) => {
+// Pass zoom as optional parameter to account for canvas transforms
+export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => {
   if (!floorplan || !floorplan.pixelsPerInch) {
     return null;
   }
