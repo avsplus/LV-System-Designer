@@ -457,7 +457,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
 
                   {masterCatExpanded && (
                     <div className="space-y-2 pl-2">
-                      {categoriesInMaster.filter(cat => productsByMasterCategory[masterCat][cat].length > 0).map((category) => {
+                      {categoriesInMaster.map((category) => {
                         const categoryProducts = productsByMasterCategory[masterCat][category];
                         const isExpanded = expandedCategories[category] === true;
 
