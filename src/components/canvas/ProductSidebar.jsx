@@ -511,10 +511,13 @@ export default function ProductSidebar({ products, onProductSelect }) {
                     }`}
                   >
                     <div className="flex items-center gap-2">
+                      {(() => {
+                        const IconComponent = masterCategoryIcons[masterCat];
+                        return IconComponent ? <IconComponent className="w-4 h-4 text-gray-400" /> : null;
+                      })()}
                       <div className="px-2 py-1 rounded text-white text-sm font-bold">
                         {masterCat}
                       </div>
-                      <span className="text-[10px] text-gray-500">({totalProductsInMaster + categoriesInMaster.length})</span>
                     </div>
                     {masterCatExpanded ? (
                       <ChevronDown className="w-4 h-4 text-gray-400" />
