@@ -634,19 +634,19 @@ export default function ProductSidebar({ products, onProductSelect }) {
                                   );
                                   })}
                                   </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </div>
-  );
-}
+                                  )}
+                                  </div>
+                                  );
+                                  })}
+                                  </div>
+                                  )}
+                                  </div>
+                                  );
+                                  })}
+                                  {provided.placeholder}
+                                  </div>
+                                  )}
+                                  </Droppable>
+                                  </div>
+                                  );
+                                  }
