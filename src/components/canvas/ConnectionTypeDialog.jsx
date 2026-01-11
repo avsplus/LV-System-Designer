@@ -227,8 +227,21 @@ export default function ConnectionTypeDialog({ fromProduct, toProduct, onSelect,
   const fromHasDb = fromProduct.output_connections && fromProduct.output_connections.length > 0;
   const toHasDb = toProduct.input_connections && toProduct.input_connections.length > 0;
 
-  const fromOutputs = fromHasDb ? fromProduct.output_connections : fromDefaults.outputs;
-  const toInputs = toHasDb ? toProduct.input_connections : toDefaults.inputs;
+  // Normalize database ports to objects {id, label, direction}
+  // Ensures consistent data structure regardless of source (database vs. defaults)
+  const normalizeDbPorts = (connections, direction) => {
+    return (connections || []).map(conn => ({
+      type: conn.type,
+      ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction } : p)
+    }));
+  };
+
+  const fromOutputs = fromHasDb 
+    ? normalizeDbPorts(fromProduct.output_connections, 'output')
+    : fromDefaults.outputs;
+  const toInputs = toHasDb 
+    ? normalizeDbPorts(toProduct.input_connections, 'input')
+    : toDefaults.inputs;
 
   // Find compatible connection types
   const compatibleTypes = [];
