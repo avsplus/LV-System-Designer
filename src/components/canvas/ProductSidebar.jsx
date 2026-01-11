@@ -178,7 +178,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
   React.useEffect(() => {
     const currentCounts = {};
     const newCategories = { ...categoriesWithNewProducts };
-    
+
     Object.entries(productsByCategory).forEach(([category, prods]) => {
       currentCounts[category] = prods.length;
       // Mark category as having new products if count increased
@@ -191,7 +191,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
     setCategoryProductCounts(currentCounts);
     localStorage.setItem('categoryProductCounts', JSON.stringify(currentCounts));
     localStorage.setItem('categoriesWithNewProducts', JSON.stringify(newCategories));
-  }, [products, categoryProductCounts]);
+  }, [products]);
 
   // Extract unique values for filters
   const allCategories = [...new Set(products.map(p => p.category))].sort();
