@@ -1101,7 +1101,7 @@ function AVCanvasContent() {
           setArrows(prev => {
             const updated = [...prev, drawingArrow];
             // Mark change and save immediately
-            markLocalChange();
+            if (markLocalChangeRef.current) markLocalChangeRef.current();
             if (currentProject?.id) {
               base44.entities.AVProject.update(currentProject.id, {
                 arrows: updated
