@@ -70,7 +70,7 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
   // Calculate wire length if we have positions and a calibrated floorplan
   const activeFloorplan = floorplans?.find(fp => fp.visible && fp.pixelsPerInch);
   const wireLength = !isEmpty && fromPosition && toPosition && activeFloorplan
-    ? getWireLength(fromPosition, toPosition, connection.waypoints || [], activeFloorplan, 1)
+    ? getWireLength(fromPosition, toPosition, connection.waypoints || [], activeFloorplan)
     : null;
   
   // Debug logging

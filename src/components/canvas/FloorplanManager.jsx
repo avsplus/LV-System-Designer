@@ -176,11 +176,12 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    // Canvas is scaled, so divide by zoom to get raw image pixel coordinates
+    // The canvas is scaled by CSS transform, so we need to account for the zoom
+    // Click position relative to canvas, then convert to canvas coordinates
     const x = (e.clientX - rect.left) / calibrationZoom;
     const y = (e.clientY - rect.top) / calibrationZoom;
 
-    console.log(`Calibration point: x=${x.toFixed(2)}, y=${y.toFixed(2)} (raw image px)`);
+    console.log(`Calibration point: x=${x}, y=${y}, zoom=${calibrationZoom}, pixelDist from first point will be calculated`);
     setCalibrationPoints([...calibrationPoints, { x, y }]);
   };
 
@@ -191,32 +192,25 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     }
 
     const [p1, p2] = calibrationPoints;
-    const pixelDistance = Math.sqrt(
-      Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
-    );
-    const knownDistanceValue = parseFloat(knownDistance);
+      const pixelDistance = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+      );
 
-    console.log('=== CALIBRATION DEBUG ===');
-    console.log(`Point A: (${p1.x.toFixed(2)}, ${p1.y.toFixed(2)}) raw image px`);
-    console.log(`Point B: (${p2.x.toFixed(2)}, ${p2.y.toFixed(2)}) raw image px`);
-    console.log(`Pixel distance: ${pixelDistance.toFixed(2)} px (raw image pixels)`);
-    console.log(`Known distance: ${knownDistanceValue} inches`);
-    console.log(`Calibration zoom: ${calibrationZoom}`);
+      console.log('=== CALIBRATION DEBUG ===');
+      console.log(`Point 1: (${p1.x}, ${p1.y})`);
+      console.log(`Point 2: (${p2.x}, ${p2.y})`);
+      console.log(`Pixel distance: ${pixelDistance}`);
+      console.log(`Known distance entered: ${knownDistance} inches`);
 
-    // Calculate pixels per inch in raw image space
-    const pixelsPerInch = pixelDistance / knownDistanceValue;
-    console.log(`Calculated pixelsPerInch: ${pixelsPerInch.toFixed(4)}`);
-    console.log(`This means 1 inch = ${pixelsPerInch.toFixed(2)} image pixels`);
-    console.log('========================');
+      // Store as pixels per inch for distance calculations
+      const pixelsPerInch = pixelDistance / parseFloat(knownDistance);
+      console.log(`Calculated pixelsPerInch: ${pixelsPerInch}`);
+      console.log('========================');
 
     const updatedFloorplans = calibrating.isRecalibrating 
-      ? floorplans.map(fp => {
-          if (fp.id === calibrating.id) {
-            console.log(`Recalibrating floorplan "${fp.name}": old=${fp.pixelsPerInch?.toFixed(2)}, new=${pixelsPerInch.toFixed(2)}`);
-            return { ...fp, pixelsPerInch };
-          }
-          return fp;
-        })
+      ? floorplans.map(fp => 
+          fp.id === calibrating.id ? { ...fp, pixelsPerInch } : fp
+        )
       : (() => {
           const imageWidth = calibrating.naturalWidth;
           const imageHeight = calibrating.naturalHeight;
@@ -224,8 +218,6 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
           const position = lastFloorplan && lastFloorplan.position
             ? { x: lastFloorplan.position.x + 200, y: lastFloorplan.position.y }
             : { x: 0, y: 0 };
-
-          console.log(`Creating new calibrated floorplan "${calibrating.name}" with pixelsPerInch=${pixelsPerInch.toFixed(2)}`);
 
           return [...floorplans, {
             id: calibrating.id,
@@ -237,6 +229,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
             imageWidth: imageWidth,
             imageHeight: imageHeight,
             scale: 1,
+            calibrationScale: 1,
             position: position,
             visible: true,
             opacity: 0.3
@@ -246,7 +239,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     onUpdate(updatedFloorplans);
     setUploadForm({ name: '' });
     toast.success(calibrating.isRecalibrating ? 'Floorplan recalibrated' : 'Floorplan calibrated and added');
-
+    
     setCalibrating(null);
     setCalibrationPoints([]);
     setKnownDistance('');

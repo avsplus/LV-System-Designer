@@ -2,7 +2,7 @@
 export const calculatePathLength = (from, to, waypoints = []) => {
   const points = [from, ...waypoints, to];
   let totalLength = 0;
-
+  
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i];
     const p2 = points[i + 1];
@@ -10,38 +10,63 @@ export const calculatePathLength = (from, to, waypoints = []) => {
     const dy = p2.y - p1.y;
     totalLength += Math.sqrt(dx * dx + dy * dy);
   }
-
+  
   return totalLength;
 };
 
-// Convert canvas pixels to real-world distance using calibration
-export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => {
+// Convert pixels to feet using floorplan scale
+export const getWireLength = (from, to, waypoints = [], floorplan) => {
   if (!floorplan || !floorplan.pixelsPerInch) {
     return null;
   }
-
-  const pixelsPerInch = floorplan.pixelsPerInch;
+  
+  // Device positions are in CANVAS coordinates (after all zoom/pan/scale transforms)
+  // But calibration was done in RAW IMAGE pixel coordinates
+  // We need to convert device positions back to image space
+  
+  const floorplanPos = floorplan.position || { x: 0, y: 0 };
   const floorplanScale = floorplan.scale || 1;
-
-  // Calculate path length directly in canvas coordinates
+  const pixelsPerInch = floorplan.pixelsPerInch;
+  
+  // Calculate the scale factor applied to the floorplan display
+  // Floorplan width in canvas = imageWidth * (1/pixelsPerInch) * floorplanScale
+  // So to convert canvas px back to image px:
+  const canvasToImageScale = pixelsPerInch / floorplanScale;
+  
+  // Convert device positions from canvas coordinates to image pixel coordinates
+  const imageFrom = {
+    x: (from.x - floorplanPos.x) * canvasToImageScale,
+    y: (from.y - floorplanPos.y) * canvasToImageScale
+  };
+  
+  const imageTo = {
+    x: (to.x - floorplanPos.x) * canvasToImageScale,
+    y: (to.y - floorplanPos.y) * canvasToImageScale
+  };
+  
+  const imageWaypoints = waypoints?.map(wp => ({
+    x: (wp.x - floorplanPos.x) * canvasToImageScale,
+    y: (wp.y - floorplanPos.y) * canvasToImageScale
+  })) || [];
+  
   const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
-
-  // Normalize by scale, then convert to inches
-  // pixelsPerInch is now scale-independent (stored at image resolution)
-  const inches = (pathLengthCanvasPx / floorplanScale) / pixelsPerInch;
+  const pathLengthPx = calculatePathLength(imageFrom, imageTo, imageWaypoints);
+  console.log('Canvas path length (before conversion):', pathLengthCanvasPx);
+  const inches = pathLengthPx / pixelsPerInch;
   const feet = inches / 12;
-
+  
   console.log('=== WIRE LENGTH CALCULATION ===');
-  console.log('Canvas path length:', pathLengthCanvasPx.toFixed(2), 'canvas px');
-  console.log('Floorplan scale:', floorplanScale.toFixed(4));
-  console.log('Normalized path:', (pathLengthCanvasPx / floorplanScale).toFixed(2), 'px');
-  console.log('Pixels per inch:', pixelsPerInch.toFixed(4));
-  console.log('Result:', inches.toFixed(2), 'inches (', feet.toFixed(2), 'feet)');
+  console.log('Canvas positions:', { from, to });
+  console.log('Floorplan data:', { position: floorplanPos, scale: floorplanScale, pixelsPerInch });
+  console.log('Canvas to image scale:', canvasToImageScale);
+  console.log('Image positions:', { imageFrom, imageTo });
+  console.log('Path length (px):', pathLengthPx);
+  console.log('Result:', { inches, feet });
   console.log('================================');
-
+  
   return {
     feet: feet.toFixed(2),
     inches: inches.toFixed(2),
-    pixels: pathLengthCanvasPx.toFixed(2)
+    pixels: pathLengthPx.toFixed(2)
   };
 };
