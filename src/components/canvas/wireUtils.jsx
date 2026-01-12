@@ -23,41 +23,28 @@ export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => 
   const floorplanPos = floorplan.position || { x: 0, y: 0 };
   const floorplanScale = floorplan.scale || 1;
   const pixelsPerInch = floorplan.pixelsPerInch;
-  const imageWidth = floorplan.imageWidth || 1815;
 
   // Calculate wire path in canvas coordinates
   const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
 
-  // DEBUGGING: Trace the coordinate transform
-  // Floorplan rendering: displayWidth = imageWidth * (1/pixelsPerInch) * scale
+  // The correct transform:
+  // During calibration: imagePixels / realInches = pixelsPerInch
+  // During rendering: canvasPixels = imagePixels * (1/pixelsPerInch) * scale
+  // Therefore: imagePixels = canvasPixels / ((1/pixelsPerInch) * scale)
+  // And: realInches = imagePixels / pixelsPerInch
+  // So: realInches = (canvasPixels / ((1/pixelsPerInch) * scale)) / pixelsPerInch
+  // Simplify: realInches = canvasPixels / scale / pixelsPerInch^2
+
   const renderScale = (1 / pixelsPerInch) * floorplanScale;
-  const displayWidth = imageWidth * renderScale;
+  const inches = pathLengthCanvasPx / renderScale;
+  const feet = inches / 12;
 
   console.log('=== WIRE LENGTH CALCULATION ===');
-  console.log('Image width:', imageWidth, 'px');
-  console.log('Calibration (pixelsPerInch):', pixelsPerInch.toFixed(2));
-  console.log('Display scale:', floorplanScale.toFixed(2));
-  console.log('Render scale:', renderScale.toFixed(2), '(1/ppi * scale)');
-  console.log('Display width:', displayWidth.toFixed(2), 'canvas px');
-  console.log('---');
-  console.log('Canvas path length:', pathLengthCanvasPx.toFixed(2), 'canvas px');
-
-  // Try multiple formulas to find the correct one:
-  const formula1 = pathLengthCanvasPx / floorplanScale; // Current formula
-  const formula2 = pathLengthCanvasPx / renderScale / pixelsPerInch; // Full transform
-  const formula3 = (pathLengthCanvasPx / renderScale) / pixelsPerInch; // Step by step
-  const formula4 = pathLengthCanvasPx / floorplanScale / pixelsPerInch; // Alternative
-
-  console.log('Formula 1 (path/scale):', formula1.toFixed(2), 'inches');
-  console.log('Formula 2 (path/renderScale/ppi):', formula2.toFixed(2), 'inches');
-  console.log('Formula 3 ((path/renderScale)/ppi):', formula3.toFixed(2), 'inches');
-  console.log('Formula 4 (path/scale/ppi):', formula4.toFixed(2), 'inches');
-  console.log('Expected: ~121 inches');
+  console.log('Canvas path:', pathLengthCanvasPx.toFixed(2), 'px');
+  console.log('Render scale:', renderScale.toFixed(4));
+  console.log('Result:', inches.toFixed(2), 'inches (', feet.toFixed(2), 'feet)');
+  console.log('Expected: 131 inches');
   console.log('================================');
-
-  // Use current formula for now
-  const inches = formula1;
-  const feet = inches / 12;
 
   return {
     feet: feet.toFixed(2),
