@@ -20,34 +20,21 @@ export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => 
     return null;
   }
 
-  const floorplanPos = floorplan.position || { x: 0, y: 0 };
-  const floorplanScale = floorplan.scale || 1;
   const pixelsPerInch = floorplan.pixelsPerInch;
+  const floorplanScale = floorplan.scale || 1;
 
-  // CRITICAL: Work in world/image coordinate space, not canvas space
-  // renderScale transforms image pixels to canvas pixels for display
-  const renderScale = (1 / pixelsPerInch) * floorplanScale;
+  // Calculate path length directly in canvas coordinates
+  const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
 
-  // Convert all points from canvas coordinates to world/image coordinates
-  const fromWorld = { x: from.x / renderScale, y: from.y / renderScale };
-  const toWorld = { x: to.x / renderScale, y: to.y / renderScale };
-  const waypointsWorld = waypoints.map(wp => ({
-    x: wp.x / renderScale,
-    y: wp.y / renderScale
-  }));
-
-  // Calculate path length in world/image coordinate space (same as calibration)
-  const pathLengthWorldPx = calculatePathLength(fromWorld, toWorld, waypointsWorld);
-
-  // Divide by pixelsPerInch to get real-world inches
-  const inches = pathLengthWorldPx / pixelsPerInch;
+  // Divide by scale to normalize, then divide by pixelsPerInch
+  // This assumes wire coordinates are in scaled canvas space
+  const inches = (pathLengthCanvasPx / floorplanScale) / pixelsPerInch;
   const feet = inches / 12;
 
   console.log('=== WIRE LENGTH CALCULATION ===');
-  console.log('Canvas from:', from.x.toFixed(2), from.y.toFixed(2));
-  console.log('World from:', fromWorld.x.toFixed(2), fromWorld.y.toFixed(2));
-  console.log('Render scale:', renderScale.toFixed(4));
-  console.log('World path length:', pathLengthWorldPx.toFixed(2), 'world px');
+  console.log('Canvas path length:', pathLengthCanvasPx.toFixed(2), 'canvas px');
+  console.log('Floorplan scale:', floorplanScale.toFixed(4));
+  console.log('Normalized path:', (pathLengthCanvasPx / floorplanScale).toFixed(2), 'normalized px');
   console.log('Pixels per inch:', pixelsPerInch.toFixed(4));
   console.log('Result:', inches.toFixed(2), 'inches (', feet.toFixed(2), 'feet)');
   console.log('Expected: 131 inches');
@@ -56,6 +43,6 @@ export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => 
   return {
     feet: feet.toFixed(2),
     inches: inches.toFixed(2),
-    pixels: pathLengthWorldPx.toFixed(2)
+    pixels: pathLengthCanvasPx.toFixed(2)
   };
 };
