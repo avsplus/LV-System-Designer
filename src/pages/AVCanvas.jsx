@@ -2175,16 +2175,18 @@ function AVCanvasContent() {
                             type: 'warning'
                           });
                           if (confirmed) {
-                            setArrows(prev => {
-                              const updated = prev.filter((_, i) => i !== idx);
-                              markLocalChange();
-                              if (currentProject?.id) {
-                                base44.entities.AVProject.update(currentProject.id, {
-                                  arrows: updated
-                                }).catch(err => console.error('Failed to save arrows:', err));
-                              }
-                              return updated;
-                            });
+                            const updated = arrows.filter((_, i) => i !== idx);
+                            setArrows(updated);
+                            if (markLocalChangeRef.current) markLocalChangeRef.current();
+                            if (currentProject?.id) {
+                              base44.entities.AVProject.update(currentProject.id, {
+                                canvas_products: canvasProducts,
+                                connections: connections,
+                                rooms: rooms,
+                                floorplans: floorplans,
+                                arrows: updated
+                              }).catch(err => console.error('Failed to save arrows:', err));
+                            }
                           }
                         }}
                       />
