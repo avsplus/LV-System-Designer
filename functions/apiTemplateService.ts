@@ -434,9 +434,13 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
   <ul>${Object.entries(categoryCounts).map(([cat, count]) => `<li><strong>${count}x</strong> ${cat.charAt(0).toUpperCase() + cat.slice(1)}</li>`).join('')}</ul>
   <h2>2. Equipment Installation</h2>
   <ul>${uniqueRooms.map(room => {
-    const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+    const roomDevices = canvasProducts.filter(cp => {
+      const deviceRoom = cp.room ? String(cp.room).trim() : 'Unassigned';
+      return deviceRoom === room;
+    });
     if (roomDevices.length === 0) return '';
-    return `<li><strong>${room}:</strong> ${roomDevices.length} device(s)</li>`;
+    const count = Number.isInteger(roomDevices.length) ? roomDevices.length : 0;
+    return `<li><strong>${room}:</strong> ${count} device(s)</li>`;
   }).join('')}</ul>
   <h2>3. Cabling & Infrastructure</h2>
   <ul>${Object.entries(cableTypeCounts).map(([type, count]) => `<li><strong>${count}x</strong> ${type} cable run${count > 1 ? 's' : ''}</li>`).join('')}</ul>
