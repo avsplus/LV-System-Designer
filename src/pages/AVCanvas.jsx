@@ -2480,6 +2480,7 @@ function AVCanvasContent() {
             connections={connections}
             rooms={rooms}
             floorplans={floorplans}
+            arrows={arrows}
             onExport={async ({ clientName, location, engine, exportType, floorplans: exportFloorplans }) => {
               setIsExporting(true);
               try {
@@ -2490,6 +2491,7 @@ function AVCanvasContent() {
                     connections,
                     rooms,
                     floorplans: exportFloorplans || [],
+                    arrows,
                     projectName: currentProject?.name || 'AV-System-Design',
                     clientName,
                     location,
@@ -2509,6 +2511,7 @@ function AVCanvasContent() {
                     connections,
                     rooms,
                     floorplans: exportFloorplans || [],
+                    arrows,
                     projectName: currentProject?.name || 'AV-System-Design',
                     clientName,
                     location,

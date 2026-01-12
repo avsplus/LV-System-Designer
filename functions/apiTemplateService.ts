@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       }
 
       case 'generateInstallationPackage': {
-        const { canvasProducts = [], connections = [], rooms = [], floorplans = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
+        const { canvasProducts = [], connections = [], rooms = [], floorplans = [], arrows = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
         const TEMPLATE_ID = 'c0377b23582ce40c';
         
         // Export type flags
@@ -259,6 +259,36 @@ Deno.serve(async (req) => {
               // Connection lines removed per user request
               let connectionsOverlay = '';
 
+              // Build arrow overlays
+              let arrowsOverlay = '';
+              arrows.forEach(arrow => {
+                const startImgX = (arrow.start.x - fpPos.x) * canvasToImageScale;
+                const startImgY = (arrow.start.y - fpPos.y) * canvasToImageScale;
+                const endImgX = (arrow.end.x - fpPos.x) * canvasToImageScale;
+                const endImgY = (arrow.end.y - fpPos.y) * canvasToImageScale;
+
+                if ((startImgX < 0 && endImgX < 0) || (startImgX > fp.imageWidth && endImgX > fp.imageWidth) ||
+                    (startImgY < 0 && endImgY < 0) || (startImgY > fp.imageHeight && endImgY > fp.imageHeight)) {
+                  return; // Arrow completely outside floorplan
+                }
+
+                // Clamp coordinates to floorplan bounds
+                const clampedStartX = Math.max(0, Math.min(fp.imageWidth, startImgX));
+                const clampedStartY = Math.max(0, Math.min(fp.imageHeight, startImgY));
+                const clampedEndX = Math.max(0, Math.min(fp.imageWidth, endImgX));
+                const clampedEndY = Math.max(0, Math.min(fp.imageHeight, endImgY));
+
+                const startPercX = (clampedStartX / fp.imageWidth) * 100;
+                const startPercY = (clampedStartY / fp.imageHeight) * 100;
+                const endPercX = (clampedEndX / fp.imageWidth) * 100;
+                const endPercY = (clampedEndY / fp.imageHeight) * 100;
+
+                arrowsOverlay += `<svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                  <line x1="${startPercX}%" y1="${startPercY}%" x2="${endPercX}%" y2="${endPercY}%" stroke="#3b82f6" stroke-width="2" />
+                  <polygon points="${endPercX}%,${endPercY}% ${endPercX - 1}%,${endPercY - 1}% ${endPercX - 1}%,${endPercY + 1}%" fill="#3b82f6" />
+                </svg>`;
+              });
+
               bodyHtml += `
 <section class="keep-together">
   <h2>${fp.name}</h2>
@@ -266,6 +296,7 @@ Deno.serve(async (req) => {
     <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
     ${devicesOverlay}
     ${connectionsOverlay}
+    ${arrowsOverlay}
   </div>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
