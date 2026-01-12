@@ -111,6 +111,7 @@ function AVCanvasContent() {
   const [hoveredDeviceId, setHoveredDeviceId] = useState(null);
   const [arrows, setArrows] = useState([]);
   const [drawingArrow, setDrawingArrow] = useState(null);
+  const [hoveredArrow, setHoveredArrow] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -2139,24 +2140,37 @@ function AVCanvasContent() {
                 })()}
 
                 {/* Saved arrows */}
-                {arrows.map((arrow, idx) => (
-                  <g key={idx}>
-                    <line
-                      x1={arrow.start.x}
-                      y1={arrow.start.y}
-                      x2={arrow.end.x}
-                      y2={arrow.end.y}
-                      stroke="#3b82f6"
-                      strokeWidth="3"
-                      markerEnd="url(#arrowhead)"
-                      className="pointer-events-auto cursor-pointer"
-                      onClick={() => {
-                        // Delete arrow on click
-                        setArrows(prev => prev.filter((_, i) => i !== idx));
-                      }}
-                    />
-                  </g>
-                ))}
+                {arrows.map((arrow, idx) => {
+                  const isHovered = hoveredArrow === idx;
+                  return (
+                    <g key={idx}>
+                      {/* Invisible hit area for easier interaction */}
+                      <line
+                        x1={arrow.start.x}
+                        y1={arrow.start.y}
+                        x2={arrow.end.x}
+                        y2={arrow.end.y}
+                        stroke="transparent"
+                        strokeWidth="20"
+                        className="pointer-events-auto cursor-pointer"
+                        onMouseEnter={() => setHoveredArrow(idx)}
+                        onMouseLeave={() => setHoveredArrow(null)}
+                        onClick={() => setArrows(prev => prev.filter((_, i) => i !== idx))}
+                      />
+                      {/* Visible arrow line */}
+                      <line
+                        x1={arrow.start.x}
+                        y1={arrow.start.y}
+                        x2={arrow.end.x}
+                        y2={arrow.end.y}
+                        stroke={isHovered ? "#ef4444" : "#3b82f6"}
+                        strokeWidth={isHovered ? "4" : "3"}
+                        markerEnd={isHovered ? "url(#arrowhead-hover)" : "url(#arrowhead)"}
+                        className="pointer-events-none"
+                      />
+                    </g>
+                  );
+                })}
 
                 {/* Arrow being drawn */}
                 {drawingArrow && (
@@ -2176,7 +2190,7 @@ function AVCanvasContent() {
                   </g>
                 )}
 
-                {/* Arrowhead marker definition */}
+                {/* Arrowhead marker definitions */}
                 <defs>
                   <marker
                     id="arrowhead"
@@ -2188,6 +2202,17 @@ function AVCanvasContent() {
                     markerUnits="strokeWidth"
                   >
                     <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+                  </marker>
+                  <marker
+                    id="arrowhead-hover"
+                    markerWidth="10"
+                    markerHeight="10"
+                    refX="9"
+                    refY="3"
+                    orient="auto"
+                    markerUnits="strokeWidth"
+                  >
+                    <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
                   </marker>
                 </defs>
               </g>
