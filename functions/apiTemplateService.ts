@@ -458,7 +458,10 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
         if (isClient) {
           let roomTablesHtml = '';
           uniqueRooms.forEach(room => {
-            const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+            const roomDevices = canvasProducts.filter(cp => {
+              const deviceRoom = cp.room ? String(cp.room).trim() : 'Unassigned';
+              return deviceRoom === room;
+            });
             if (roomDevices.length === 0) return;
             roomTablesHtml += `<h2>${room}</h2><table><thead><tr><th>Equipment</th><th>Brand / Model</th><th>Category</th>${showPricing ? '<th style="text-align:right;">Price</th>' : ''}</tr></thead><tbody>`;
             roomDevices.forEach(cp => {
