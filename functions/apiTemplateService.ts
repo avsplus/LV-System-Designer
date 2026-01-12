@@ -206,11 +206,11 @@ Deno.serve(async (req) => {
                   .join(', ');
                 
                 devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
-                  <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; font-size:4px; font-weight:bold; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1;">
-                    <div style="color:#3b82f6;">${category}</div>
-                    <div style="color:#374151; margin-top:0.5px;">${brand}</div>
-                    <div style="color:#374151; margin-top:0.5px;">${model}</div>
-                    ${connectedWires ? `<div style="color:#374151; margin-top:0.5px; font-size:3.5px;">${connectedWires}</div>` : ''}
+                  <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1;">
+                    <div style="color:#3b82f6; font-size:2px; font-weight:300;">${category}</div>
+                    <div style="color:#000000; font-size:3px; font-weight:500; margin-top:0.5px;">${brand}</div>
+                    <div style="color:#000000; font-size:3px; font-weight:500; margin-top:0.5px;">${model}</div>
+                    ${connectedWires ? `<div style="color:#ef4444; font-size:3px; font-weight:700; margin-top:0.5px;">${connectedWires}</div>` : ''}
                   </div>
                 </div>`;
               });
