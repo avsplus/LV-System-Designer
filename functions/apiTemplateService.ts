@@ -278,15 +278,21 @@ Deno.serve(async (req) => {
                 const clampedEndX = Math.max(0, Math.min(fp.imageWidth, endImgX));
                 const clampedEndY = Math.max(0, Math.min(fp.imageHeight, endImgY));
 
-                const startPercX = (clampedStartX / fp.imageWidth) * 100;
-                const startPercY = (clampedStartY / fp.imageHeight) * 100;
-                const endPercX = (clampedEndX / fp.imageWidth) * 100;
-                const endPercY = (clampedEndY / fp.imageHeight) * 100;
+                // Calculate arrow direction for arrowhead
+                const dx = clampedEndX - clampedStartX;
+                const dy = clampedEndY - clampedStartY;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-                arrowsOverlay += `<svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
-                  <line x1="${startPercX}%" y1="${startPercY}%" x2="${endPercX}%" y2="${endPercY}%" stroke="#3b82f6" stroke-width="2" />
-                  <polygon points="${endPercX}%,${endPercY}% ${endPercX - 1}%,${endPercY - 1}% ${endPercX - 1}%,${endPercY + 1}%" fill="#3b82f6" />
-                </svg>`;
+                arrowsOverlay += `<div style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                  <svg style="position:absolute; top:0; left:0; width:100%; height:100%;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
+                    <defs>
+                      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+                      </marker>
+                    </defs>
+                    <line x1="${clampedStartX}" y1="${clampedStartY}" x2="${clampedEndX}" y2="${clampedEndY}" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowhead)" />
+                  </svg>
+                </div>`;
               });
 
               bodyHtml += `
