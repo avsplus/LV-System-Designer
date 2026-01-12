@@ -648,6 +648,30 @@ Only return URLs that:
         </div>
       )}
 
+      {/* Bottom edge connection point */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
+        <div 
+          className="w-6 h-6 rounded-full border-2 border-gray-800 bg-blue-500 cursor-pointer transition-all flex items-center justify-center hover:scale-125 active:scale-150 hover:border-green-400 hover:shadow-lg hover:shadow-green-400/50"
+          data-port-type="bottom"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (onPortMouseDown) {
+              onPortMouseDown(instanceId, 'HDMI', 'type', false, e.currentTarget);
+            }
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            if (onPortMouseDown) {
+              onPortMouseDown(instanceId, 'HDMI', 'type', false, e.currentTarget);
+            }
+          }}
+          title="Drag to create connection"
+        >
+          <ChevronDown className="w-4 h-4 text-black/70" />
+        </div>
+      </div>
+
       {/* Top edge connection points (for overflow) */}
       {(inputTypes.length > 6 || outputTypes.length > 6) && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-3">
