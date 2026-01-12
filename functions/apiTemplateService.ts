@@ -165,6 +165,30 @@ Deno.serve(async (req) => {
         </section>
         <div class="page-break"></div>`;
 
+        // Floorplans section (if available)
+        if (floorplans && floorplans.length > 0) {
+          const visibleFloorplans = floorplans.filter(f => f.visible);
+          if (visibleFloorplans.length > 0) {
+            bodyHtml += `<section><h1>Floorplans</h1><div class="info-box"><div class="info-box-title">Site Layout</div><p>The following pages show device and wiring locations on the actual floor plans.</p></div></section><div class="page-break"></div>`;
+            
+            for (const fp of visibleFloorplans) {
+              bodyHtml += `
+<section class="keep-together">
+  <h2>${fp.name}</h2>
+  <div style="text-align:center; margin:20px 0;">
+    <img src="${fp.url}" style="max-width:100%; max-height:600px; border:1px solid #e5e7eb; border-radius:8px;" />
+  </div>
+  <div class="info-box">
+    <div class="info-box-title">Scale Information</div>
+    <p><strong>Calibration:</strong> ${fp.pixelsPerInch ? fp.pixelsPerInch.toFixed(2) + ' px/inch' : 'Not calibrated'}</p>
+    ${fp.imageWidth ? `<p><strong>Dimensions:</strong> ${fp.imageWidth} × ${fp.imageHeight} pixels</p>` : ''}
+  </div>
+</section>
+<div class="page-break"></div>`;
+            }
+          }
+        }
+
         // Part 2: How Your System Works (CLIENT ONLY)
         if (isClient) {
           console.log('ADDING_HSWS_SECTION');
