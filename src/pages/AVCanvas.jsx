@@ -2357,6 +2357,7 @@ function AVCanvasContent() {
                     canvasProducts,
                     connections,
                     rooms,
+                    floorplans: exportFloorplans || [],
                     projectName: currentProject?.name || 'AV-System-Design',
                     clientName,
                     location,

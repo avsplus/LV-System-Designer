@@ -1,3 +1,4 @@
+import AVCanvas from './pages/AVCanvas';
 import Admin from './pages/Admin';
 import AgentManager from './pages/AgentManager';
 import Billing from './pages/Billing';
@@ -11,11 +12,11 @@ import Settings from './pages/Settings';
 import SetupOrganization from './pages/SetupOrganization';
 import WirePricing from './pages/WirePricing';
 import account from './pages/account';
-import AVCanvas from './pages/AVCanvas';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AVCanvas": AVCanvas,
     "Admin": Admin,
     "AgentManager": AgentManager,
     "Billing": Billing,
@@ -29,7 +30,6 @@ export const PAGES = {
     "SetupOrganization": SetupOrganization,
     "WirePricing": WirePricing,
     "account": account,
-    "AVCanvas": AVCanvas,
 }
 
 export const pagesConfig = {

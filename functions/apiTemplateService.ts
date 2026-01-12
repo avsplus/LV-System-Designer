@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       }
 
       case 'generateInstallationPackage': {
-        const { canvasProducts = [], connections = [], rooms = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
+        const { canvasProducts = [], connections = [], rooms = [], floorplans = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
         const TEMPLATE_ID = 'c0377b23582ce40c';
         
         // Export type flags
@@ -129,6 +129,9 @@ Deno.serve(async (req) => {
 
         // Build table of contents based on export type
         let tocItems = ['Project Overview'];
+        if (floorplans && floorplans.filter(f => f.visible).length > 0) {
+          tocItems.push('Floorplans');
+        }
         if (isClient) {
           tocItems.push('How Your System Works', 'Scope of Work', 'Equipment by Room', 'Bill of Materials');
         }
