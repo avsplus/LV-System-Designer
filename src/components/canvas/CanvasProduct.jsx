@@ -648,25 +648,20 @@ Only return URLs that:
         </div>
       )}
 
-      {/* Bottom edge connection point */}
+      {/* Bottom edge arrow point */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
         <div 
           className="w-6 h-6 rounded-full border-2 border-gray-800 bg-blue-500 cursor-pointer transition-all flex items-center justify-center hover:scale-125 active:scale-150 hover:border-green-400 hover:shadow-lg hover:shadow-green-400/50"
-          data-port-type="bottom"
+          data-arrow-anchor="true"
+          data-instance-id={instanceId}
           onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
-            if (onPortMouseDown) {
-              onPortMouseDown(instanceId, 'HDMI', 'type', false, e.currentTarget);
-            }
           }}
           onTouchStart={(e) => {
             e.stopPropagation();
-            if (onPortMouseDown) {
-              onPortMouseDown(instanceId, 'HDMI', 'type', false, e.currentTarget);
-            }
           }}
-          title="Drag to create connection"
+          title="Drag to create arrow"
         >
           <ChevronDown className="w-4 h-4 text-black/70" />
         </div>

@@ -109,6 +109,8 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
   const [hoveredDeviceId, setHoveredDeviceId] = useState(null);
+  const [arrows, setArrows] = useState([]);
+  const [drawingArrow, setDrawingArrow] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -924,6 +926,24 @@ function AVCanvasContent() {
 
 
   const handleMouseDown = (e) => {
+    // Handle arrow anchor dragging
+    if (e.target.hasAttribute('data-arrow-anchor')) {
+      const instanceId = e.target.getAttribute('data-instance-id');
+      const device = canvasProducts.find(cp => cp.instanceId === instanceId);
+      if (!device) return;
+
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      const startX = device.position.x + CARD_WIDTH / 2;
+      const startY = device.position.y + CARD_HEIGHT;
+
+      setDrawingArrow({
+        instanceId,
+        start: { x: startX, y: startY },
+        end: { x: startX, y: startY }
+      });
+      return;
+    }
+
     // Handle middle mouse button - double-click to center/reset, single-click to pan
     if (e.button === 1) {
       e.preventDefault();
@@ -1051,11 +1071,40 @@ function AVCanvasContent() {
   useEffect(() => {
     const handleDragMove = (e) => {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
+      
+      // Handle arrow drawing
+      if (drawingArrow) {
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        if (canvasRect) {
+          const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+          const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+          setDrawingArrow(prev => ({
+            ...prev,
+            end: { x: mouseWorldX, y: mouseWorldY }
+          }));
+        }
+        return;
+      }
+
       handleGlobalMouseMove(e);
       handleResizeMove(e);
     };
 
     const handleDragEnd = (e) => {
+      // Complete arrow drawing
+      if (drawingArrow) {
+        const dist = Math.sqrt(
+          Math.pow(drawingArrow.end.x - drawingArrow.start.x, 2) +
+          Math.pow(drawingArrow.end.y - drawingArrow.start.y, 2)
+        );
+        // Only save if arrow was actually dragged (min 20px)
+        if (dist > 20) {
+          setArrows(prev => [...prev, drawingArrow]);
+        }
+        setDrawingArrow(null);
+        return;
+      }
+
       handleGlobalMouseUp(e);
       handleResizeEnd(e);
     };
@@ -1066,7 +1115,7 @@ function AVCanvasContent() {
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, pan, zoom]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -2092,6 +2141,59 @@ function AVCanvasContent() {
                     </g>
                   );
                 })()}
+
+                {/* Saved arrows */}
+                {arrows.map((arrow, idx) => (
+                  <g key={idx}>
+                    <line
+                      x1={arrow.start.x}
+                      y1={arrow.start.y}
+                      x2={arrow.end.x}
+                      y2={arrow.end.y}
+                      stroke="#3b82f6"
+                      strokeWidth="3"
+                      markerEnd="url(#arrowhead)"
+                      className="pointer-events-auto cursor-pointer"
+                      onClick={() => {
+                        // Delete arrow on click
+                        setArrows(prev => prev.filter((_, i) => i !== idx));
+                      }}
+                    />
+                  </g>
+                ))}
+
+                {/* Arrow being drawn */}
+                {drawingArrow && (
+                  <g>
+                    <line
+                      x1={drawingArrow.start.x}
+                      y1={drawingArrow.start.y}
+                      x2={drawingArrow.end.x}
+                      y2={drawingArrow.end.y}
+                      stroke="#3b82f6"
+                      strokeWidth="3"
+                      strokeDasharray="8,4"
+                      markerEnd="url(#arrowhead)"
+                      className="pointer-events-none"
+                      opacity="0.8"
+                    />
+                  </g>
+                )}
+
+                {/* Arrowhead marker definition */}
+                <defs>
+                  <marker
+                    id="arrowhead"
+                    markerWidth="10"
+                    markerHeight="10"
+                    refX="9"
+                    refY="3"
+                    orient="auto"
+                    markerUnits="strokeWidth"
+                  >
+                    <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+                  </marker>
+                </defs>
               </g>
             </svg>
 
