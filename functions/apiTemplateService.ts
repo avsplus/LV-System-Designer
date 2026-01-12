@@ -539,7 +539,10 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
         if (isInstaller) {
           let deviceDocHtml = '';
           uniqueRooms.forEach(room => {
-            const roomDevices = canvasProducts.filter(cp => cp.room === room || (!cp.room && room === 'Unassigned'));
+            const roomDevices = canvasProducts.filter(cp => {
+              const deviceRoom = cp.room ? String(cp.room).trim() : 'Unassigned';
+              return deviceRoom === room;
+            });
             if (roomDevices.length === 0) return;
             deviceDocHtml += `<h2>${room}</h2><table><thead><tr><th>Label</th><th>Brand / Model</th><th>Category</th><th>IP Address</th><th>Switch / Port</th></tr></thead><tbody>`;
             roomDevices.forEach(cp => {
