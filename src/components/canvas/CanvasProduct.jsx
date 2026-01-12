@@ -188,7 +188,8 @@ export default function CanvasProduct({
         onTooltipChange,
         responsiveDimensions,
         onProductUpdate,
-        onPreviewManual
+        onPreviewManual,
+        onArrowStart
       }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isSearchingManuals, setIsSearchingManuals] = useState(false);
@@ -657,9 +658,15 @@ Only return URLs that:
           onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
+            if (onArrowStart) {
+              onArrowStart(instanceId);
+            }
           }}
           onTouchStart={(e) => {
             e.stopPropagation();
+            if (onArrowStart) {
+              onArrowStart(instanceId);
+            }
           }}
           title="Drag to create arrow"
         >

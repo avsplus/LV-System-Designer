@@ -925,25 +925,21 @@ function AVCanvasContent() {
 
 
 
+  const handleArrowStart = (instanceId) => {
+    const device = canvasProducts.find(cp => cp.instanceId === instanceId);
+    if (!device) return;
+
+    const startX = device.position.x + CARD_WIDTH / 2;
+    const startY = device.position.y + CARD_HEIGHT;
+
+    setDrawingArrow({
+      instanceId,
+      start: { x: startX, y: startY },
+      end: { x: startX, y: startY }
+    });
+  };
+
   const handleMouseDown = (e) => {
-    // Handle arrow anchor dragging
-    if (e.target.hasAttribute('data-arrow-anchor')) {
-      const instanceId = e.target.getAttribute('data-instance-id');
-      const device = canvasProducts.find(cp => cp.instanceId === instanceId);
-      if (!device) return;
-
-      const canvasRect = canvasRef.current.getBoundingClientRect();
-      const startX = device.position.x + CARD_WIDTH / 2;
-      const startY = device.position.y + CARD_HEIGHT;
-
-      setDrawingArrow({
-        instanceId,
-        start: { x: startX, y: startY },
-        end: { x: startX, y: startY }
-      });
-      return;
-    }
-
     // Handle middle mouse button - double-click to center/reset, single-click to pan
     if (e.button === 1) {
       e.preventDefault();
@@ -2291,6 +2287,7 @@ function AVCanvasContent() {
                                           queryClient.invalidateQueries({ queryKey: ['avProducts'] });
                                         }}
                                         onPreviewManual={setPreviewManual}
+                                        onArrowStart={handleArrowStart}
                                       />
                 );
               })}
