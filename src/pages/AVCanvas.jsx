@@ -112,6 +112,7 @@ function AVCanvasContent() {
   const [arrows, setArrows] = useState([]);
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
+  const confirm = useConfirm();
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -2155,7 +2156,16 @@ function AVCanvasContent() {
                         className="pointer-events-auto cursor-pointer"
                         onMouseEnter={() => setHoveredArrow(idx)}
                         onMouseLeave={() => setHoveredArrow(null)}
-                        onClick={() => setArrows(prev => prev.filter((_, i) => i !== idx))}
+                        onClick={async () => {
+                          const confirmed = await confirm({
+                            title: 'Delete Arrow?',
+                            message: 'Are you sure you want to delete this arrow annotation?',
+                            type: 'warning'
+                          });
+                          if (confirmed) {
+                            setArrows(prev => prev.filter((_, i) => i !== idx));
+                          }
+                        }}
                       />
                       {/* Visible arrow line */}
                       <line
