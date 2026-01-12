@@ -1149,8 +1149,9 @@ Deno.serve(async (req) => {
     }
 
     // Default: Full installation package
-    if (!canvasProducts || canvasProducts.length === 0) {
-      return Response.json({ error: 'No devices on canvas' }, { status: 400 });
+    // Allow export if we have floorplans even without devices
+    if ((!canvasProducts || canvasProducts.length === 0) && (!floorplans || floorplans.length === 0)) {
+      return Response.json({ error: 'No devices or floorplans on canvas' }, { status: 400 });
     }
 
     // Fetch fresh product data from database to get latest manual URLs
@@ -1183,7 +1184,7 @@ Deno.serve(async (req) => {
     });
 
     // Use enriched data for the rest of the export
-    const canvasProductsToUse = enrichedCanvasProducts;
+    const canvasProductsToUse = enrichedCanvasProducts || [];
 
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const { width: pageWidth, height: pageHeight, marginX: margin } = theme.page;
