@@ -1098,7 +1098,17 @@ function AVCanvasContent() {
         );
         // Only save if arrow was actually dragged (min 20px)
         if (dist > 20) {
-          setArrows(prev => [...prev, drawingArrow]);
+          setArrows(prev => {
+            const updated = [...prev, drawingArrow];
+            // Mark change and save immediately
+            markLocalChange();
+            if (currentProject?.id) {
+              base44.entities.AVProject.update(currentProject.id, {
+                arrows: updated
+              }).catch(err => console.error('Failed to save arrows:', err));
+            }
+            return updated;
+          });
         }
         setDrawingArrow(null);
         return;
