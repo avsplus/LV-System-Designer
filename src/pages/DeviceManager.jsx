@@ -57,7 +57,7 @@ export default function DeviceManager() {
       // Get all products (no org filter for device library)
       const allProducts = await base44.entities.AVProduct.list();
       // Filter to only show products with no org_id OR matching org_id, exclude demo products
-      return allProducts.filter(p => (!p.organization_id || p.organization_id === organizationId) && !p.id?.startsWith('demo-'));
+      return allProducts.filter(p => (!p.organization_id || p.organization_id === organizationId) && p.brand !== 'Demo');
     },
     enabled: !!organizationId
   });
