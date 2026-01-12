@@ -1709,32 +1709,44 @@ Deno.serve(async (req) => {
             
             doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, imgX, yPos, imgWidth, imgHeight);
 
-            // Draw devices on floorplan
+            // Draw devices and connections on floorplan
             const fpPos = fp.position || { x: 0, y: 0 };
             const fpScale = fp.scale || 1;
             const pixelsPerInch = fp.pixelsPerInch || 1;
-            const scaleFactor = (1 / pixelsPerInch) * fpScale;
+            
+            // Canvas-to-image scale conversion
+            const canvasToImageScale = pixelsPerInch / fpScale;
+            
+            // Device card center offset (devices are positioned by top-left corner, we need center)
+            const DEVICE_CARD_WIDTH = 320;
+            const DEVICE_CARD_HEIGHT = 280;
 
             canvasProductsToUse.forEach(cp => {
-              // Convert device canvas position to floorplan-relative position
-              const relX = (cp.position.x - fpPos.x) / scaleFactor;
-              const relY = (cp.position.y - fpPos.y) / scaleFactor;
+              // Device position in canvas is top-left, calculate center
+              const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
+              const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
+              
+              // Convert device center to image pixels
+              const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
+              const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
 
               // Skip if device is outside floorplan bounds
-              if (relX < 0 || relY < 0 || relX > fp.imageWidth || relY > fp.imageHeight) return;
+              if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
 
-              // Convert to PDF coordinates
-              const pdfX = imgX + (relX / fp.imageWidth) * imgWidth;
-              const pdfY = yPos + (relY / fp.imageHeight) * imgHeight;
+              // Convert to PDF coordinates (proportional to rendered image size)
+              const pdfX = imgX + (imgPixelX / fp.imageWidth) * imgWidth;
+              const pdfY = yPos + (imgPixelY / fp.imageHeight) * imgHeight;
 
-              // Draw device indicator (small circle with label)
+              // Draw device indicator
               const catColor = getCategoryColor(cp.product.category);
               setFill(doc, catColor);
               doc.circle(pdfX, pdfY, 3, 'F');
               
-              // Device label
+              // Device label with white background
               setFill(doc, theme.colors.white);
-              doc.roundedRect(pdfX - 15, pdfY - 10, 30, 8, 2, 2, 'F');
+              setDraw(doc, catColor);
+              doc.setLineWidth(0.3);
+              doc.roundedRect(pdfX - 15, pdfY - 10, 30, 8, 2, 2, 'FD');
               setColor(doc, catColor);
               doc.setFont(undefined, 'bold');
               doc.setFontSize(6);
@@ -1747,26 +1759,32 @@ Deno.serve(async (req) => {
               const toDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.to);
               if (!fromDevice || !toDevice) return;
 
-              // Convert positions to floorplan space
-              const fromRelX = (fromDevice.position.x - fpPos.x) / scaleFactor;
-              const fromRelY = (fromDevice.position.y - fpPos.y) / scaleFactor;
-              const toRelX = (toDevice.position.x - fpPos.x) / scaleFactor;
-              const toRelY = (toDevice.position.y - fpPos.y) / scaleFactor;
+              // Calculate device centers
+              const fromCenterX = fromDevice.position.x + DEVICE_CARD_WIDTH / 2;
+              const fromCenterY = fromDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+              const toCenterX = toDevice.position.x + DEVICE_CARD_WIDTH / 2;
+              const toCenterY = toDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+              
+              // Convert to image pixels
+              const fromImgX = (fromCenterX - fpPos.x) * canvasToImageScale;
+              const fromImgY = (fromCenterY - fpPos.y) * canvasToImageScale;
+              const toImgX = (toCenterX - fpPos.x) * canvasToImageScale;
+              const toImgY = (toCenterY - fpPos.y) * canvasToImageScale;
 
               // Skip if either device is outside floorplan
-              if (fromRelX < 0 || fromRelY < 0 || fromRelX > fp.imageWidth || fromRelY > fp.imageHeight) return;
-              if (toRelX < 0 || toRelY < 0 || toRelX > fp.imageWidth || toRelY > fp.imageHeight) return;
+              if (fromImgX < 0 || fromImgY < 0 || fromImgX > fp.imageWidth || fromImgY > fp.imageHeight) return;
+              if (toImgX < 0 || toImgY < 0 || toImgX > fp.imageWidth || toImgY > fp.imageHeight) return;
 
               // Convert to PDF coordinates
-              const fromPdfX = imgX + (fromRelX / fp.imageWidth) * imgWidth;
-              const fromPdfY = yPos + (fromRelY / fp.imageHeight) * imgHeight;
-              const toPdfX = imgX + (toRelX / fp.imageWidth) * imgWidth;
-              const toPdfY = yPos + (toRelY / fp.imageHeight) * imgHeight;
+              const fromPdfX = imgX + (fromImgX / fp.imageWidth) * imgWidth;
+              const fromPdfY = yPos + (fromImgY / fp.imageHeight) * imgHeight;
+              const toPdfX = imgX + (toImgX / fp.imageWidth) * imgWidth;
+              const toPdfY = yPos + (toImgY / fp.imageHeight) * imgHeight;
 
               // Draw connection line
               const cableColor = getCableColor(conn.type);
               setDraw(doc, cableColor);
-              doc.setLineWidth(0.5);
+              doc.setLineWidth(1);
               doc.line(fromPdfX, fromPdfY, toPdfX, toPdfY);
             });
 
