@@ -2,6 +2,32 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 const API_KEY = Deno.env.get('APITEMPLATE_API_KEY');
 
+// Helper to get cable color by type
+function getCableColor(type) {
+  const colors = {
+    'HDMI': [231, 76, 60],
+    'HDBaseT': [233, 30, 99],
+    'Optical': [42, 127, 219],
+    'Optical/TOSLINK': [42, 127, 219],
+    'RCA': [255, 179, 0],
+    'XLR': [26, 188, 156],
+    'Speaker Wire': [142, 92, 44],
+    'Ethernet': [39, 174, 96],
+    'USB': [42, 127, 219],
+    'Coaxial': [42, 127, 219],
+    'Component': [231, 76, 60],
+    'Composite': [231, 76, 60],
+    'VGA': [231, 76, 60],
+    'RS232': [127, 140, 141],
+    'Control': [127, 140, 141],
+    'IR': [127, 140, 141],
+    'Subwoofer': [142, 92, 44],
+    '3.5mm Jack': [255, 179, 0],
+    'Power': [255, 165, 0]
+  };
+  return colors[type] || [107, 114, 128];
+}
+
 // Helper to validate image URLs via HEAD request
 async function isValidImageUrl(url) {
   if (!url || typeof url !== 'string') return false;
