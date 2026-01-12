@@ -741,7 +741,8 @@ function AVCanvasContent() {
     // Immediately persist floorplan changes to database
     if (currentProject?.id) {
       base44.entities.AVProject.update(currentProject.id, {
-        floorplans: updatedFloorplans
+        floorplans: updatedFloorplans,
+        arrows: arrows
       }).catch(err => console.error('Failed to save floorplans:', err));
     }
   };
