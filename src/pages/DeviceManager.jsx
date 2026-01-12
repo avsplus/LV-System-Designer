@@ -56,8 +56,8 @@ export default function DeviceManager() {
     queryFn: async () => {
       // Get all products (no org filter for device library)
       const allProducts = await base44.entities.AVProduct.list();
-      // Filter to only show products with no org_id OR matching org_id
-      return allProducts.filter(p => !p.organization_id || p.organization_id === organizationId);
+      // Filter to only show products with no org_id OR matching org_id, exclude demo products
+      return allProducts.filter(p => (!p.organization_id || p.organization_id === organizationId) && !p.id?.startsWith('demo-'));
     },
     enabled: !!organizationId
   });
