@@ -21,20 +21,17 @@ export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => 
   }
 
   const pixelsPerInch = floorplan.pixelsPerInch;
-  const floorplanScale = floorplan.scale || 1;
 
   // Calculate path length directly in canvas coordinates
   const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
 
-  // Divide by scale to normalize, then divide by pixelsPerInch
-  // This assumes wire coordinates are in scaled canvas space
-  const inches = (pathLengthCanvasPx / floorplanScale) / pixelsPerInch;
+  // Direct conversion: canvas pixels to inches using only pixelsPerInch
+  // Scale should not be involved if coordinates are already in world space
+  const inches = pathLengthCanvasPx / pixelsPerInch;
   const feet = inches / 12;
 
   console.log('=== WIRE LENGTH CALCULATION ===');
   console.log('Canvas path length:', pathLengthCanvasPx.toFixed(2), 'canvas px');
-  console.log('Floorplan scale:', floorplanScale.toFixed(4));
-  console.log('Normalized path:', (pathLengthCanvasPx / floorplanScale).toFixed(2), 'normalized px');
   console.log('Pixels per inch:', pixelsPerInch.toFixed(4));
   console.log('Result:', inches.toFixed(2), 'inches (', feet.toFixed(2), 'feet)');
   console.log('Expected: 131 inches');
