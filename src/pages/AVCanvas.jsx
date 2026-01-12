@@ -1098,17 +1098,18 @@ function AVCanvasContent() {
         );
         // Only save if arrow was actually dragged (min 20px)
         if (dist > 20) {
-          setArrows(prev => {
-            const updated = [...prev, drawingArrow];
-            // Mark change and save immediately
-            if (markLocalChangeRef.current) markLocalChangeRef.current();
-            if (currentProject?.id) {
-              base44.entities.AVProject.update(currentProject.id, {
-                arrows: updated
-              }).catch(err => console.error('Failed to save arrows:', err));
-            }
-            return updated;
-          });
+          const newArrows = [...arrows, drawingArrow];
+          setArrows(newArrows);
+          if (markLocalChangeRef.current) markLocalChangeRef.current();
+          if (currentProject?.id) {
+            base44.entities.AVProject.update(currentProject.id, {
+              canvas_products: canvasProducts,
+              connections: connections,
+              rooms: rooms,
+              floorplans: floorplans,
+              arrows: newArrows
+            }).catch(err => console.error('Failed to save arrows:', err));
+          }
         }
         setDrawingArrow(null);
         return;
