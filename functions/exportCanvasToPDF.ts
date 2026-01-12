@@ -1721,6 +1721,13 @@ Deno.serve(async (req) => {
             const DEVICE_CARD_WIDTH = 320;
             const DEVICE_CARD_HEIGHT = 280;
 
+            console.log(`=== FLOORPLAN ${fp.name} OVERLAY ===`);
+            console.log('Floorplan data:', { fpPos, fpScale, pixelsPerInch, imageWidth: fp.imageWidth, imageHeight: fp.imageHeight });
+            console.log('PDF image bounds:', { imgX, imgY: yPos, imgWidth, imgHeight });
+            console.log('Canvas-to-image scale:', canvasToImageScale);
+            console.log('Total devices to overlay:', canvasProductsToUse.length);
+
+            let devicesDrawn = 0;
             canvasProductsToUse.forEach(cp => {
               // Device position in canvas is top-left, calculate center
               const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
@@ -1730,12 +1737,24 @@ Deno.serve(async (req) => {
               const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
               const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
 
+              console.log(`Device ${cp.label || cp.product.brand}:`, { 
+                canvasPos: cp.position, 
+                canvasCenter: { x: deviceCenterX, y: deviceCenterY },
+                imgPixels: { x: imgPixelX, y: imgPixelY },
+                inBounds: imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight
+              });
+
               // Skip if device is outside floorplan bounds
-              if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
+              if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) {
+                console.log('  -> SKIPPED (out of bounds)');
+                return;
+              }
 
               // Convert to PDF coordinates (proportional to rendered image size)
               const pdfX = imgX + (imgPixelX / fp.imageWidth) * imgWidth;
               const pdfY = yPos + (imgPixelY / fp.imageHeight) * imgHeight;
+
+              console.log(`  -> Drawing at PDF coords: (${pdfX}, ${pdfY})`);
 
               // Draw device indicator
               const catColor = getCategoryColor(cp.product.category);
@@ -1751,9 +1770,14 @@ Deno.serve(async (req) => {
               doc.setFont(undefined, 'bold');
               doc.setFontSize(6);
               doc.text(truncate(cp.label || cp.product.brand, 12), pdfX, pdfY - 5, { align: 'center' });
+              
+              devicesDrawn++;
             });
 
+            console.log(`Devices drawn on floorplan: ${devicesDrawn}`);
+
             // Draw connection lines on floorplan
+            let connectionsDrawn = 0;
             connections.forEach(conn => {
               const fromDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.from);
               const toDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.to);
@@ -1786,7 +1810,11 @@ Deno.serve(async (req) => {
               setDraw(doc, cableColor);
               doc.setLineWidth(1);
               doc.line(fromPdfX, fromPdfY, toPdfX, toPdfY);
+              
+              connectionsDrawn++;
             });
+
+            console.log(`Connections drawn on floorplan: ${connectionsDrawn}`);
 
           } catch (error) {
             console.error('Failed to add floorplan image:', error);
