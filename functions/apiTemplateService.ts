@@ -172,16 +172,98 @@ Deno.serve(async (req) => {
             bodyHtml += `<section><h1>Floorplans</h1><div class="info-box"><div class="info-box-title">Site Layout</div><p>The following pages show device and wiring locations on the actual floor plans.</p></div></section><div class="page-break"></div>`;
             
             for (const fp of visibleFloorplans) {
+              // Calculate overlay positions for devices and connections
+              const fpPos = fp.position || { x: 0, y: 0 };
+              const fpScale = fp.scale || 1;
+              const pixelsPerInch = fp.pixelsPerInch || 1;
+              const canvasToImageScale = pixelsPerInch / fpScale;
+              const DEVICE_CARD_WIDTH = 320;
+              const DEVICE_CARD_HEIGHT = 280;
+              
+              // Build device overlay HTML
+              let devicesOverlay = '';
+              canvasProducts.forEach(cp => {
+                const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
+                const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
+                const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
+                const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
+                
+                if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
+                
+                const percentX = (imgPixelX / fp.imageWidth) * 100;
+                const percentY = (imgPixelY / fp.imageHeight) * 100;
+                const label = cp.label || cp.product?.brand || 'Device';
+                
+                devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
+                  <div style="width:12px; height:12px; background:#3b82f6; border:2px solid white; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>
+                  <div style="position:absolute; top:-25px; left:50%; transform:translateX(-50%); background:white; padding:2px 6px; border:1px solid #3b82f6; border-radius:4px; font-size:8px; font-weight:bold; color:#3b82f6; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.2);">${label}</div>
+                </div>`;
+              });
+              
+              // Build connection lines overlay HTML
+              let connectionsOverlay = '';
+              connections.forEach(conn => {
+                const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+                const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+                if (!fromDevice || !toDevice) return;
+                
+                const fromCenterX = fromDevice.position.x + DEVICE_CARD_WIDTH / 2;
+                const fromCenterY = fromDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+                const toCenterX = toDevice.position.x + DEVICE_CARD_WIDTH / 2;
+                const toCenterY = toDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+                
+                const fromImgX = (fromCenterX - fpPos.x) * canvasToImageScale;
+                const fromImgY = (fromCenterY - fpPos.y) * canvasToImageScale;
+                const toImgX = (toCenterX - fpPos.x) * canvasToImageScale;
+                const toImgY = (toCenterY - fpPos.y) * canvasToImageScale;
+                
+                if (fromImgX < 0 || fromImgY < 0 || fromImgX > fp.imageWidth || fromImgY > fp.imageHeight) return;
+                if (toImgX < 0 || toImgY < 0 || toImgX > fp.imageWidth || toImgY > fp.imageHeight) return;
+                
+                const fromPercentX = (fromImgX / fp.imageWidth) * 100;
+                const fromPercentY = (fromImgY / fp.imageHeight) * 100;
+                const toPercentX = (toImgX / fp.imageWidth) * 100;
+                const toPercentY = (toImgY / fp.imageHeight) * 100;
+                
+                const lineLength = Math.sqrt(Math.pow(toPercentX - fromPercentX, 2) + Math.pow(toPercentY - fromPercentY, 2));
+                const angle = Math.atan2(toPercentY - fromPercentY, toPercentX - fromPercentX) * (180 / Math.PI);
+                
+                connectionsOverlay += `<div style="position:absolute; left:${fromPercentX}%; top:${fromPercentY}%; width:${lineLength}%; height:2px; background:#ef4444; transform-origin:0 50%; transform:rotate(${angle}deg); opacity:0.7; z-index:5;"></div>`;
+              });
+
               bodyHtml += `
 <section class="keep-together">
   <h2>${fp.name}</h2>
-  <div style="text-align:center; margin:20px 0;">
-    <img src="${fp.url}" style="max-width:100%; max-height:600px; border:1px solid #e5e7eb; border-radius:8px;" />
+  <div style="position:relative; text-align:center; margin:20px auto; max-width:95%; display:inline-block;">
+    <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
+    ${devicesOverlay}
+    ${connectionsOverlay}
   </div>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
     <p><strong>Calibration:</strong> ${fp.pixelsPerInch ? fp.pixelsPerInch.toFixed(2) + ' px/inch' : 'Not calibrated'}</p>
     ${fp.imageWidth ? `<p><strong>Dimensions:</strong> ${fp.imageWidth} × ${fp.imageHeight} pixels</p>` : ''}
+    <p><strong>Devices shown:</strong> ${canvasProducts.filter(cp => {
+      const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
+      const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
+      const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
+      const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
+      return imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight;
+    }).length} | <strong>Connections:</strong> ${connections.filter(conn => {
+      const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
+      const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
+      if (!fromDevice || !toDevice) return false;
+      const fromCenterX = fromDevice.position.x + DEVICE_CARD_WIDTH / 2;
+      const fromCenterY = fromDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+      const toCenterX = toDevice.position.x + DEVICE_CARD_WIDTH / 2;
+      const toCenterY = toDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+      const fromImgX = (fromCenterX - fpPos.x) * canvasToImageScale;
+      const fromImgY = (fromCenterY - fpPos.y) * canvasToImageScale;
+      const toImgX = (toCenterX - fpPos.x) * canvasToImageScale;
+      const toImgY = (toCenterY - fpPos.y) * canvasToImageScale;
+      return fromImgX >= 0 && fromImgY >= 0 && fromImgX <= fp.imageWidth && fromImgY <= fp.imageHeight &&
+             toImgX >= 0 && toImgY >= 0 && toImgX <= fp.imageWidth && toImgY <= fp.imageHeight;
+    }).length}</p>
   </div>
 </section>
 <div class="page-break"></div>`;
