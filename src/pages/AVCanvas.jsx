@@ -2347,7 +2347,8 @@ function AVCanvasContent() {
             canvasProducts={canvasProducts}
             connections={connections}
             rooms={rooms}
-            onExport={async ({ clientName, location, engine, exportType }) => {
+            floorplans={floorplans}
+            onExport={async ({ clientName, location, engine, exportType, floorplans: exportFloorplans }) => {
               setIsExporting(true);
               try {
                 if (engine === 'apitemplate') {
@@ -2374,6 +2375,7 @@ function AVCanvasContent() {
                     canvasProducts,
                     connections,
                     rooms,
+                    floorplans: exportFloorplans || [],
                     projectName: currentProject?.name || 'AV-System-Design',
                     clientName,
                     location,

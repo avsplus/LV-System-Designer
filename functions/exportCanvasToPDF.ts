@@ -329,7 +329,7 @@ Deno.serve(async (req) => {
     }
 
     const requestData = await req.json();
-    const { action, canvasProducts, connections, projectName, rooms = [], clientName, location, orgSettings } = requestData;
+    const { action, canvasProducts, connections, projectName, rooms = [], clientName, location, orgSettings, floorplans = [] } = requestData;
 
     // Handle label and diagram generation actions
     if (action === 'generateDeviceLabel') {
@@ -1660,6 +1660,127 @@ Deno.serve(async (req) => {
 
       yPos += 10;
     });
+
+    // ==========================================
+    // FLOORPLAN PAGES (if floorplans exist)
+    // ==========================================
+    if (floorplans && floorplans.length > 0) {
+      for (const fp of floorplans.filter(f => f.visible)) {
+        doc.addPage();
+        yPos = margin;
+
+        // Page header
+        setFill(doc, theme.colors.dark);
+        doc.rect(0, 0, pageWidth, 35, 'F');
+        setColor(doc, theme.colors.white);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(18);
+        doc.text(`Floorplan: ${fp.name}`, margin, 23);
+        setColor(doc, theme.colors.muted);
+        doc.setFontSize(10);
+        doc.text(projectName || 'AV System', pageWidth - margin, 23, { align: 'right' });
+
+        yPos = 45;
+
+        // Load and add floorplan image
+        try {
+          const imgResponse = await fetch(fp.url);
+          if (imgResponse.ok) {
+            const imgBlob = await imgResponse.blob();
+            const imgArrayBuffer = await imgBlob.arrayBuffer();
+            const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgArrayBuffer)));
+            const imgFormat = fp.url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+
+            // Calculate dimensions to fit page (maintain aspect ratio)
+            const maxWidth = contentWidth;
+            const maxHeight = pageHeight - yPos - 20;
+            const aspectRatio = fp.imageWidth / fp.imageHeight;
+            
+            let imgWidth = maxWidth;
+            let imgHeight = imgWidth / aspectRatio;
+            
+            if (imgHeight > maxHeight) {
+              imgHeight = maxHeight;
+              imgWidth = imgHeight * aspectRatio;
+            }
+
+            const imgX = margin + (contentWidth - imgWidth) / 2;
+            
+            doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, imgX, yPos, imgWidth, imgHeight);
+
+            // Draw devices on floorplan
+            const fpPos = fp.position || { x: 0, y: 0 };
+            const fpScale = fp.scale || 1;
+            const pixelsPerInch = fp.pixelsPerInch || 1;
+            const scaleFactor = (1 / pixelsPerInch) * fpScale;
+
+            canvasProductsToUse.forEach(cp => {
+              // Convert device canvas position to floorplan-relative position
+              const relX = (cp.position.x - fpPos.x) / scaleFactor;
+              const relY = (cp.position.y - fpPos.y) / scaleFactor;
+
+              // Skip if device is outside floorplan bounds
+              if (relX < 0 || relY < 0 || relX > fp.imageWidth || relY > fp.imageHeight) return;
+
+              // Convert to PDF coordinates
+              const pdfX = imgX + (relX / fp.imageWidth) * imgWidth;
+              const pdfY = yPos + (relY / fp.imageHeight) * imgHeight;
+
+              // Draw device indicator (small circle with label)
+              const catColor = getCategoryColor(cp.product.category);
+              setFill(doc, catColor);
+              doc.circle(pdfX, pdfY, 3, 'F');
+              
+              // Device label
+              setFill(doc, theme.colors.white);
+              doc.roundedRect(pdfX - 15, pdfY - 10, 30, 8, 2, 2, 'F');
+              setColor(doc, catColor);
+              doc.setFont(undefined, 'bold');
+              doc.setFontSize(6);
+              doc.text(truncate(cp.label || cp.product.brand, 12), pdfX, pdfY - 5, { align: 'center' });
+            });
+
+            // Draw connection lines on floorplan
+            connections.forEach(conn => {
+              const fromDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.from);
+              const toDevice = canvasProductsToUse.find(cp => cp.instanceId === conn.to);
+              if (!fromDevice || !toDevice) return;
+
+              // Convert positions to floorplan space
+              const fromRelX = (fromDevice.position.x - fpPos.x) / scaleFactor;
+              const fromRelY = (fromDevice.position.y - fpPos.y) / scaleFactor;
+              const toRelX = (toDevice.position.x - fpPos.x) / scaleFactor;
+              const toRelY = (toDevice.position.y - fpPos.y) / scaleFactor;
+
+              // Skip if either device is outside floorplan
+              if (fromRelX < 0 || fromRelY < 0 || fromRelX > fp.imageWidth || fromRelY > fp.imageHeight) return;
+              if (toRelX < 0 || toRelY < 0 || toRelX > fp.imageWidth || toRelY > fp.imageHeight) return;
+
+              // Convert to PDF coordinates
+              const fromPdfX = imgX + (fromRelX / fp.imageWidth) * imgWidth;
+              const fromPdfY = yPos + (fromRelY / fp.imageHeight) * imgHeight;
+              const toPdfX = imgX + (toRelX / fp.imageWidth) * imgWidth;
+              const toPdfY = yPos + (toRelY / fp.imageHeight) * imgHeight;
+
+              // Draw connection line
+              const cableColor = getCableColor(conn.type);
+              setDraw(doc, cableColor);
+              doc.setLineWidth(0.5);
+              doc.line(fromPdfX, fromPdfY, toPdfX, toPdfY);
+            });
+
+          } catch (error) {
+            console.error('Failed to add floorplan image:', error);
+            setColor(doc, theme.colors.muted);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text(`Could not load floorplan: ${fp.name}`, margin, yPos + 20);
+          }
+        } catch (error) {
+          console.error('Failed to process floorplan:', error);
+        }
+      }
+    }
 
     // ==========================================
     // ROOM-BY-ROOM PAGES
