@@ -34,7 +34,8 @@ export default function ExportPDFDialog({
   onExportEngineChange,
   canvasProducts = [],
   connections = [],
-  rooms = []
+  rooms = [],
+  floorplans = []
 }) {
   const [clientName, setClientName] = useState('');
   const [location, setLocation] = useState('');
@@ -152,7 +153,7 @@ Only return URLs that:
       console.error('Failed to track export:', error);
     }
 
-    onExport({ clientName, location, engine: exportEngine, exportType });
+    onExport({ clientName, location, engine: exportEngine, exportType, floorplans });
   };
 
   const productsMissingManuals = getProductsMissingManuals();
@@ -165,6 +166,7 @@ Only return URLs that:
       description: 'Complete technical documentation for installation',
       contents: [
         'Cover page with project details',
+        'Floorplan pages with device locations & wiring',
         'Device documentation with network info',
         'Wire schedule with specifications',
         'Room-by-room device breakdown',
@@ -196,6 +198,7 @@ Only return URLs that:
       contents: [
         'Everything from Installer Package',
         'Everything from Client Proposal',
+        'Floorplan pages with all details',
         'Complete system documentation'
       ],
       excludes: []
@@ -224,6 +227,7 @@ Only return URLs that:
               <span>{canvasProducts.length} Devices</span>
               <span>{connections.length} Connections</span>
               <span>{rooms.length} Rooms</span>
+              {floorplans?.length > 0 && <span>{floorplans.length} Floorplans</span>}
             </div>
           </div>
 
