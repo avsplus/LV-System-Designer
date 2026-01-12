@@ -198,19 +198,34 @@ Deno.serve(async (req) => {
                 const brand = cp.product?.brand || '';
                 const model = cp.product?.model || '';
                 
-                // Find all wire IDs connected to this device
-                const connectedWires = connections
+                // Find all wire IDs connected to this device with their colors
+                const connectedWireData = connections
                   .filter(conn => conn.from === cp.instanceId || conn.to === cp.instanceId)
-                  .map(conn => conn.wireId)
-                  .filter(Boolean)
-                  .join(', ');
-                
+                  .map(conn => {
+                    const cableColor = getCableColor(conn.type);
+                    const colorHex = '#' + cableColor.map(c => c.toString(16).padStart(2, '0')).join('');
+                    return { wireId: conn.wireId, color: colorHex };
+                  })
+                  .filter(item => item.wireId);
+
+                const wireLabelsHtml = connectedWireData.map(wire => 
+                  `<span style="color:${wire.color};">${wire.wireId}</span>`
+                ).join(', ');
+
+                // Build device image HTML if available
+                const deviceImageHtml = cp.product?.image_url 
+                  ? `<img src="${cp.product.image_url}" style="width:6px; height:6px; object-fit:cover; border-radius:1px; margin-right:1px;" />`
+                  : '';
+
                 devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
-                  <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1;">
-                    <div style="color:#3b82f6; font-size:2px; font-weight:300;">${category}</div>
-                    <div style="color:#000000; font-size:3px; font-weight:500; margin-top:0.5px;">${brand}</div>
-                    <div style="color:#000000; font-size:3px; font-weight:500; margin-top:0.5px;">${model}</div>
-                    ${connectedWires ? `<div style="color:#ef4444; font-size:3px; font-weight:700; margin-top:0.5px;">${connectedWires}</div>` : ''}
+                  <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1; display:flex; align-items:center; gap:1px;">
+                    ${deviceImageHtml}
+                    <div>
+                      <div style="color:#3b82f6; font-size:2px; font-weight:300;">${category}</div>
+                      <div style="color:#000000; font-size:3px; font-weight:500; margin-top:0.5px;">${brand}</div>
+                      <div style="color:#000000; font-size:3px; font-weight:500; margin-top:0.5px;">${model}</div>
+                      ${wireLabelsHtml ? `<div style="font-size:3px; font-weight:700; margin-top:0.5px;">${wireLabelsHtml}</div>` : ''}
+                    </div>
                   </div>
                 </div>`;
               });
