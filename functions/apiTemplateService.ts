@@ -194,9 +194,18 @@ Deno.serve(async (req) => {
                 const percentY = (imgPixelY / fp.imageHeight) * 100;
                 const label = cp.label || cp.product?.brand || 'Device';
                 
+                // Find all wire IDs connected to this device
+                const connectedWires = connections
+                  .filter(conn => conn.from === cp.instanceId || conn.to === cp.instanceId)
+                  .map(conn => conn.wireId)
+                  .filter(Boolean)
+                  .join(', ');
+                
                 devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
-                  <div style="width:12px; height:12px; background:#3b82f6; border:2px solid white; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>
-                  <div style="position:absolute; top:-25px; left:50%; transform:translateX(-50%); background:white; padding:2px 6px; border:1px solid #3b82f6; border-radius:4px; font-size:8px; font-weight:bold; color:#3b82f6; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.2);">${label}</div>
+                  <div style="background:white; padding:2px 4px; border:1px solid #3b82f6; border-radius:3px; font-size:6px; font-weight:bold; color:#3b82f6; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center;">
+                    <div>${label}</div>
+                    ${connectedWires ? `<div style="font-size:5px; color:#6b7280; margin-top:1px;">${connectedWires}</div>` : ''}
+                  </div>
                 </div>`;
               });
               
