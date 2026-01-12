@@ -206,11 +206,11 @@ Deno.serve(async (req) => {
                   .join(', ');
                 
                 devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
-                  <div style="background:white; padding:3px 5px; border:1px solid #d1d5db; border-radius:3px; font-size:6px; font-weight:bold; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.2;">
+                  <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; font-size:4px; font-weight:bold; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1;">
                     <div style="color:#3b82f6;">${category}</div>
-                    <div style="color:#374151; margin-top:1px;">${brand}</div>
-                    <div style="color:#374151; margin-top:1px;">${model}</div>
-                    ${connectedWires ? `<div style="color:#374151; margin-top:1px; font-size:5px;">${connectedWires}</div>` : ''}
+                    <div style="color:#374151; margin-top:0.5px;">${brand}</div>
+                    <div style="color:#374151; margin-top:0.5px;">${model}</div>
+                    ${connectedWires ? `<div style="color:#374151; margin-top:0.5px; font-size:3.5px;">${connectedWires}</div>` : ''}
                   </div>
                 </div>`;
               });
