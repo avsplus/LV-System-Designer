@@ -112,7 +112,6 @@ function AVCanvasContent() {
   const [arrows, setArrows] = useState([]);
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
-  const confirm = useConfirm();
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -2157,9 +2156,8 @@ function AVCanvasContent() {
                         onMouseEnter={() => setHoveredArrow(idx)}
                         onMouseLeave={() => setHoveredArrow(null)}
                         onClick={async () => {
-                          const confirmed = await confirm({
-                            title: 'Delete Arrow?',
-                            message: 'Are you sure you want to delete this arrow annotation?',
+                          const confirmed = await confirmDialog('Are you sure you want to delete this arrow?', {
+                            title: 'Delete Arrow',
                             type: 'warning'
                           });
                           if (confirmed) {
