@@ -196,23 +196,16 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     );
     const knownDistanceValue = parseFloat(knownDistance);
 
-    // Get current scale to normalize the measurement
-    const currentScale = calibrating.isRecalibrating 
-      ? (calibrating.originalFloorplan?.scale || 1)
-      : 1;
-
     console.log('=== CALIBRATION DEBUG ===');
     console.log(`Point A: (${p1.x.toFixed(2)}, ${p1.y.toFixed(2)})`);
     console.log(`Point B: (${p2.x.toFixed(2)}, ${p2.y.toFixed(2)})`);
-    console.log(`Pixel distance: ${pixelDistance.toFixed(2)} px`);
-    console.log(`Current scale: ${currentScale.toFixed(4)}`);
+    console.log(`Pixel distance: ${pixelDistance.toFixed(2)} px (raw image pixels)`);
     console.log(`Known distance: ${knownDistanceValue} inches`);
 
-    // Calculate pixels per inch, normalized by current scale
-    // This gives us the true image pixels per inch, independent of zoom
-    const pixelsPerInch = (pixelDistance / currentScale) / knownDistanceValue;
-    console.log(`Calculated pixelsPerInch: ${pixelsPerInch.toFixed(2)}`);
-    console.log('Expected: ~96 for 1:1 screen ratio, or >50 typically');
+    // Calculate pixels per inch in raw image space
+    // Calibration points are already in raw image pixels (normalized by calibrationZoom)
+    const pixelsPerInch = pixelDistance / knownDistanceValue;
+    console.log(`Calculated pixelsPerInch: ${pixelsPerInch.toFixed(4)}`);
     console.log('========================');
 
     const updatedFloorplans = calibrating.isRecalibrating 
