@@ -192,7 +192,11 @@ Deno.serve(async (req) => {
                 
                 const percentX = (imgPixelX / fp.imageWidth) * 100;
                 const percentY = (imgPixelY / fp.imageHeight) * 100;
-                const label = cp.label || cp.product?.brand || 'Device';
+                
+                // Format category name
+                const category = cp.product?.category ? cp.product.category.replace(/_/g, ' ').toUpperCase() : 'DEVICE';
+                const brand = cp.product?.brand || '';
+                const model = cp.product?.model || '';
                 
                 // Find all wire IDs connected to this device
                 const connectedWires = connections
@@ -202,9 +206,11 @@ Deno.serve(async (req) => {
                   .join(', ');
                 
                 devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
-                  <div style="background:white; padding:2px 4px; border:1px solid #3b82f6; border-radius:3px; font-size:6px; font-weight:bold; color:#3b82f6; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center;">
-                    <div>${label}</div>
-                    ${connectedWires ? `<div style="font-size:5px; color:#6b7280; margin-top:1px;">${connectedWires}</div>` : ''}
+                  <div style="background:white; padding:3px 5px; border:1px solid #d1d5db; border-radius:3px; font-size:6px; font-weight:bold; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.2;">
+                    <div style="color:#3b82f6;">${category}</div>
+                    <div style="color:#374151; margin-top:1px;">${brand}</div>
+                    <div style="color:#374151; margin-top:1px;">${model}</div>
+                    ${connectedWires ? `<div style="color:#374151; margin-top:1px; font-size:5px;">${connectedWires}</div>` : ''}
                   </div>
                 </div>`;
               });
