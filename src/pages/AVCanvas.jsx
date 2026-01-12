@@ -2174,7 +2174,16 @@ function AVCanvasContent() {
                             type: 'warning'
                           });
                           if (confirmed) {
-                            setArrows(prev => prev.filter((_, i) => i !== idx));
+                            setArrows(prev => {
+                              const updated = prev.filter((_, i) => i !== idx);
+                              markLocalChange();
+                              if (currentProject?.id) {
+                                base44.entities.AVProject.update(currentProject.id, {
+                                  arrows: updated
+                                }).catch(err => console.error('Failed to save arrows:', err));
+                              }
+                              return updated;
+                            });
                           }
                         }}
                       />
