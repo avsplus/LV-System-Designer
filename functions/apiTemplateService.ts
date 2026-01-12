@@ -256,36 +256,8 @@ Deno.serve(async (req) => {
                 </div>`;
               });
               
-              // Build connection lines overlay HTML
+              // Connection lines removed per user request
               let connectionsOverlay = '';
-              connections.forEach(conn => {
-                const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
-                const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
-                if (!fromDevice || !toDevice) return;
-                
-                const fromCenterX = fromDevice.position.x + DEVICE_CARD_WIDTH / 2;
-                const fromCenterY = fromDevice.position.y + DEVICE_CARD_HEIGHT / 2;
-                const toCenterX = toDevice.position.x + DEVICE_CARD_WIDTH / 2;
-                const toCenterY = toDevice.position.y + DEVICE_CARD_HEIGHT / 2;
-                
-                const fromImgX = (fromCenterX - fpPos.x) * canvasToImageScale;
-                const fromImgY = (fromCenterY - fpPos.y) * canvasToImageScale;
-                const toImgX = (toCenterX - fpPos.x) * canvasToImageScale;
-                const toImgY = (toCenterY - fpPos.y) * canvasToImageScale;
-                
-                if (fromImgX < 0 || fromImgY < 0 || fromImgX > fp.imageWidth || fromImgY > fp.imageHeight) return;
-                if (toImgX < 0 || toImgY < 0 || toImgX > fp.imageWidth || toImgY > fp.imageHeight) return;
-                
-                const fromPercentX = (fromImgX / fp.imageWidth) * 100;
-                const fromPercentY = (fromImgY / fp.imageHeight) * 100;
-                const toPercentX = (toImgX / fp.imageWidth) * 100;
-                const toPercentY = (toImgY / fp.imageHeight) * 100;
-                
-                const lineLength = Math.sqrt(Math.pow(toPercentX - fromPercentX, 2) + Math.pow(toPercentY - fromPercentY, 2));
-                const angle = Math.atan2(toPercentY - fromPercentY, toPercentX - fromPercentX) * (180 / Math.PI);
-                
-                connectionsOverlay += `<div style="position:absolute; left:${fromPercentX}%; top:${fromPercentY}%; width:${lineLength}%; height:2px; background:#ef4444; transform-origin:0 50%; transform:rotate(${angle}deg); opacity:0.7; z-index:5;"></div>`;
-              });
 
               bodyHtml += `
 <section class="keep-together">
