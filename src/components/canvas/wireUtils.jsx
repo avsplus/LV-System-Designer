@@ -52,7 +52,7 @@ export const getWireLength = (from, to, waypoints = [], floorplan) => {
   const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
   const pathLengthPx = calculatePathLength(imageFrom, imageTo, imageWaypoints);
   console.log('Canvas path length (before conversion):', pathLengthCanvasPx);
-  const inches = pathLengthPx / pixelsPerInch;
+  const inches = (pathLengthPx / pixelsPerInch) / 1.24; // Correction factor
   const feet = inches / 12;
   
   console.log('=== WIRE LENGTH CALCULATION ===');
