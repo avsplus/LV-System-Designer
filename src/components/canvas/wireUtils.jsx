@@ -15,61 +15,50 @@ export const calculatePathLength = (from, to, waypoints = []) => {
 };
 
 // Convert pixels to feet using floorplan scale
-// Pass zoom as optional parameter to account for canvas transforms
 export const getWireLength = (from, to, waypoints = [], floorplan, zoom = 1) => {
   if (!floorplan || !floorplan.pixelsPerInch) {
     return null;
   }
-  
-  // Device positions are in CANVAS coordinates (after all zoom/pan/scale transforms)
-  // But calibration was done in RAW IMAGE pixel coordinates
-  // We need to convert device positions back to image space
-  
+
+  // Device positions are in CANVAS coordinates (world space after floorplan scaling)
+  // Calibration was done in RAW IMAGE pixel coordinates
+  // The floorplan is rendered with: width = imageWidth * (1/pixelsPerInch) * scale
+
   const floorplanPos = floorplan.position || { x: 0, y: 0 };
   const floorplanScale = floorplan.scale || 1;
   const pixelsPerInch = floorplan.pixelsPerInch;
-  
-  // Calculate the scale factor applied to the floorplan display
-  // Floorplan width in canvas = imageWidth * (1/pixelsPerInch) * floorplanScale
-  // So to convert canvas px back to image px:
-  const canvasToImageScale = pixelsPerInch / floorplanScale;
-  
-  // Convert device positions from canvas coordinates to image pixel coordinates
-  const imageFrom = {
-    x: (from.x - floorplanPos.x) * canvasToImageScale,
-    y: (from.y - floorplanPos.y) * canvasToImageScale
-  };
-  
-  const imageTo = {
-    x: (to.x - floorplanPos.x) * canvasToImageScale,
-    y: (to.y - floorplanPos.y) * canvasToImageScale
-  };
-  
-  const imageWaypoints = waypoints?.map(wp => ({
-    x: (wp.x - floorplanPos.x) * canvasToImageScale,
-    y: (wp.y - floorplanPos.y) * canvasToImageScale
-  })) || [];
-  
+
+  // Calculate wire path in canvas coordinates
   const pathLengthCanvasPx = calculatePathLength(from, to, waypoints);
-  const pathLengthPx = calculatePathLength(imageFrom, imageTo, imageWaypoints);
-  
-  // The issue: if scale is being applied WITHIN the device positions, we're double-converting
-  // Check if just dividing canvas path by scale gives us the right answer
-  // Canvas path is in scaled coordinates - divide by scale to get image pixels, then by pixelsPerInch for inches
-  const inches = (pathLengthCanvasPx / floorplanScale) / pixelsPerInch;
+
+  // Canvas coordinates are: imagePixels * (1/pixelsPerInch) * scale
+  // To convert back to real-world inches:
+  // canvas px / scale = image px equivalent
+  // But we want inches directly, so: canvas px / scale / pixelsPerInch won't work
+  // 
+  // Actually: canvas px = real inches * scale (because 1 inch = pixelsPerInch image px, but rendered at 1/pixelsPerInch * scale canvas px)
+  // So: real inches = canvas px / scale
+  // Wait no, let me think...
+  //
+  // Image px / pixelsPerInch = real inches
+  // Canvas px = image px * (1/pixelsPerInch) * scale
+  // Therefore: canvas px = real inches * scale
+  // So: real inches = canvas px / scale
+
+  const inches = pathLengthCanvasPx / floorplanScale;
   const feet = inches / 12;
 
   console.log('=== WIRE LENGTH CALCULATION ===');
   console.log('Canvas path length:', pathLengthCanvasPx);
   console.log('Floorplan scale:', floorplanScale);
-  console.log('Pixels per inch:', pixelsPerInch);
-  console.log('Path in image px:', pathLengthCanvasPx / floorplanScale);
+  console.log('Pixels per inch (calibration):', pixelsPerInch);
   console.log('Result inches:', inches, 'feet:', feet);
+  console.log('Expected: ~121 inches for test case');
   console.log('================================');
-  
+
   return {
     feet: feet.toFixed(2),
     inches: inches.toFixed(2),
-    pixels: pathLengthPx.toFixed(2)
+    pixels: pathLengthCanvasPx.toFixed(2)
   };
 };
