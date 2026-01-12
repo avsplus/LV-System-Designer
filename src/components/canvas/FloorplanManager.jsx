@@ -197,15 +197,16 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     const knownDistanceValue = parseFloat(knownDistance);
 
     console.log('=== CALIBRATION DEBUG ===');
-    console.log(`Point A: (${p1.x.toFixed(2)}, ${p1.y.toFixed(2)})`);
-    console.log(`Point B: (${p2.x.toFixed(2)}, ${p2.y.toFixed(2)})`);
+    console.log(`Point A: (${p1.x.toFixed(2)}, ${p1.y.toFixed(2)}) raw image px`);
+    console.log(`Point B: (${p2.x.toFixed(2)}, ${p2.y.toFixed(2)}) raw image px`);
     console.log(`Pixel distance: ${pixelDistance.toFixed(2)} px (raw image pixels)`);
     console.log(`Known distance: ${knownDistanceValue} inches`);
+    console.log(`Calibration zoom: ${calibrationZoom}`);
 
     // Calculate pixels per inch in raw image space
-    // Calibration points are already in raw image pixels (normalized by calibrationZoom)
     const pixelsPerInch = pixelDistance / knownDistanceValue;
     console.log(`Calculated pixelsPerInch: ${pixelsPerInch.toFixed(4)}`);
+    console.log(`This means 1 inch = ${pixelsPerInch.toFixed(2)} image pixels`);
     console.log('========================');
 
     const updatedFloorplans = calibrating.isRecalibrating 
