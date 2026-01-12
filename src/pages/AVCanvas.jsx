@@ -249,6 +249,7 @@ function AVCanvasContent() {
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
     loadProject(project);
+    setArrows(project.arrows || []);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -1597,7 +1598,8 @@ function AVCanvasContent() {
                             canvas_products: canvasProducts,
                             connections: connections,
                             rooms: rooms,
-                            floorplans: floorplans
+                            floorplans: floorplans,
+                            arrows: arrows
                           });
                           toast.success('Project saved successfully!');
                         } catch (error) {
