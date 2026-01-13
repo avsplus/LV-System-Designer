@@ -8,11 +8,25 @@ export default function CanvasRiser({
   onPositionChange,
   onClick,
   isSelected,
-  zoom
+  zoom,
+  registerPort,
+  getPortId,
+  onPortMouseDown,
+  hoveredPortId
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
   const riserRef = useRef(null);
+  const portRef = useRef(null);
+
+  // Register riser as a connection port
+  useEffect(() => {
+    if (portRef.current && registerPort && getPortId) {
+      const portId = getPortId(riser.id, 'Ethernet', 'riser', false);
+      registerPort(portId, portRef.current, riser.id, 'Ethernet', 'riser', false);
+      return () => registerPort(portId, null);
+    }
+  }, [riser.id, registerPort, getPortId]);
 
   const handleMouseDown = (e) => {
     if (e.button !== 0) return;
@@ -68,10 +82,19 @@ export default function CanvasRiser({
       }}
       className="group"
     >
-      {/* Riser Circle */}
+      {/* Riser Circle - acts as connection port */}
       <div 
+        ref={portRef}
+        onMouseDown={(e) => {
+          if (onPortMouseDown) {
+            e.stopPropagation();
+            onPortMouseDown(riser.id, 'Ethernet', 'riser', false, portRef.current);
+          }
+        }}
         className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-          isSelected 
+          hoveredPortId === getPortId?.(riser.id, 'Ethernet', 'riser', false)
+            ? 'bg-green-500 border-4 border-green-300 shadow-lg shadow-green-500/50'
+            : isSelected 
             ? 'bg-purple-600 border-4 border-purple-300 shadow-lg shadow-purple-500/50' 
             : 'bg-purple-500 border-3 border-purple-300 hover:bg-purple-600 hover:shadow-lg'
         }`}

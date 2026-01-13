@@ -1913,6 +1913,10 @@ function AVCanvasContent() {
                     }}
                     isSelected={selectedRiser?.id === riser.id}
                     zoom={zoom}
+                    registerPort={registerPort}
+                    getPortId={getPortId}
+                    onPortMouseDown={handlePortMouseDown}
+                    hoveredPortId={hoveredPortId}
                   />
                 ))}
               </div>
