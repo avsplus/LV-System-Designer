@@ -34,6 +34,8 @@ css
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  -webkit-user-drag: none; /* Added */
+  -webkit-tap-highlight-color: transparent; /* Added */
 }
 
 .canvas-container * {
@@ -41,4 +43,11 @@ css
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  -webkit-user-drag: none; /* Added */
+}
+
+/* Added new rule */
+.canvas-container img {
+  pointer-events: none;
+  -webkit-user-drag: none;
 }

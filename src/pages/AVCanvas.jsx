@@ -968,6 +968,9 @@ function AVCanvasContent() {
   };
 
   const handleMouseDown = (e) => {
+    // Prevent default drag behavior that causes blue selection
+    e.preventDefault();
+
     // Handle middle mouse button - double-click to center/reset, single-click to pan
     if (e.button === 1) {
       e.preventDefault();
