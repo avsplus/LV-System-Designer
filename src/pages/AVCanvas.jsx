@@ -2504,6 +2504,8 @@ function AVCanvasContent() {
             connections={connections}
             rooms={rooms}
             floorplans={floorplans}
+            arrows={arrows}
+            risers={risers}
             onProjectLoad={handleProjectLoad}
             onClose={() => setShowProjectManager(false)}
           />

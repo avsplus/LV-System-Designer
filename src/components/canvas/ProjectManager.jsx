@@ -28,6 +28,8 @@ export default function ProjectManager({
   connections,
   rooms = [],
   floorplans = [],
+  arrows = [],
+  risers = [],
   onProjectLoad,
   onClose 
 }) {
@@ -149,7 +151,9 @@ export default function ProjectManager({
       canvas_products: canvasProducts,
       connections: connections,
       rooms: rooms,
-      floorplans: floorplans
+      floorplans: floorplans,
+      arrows: arrows,
+      risers: risers
     });
   };
 
