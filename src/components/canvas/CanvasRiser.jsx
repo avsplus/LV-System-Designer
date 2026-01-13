@@ -19,42 +19,36 @@ export default function CanvasRiser({
     e.preventDefault();
     e.stopPropagation();
     
-    setIsDragging(true);
-    setDragStart({
+    const startData = {
       mouseX: e.clientX,
       mouseY: e.clientY,
       startX: riser.position.x,
       startY: riser.position.y
-    });
-  };
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e) => {
-      if (!dragStart) return;
-      const dx = (e.clientX - dragStart.mouseX) / zoom;
-      const dy = (e.clientY - dragStart.mouseY) / zoom;
+    };
+    
+    setDragStart(startData);
+    setIsDragging(true);
+    
+    const handleMouseMove = (moveEvent) => {
+      const dx = (moveEvent.clientX - startData.mouseX) / zoom;
+      const dy = (moveEvent.clientY - startData.mouseY) / zoom;
       
       onPositionChange(riser.id, {
-        x: dragStart.startX + dx,
-        y: dragStart.startY + dy
+        x: startData.startX + dx,
+        y: startData.startY + dy
       });
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
       setDragStart(null);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-    
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragStart, riser.id, onPositionChange, zoom]);
+  };
 
   return (
     <div
