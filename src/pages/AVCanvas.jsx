@@ -31,6 +31,8 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
+import CanvasRiser from "../components/canvas/CanvasRiser";
+import RiserManager from "../components/canvas/RiserManager";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
@@ -112,6 +114,9 @@ function AVCanvasContent() {
   const [arrows, setArrows] = useState([]);
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
+  const [risers, setRisers] = useState([]);
+  const [showRiserManager, setShowRiserManager] = useState(false);
+  const [selectedRiser, setSelectedRiser] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -250,6 +255,7 @@ function AVCanvasContent() {
     setCurrentProject(project);
     loadProject(project);
     setArrows(project.arrows || []);
+    setRisers(project.risers || []);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -304,6 +310,16 @@ function AVCanvasContent() {
       setConnectingFrom(instanceId);
     } else if (connectingFrom !== instanceId) {
       setConnectingTo(instanceId);
+    } else {
+      setConnectingFrom(null);
+    }
+  };
+
+  const handleRiserConnect = (riserId) => {
+    if (connectingFrom === null) {
+      setConnectingFrom(riserId);
+    } else if (connectingFrom !== riserId) {
+      setConnectingTo(riserId);
     } else {
       setConnectingFrom(null);
     }
@@ -1611,7 +1627,8 @@ function AVCanvasContent() {
                             connections: connections,
                             rooms: rooms,
                             floorplans: floorplans,
-                            arrows: arrows
+                            arrows: arrows,
+                            risers: risers
                           });
                           toast.success('Project saved successfully!');
                         } catch (error) {
@@ -1686,6 +1703,10 @@ function AVCanvasContent() {
                   <DropdownMenuItem onClick={() => window.location.href = createPageUrl("WirePricing")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Link2 className="w-4 h-4 mr-2" />
                     Wire Pricing
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowRiserManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
+                    <Layers className="w-4 h-4 mr-2" />
+                    Manage Risers
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => window.location.href = createPageUrl("NetworkMapping")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Settings className="w-4 h-4 mr-2" />
@@ -1794,6 +1815,38 @@ function AVCanvasContent() {
               transition: isPanning || draggingFloorplan ? 'none' : 'none',
               pointerEvents: 'auto'
             }}>
+              {/* Risers Layer */}
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: 'none', overflow: 'visible' }}>
+                {risers.filter(r => {
+                  if (!r.floorplanId) return true;
+                  const floorplan = floorplans.find(fp => fp.id === r.floorplanId);
+                  return floorplan && floorplan.visible;
+                }).map(riser => (
+                  <CanvasRiser
+                    key={riser.id}
+                    riser={riser}
+                    onRemove={(riserId) => {
+                      setRisers(prev => prev.filter(r => r.id !== riserId));
+                      markLocalChange();
+                    }}
+                    onPositionChange={(riserId, newPos) => {
+                      setRisers(prev => prev.map(r => r.id === riserId ? { ...r, position: newPos } : r));
+                      markLocalChange();
+                    }}
+                    onClick={(riser) => {
+                      setSelectedRiser(riser);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                      setSelectedFloorplanId(null);
+                      handleRiserConnect(riser.id);
+                    }}
+                    isSelected={selectedRiser?.id === riser.id}
+                    zoom={zoom}
+                  />
+                ))}
+              </div>
+
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {

@@ -1,0 +1,107 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+
+export default function CanvasRiser({ 
+  riser, 
+  onRemove, 
+  onPositionChange,
+  onClick,
+  isSelected,
+  zoom
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(null);
+  const riserRef = useRef(null);
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDragging(true);
+    setDragStart({
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      startX: riser.position.x,
+      startY: riser.position.y
+    });
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e) => {
+      if (!dragStart) return;
+      const dx = (e.clientX - dragStart.mouseX) / zoom;
+      const dy = (e.clientY - dragStart.mouseY) / zoom;
+      
+      onPositionChange(riser.id, {
+        x: dragStart.startX + dx,
+        y: dragStart.startY + dy
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDragStart(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart, riser.id, onPositionChange, zoom]);
+
+  return (
+    <div
+      ref={riserRef}
+      onMouseDown={handleMouseDown}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(riser);
+      }}
+      style={{
+        position: 'absolute',
+        left: `${riser.position.x}px`,
+        top: `${riser.position.y}px`,
+        pointerEvents: 'auto',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        zIndex: isSelected ? 100 : 50
+      }}
+      className="group"
+    >
+      {/* Riser Circle */}
+      <div 
+        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+          isSelected 
+            ? 'bg-purple-600 border-4 border-purple-300 shadow-lg shadow-purple-500/50' 
+            : 'bg-purple-500 border-3 border-purple-300 hover:bg-purple-600 hover:shadow-lg'
+        }`}
+      >
+        <span className="text-white font-bold text-lg">{riser.label}</span>
+      </div>
+
+      {/* Label below */}
+      <div className="absolute top-[70px] left-1/2 -translate-x-1/2 bg-gray-900/90 px-2 py-1 rounded text-xs text-white whitespace-nowrap">
+        Riser {riser.label}
+      </div>
+
+      {/* Delete button on hover */}
+      <Button
+        size="icon"
+        variant="destructive"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(riser.id);
+        }}
+        className="absolute -top-2 -right-2 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <Trash2 className="w-3 h-3" />
+      </Button>
+    </div>
+  );
+}
