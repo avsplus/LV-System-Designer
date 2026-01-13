@@ -319,7 +319,8 @@ function AVCanvasContent() {
     if (connectingFrom === null) {
       setConnectingFrom(riserId);
     } else if (connectingFrom !== riserId) {
-      setConnectingTo(riserId);
+      // Don't show connection dialog for riser-to-riser - not supported yet
+      setConnectingFrom(null);
     } else {
       setConnectingFrom(null);
     }
@@ -2474,28 +2475,42 @@ function AVCanvasContent() {
           />
         )}
 
-        {connectingFrom !== null && connectingTo !== null && (
-          <ConnectionTypeDialog
-            fromProduct={{
-              ...ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingFrom)).product,
-              instanceId: connectingFrom,
-              networkInfo: ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingFrom)).networkInfo
-            }}
-            toProduct={{
-              ...ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingTo)).product,
-              instanceId: connectingTo,
-              networkInfo: ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingTo)).networkInfo
-            }}
-            existingConnections={connections}
-            pendingConnection={pendingConnection}
-            onSelect={handleConnectionTypeSelect}
-            onCancel={() => {
-              setConnectingFrom(null);
-              setConnectingTo(null);
-              setPendingConnection(null);
-            }}
-          />
-        )}
+        {connectingFrom !== null && connectingTo !== null && (() => {
+          // Check if both are valid products (not risers)
+          const fromProduct = canvasProducts.find(cp => cp.instanceId === connectingFrom);
+          const toProduct = canvasProducts.find(cp => cp.instanceId === connectingTo);
+
+          if (!fromProduct || !toProduct) {
+            // Invalid connection - cancel it
+            setConnectingFrom(null);
+            setConnectingTo(null);
+            setPendingConnection(null);
+            return null;
+          }
+
+          return (
+            <ConnectionTypeDialog
+              fromProduct={{
+                ...ensureNetworkInfo(fromProduct).product,
+                instanceId: connectingFrom,
+                networkInfo: ensureNetworkInfo(fromProduct).networkInfo
+              }}
+              toProduct={{
+                ...ensureNetworkInfo(toProduct).product,
+                instanceId: connectingTo,
+                networkInfo: ensureNetworkInfo(toProduct).networkInfo
+              }}
+              existingConnections={connections}
+              pendingConnection={pendingConnection}
+              onSelect={handleConnectionTypeSelect}
+              onCancel={() => {
+                setConnectingFrom(null);
+                setConnectingTo(null);
+                setPendingConnection(null);
+              }}
+            />
+          );
+        })()}
 
         {showProjectManager && (
           <ProjectManager
