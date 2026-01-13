@@ -319,8 +319,7 @@ function AVCanvasContent() {
     if (connectingFrom === null) {
       setConnectingFrom(riserId);
     } else if (connectingFrom !== riserId) {
-      // Don't show connection dialog for riser-to-riser - not supported yet
-      setConnectingFrom(null);
+      setConnectingTo(riserId);
     } else {
       setConnectingFrom(null);
     }
@@ -329,6 +328,15 @@ function AVCanvasContent() {
   const validateConnection = (fromId, toId, connectionType) => {
     const errors = [];
     const warnings = [];
+
+    // Check if either endpoint is a riser
+    const fromRiser = risers.find(r => r.id === fromId);
+    const toRiser = risers.find(r => r.id === toId);
+    
+    // Risers are universal connection points - always valid
+    if (fromRiser || toRiser) {
+      return { valid: true, errors, warnings };
+    }
 
     const rawFromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const rawToProduct = canvasProducts.find(cp => cp.instanceId === toId);
@@ -1327,6 +1335,15 @@ function AVCanvasContent() {
   // Calculates world position of a connection port on the canvas
   // Used to position connection line endpoints and determine visual port locations
   const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
+    // Check if it's a riser first
+    const riser = risers.find(r => r.id === instanceId);
+    if (riser) {
+      return {
+        x: riser.position.x + 32, // Center of 64px circle
+        y: riser.position.y + 32
+      };
+    }
+    
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!product) return null;
 
@@ -1378,6 +1395,20 @@ function AVCanvasContent() {
   // Pre-calculates all connection endpoint positions and edge sides (for visual routing)
   // Cached to avoid recalculating during every render
   const connectionPositions = connections.map((connection, index) => {
+    // Check for risers
+    const fromRiser = risers.find(r => r.id === connection.from);
+    const toRiser = risers.find(r => r.id === connection.to);
+    
+    if (fromRiser || toRiser) {
+      const fromPoint = fromRiser 
+        ? { x: fromRiser.position.x + 32, y: fromRiser.position.y + 32 }
+        : getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
+      const toPoint = toRiser
+        ? { x: toRiser.position.x + 32, y: toRiser.position.y + 32 }
+        : getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
+      return { fromPoint, toPoint, fromEdge: 'right', toEdge: 'left' };
+    }
+    
     const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
     const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
 
@@ -1435,6 +1466,43 @@ function AVCanvasContent() {
 
     const { fromPoint, toPoint } = connectionPositions[connectionIndex] || {};
     if (fromPoint && toPoint) return { from: fromPoint, to: toPoint };
+
+    // Check for risers
+    const fromRiser = risers.find(r => r.id === fromId);
+    const toRiser = risers.find(r => r.id === toId);
+    
+    if (fromRiser && toRiser) {
+      return {
+        from: { x: fromRiser.position.x + 32, y: fromRiser.position.y + 32 },
+        to: { x: toRiser.position.x + 32, y: toRiser.position.y + 32 }
+      };
+    }
+    
+    if (fromRiser) {
+      const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
+      if (!toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
+      const toCenter = {
+        x: toProduct.position.x + CARD_WIDTH / 2,
+        y: toProduct.position.y + CARD_HEIGHT / 2
+      };
+      return {
+        from: { x: fromRiser.position.x + 32, y: fromRiser.position.y + 32 },
+        to: { x: toCenter.x, y: toCenter.y }
+      };
+    }
+    
+    if (toRiser) {
+      const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
+      if (!fromProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
+      const fromCenter = {
+        x: fromProduct.position.x + CARD_WIDTH / 2,
+        y: fromProduct.position.y + CARD_HEIGHT / 2
+      };
+      return {
+        from: { x: fromCenter.x, y: fromCenter.y },
+        to: { x: toRiser.position.x + 32, y: toRiser.position.y + 32 }
+      };
+    }
 
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
@@ -2476,12 +2544,20 @@ function AVCanvasContent() {
         )}
 
         {connectingFrom !== null && connectingTo !== null && (() => {
-          // Check if both are valid products (not risers)
+          // Check if either is a riser - risers use simplified connection
+          const fromRiser = risers.find(r => r.id === connectingFrom);
+          const toRiser = risers.find(r => r.id === connectingTo);
+
+          if (fromRiser || toRiser) {
+            // Auto-create connection with default type
+            setPendingConnection({ fromId: connectingFrom, toId: connectingTo, connectionType: 'Ethernet' });
+            return null;
+          }
+
           const fromProduct = canvasProducts.find(cp => cp.instanceId === connectingFrom);
           const toProduct = canvasProducts.find(cp => cp.instanceId === connectingTo);
 
           if (!fromProduct || !toProduct) {
-            // Invalid connection - cancel it
             setConnectingFrom(null);
             setConnectingTo(null);
             setPendingConnection(null);
