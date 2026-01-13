@@ -19,11 +19,17 @@ export default function RiserManager({
     if (!selectedFloorplanId && floorplans.length === 0) return;
     
     const targetFloorplanId = selectedFloorplanId || floorplans[0]?.id;
+    const targetFloorplan = floorplans.find(f => f.id === targetFloorplanId);
+    
+    // Place riser near the floorplan's position
+    const floorplanX = targetFloorplan?.position?.x || 0;
+    const floorplanY = targetFloorplan?.position?.y || 0;
+    
     const newRiser = {
       id: `riser-${Date.now()}`,
       label: newRiserLabel.toUpperCase(),
       floorplanId: targetFloorplanId,
-      position: { x: 100, y: 100 }
+      position: { x: floorplanX + 100, y: floorplanY + 100 }
     };
     
     onAdd(newRiser);

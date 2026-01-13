@@ -2549,8 +2549,13 @@ function AVCanvasContent() {
           const toRiser = risers.find(r => r.id === connectingTo);
 
           if (fromRiser || toRiser) {
-            // Auto-create connection with default type
-            setPendingConnection({ fromId: connectingFrom, toId: connectingTo, connectionType: 'Ethernet' });
+            // Auto-create connection with default type immediately
+            handleConnectionTypeSelect({
+              type: 'Ethernet',
+              fromPort: null,
+              toPort: null,
+              wireSpec: null
+            });
             return null;
           }
 
