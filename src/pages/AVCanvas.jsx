@@ -2545,7 +2545,22 @@ function AVCanvasContent() {
           />
         )}
 
-
+        {showRiserManager && (
+          <RiserManager
+            risers={risers}
+            floorplans={floorplans}
+            onAdd={(riser) => {
+              setRisers(prev => [...prev, riser]);
+              markLocalChange();
+            }}
+            onRemove={(riserId) => {
+              setRisers(prev => prev.filter(r => r.id !== riserId));
+              markLocalChange();
+            }}
+            onClose={() => setShowRiserManager(false)}
+            selectedFloorplanId={selectedFloorplanId}
+          />
+        )}
 
         {showExportDialog && (
           <ExportPDFDialog
