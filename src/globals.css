@@ -1,3 +1,4 @@
+css
 /* Custom Scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
@@ -25,4 +26,19 @@
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+/* Prevent text selection and drag highlights on canvas */
+.canvas-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.canvas-container * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }

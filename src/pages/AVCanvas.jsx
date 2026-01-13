@@ -1861,7 +1861,7 @@ function AVCanvasContent() {
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
-              className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
+              className={`canvas-container flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                 snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
               } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
               style={{
