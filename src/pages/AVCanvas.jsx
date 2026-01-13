@@ -1123,7 +1123,8 @@ function AVCanvasContent() {
               connections: connections,
               rooms: rooms,
               floorplans: floorplans,
-              arrows: newArrows
+              arrows: newArrows,
+              risers: risers
             }).catch(err => console.error('Failed to save arrows:', err));
           }
         }
@@ -2233,11 +2234,12 @@ function AVCanvasContent() {
                             if (markLocalChangeRef.current) markLocalChangeRef.current();
                             if (currentProject?.id) {
                               base44.entities.AVProject.update(currentProject.id, {
-                                canvas_products: canvasProducts,
-                                connections: connections,
-                                rooms: rooms,
-                                floorplans: floorplans,
-                                arrows: updated
+                               canvas_products: canvasProducts,
+                               connections: connections,
+                               rooms: rooms,
+                               floorplans: floorplans,
+                               arrows: updated,
+                               risers: risers
                               }).catch(err => console.error('Failed to save arrows:', err));
                             }
                           }
