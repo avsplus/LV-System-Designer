@@ -1864,6 +1864,8 @@ function AVCanvasContent() {
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
+              onDragStart={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
               className={`canvas-container flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                 snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
               } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
@@ -1996,6 +1998,8 @@ function AVCanvasContent() {
                       <img 
                         src={fp.url} 
                         alt={fp.name}
+                        draggable="false"
+                        onDragStart={(e) => e.preventDefault()}
                         onLoad={(e) => {
                           // Capture natural dimensions if missing
                           if (!fp.imageWidth || !fp.imageHeight) {
@@ -2131,8 +2135,8 @@ function AVCanvasContent() {
               </div>
             </div>
 
-            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
-              <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible', userSelect: 'none' }}>
+              <g style={{ pointerEvents: 'none', userSelect: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
