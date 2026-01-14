@@ -2489,7 +2489,89 @@ function AVCanvasContent() {
                   const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
-                  
+
+                  // Render symbol annotation
+                  if (ann.type === 'symbol') {
+                    const symbolColor = ann.color || '#3b82f6';
+                    const isWAP = ann.symbolId?.startsWith('W-');
+                    return (
+                      <g key={ann.id}>
+                        {/* Symbol Group */}
+                        <g
+                          className="pointer-events-auto cursor-move"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onMouseDown={(e) => {
+                            if (activeTool === 'select') {
+                              e.stopPropagation();
+                              setSelectedAnnotation(idx);
+                              setSelectedProduct(null);
+                              setSelectedCanvasProduct(null);
+                              setSelectedConnection(null);
+                              setShowFloorplanManager(false);
+                              setShowRoomManager(false);
+                              setSelectedFloorplanId(null);
+                              setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                            }
+                          }}
+                          onDoubleClick={(e) => {
+                            if (activeTool === 'select') {
+                              e.stopPropagation();
+                              const canvasRect = canvasRef.current?.getBoundingClientRect();
+                              if (canvasRect) {
+                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                                setDraggingAnnotation(idx);
+                                setAnnotationDragStart({
+                                  mouseStartX: mouseWorldX,
+                                  mouseStartY: mouseWorldY,
+                                  startPosition: { ...ann.position }
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          {isWAP ? (
+                            /* WAP Symbol - Circle with antennae */
+                            <>
+                              <circle cx={ann.position.x} cy={ann.position.y} r={12} fill={symbolColor} />
+                              <line x1={ann.position.x} y1={ann.position.y - 18} x2={ann.position.x} y2={ann.position.y - 24} stroke={symbolColor} strokeWidth="2" strokeLinecap="round" />
+                              <line x1={ann.position.x - 8} y1={ann.position.y - 14} x2={ann.position.x - 12} y2={ann.position.y - 20} stroke={symbolColor} strokeWidth="1.5" strokeLinecap="round" />
+                              <line x1={ann.position.x + 8} y1={ann.position.y - 14} x2={ann.position.x + 12} y2={ann.position.y - 20} stroke={symbolColor} strokeWidth="1.5" strokeLinecap="round" />
+                            </>
+                          ) : (
+                            /* Regular Outlet Symbol - Triangle pointing down */
+                            <>
+                              <polygon points={`${ann.position.x},${ann.position.y - 16} ${ann.position.x + 18},${ann.position.y + 12} ${ann.position.x - 18},${ann.position.y + 12}`} fill={symbolColor} />
+                            </>
+                          )}
+                        </g>
+
+                        {(isHovered || isSelected) && (
+                          <g
+                            className="pointer-events-auto cursor-pointer"
+                            onClick={async () => {
+                              const confirmed = await confirmDialog('Delete this annotation?', {
+                                title: 'Delete Annotation',
+                                type: 'warning'
+                              });
+                              if (confirmed) {
+                                const updated = annotations.filter((_, i) => i !== idx);
+                                setAnnotations(updated);
+                                saveAnnotations(updated);
+                                setSelectedAnnotation(null);
+                              }
+                            }}
+                          >
+                            <circle cx={ann.position.x + 25} cy={ann.position.y - 25} r="16" fill="#ef4444" />
+                            <line x1={ann.position.x + 20} y1={ann.position.y - 30} x2={ann.position.x + 30} y2={ann.position.y - 20} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                            <line x1={ann.position.x + 30} y1={ann.position.y - 30} x2={ann.position.x + 20} y2={ann.position.y - 20} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                          </g>
+                        )}
+                      </g>
+                    );
+                  }
+
                   if (ann.type === 'text') {
                    return (
                      <g key={ann.id}>
