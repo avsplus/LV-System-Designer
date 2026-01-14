@@ -2992,11 +2992,10 @@ function AVCanvasContent() {
                 const centerY = (canvasRect.height / 2 - pan.y) / zoom;
                 const newAnnotation = {
                   id: Date.now().toString(),
-                  type: 'text',
+                  type: 'symbol',
+                  symbolId: symbol,
                   position: { x: centerX, y: centerY },
-                  text: symbol,
-                  color: annotationColor,
-                  fontSize: annotationFontSize
+                  color: annotationColor
                 };
                 const updated = [...annotations, newAnnotation];
                 setAnnotations(updated);
