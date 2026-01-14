@@ -2506,6 +2506,13 @@ function AVCanvasContent() {
                            if (activeTool === 'select') {
                              e.stopPropagation();
                              setSelectedAnnotation(idx);
+                             setSelectedProduct(null);
+                             setSelectedCanvasProduct(null);
+                             setSelectedConnection(null);
+                             setShowFloorplanManager(false);
+                             setShowRoomManager(false);
+                             setSelectedFloorplanId(null);
+                             setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
                            }
                          }}
                          onDoubleClick={(e) => {
