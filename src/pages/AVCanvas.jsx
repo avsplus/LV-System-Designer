@@ -2656,21 +2656,23 @@ function AVCanvasContent() {
                          y2={ann.endPosition.y}
                          stroke="transparent"
                          strokeWidth="40"
-                         className="pointer-events-auto cursor-pointer"
+                         className="pointer-events-auto cursor-move"
                          onMouseEnter={() => setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
-                         onClick={async (e) => {
+                         onMouseDown={(e) => {
                            if (activeTool === 'select') {
                              e.stopPropagation();
-                             const confirmed = await confirmDialog('Delete this annotation?', {
-                               title: 'Delete Annotation',
-                               type: 'warning'
-                             });
-                             if (confirmed) {
-                               const updated = annotations.filter((_, i) => i !== idx);
-                               setAnnotations(updated);
-                               saveAnnotations(updated);
-                               setSelectedAnnotation(null);
+                             const canvasRect = canvasRef.current?.getBoundingClientRect();
+                             if (canvasRect) {
+                               const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                               const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                               setSelectedAnnotation(idx);
+                               setDraggingAnnotation(idx);
+                               setAnnotationDragStart({
+                                 mouseStartX: mouseWorldX,
+                                 mouseStartY: mouseWorldY,
+                                 startPosition: { ...ann.position, endPosition: { ...ann.endPosition } }
+                               });
                              }
                            }
                          }}
