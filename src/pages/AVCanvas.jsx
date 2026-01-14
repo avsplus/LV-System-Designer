@@ -622,9 +622,19 @@ function AVCanvasContent() {
 
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
 
+      console.log('🔍 Port validation:', { 
+        fromIsRiser, 
+        toIsRiser, 
+        differentDevice,
+        fromType: currentState.fromPort.connectionType,
+        toType: hitPort.connectionType,
+        hitPortId: hitPort.portId
+      });
+
       // If either is a riser, only check different device
       if (fromIsRiser || toIsRiser) {
         if (differentDevice) {
+          console.log('✅ Valid riser connection');
           validHitPort = hitPort;
         }
       } else {
@@ -659,7 +669,7 @@ function AVCanvasContent() {
     const newState = { ...currentState, mousePos, hoveredPort: validHitPort };
     setConnectingState(newState);
     connectingStateRef.current = newState;
-  }, [zoom, pan]);
+  }, [zoom, pan, canvasProducts, risers]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
     const currentState = connectingStateRef.current;
