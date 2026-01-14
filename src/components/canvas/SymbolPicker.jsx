@@ -90,8 +90,8 @@ export default function SymbolPicker({ onSelect, onClose }) {
   const symbols = SYMBOL_CATEGORIES[activeCategory];
 
   return (
-    <div className="p-4 space-y-3 w-80">
-      <label className="text-xs font-medium text-gray-400 block">Insert Symbol</label>
+    <div className="p-6 space-y-4 w-96">
+      <label className="text-sm font-semibold text-gray-300 block">Insert Symbol</label>
       
       {/* Category tabs */}
       <div className="flex flex-wrap gap-2">
@@ -99,10 +99,10 @@ export default function SymbolPicker({ onSelect, onClose }) {
           <button
             key={category}
             onClick={() => setActiveCategory(category)}
-            className={`text-xs px-2 py-1 rounded transition-colors ${
+            className={`text-xs px-3 py-2 rounded transition-colors ${
               activeCategory === category
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
             }`}
           >
             {category}
@@ -111,7 +111,7 @@ export default function SymbolPicker({ onSelect, onClose }) {
       </div>
 
       {/* Symbols grid */}
-      <div className="grid grid-cols-4 gap-2 max-h-72 overflow-y-auto">
+      <div className="grid grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2">
         {symbols.map(symbol => (
           <Button
             key={symbol.id}
@@ -119,11 +119,11 @@ export default function SymbolPicker({ onSelect, onClose }) {
               onSelect(symbol.id);
               onClose();
             }}
-            className="h-auto flex flex-col items-center justify-center p-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 text-gray-200 transition-all"
+            className="h-auto flex flex-col items-center justify-center p-3 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-gray-200 transition-all rounded-lg"
             title={symbol.label}
           >
             <SymbolIcon id={symbol.id} color={symbol.color} />
-            <span className="text-[10px] font-medium text-center mt-1 line-clamp-2">{symbol.label}</span>
+            <span className="text-xs font-medium text-center mt-2 line-clamp-2 w-full">{symbol.label}</span>
           </Button>
         ))}
       </div>
