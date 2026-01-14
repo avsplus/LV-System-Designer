@@ -2400,7 +2400,7 @@ function AVCanvasContent() {
                           <circle
                             cx={ann.position.x - 15}
                             cy={ann.position.y - 5}
-                            r="8"
+                            r="12"
                             fill="#ef4444"
                             className="pointer-events-auto cursor-pointer"
                             onClick={async () => {
@@ -2442,7 +2442,7 @@ function AVCanvasContent() {
                           <circle
                             cx={ann.position.x + ann.width + 10}
                             cy={ann.position.y - 10}
-                            r="8"
+                            r="12"
                             fill="#ef4444"
                             className="pointer-events-auto cursor-pointer"
                             onClick={async () => {
@@ -2483,7 +2483,7 @@ function AVCanvasContent() {
                           <circle
                             cx={ann.position.x + ann.radius + 10}
                             cy={ann.position.y - ann.radius - 10}
-                            r="8"
+                            r="12"
                             fill="#ef4444"
                             className="pointer-events-auto cursor-pointer"
                             onClick={async () => {
