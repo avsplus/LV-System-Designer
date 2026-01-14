@@ -1255,8 +1255,8 @@ function AVCanvasContent() {
         return;
       }
       
-      // Handle click (no drag) - select the annotation
-      if (annotationMouseDownRef.current !== null) {
+      // Clear mousedown ref only if we didn't drag
+      if (annotationMouseDownRef.current !== null && draggingAnnotation === null) {
         setSelectedAnnotation(annotationMouseDownRef.current.idx);
         annotationMouseDownRef.current = null;
         return;
