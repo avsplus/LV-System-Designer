@@ -51,6 +51,7 @@ export default function AnnotationDetailsPanel({
     if (annotation.type === 'rectangle') return 'Rectangle';
     if (annotation.type === 'circle') return 'Circle';
     if (annotation.type === 'line') return 'Line';
+    if (annotation.type === 'symbol') return `Symbol - ${annotation.symbolId}`;
     return 'Annotation';
   };
 
