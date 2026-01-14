@@ -512,22 +512,52 @@ function AVCanvasContent() {
   const hitTestPort = (mouseX, mouseY) => {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return null;
-    
+
     let closestPort = null;
     let closestDistance = PORT_HIT_RADIUS;
-    
+
+    // Check risers first - they accept any connection type
+    for (const riser of risers) {
+      const riserCenterX = canvasRect.left + pan.x + (riser.position.x + 32) * zoom;
+      const riserCenterY = canvasRect.top + pan.y + (riser.position.y + 32) * zoom;
+
+      const distance = Math.sqrt(
+        Math.pow(mouseX - riserCenterX, 2) + 
+        Math.pow(mouseY - riserCenterY, 2)
+      );
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        const position = {
+          x: riser.position.x + 32,
+          y: riser.position.y + 32
+        };
+        // Create a virtual port for the riser that matches any connection type
+        closestPort = { 
+          portId: `${riser.id}:riser`, 
+          instanceId: riser.id, 
+          connectionType: 'Universal', // Special type for risers
+          portName: 'riser', 
+          isInput: false,
+          position, 
+          distance 
+        };
+      }
+    }
+
+    // Then check regular device ports
     for (const [portId, portData] of portRefs.current.entries()) {
       if (!portData.element) continue;
-      
+
       const portRect = portData.element.getBoundingClientRect();
       const portCenterX = portRect.left + portRect.width / 2;
       const portCenterY = portRect.top + portRect.height / 2;
-      
+
       const distance = Math.sqrt(
         Math.pow(mouseX - portCenterX, 2) + 
         Math.pow(mouseY - portCenterY, 2)
       );
-      
+
       if (distance < closestDistance) {
         closestDistance = distance;
         const position = {
@@ -537,7 +567,7 @@ function AVCanvasContent() {
         closestPort = { portId, ...portData, position, distance };
       }
     }
-    
+
     return closestPort;
   };
 
