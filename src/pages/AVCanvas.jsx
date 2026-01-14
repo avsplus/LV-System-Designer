@@ -1988,8 +1988,6 @@ function AVCanvasContent() {
            style={{ ...provided.droppableProps.style, backgroundColor: 'transparent !important' }}
            onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
             onMouseDown={currentProject ? (e) => {
-              e.preventDefault();
-              e.stopPropagation();
               console.log('🖱️ Canvas mouseDown - adding canvas-dragging class');
               document.body.classList.add('canvas-dragging');
               document.body.style.userSelect = 'none';
