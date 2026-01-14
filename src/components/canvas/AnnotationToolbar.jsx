@@ -35,9 +35,11 @@ export default function AnnotationToolbar({
   fill,
   onFillChange,
   fontSize,
-  onFontSizeChange
+  onFontSizeChange,
+  onAddSymbol
 }) {
   const [showSettings, setShowSettings] = useState(false);
+  const [showSymbols, setShowSymbols] = useState(false);
 
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Select' },
