@@ -1131,6 +1131,20 @@ function AVCanvasContent() {
     }
   };
 
+  const handleUpdateAnnotation = (index, updatedAnnotation) => {
+    const updated = [...annotations];
+    updated[index] = updatedAnnotation;
+    setAnnotations(updated);
+    saveAnnotations(updated);
+  };
+
+  const handleDeleteAnnotation = (index) => {
+    const updated = annotations.filter((_, i) => i !== index);
+    setAnnotations(updated);
+    saveAnnotations(updated);
+    setSelectedAnnotation(null);
+  };
+
   const handleAnnotationMouseDown = (e) => {
     if (activeTool === 'select' || !currentProject) return;
     
