@@ -125,7 +125,7 @@ function AVCanvasContent() {
   const [editingText, setEditingText] = useState(null);
   const [draggingAnnotation, setDraggingAnnotation] = useState(null);
   const [annotationDragStart, setAnnotationDragStart] = useState(null);
-  const annotationJustDraggedRef = useRef(false);
+  const annotationMouseDownRef = useRef(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -1166,7 +1166,25 @@ function AVCanvasContent() {
         return;
       }
 
-      // Handle annotation dragging
+      // Handle annotation dragging with threshold
+      if (annotationMouseDownRef.current !== null) {
+        const mouseDownData = annotationMouseDownRef.current;
+        const dist = Math.sqrt(
+          Math.pow(e.clientX - mouseDownData.clientX, 2) +
+          Math.pow(e.clientY - mouseDownData.clientY, 2)
+        );
+        
+        // Start dragging only if moved more than 5px
+        if (dist > 5 && draggingAnnotation === null) {
+          setDraggingAnnotation(mouseDownData.idx);
+          setAnnotationDragStart({
+            mouseStartX: mouseDownData.mouseWorldX,
+            mouseStartY: mouseDownData.mouseWorldY,
+            startPosition: mouseDownData.startPosition
+          });
+        }
+      }
+
       if (draggingAnnotation !== null && annotationDragStart) {
         const canvasRect = canvasRef.current?.getBoundingClientRect();
         if (canvasRect) {
@@ -1234,10 +1252,14 @@ function AVCanvasContent() {
         setDraggingAnnotation(null);
         setAnnotationDragStart(null);
         setSelectedAnnotation(null);
-        annotationJustDraggedRef.current = true;
-        setTimeout(() => {
-          annotationJustDraggedRef.current = false;
-        }, 50);
+        annotationMouseDownRef.current = null;
+        return;
+      }
+      
+      // Handle click (no drag) - select the annotation
+      if (annotationMouseDownRef.current !== null) {
+        setSelectedAnnotation(annotationMouseDownRef.current.idx);
+        annotationMouseDownRef.current = null;
         return;
       }
 
@@ -2494,19 +2516,15 @@ function AVCanvasContent() {
                               if (canvasRect) {
                                 const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
                                 const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                setDraggingAnnotation(idx);
-                                setAnnotationDragStart({
-                                  mouseStartX: mouseWorldX,
-                                  mouseStartY: mouseWorldY,
+                                annotationMouseDownRef.current = {
+                                  idx,
+                                  clientX: e.clientX,
+                                  clientY: e.clientY,
+                                  mouseWorldX,
+                                  mouseWorldY,
                                   startPosition: { ...ann.position }
-                                });
+                                };
                               }
-                            }
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
-                              setSelectedAnnotation(idx);
                             }
                           }}
                         />
@@ -2563,19 +2581,15 @@ function AVCanvasContent() {
                               if (canvasRect) {
                                 const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
                                 const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                setDraggingAnnotation(idx);
-                                setAnnotationDragStart({
-                                  mouseStartX: mouseWorldX,
-                                  mouseStartY: mouseWorldY,
+                                annotationMouseDownRef.current = {
+                                  idx,
+                                  clientX: e.clientX,
+                                  clientY: e.clientY,
+                                  mouseWorldX,
+                                  mouseWorldY,
                                   startPosition: { ...ann.position }
-                                });
+                                };
                               }
-                            }
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
-                              setSelectedAnnotation(idx);
                             }
                           }}
                         />
