@@ -517,8 +517,8 @@ function AVCanvasContent() {
     let closestDistance = PORT_HIT_RADIUS;
 
     // Check risers first - they accept any connection type
-    // Risers use a very large radius for easy targeting (500px in world space)
-    const riserHitRadius = 500 * zoom;
+    // Risers have priority and very large radius (600px in world space)
+    const riserHitRadius = 600;
     for (const riser of risers) {
       // Calculate screen position: canvas position + (world position + center offset) * zoom
       const riserCenterX = canvasRect.left + (riser.position.x + 32) * zoom + pan.x;
@@ -531,7 +531,6 @@ function AVCanvasContent() {
 
       console.log('🎯 Riser hit test:', { 
         id: riser.id, 
-        zoom,
         mouseScreen: { x: mouseX, y: mouseY },
         riserScreen: { x: riserCenterX, y: riserCenterY },
         distance, 
@@ -545,7 +544,8 @@ function AVCanvasContent() {
           y: riser.position.y + 32
         };
         // Create a virtual port for the riser that matches any connection type
-        closestPort = { 
+        console.log('✅ Riser detected as target - RETURNING IMMEDIATELY');
+        return { 
           portId: `${riser.id}:riser`, 
           instanceId: riser.id, 
           connectionType: 'Universal', // Special type for risers
@@ -554,9 +554,6 @@ function AVCanvasContent() {
           position, 
           distance 
         };
-        closestDistance = distance;
-        console.log('✅ Riser detected as target:', closestPort);
-        break; // Found a riser within range
       }
     }
 
