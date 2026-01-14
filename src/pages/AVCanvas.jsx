@@ -703,7 +703,10 @@ function AVCanvasContent() {
         }
       }
 
-      setPendingConnection({ fromId, toId, connectionType: fromPort.connectionType });
+      // Use the device's connection type, not the riser's
+      const connectionType = fromIsRiser ? toPort.connectionType : (toIsRiser ? fromPort.connectionType : fromPort.connectionType);
+
+      setPendingConnection({ fromId, toId, connectionType });
       setConnectingFrom(fromId);
       setConnectingTo(toId);
     }
