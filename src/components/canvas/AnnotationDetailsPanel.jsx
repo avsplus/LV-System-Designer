@@ -73,6 +73,16 @@ export default function AnnotationDetailsPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         
+        {/* Symbol Label */}
+        {annotation.type === 'symbol' && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Symbol</p>
+            <div className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white">
+              {annotation.symbolId}
+            </div>
+          </div>
+        )}
+
         {/* Text Content */}
         {annotation.type === 'text' && (
           <div>
