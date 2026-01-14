@@ -31,8 +31,6 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
-import CanvasRiser from "../components/canvas/CanvasRiser";
-import RiserManager from "../components/canvas/RiserManager";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
@@ -114,9 +112,6 @@ function AVCanvasContent() {
   const [arrows, setArrows] = useState([]);
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
-  const [risers, setRisers] = useState([]);
-  const [showRiserManager, setShowRiserManager] = useState(false);
-  const [selectedRiser, setSelectedRiser] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -255,7 +250,6 @@ function AVCanvasContent() {
     setCurrentProject(project);
     loadProject(project);
     setArrows(project.arrows || []);
-    setRisers(project.risers || []);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -315,28 +309,9 @@ function AVCanvasContent() {
     }
   };
 
-  const handleRiserConnect = (riserId) => {
-    if (connectingFrom === null) {
-      setConnectingFrom(riserId);
-    } else if (connectingFrom !== riserId) {
-      setConnectingTo(riserId);
-    } else {
-      setConnectingFrom(null);
-    }
-  };
-
   const validateConnection = (fromId, toId, connectionType) => {
     const errors = [];
     const warnings = [];
-
-    // Check if either endpoint is a riser
-    const fromRiser = risers.find(r => r.id === fromId);
-    const toRiser = risers.find(r => r.id === toId);
-    
-    // Risers are universal connection points - always valid
-    if (fromRiser || toRiser) {
-      return { valid: true, errors, warnings };
-    }
 
     const rawFromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const rawToProduct = canvasProducts.find(cp => cp.instanceId === toId);
@@ -512,64 +487,22 @@ function AVCanvasContent() {
   const hitTestPort = (mouseX, mouseY) => {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return null;
-
+    
     let closestPort = null;
     let closestDistance = PORT_HIT_RADIUS;
-
-    // Check risers first - they accept any connection type
-    // Risers have priority and very large radius (600px in world space)
-    const riserHitRadius = 600;
-    for (const riser of risers) {
-      // Calculate screen position: canvas position + (world position + center offset) * zoom
-      const riserCenterX = canvasRect.left + (riser.position.x + 32) * zoom + pan.x;
-      const riserCenterY = canvasRect.top + (riser.position.y + 32) * zoom + pan.y;
-
-      const distance = Math.sqrt(
-        Math.pow(mouseX - riserCenterX, 2) + 
-        Math.pow(mouseY - riserCenterY, 2)
-      );
-
-      console.log('🎯 Riser hit test:', { 
-        id: riser.id, 
-        mouseScreen: { x: mouseX, y: mouseY },
-        riserScreen: { x: riserCenterX, y: riserCenterY },
-        distance, 
-        threshold: riserHitRadius, 
-        detected: distance < riserHitRadius 
-      });
-
-      if (distance < riserHitRadius) {
-        const position = {
-          x: riser.position.x + 32,
-          y: riser.position.y + 32
-        };
-        // Create a virtual port for the riser that matches any connection type
-        console.log('✅ Riser detected as target - RETURNING IMMEDIATELY');
-        return { 
-          portId: `${riser.id}:riser`, 
-          instanceId: riser.id, 
-          connectionType: 'Universal', // Special type for risers
-          portName: 'riser', 
-          isInput: false,
-          position, 
-          distance 
-        };
-      }
-    }
-
-    // Then check regular device ports
+    
     for (const [portId, portData] of portRefs.current.entries()) {
       if (!portData.element) continue;
-
+      
       const portRect = portData.element.getBoundingClientRect();
       const portCenterX = portRect.left + portRect.width / 2;
       const portCenterY = portRect.top + portRect.height / 2;
-
+      
       const distance = Math.sqrt(
         Math.pow(mouseX - portCenterX, 2) + 
         Math.pow(mouseY - portCenterY, 2)
       );
-
+      
       if (distance < closestDistance) {
         closestDistance = distance;
         const position = {
@@ -579,7 +512,7 @@ function AVCanvasContent() {
         closestPort = { portId, ...portData, position, distance };
       }
     }
-
+    
     return closestPort;
   };
 
@@ -595,13 +528,8 @@ function AVCanvasContent() {
   };
 
   const handlePortMouseDown = (instanceId, connectionType, portName, isInput, portElement) => {
-    console.log('🔌 handlePortMouseDown called:', { instanceId, connectionType, portName, isInput });
     const startPos = getPortPosition(portElement);
-    if (!startPos) {
-      console.log('❌ No start position found');
-      return;
-    }
-    console.log('📍 Start position:', startPos);
+    if (!startPos) return;
 
     const newState = {
       mode: 'connecting',
@@ -613,7 +541,6 @@ function AVCanvasContent() {
       clickY: window.event?.clientY
     };
 
-    console.log('✅ Setting connecting state:', newState);
     setConnectingState(newState);
     connectingStateRef.current = newState;
   };
@@ -633,44 +560,21 @@ function AVCanvasContent() {
     
     let validHitPort = null;
     if (hitPort) {
-      // Check if either endpoint is a riser by checking portName - risers accept all connection types
-      const fromIsRiser = currentState.fromPort.portName === 'riser';
-      const toIsRiser = hitPort.portName === 'riser';
+      const fromDevice = canvasProducts.find(cp => cp.instanceId === currentState.fromPort.instanceId);
+      const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
+      const fromIsNetworkDevice = isNetworkDevice(fromDevice);
+      const toIsNetworkDevice = isNetworkDevice(toDevice);
 
+      // Network devices with same connection type allow any direction
+      const isNetworkEthernet = currentState.fromPort.connectionType === 'Ethernet' && hitPort.connectionType === 'Ethernet' && 
+                               fromIsNetworkDevice && toIsNetworkDevice;
+      const validDirection = isNetworkEthernet || 
+                            currentState.fromPort.isInput !== hitPort.isInput;
+      const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
 
-      console.log('🔍 Port validation:', { 
-        fromIsRiser, 
-        toIsRiser, 
-        differentDevice,
-        fromType: currentState.fromPort.connectionType,
-        toType: hitPort.connectionType,
-        hitPortId: hitPort.portId
-      });
-
-      // If either is a riser, only check different device
-      if (fromIsRiser || toIsRiser) {
-        if (differentDevice) {
-          console.log('✅ Valid riser connection');
-          validHitPort = hitPort;
-        }
-      } else {
-        const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
-        // Regular device-to-device validation
-        const fromDevice = canvasProducts.find(cp => cp.instanceId === currentState.fromPort.instanceId);
-        const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
-        const fromIsNetworkDevice = isNetworkDevice(fromDevice);
-        const toIsNetworkDevice = isNetworkDevice(toDevice);
-
-        // Network devices with same connection type allow any direction
-        const isNetworkEthernet = currentState.fromPort.connectionType === 'Ethernet' && hitPort.connectionType === 'Ethernet' && 
-                                 fromIsNetworkDevice && toIsNetworkDevice;
-        const validDirection = isNetworkEthernet || 
-                              currentState.fromPort.isInput !== hitPort.isInput;
-
-        if (validDirection && sameType && differentDevice) {
-          validHitPort = hitPort;
-        }
+      if (validDirection && sameType && differentDevice) {
+        validHitPort = hitPort;
       }
     }
 
@@ -686,68 +590,47 @@ function AVCanvasContent() {
     const newState = { ...currentState, mousePos, hoveredPort: validHitPort };
     setConnectingState(newState);
     connectingStateRef.current = newState;
-  }, [zoom, pan, canvasProducts, risers]);
+  }, [zoom, pan]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
-  const currentState = connectingStateRef.current;
-  console.log('🖱️ Mouse up - connecting state:', currentState);
-  if (!currentState) return;
+    const currentState = connectingStateRef.current;
+    if (!currentState) return;
 
-  const timeDiff = Date.now() - (currentState.startTime || 0);
-  const mouseMoveDist = Math.sqrt(
-    Math.pow(e.clientX - (currentState.clickX || e.clientX), 2) +
-    Math.pow(e.clientY - (currentState.clickY || e.clientY), 2)
-  );
+    const timeDiff = Date.now() - (currentState.startTime || 0);
+    const mouseMoveDist = Math.sqrt(
+      Math.pow(e.clientX - (currentState.clickX || e.clientX), 2) +
+      Math.pow(e.clientY - (currentState.clickY || e.clientY), 2)
+    );
 
-  console.log('🖱️ Mouse up validation:', { timeDiff, mouseMoveDist, hasHoveredPort: !!currentState.hoveredPort });
+    if (timeDiff < 200 && mouseMoveDist < 10) {
+      setConnectingState(null);
+      connectingStateRef.current = null;
+      setHoveredPortId(null);
+      return;
+    }
 
-  if (timeDiff < 200 && mouseMoveDist < 10) {
-    console.log('⏭️ Ignoring - too quick/short movement');
-    setConnectingState(null);
-    connectingStateRef.current = null;
-    setHoveredPortId(null);
-    return;
-  }
-
-  if (currentState.hoveredPort) {
-    console.log('✅ Has hovered port, proceeding with connection');
+    if (currentState.hoveredPort) {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
-
-      // Check if either endpoint is a riser by checking portName - risers accept all connection types
-      const fromIsRiser = fromPort.portName === 'riser';
-      const toIsRiser = toPort.portName === 'riser';
-
+      
+      const fromDevice = canvasProducts.find(cp => cp.instanceId === fromPort.instanceId);
+      const toDevice = canvasProducts.find(cp => cp.instanceId === toPort.instanceId);
+      const fromIsNetworkDevice = isNetworkDevice(fromDevice);
+      const toIsNetworkDevice = isNetworkDevice(toDevice);
+      
+      // Network devices with same connection type allow any direction
+      const isNetworkEthernet = fromPort.connectionType === 'Ethernet' && toPort.connectionType === 'Ethernet' && 
+                               fromIsNetworkDevice && toIsNetworkDevice;
+      const validDirection = isNetworkEthernet || 
+                            fromPort.isInput !== toPort.isInput;
+      const sameType = fromPort.connectionType === toPort.connectionType;
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
-
-      // If either is a riser, only check different device
-      if (fromIsRiser || toIsRiser) {
-        if (!differentDevice) {
-          setConnectingState(null);
-          connectingStateRef.current = null;
-          setHoveredPortId(null);
-          return;
-        }
-      } else {
-        const sameType = fromPort.connectionType === toPort.connectionType;
-        // Regular device-to-device validation
-        const fromDevice = canvasProducts.find(cp => cp.instanceId === fromPort.instanceId);
-        const toDevice = canvasProducts.find(cp => cp.instanceId === toPort.instanceId);
-        const fromIsNetworkDevice = isNetworkDevice(fromDevice);
-        const toIsNetworkDevice = isNetworkDevice(toDevice);
-
-        // Network devices with same connection type allow any direction
-        const isNetworkEthernet = fromPort.connectionType === 'Ethernet' && toPort.connectionType === 'Ethernet' && 
-                                 fromIsNetworkDevice && toIsNetworkDevice;
-        const validDirection = isNetworkEthernet || 
-                              fromPort.isInput !== toPort.isInput;
-
-        if (!validDirection || !sameType || !differentDevice) {
-          setConnectingState(null);
-          connectingStateRef.current = null;
-          setHoveredPortId(null);
-          return;
-        }
+      
+      if (!validDirection || !sameType || !differentDevice) {
+        setConnectingState(null);
+        connectingStateRef.current = null;
+        setHoveredPortId(null);
+        return;
       }
 
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
@@ -766,11 +649,7 @@ function AVCanvasContent() {
         }
       }
 
-      // Use the device's connection type, not the riser's 'Universal' type
-      const connectionType = fromIsRiser ? toPort.connectionType : (toIsRiser ? fromPort.connectionType : fromPort.connectionType);
-
-      console.log('🔗 Creating pending connection:', { fromId, toId, connectionType, fromIsRiser, toIsRiser });
-      setPendingConnection({ fromId, toId, connectionType });
+      setPendingConnection({ fromId, toId, connectionType: fromPort.connectionType });
       setConnectingFrom(fromId);
       setConnectingTo(toId);
     }
@@ -778,7 +657,7 @@ function AVCanvasContent() {
     setConnectingState(null);
     connectingStateRef.current = null;
     setHoveredPortId(null);
-    }, [canvasProducts, connections, risers]);
+  }, [canvasProducts, connections]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
@@ -1064,9 +943,6 @@ function AVCanvasContent() {
   };
 
   const handleMouseDown = (e) => {
-    // Prevent default drag behavior that causes blue selection
-    e.preventDefault();
-
     // Handle middle mouse button - double-click to center/reset, single-click to pan
     if (e.button === 1) {
       e.preventDefault();
@@ -1231,8 +1107,7 @@ function AVCanvasContent() {
               connections: connections,
               rooms: rooms,
               floorplans: floorplans,
-              arrows: newArrows,
-              risers: risers
+              arrows: newArrows
             }).catch(err => console.error('Failed to save arrows:', err));
           }
         }
@@ -1255,27 +1130,6 @@ function AVCanvasContent() {
   useEffect(() => {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
-
-  // Auto-complete riser connections
-  useEffect(() => {
-    console.log('🎯 useEffect triggered:', { connectingFrom, connectingTo, pendingConnection: !!pendingConnection });
-    if (connectingFrom && connectingTo && pendingConnection) {
-      const fromRiser = risers.find(r => r.id === connectingFrom);
-      const toRiser = risers.find(r => r.id === connectingTo);
-
-      console.log('🔍 Checking for risers:', { fromRiser: !!fromRiser, toRiser: !!toRiser });
-
-      if (fromRiser || toRiser) {
-        console.log('✅ Auto-completing riser connection:', pendingConnection);
-        handleConnectionTypeSelect({
-          type: pendingConnection.connectionType,
-          fromPort: null,
-          toPort: null,
-          wireSpec: null
-        });
-      }
-    }
-  }, [connectingFrom, connectingTo, pendingConnection, risers, handleConnectionTypeSelect]);
 
   // Default port definitions by product category - fallback when database doesn't have connections
   // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
@@ -1455,15 +1309,6 @@ function AVCanvasContent() {
   // Calculates world position of a connection port on the canvas
   // Used to position connection line endpoints and determine visual port locations
   const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
-    // Check if it's a riser first
-    const riser = risers.find(r => r.id === instanceId);
-    if (riser) {
-      return {
-        x: riser.position.x + 32, // Center of 64px circle
-        y: riser.position.y + 32
-      };
-    }
-    
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!product) return null;
 
@@ -1515,20 +1360,6 @@ function AVCanvasContent() {
   // Pre-calculates all connection endpoint positions and edge sides (for visual routing)
   // Cached to avoid recalculating during every render
   const connectionPositions = connections.map((connection, index) => {
-    // Check for risers
-    const fromRiser = risers.find(r => r.id === connection.from);
-    const toRiser = risers.find(r => r.id === connection.to);
-    
-    if (fromRiser || toRiser) {
-      const fromPoint = fromRiser 
-        ? { x: fromRiser.position.x + 32, y: fromRiser.position.y + 32 }
-        : getConnectionPointPosition(connection.from, connection.type, connection.fromPort, true);
-      const toPoint = toRiser
-        ? { x: toRiser.position.x + 32, y: toRiser.position.y + 32 }
-        : getConnectionPointPosition(connection.to, connection.type, connection.toPort, false);
-      return { fromPoint, toPoint, fromEdge: 'right', toEdge: 'left' };
-    }
-    
     const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
     const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
 
@@ -1586,43 +1417,6 @@ function AVCanvasContent() {
 
     const { fromPoint, toPoint } = connectionPositions[connectionIndex] || {};
     if (fromPoint && toPoint) return { from: fromPoint, to: toPoint };
-
-    // Check for risers
-    const fromRiser = risers.find(r => r.id === fromId);
-    const toRiser = risers.find(r => r.id === toId);
-    
-    if (fromRiser && toRiser) {
-      return {
-        from: { x: fromRiser.position.x + 32, y: fromRiser.position.y + 32 },
-        to: { x: toRiser.position.x + 32, y: toRiser.position.y + 32 }
-      };
-    }
-    
-    if (fromRiser) {
-      const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
-      if (!toProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
-      const toCenter = {
-        x: toProduct.position.x + CARD_WIDTH / 2,
-        y: toProduct.position.y + CARD_HEIGHT / 2
-      };
-      return {
-        from: { x: fromRiser.position.x + 32, y: fromRiser.position.y + 32 },
-        to: { x: toCenter.x, y: toCenter.y }
-      };
-    }
-    
-    if (toRiser) {
-      const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
-      if (!fromProduct) return { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
-      const fromCenter = {
-        x: fromProduct.position.x + CARD_WIDTH / 2,
-        y: fromProduct.position.y + CARD_HEIGHT / 2
-      };
-      return {
-        from: { x: fromCenter.x, y: fromCenter.y },
-        to: { x: toRiser.position.x + 32, y: toRiser.position.y + 32 }
-      };
-    }
 
     const fromProduct = canvasProducts.find(cp => cp.instanceId === fromId);
     const toProduct = canvasProducts.find(cp => cp.instanceId === toId);
@@ -1817,8 +1611,7 @@ function AVCanvasContent() {
                             connections: connections,
                             rooms: rooms,
                             floorplans: floorplans,
-                            arrows: arrows,
-                            risers: risers
+                            arrows: arrows
                           });
                           toast.success('Project saved successfully!');
                         } catch (error) {
@@ -1893,10 +1686,6 @@ function AVCanvasContent() {
                   <DropdownMenuItem onClick={() => window.location.href = createPageUrl("WirePricing")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Link2 className="w-4 h-4 mr-2" />
                     Wire Pricing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowRiserManager(true)} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
-                    <Layers className="w-4 h-4 mr-2" />
-                    Manage Risers
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => window.location.href = createPageUrl("NetworkMapping")} className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer">
                     <Settings className="w-4 h-4 mr-2" />
@@ -1981,9 +1770,7 @@ function AVCanvasContent() {
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
-              onDragStart={(e) => e.preventDefault()}
-              onSelectStart={(e) => e.preventDefault()}
-              className={`canvas-container flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
+              className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${
                 snapshot.isDraggingOver && currentProject ? 'bg-blue-950/20' : ''
               } ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
               style={{
@@ -2007,42 +1794,6 @@ function AVCanvasContent() {
               transition: isPanning || draggingFloorplan ? 'none' : 'none',
               pointerEvents: 'auto'
             }}>
-              {/* Risers Layer */}
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: 'auto', overflow: 'visible' }}>
-                {risers.filter(r => {
-                  if (!r.floorplanId) return true;
-                  const floorplan = floorplans.find(fp => fp.id === r.floorplanId);
-                  return floorplan && floorplan.visible;
-                }).map(riser => (
-                  <CanvasRiser
-                    key={riser.id}
-                    riser={riser}
-                    onRemove={(riserId) => {
-                      setRisers(prev => prev.filter(r => r.id !== riserId));
-                      markLocalChange();
-                    }}
-                    onPositionChange={(riserId, newPos) => {
-                      setRisers(prev => prev.map(r => r.id === riserId ? { ...r, position: newPos } : r));
-                      markLocalChange();
-                    }}
-                    onClick={(riser) => {
-                      setSelectedRiser(riser);
-                      setSelectedProduct(null);
-                      setSelectedCanvasProduct(null);
-                      setSelectedConnection(null);
-                      setSelectedFloorplanId(null);
-                      handleRiserConnect(riser.id);
-                    }}
-                    isSelected={selectedRiser?.id === riser.id}
-                    zoom={zoom}
-                    registerPort={registerPort}
-                    getPortId={getPortId}
-                    onPortMouseDown={handlePortMouseDown}
-                    hoveredPortId={hoveredPortId}
-                  />
-                ))}
-              </div>
-
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
@@ -2115,8 +1866,6 @@ function AVCanvasContent() {
                       <img 
                         src={fp.url} 
                         alt={fp.name}
-                        draggable="false"
-                        onDragStart={(e) => e.preventDefault()}
                         onLoad={(e) => {
                           // Capture natural dimensions if missing
                           if (!fp.imageWidth || !fp.imageHeight) {
@@ -2252,8 +2001,8 @@ function AVCanvasContent() {
               </div>
             </div>
 
-            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible', userSelect: 'none' }}>
-              <g style={{ pointerEvents: 'none', userSelect: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+            <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
+              <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
@@ -2431,12 +2180,11 @@ function AVCanvasContent() {
                             if (markLocalChangeRef.current) markLocalChangeRef.current();
                             if (currentProject?.id) {
                               base44.entities.AVProject.update(currentProject.id, {
-                               canvas_products: canvasProducts,
-                               connections: connections,
-                               rooms: rooms,
-                               floorplans: floorplans,
-                               arrows: updated,
-                               risers: risers
+                                canvas_products: canvasProducts,
+                                connections: connections,
+                                rooms: rooms,
+                                floorplans: floorplans,
+                                arrows: updated
                               }).catch(err => console.error('Failed to save arrows:', err));
                             }
                           }
@@ -2671,55 +2419,28 @@ function AVCanvasContent() {
           />
         )}
 
-        {connectingFrom !== null && connectingTo !== null && (() => {
-          // Check if either is a riser - risers use simplified connection
-          const fromRiser = risers.find(r => r.id === connectingFrom);
-          const toRiser = risers.find(r => r.id === connectingTo);
-
-          if (fromRiser || toRiser) {
-            // Auto-create connection with the actual connection type from pending connection
-            handleConnectionTypeSelect({
-              type: pendingConnection?.connectionType || 'Ethernet',
-              fromPort: null,
-              toPort: null,
-              wireSpec: null
-            });
-            return null;
-          }
-
-          const fromProduct = canvasProducts.find(cp => cp.instanceId === connectingFrom);
-          const toProduct = canvasProducts.find(cp => cp.instanceId === connectingTo);
-
-          if (!fromProduct || !toProduct) {
-            setConnectingFrom(null);
-            setConnectingTo(null);
-            setPendingConnection(null);
-            return null;
-          }
-
-          return (
-            <ConnectionTypeDialog
-              fromProduct={{
-                ...ensureNetworkInfo(fromProduct).product,
-                instanceId: connectingFrom,
-                networkInfo: ensureNetworkInfo(fromProduct).networkInfo
-              }}
-              toProduct={{
-                ...ensureNetworkInfo(toProduct).product,
-                instanceId: connectingTo,
-                networkInfo: ensureNetworkInfo(toProduct).networkInfo
-              }}
-              existingConnections={connections}
-              pendingConnection={pendingConnection}
-              onSelect={handleConnectionTypeSelect}
-              onCancel={() => {
-                setConnectingFrom(null);
-                setConnectingTo(null);
-                setPendingConnection(null);
-              }}
-            />
-          );
-        })()}
+        {connectingFrom !== null && connectingTo !== null && (
+          <ConnectionTypeDialog
+            fromProduct={{
+              ...ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingFrom)).product,
+              instanceId: connectingFrom,
+              networkInfo: ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingFrom)).networkInfo
+            }}
+            toProduct={{
+              ...ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingTo)).product,
+              instanceId: connectingTo,
+              networkInfo: ensureNetworkInfo(canvasProducts.find(cp => cp.instanceId === connectingTo)).networkInfo
+            }}
+            existingConnections={connections}
+            pendingConnection={pendingConnection}
+            onSelect={handleConnectionTypeSelect}
+            onCancel={() => {
+              setConnectingFrom(null);
+              setConnectingTo(null);
+              setPendingConnection(null);
+            }}
+          />
+        )}
 
         {showProjectManager && (
           <ProjectManager
@@ -2728,8 +2449,6 @@ function AVCanvasContent() {
             connections={connections}
             rooms={rooms}
             floorplans={floorplans}
-            arrows={arrows}
-            risers={risers}
             onProjectLoad={handleProjectLoad}
             onClose={() => setShowProjectManager(false)}
           />
@@ -2771,22 +2490,7 @@ function AVCanvasContent() {
           />
         )}
 
-        {showRiserManager && (
-          <RiserManager
-            risers={risers}
-            floorplans={floorplans}
-            onAdd={(riser) => {
-              setRisers(prev => [...prev, riser]);
-              markLocalChange();
-            }}
-            onRemove={(riserId) => {
-              setRisers(prev => prev.filter(r => r.id !== riserId));
-              markLocalChange();
-            }}
-            onClose={() => setShowRiserManager(false)}
-            selectedFloorplanId={selectedFloorplanId}
-          />
-        )}
+
 
         {showExportDialog && (
           <ExportPDFDialog
