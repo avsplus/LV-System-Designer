@@ -1970,13 +1970,14 @@ function AVCanvasContent() {
           </div>
 
           <Droppable droppableId="canvas">
-          {(provided, snapshot) => (
-          <div
-            ref={(el) => {
-              provided.innerRef(el);
-              canvasRef.current = el;
-            }}
-            {...provided.droppableProps}
+           {(provided, snapshot) => (
+           <div
+             ref={(el) => {
+               provided.innerRef(el);
+               canvasRef.current = el;
+             }}
+             {...provided.droppableProps}
+             style={{ ...provided.droppableProps.style, background: 'transparent' }}
             onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
             onMouseDown={currentProject ? (e) => {
               if (activeTool !== 'select' && activeTool !== 'text') {
