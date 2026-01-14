@@ -2443,7 +2443,7 @@ function AVCanvasContent() {
                          }}
                          onClick={(e) => {
                            e.stopPropagation();
-                           if (activeTool === 'select' && !draggingAnnotation) {
+                           if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
                              setSelectedAnnotation(idx);
                            }
                          }}
