@@ -584,8 +584,13 @@ function AVCanvasContent() {
   };
 
   const handlePortMouseDown = (instanceId, connectionType, portName, isInput, portElement) => {
+    console.log('🔌 handlePortMouseDown called:', { instanceId, connectionType, portName, isInput });
     const startPos = getPortPosition(portElement);
-    if (!startPos) return;
+    if (!startPos) {
+      console.log('❌ No start position found');
+      return;
+    }
+    console.log('📍 Start position:', startPos);
 
     const newState = {
       mode: 'connecting',
@@ -597,6 +602,7 @@ function AVCanvasContent() {
       clickY: window.event?.clientY
     };
 
+    console.log('✅ Setting connecting state:', newState);
     setConnectingState(newState);
     connectingStateRef.current = newState;
   };
