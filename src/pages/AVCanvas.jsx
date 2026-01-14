@@ -2593,14 +2593,13 @@ function AVCanvasContent() {
                               if (canvasRect) {
                                 const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
                                 const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                annotationMouseDownRef.current = {
-                                  idx,
-                                  clientX: e.clientX,
-                                  clientY: e.clientY,
-                                  mouseWorldX,
-                                  mouseWorldY,
+                                setSelectedAnnotation(idx);
+                                setDraggingAnnotation(idx);
+                                setAnnotationDragStart({
+                                  mouseStartX: mouseWorldX,
+                                  mouseStartY: mouseWorldY,
                                   startPosition: { ...ann.position }
-                                };
+                                });
                               }
                             }
                           }}
