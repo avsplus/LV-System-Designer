@@ -2012,7 +2012,6 @@ function AVCanvasContent() {
             onDoubleClick={(e) => {
               console.log('🖱️ Canvas doubleClick - preventing selection');
               e.preventDefault();
-              e.stopPropagation();
             }}
             onClick={currentProject ? handleCanvasClick : undefined}
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
