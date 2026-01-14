@@ -67,42 +67,20 @@ const SymbolIcon = ({ id, color }) => {
   const isWAP = id.startsWith('W-');
   
   if (isWAP) {
-    // WAP symbols are circles with antenna lines
     return (
-      <svg viewBox="0 0 60 60" className="w-8 h-8">
-        {/* Circle */}
+      <svg viewBox="0 0 60 60" className="w-7 h-7">
         <circle cx="30" cy="28" r="12" fill={color} />
-        {/* Antenna lines */}
         <line x1="30" y1="12" x2="30" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round" />
         <line x1="22" y1="15" x2="18" y2="8" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
         <line x1="38" y1="15" x2="42" y2="8" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-        {/* Label */}
-        <text x="30" y="58" textAnchor="middle" fill={color} fontSize="10" fontWeight="bold">{id}</text>
       </svg>
     );
   }
 
-  // All other symbols are triangles pointing down with text inside
   return (
-    <svg viewBox="0 0 60 60" className="w-8 h-8">
-      {/* Triangle pointing down */}
+    <svg viewBox="0 0 60 60" className="w-7 h-7">
       <polygon points="30,8 48,48 12,48" fill={color} />
-      {/* Text label */}
-      {id === 'E' ? (
-        <text x="30" y="34" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold">E</text>
-      ) : id.includes('@') ? (
-        <>
-          <text x="30" y="30" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">#D</text>
-          <text x="30" y="40" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">@V</text>
-        </>
-      ) : id.includes('-') ? (
-        <>
-          <text x="30" y="28" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">{id.split('-')[0]}</text>
-          <text x="30" y="40" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">{id.split('-')[1]}</text>
-        </>
-      ) : (
-        <text x="30" y="35" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">{id}</text>
-      )}
+      <text x="30" y="35" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" textTransform="uppercase">{id.split('-').pop().slice(0, 2)}</text>
     </svg>
   );
 };
