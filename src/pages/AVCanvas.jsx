@@ -2397,11 +2397,7 @@ function AVCanvasContent() {
                           {ann.text}
                         </text>
                         {(isHovered || isSelected) && (
-                          <circle
-                            cx={ann.position.x - 15}
-                            cy={ann.position.y - 5}
-                            r="12"
-                            fill="#ef4444"
+                          <g
                             className="pointer-events-auto cursor-pointer"
                             onClick={async () => {
                               const confirmed = await confirmDialog('Delete this annotation?', {
@@ -2416,8 +2412,10 @@ function AVCanvasContent() {
                               }
                             }}
                           >
-                            <title>Delete</title>
-                          </circle>
+                            <circle cx={ann.position.x - 20} cy={ann.position.y - 10} r="16" fill="#ef4444" />
+                            <line x1={ann.position.x - 25} y1={ann.position.y - 15} x2={ann.position.x - 15} y2={ann.position.y - 5} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                            <line x1={ann.position.x - 15} y1={ann.position.y - 15} x2={ann.position.x - 25} y2={ann.position.y - 5} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                          </g>
                         )}
                       </g>
                     );
@@ -2448,11 +2446,7 @@ function AVCanvasContent() {
                           className="pointer-events-none"
                         />
                         {(isHovered || isSelected) && (
-                          <circle
-                            cx={ann.position.x + ann.width + 10}
-                            cy={ann.position.y - 10}
-                            r="12"
-                            fill="#ef4444"
+                          <g
                             className="pointer-events-auto cursor-pointer"
                             onClick={async () => {
                               const confirmed = await confirmDialog('Delete this annotation?', {
@@ -2467,8 +2461,10 @@ function AVCanvasContent() {
                               }
                             }}
                           >
-                            <title>Delete</title>
-                          </circle>
+                            <circle cx={ann.position.x + ann.width + 15} cy={ann.position.y - 15} r="16" fill="#ef4444" />
+                            <line x1={ann.position.x + ann.width + 10} y1={ann.position.y - 20} x2={ann.position.x + ann.width + 20} y2={ann.position.y - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                            <line x1={ann.position.x + ann.width + 20} y1={ann.position.y - 20} x2={ann.position.x + ann.width + 10} y2={ann.position.y - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                          </g>
                         )}
                       </g>
                     );
@@ -2497,11 +2493,7 @@ function AVCanvasContent() {
                           className="pointer-events-none"
                         />
                         {(isHovered || isSelected) && (
-                          <circle
-                            cx={ann.position.x + ann.radius + 10}
-                            cy={ann.position.y - ann.radius - 10}
-                            r="12"
-                            fill="#ef4444"
+                          <g
                             className="pointer-events-auto cursor-pointer"
                             onClick={async () => {
                               const confirmed = await confirmDialog('Delete this annotation?', {
@@ -2516,8 +2508,10 @@ function AVCanvasContent() {
                               }
                             }}
                           >
-                            <title>Delete</title>
-                          </circle>
+                            <circle cx={ann.position.x + ann.radius + 15} cy={ann.position.y - ann.radius - 15} r="16" fill="#ef4444" />
+                            <line x1={ann.position.x + ann.radius + 10} y1={ann.position.y - ann.radius - 20} x2={ann.position.x + ann.radius + 20} y2={ann.position.y - ann.radius - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                            <line x1={ann.position.x + ann.radius + 20} y1={ann.position.y - ann.radius - 20} x2={ann.position.x + ann.radius + 10} y2={ann.position.y - ann.radius - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                          </g>
                         )}
                       </g>
                     );
