@@ -1990,6 +1990,7 @@ function AVCanvasContent() {
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
               className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
+             data-canvas-background="true"
               style={{
                 backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
                   ? 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 1px, transparent 1px)' 
