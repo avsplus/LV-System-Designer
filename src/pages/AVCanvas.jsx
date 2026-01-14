@@ -2639,7 +2639,7 @@ function AVCanvasContent() {
                         )}
                       </g>
                     );
-                  } else if (ann.type === 'line') {
+                  } else if (ann.type === 'line' && ann.endPosition) {
                    return (
                      <g key={ann.id}>
                        <line
