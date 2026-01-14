@@ -1275,7 +1275,7 @@ function AVCanvasContent() {
         });
       }
     }
-  }, [connectingFrom, connectingTo, pendingConnection, risers]);
+  }, [connectingFrom, connectingTo, pendingConnection, risers, handleConnectionTypeSelect]);
 
   // Default port definitions by product category - fallback when database doesn't have connections
   // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
