@@ -1990,7 +1990,6 @@ function AVCanvasContent() {
             onMouseDown={currentProject ? (e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (canvasRef.current) canvasRef.current.setPointerCapture(e.pointerId);
               console.log('🖱️ Canvas mouseDown - adding canvas-dragging class');
               document.body.classList.add('canvas-dragging');
               document.body.style.userSelect = 'none';
