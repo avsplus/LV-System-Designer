@@ -585,9 +585,9 @@ function AVCanvasContent() {
     
     let validHitPort = null;
     if (hitPort) {
-      // Check if either endpoint is a riser - risers accept all connection types
-      const fromIsRiser = risers.some(r => r.id === currentState.fromPort.instanceId);
-      const toIsRiser = risers.some(r => r.id === hitPort.instanceId);
+      // Check if either endpoint is a riser by checking portName - risers accept all connection types
+      const fromIsRiser = currentState.fromPort.portName === 'riser';
+      const toIsRiser = hitPort.portName === 'riser';
 
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
 
@@ -651,9 +651,9 @@ function AVCanvasContent() {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
 
-      // Check if either endpoint is a riser - risers accept all connection types
-      const fromIsRiser = risers.some(r => r.id === fromPort.instanceId);
-      const toIsRiser = risers.some(r => r.id === toPort.instanceId);
+      // Check if either endpoint is a riser by checking portName - risers accept all connection types
+      const fromIsRiser = fromPort.portName === 'riser';
+      const toIsRiser = toPort.portName === 'riser';
 
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
 
