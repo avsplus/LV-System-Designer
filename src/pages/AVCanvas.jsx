@@ -2679,6 +2679,19 @@ function AVCanvasContent() {
                              }
                            }
                          }}
+                         onClick={async (e) => {
+                           e.stopPropagation();
+                           const confirmed = await confirmDialog('Delete this annotation?', {
+                             title: 'Delete Annotation',
+                             type: 'warning'
+                           });
+                           if (confirmed) {
+                             const updated = annotations.filter((_, i) => i !== idx);
+                             setAnnotations(updated);
+                             saveAnnotations(updated);
+                             setSelectedAnnotation(null);
+                           }
+                         }}
                        />
                        {(isHovered || isSelected) && (
                          <g
