@@ -30,7 +30,8 @@ export default function CanvasRiser({
 
   const handleMouseDown = (e) => {
     // Don't handle if clicking on the port circle itself
-    if (e.target === portRef.current || portRef.current?.contains(e.target)) {
+    if (e.target.closest('[data-riser-port="true"]')) {
+      console.log('🚫 Ignoring drag - port was clicked');
       return;
     }
     
