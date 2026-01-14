@@ -1989,8 +1989,11 @@ function AVCanvasContent() {
            onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
             onMouseDown={currentProject ? (e) => {
               e.preventDefault();
+              e.stopPropagation();
+              if (canvasRef.current) canvasRef.current.setPointerCapture(e.pointerId);
               console.log('🖱️ Canvas mouseDown - adding canvas-dragging class');
               document.body.classList.add('canvas-dragging');
+              document.body.style.userSelect = 'none';
               console.log('📋 Body classes:', document.body.className);
               if (activeTool !== 'select' && activeTool !== 'text') {
                 handleAnnotationMouseDown(e);
