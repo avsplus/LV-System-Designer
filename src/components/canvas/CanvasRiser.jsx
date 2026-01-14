@@ -85,13 +85,7 @@ export default function CanvasRiser({
       {/* Riser Circle - acts as connection port */}
       <div 
         ref={portRef}
-        onMouseDown={(e) => {
-          if (onPortMouseDown) {
-            e.stopPropagation();
-            onPortMouseDown(riser.id, 'Ethernet', 'riser', false, portRef.current);
-          }
-        }}
-        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all pointer-events-none ${
           hoveredPortId === getPortId?.(riser.id, 'Ethernet', 'riser', false)
             ? 'bg-green-500 border-4 border-green-300 shadow-lg shadow-green-500/50'
             : isSelected 
