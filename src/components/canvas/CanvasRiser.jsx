@@ -85,7 +85,7 @@ export default function CanvasRiser({
       {/* Riser Circle - acts as connection port */}
       <div 
         ref={portRef}
-        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all pointer-events-none ${
+        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
           hoveredPortId === getPortId?.(riser.id, 'Ethernet', 'riser', false)
             ? 'bg-green-500 border-4 border-green-300 shadow-lg shadow-green-500/50'
             : isSelected 
@@ -93,7 +93,7 @@ export default function CanvasRiser({
             : 'bg-purple-500 border-3 border-purple-300 hover:bg-purple-600 hover:shadow-lg'
         }`}
       >
-        <span className="text-white font-bold text-lg">{riser.label}</span>
+        <span className="text-white font-bold text-lg pointer-events-none">{riser.label}</span>
       </div>
 
       {/* Label below */}
