@@ -689,23 +689,28 @@ function AVCanvasContent() {
   }, [zoom, pan, canvasProducts, risers]);
 
   const handleGlobalMouseUp = React.useCallback((e) => {
-    const currentState = connectingStateRef.current;
-    if (!currentState) return;
+  const currentState = connectingStateRef.current;
+  console.log('🖱️ Mouse up - connecting state:', currentState);
+  if (!currentState) return;
 
-    const timeDiff = Date.now() - (currentState.startTime || 0);
-    const mouseMoveDist = Math.sqrt(
-      Math.pow(e.clientX - (currentState.clickX || e.clientX), 2) +
-      Math.pow(e.clientY - (currentState.clickY || e.clientY), 2)
-    );
+  const timeDiff = Date.now() - (currentState.startTime || 0);
+  const mouseMoveDist = Math.sqrt(
+    Math.pow(e.clientX - (currentState.clickX || e.clientX), 2) +
+    Math.pow(e.clientY - (currentState.clickY || e.clientY), 2)
+  );
 
-    if (timeDiff < 200 && mouseMoveDist < 10) {
-      setConnectingState(null);
-      connectingStateRef.current = null;
-      setHoveredPortId(null);
-      return;
-    }
+  console.log('🖱️ Mouse up validation:', { timeDiff, mouseMoveDist, hasHoveredPort: !!currentState.hoveredPort });
 
-    if (currentState.hoveredPort) {
+  if (timeDiff < 200 && mouseMoveDist < 10) {
+    console.log('⏭️ Ignoring - too quick/short movement');
+    setConnectingState(null);
+    connectingStateRef.current = null;
+    setHoveredPortId(null);
+    return;
+  }
+
+  if (currentState.hoveredPort) {
+    console.log('✅ Has hovered port, proceeding with connection');
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
 
