@@ -1232,6 +1232,7 @@ function AVCanvasContent() {
         saveAnnotations(annotations);
         setDraggingAnnotation(null);
         setAnnotationDragStart(null);
+        setSelectedAnnotation(null);
         return;
       }
 
