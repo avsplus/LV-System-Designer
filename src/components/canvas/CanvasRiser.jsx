@@ -29,6 +29,11 @@ export default function CanvasRiser({
   }, [riser.id, registerPort, getPortId]);
 
   const handleMouseDown = (e) => {
+    // Don't handle if clicking on the port circle itself
+    if (e.target === portRef.current || portRef.current?.contains(e.target)) {
+      return;
+    }
+    
     if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
