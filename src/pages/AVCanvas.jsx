@@ -517,8 +517,8 @@ function AVCanvasContent() {
     let closestDistance = PORT_HIT_RADIUS;
 
     // Check risers first - they accept any connection type
-    // Risers use a large radius for easy targeting (150px in world space)
-    const riserHitRadius = 150 * zoom;
+    // Risers use a very large radius for easy targeting (400px in world space)
+    const riserHitRadius = 400 * zoom;
     for (const riser of risers) {
       // Calculate screen position: canvas position + (world position + center offset) * zoom
       const riserCenterX = canvasRect.left + (riser.position.x + 32) * zoom + pan.x;
