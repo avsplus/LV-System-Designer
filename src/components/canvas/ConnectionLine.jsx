@@ -178,7 +178,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
        <path
         d={pathData}
         stroke="transparent"
-        strokeWidth="20"
+        strokeWidth="40"
         fill="none"
         className="cursor-pointer"
         onClick={onClick}
