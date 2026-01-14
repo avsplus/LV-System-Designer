@@ -126,6 +126,7 @@ function AVCanvasContent() {
   const [draggingAnnotation, setDraggingAnnotation] = useState(null);
   const [annotationDragStart, setAnnotationDragStart] = useState(null);
   const annotationMouseDownRef = useRef(null);
+  const annotationJustDraggedRef = useRef(false);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
