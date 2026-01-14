@@ -1038,7 +1038,8 @@ function AVCanvasContent() {
                         e.target.tagName === 'svg' || 
                         e.target.getAttribute('data-canvas-background') === 'true';
     
-    if (isEmptySpace && !draggingFloorplan) {
+    // Don't start panning if we might be dragging an annotation
+    if (isEmptySpace && !draggingFloorplan && !annotationMouseDownRef.current) {
       handlePanStart(e, canvasRef.current);
     }
   };
