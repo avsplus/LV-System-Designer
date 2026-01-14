@@ -275,10 +275,18 @@ export default function ProductSidebar({ products, onProductSelect }) {
   );
 
   const toggleCategory = (category) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
+    setExpandedCategories(prev => {
+      const newState = { ...prev };
+      // Close all other subcategories
+      Object.keys(prev).forEach(key => {
+        if (!key.startsWith('master-') && key !== category) {
+          newState[key] = false;
+        }
+      });
+      // Toggle the clicked subcategory
+      newState[category] = !prev[category];
+      return newState;
+    });
     // Mark category as viewed and update the stored count when clicked
     setViewedCategories(prev => ({
       ...prev,
