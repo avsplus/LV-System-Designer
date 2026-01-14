@@ -3065,6 +3065,16 @@ function AVCanvasContent() {
           />
         )}
 
+        {!selectedConnection && !selectedCanvasProduct && !selectedProduct && selectedAnnotation !== null && (
+          <AnnotationDetailsPanel
+            annotation={annotations[selectedAnnotation]}
+            index={selectedAnnotation}
+            onClose={() => setSelectedAnnotation(null)}
+            onUpdate={handleUpdateAnnotation}
+            onDelete={handleDeleteAnnotation}
+          />
+        )}
+
         {connectingFrom !== null && connectingTo !== null && (
           <ConnectionTypeDialog
             fromProduct={{
