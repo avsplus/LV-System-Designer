@@ -1256,6 +1256,24 @@ function AVCanvasContent() {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
 
+  // Auto-complete riser connections
+  useEffect(() => {
+    if (connectingFrom && connectingTo && pendingConnection) {
+      const fromRiser = risers.find(r => r.id === connectingFrom);
+      const toRiser = risers.find(r => r.id === connectingTo);
+
+      if (fromRiser || toRiser) {
+        console.log('🔗 Auto-completing riser connection:', pendingConnection);
+        handleConnectionTypeSelect({
+          type: pendingConnection.connectionType,
+          fromPort: null,
+          toPort: null,
+          wireSpec: null
+        });
+      }
+    }
+  }, [connectingFrom, connectingTo, pendingConnection, risers]);
+
   // Default port definitions by product category - fallback when database doesn't have connections
   // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
   const connectionsByCategory = {
