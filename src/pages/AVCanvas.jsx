@@ -2589,9 +2589,9 @@ function AVCanvasContent() {
           const toRiser = risers.find(r => r.id === connectingTo);
 
           if (fromRiser || toRiser) {
-            // Auto-create connection with default type immediately
+            // Auto-create connection with the actual connection type from pending connection
             handleConnectionTypeSelect({
-              type: 'Ethernet',
+              type: pendingConnection?.connectionType || 'Ethernet',
               fromPort: null,
               toPort: null,
               wireSpec: null
