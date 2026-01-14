@@ -2658,38 +2658,22 @@ function AVCanvasContent() {
                          y2={ann.endPosition.y}
                          stroke="transparent"
                          strokeWidth="40"
-                         className="pointer-events-auto cursor-move"
+                         className="pointer-events-auto cursor-pointer"
                          onMouseEnter={() => setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
-                         onMouseDown={(e) => {
+                         onClick={async (e) => {
                            if (activeTool === 'select') {
                              e.stopPropagation();
-                             const canvasRect = canvasRef.current?.getBoundingClientRect();
-                             if (canvasRect) {
-                               const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-                               const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                               annotationMouseDownRef.current = {
-                                 idx,
-                                 clientX: e.clientX,
-                                 clientY: e.clientY,
-                                 mouseWorldX,
-                                 mouseWorldY,
-                                 startPosition: { ...ann.position }
-                               };
+                             const confirmed = await confirmDialog('Delete this annotation?', {
+                               title: 'Delete Annotation',
+                               type: 'warning'
+                             });
+                             if (confirmed) {
+                               const updated = annotations.filter((_, i) => i !== idx);
+                               setAnnotations(updated);
+                               saveAnnotations(updated);
+                               setSelectedAnnotation(null);
                              }
-                           }
-                         }}
-                         onClick={async (e) => {
-                           e.stopPropagation();
-                           const confirmed = await confirmDialog('Delete this annotation?', {
-                             title: 'Delete Annotation',
-                             type: 'warning'
-                           });
-                           if (confirmed) {
-                             const updated = annotations.filter((_, i) => i !== idx);
-                             setAnnotations(updated);
-                             saveAnnotations(updated);
-                             setSelectedAnnotation(null);
                            }
                          }}
                        />
