@@ -585,21 +585,34 @@ function AVCanvasContent() {
     
     let validHitPort = null;
     if (hitPort) {
-      const fromDevice = canvasProducts.find(cp => cp.instanceId === currentState.fromPort.instanceId);
-      const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
-      const fromIsNetworkDevice = isNetworkDevice(fromDevice);
-      const toIsNetworkDevice = isNetworkDevice(toDevice);
+      // Check if either endpoint is a riser - risers are always valid endpoints
+      const fromIsRiser = risers.some(r => r.id === currentState.fromPort.instanceId);
+      const toIsRiser = risers.some(r => r.id === hitPort.instanceId);
 
-      // Network devices with same connection type allow any direction
-      const isNetworkEthernet = currentState.fromPort.connectionType === 'Ethernet' && hitPort.connectionType === 'Ethernet' && 
-                               fromIsNetworkDevice && toIsNetworkDevice;
-      const validDirection = isNetworkEthernet || 
-                            currentState.fromPort.isInput !== hitPort.isInput;
       const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
 
-      if (validDirection && sameType && differentDevice) {
-        validHitPort = hitPort;
+      // If either is a riser, only check type and different device
+      if (fromIsRiser || toIsRiser) {
+        if (sameType && differentDevice) {
+          validHitPort = hitPort;
+        }
+      } else {
+        // Regular device-to-device validation
+        const fromDevice = canvasProducts.find(cp => cp.instanceId === currentState.fromPort.instanceId);
+        const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
+        const fromIsNetworkDevice = isNetworkDevice(fromDevice);
+        const toIsNetworkDevice = isNetworkDevice(toDevice);
+
+        // Network devices with same connection type allow any direction
+        const isNetworkEthernet = currentState.fromPort.connectionType === 'Ethernet' && hitPort.connectionType === 'Ethernet' && 
+                                 fromIsNetworkDevice && toIsNetworkDevice;
+        const validDirection = isNetworkEthernet || 
+                              currentState.fromPort.isInput !== hitPort.isInput;
+
+        if (validDirection && sameType && differentDevice) {
+          validHitPort = hitPort;
+        }
       }
     }
 
@@ -637,25 +650,41 @@ function AVCanvasContent() {
     if (currentState.hoveredPort) {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
-      
-      const fromDevice = canvasProducts.find(cp => cp.instanceId === fromPort.instanceId);
-      const toDevice = canvasProducts.find(cp => cp.instanceId === toPort.instanceId);
-      const fromIsNetworkDevice = isNetworkDevice(fromDevice);
-      const toIsNetworkDevice = isNetworkDevice(toDevice);
-      
-      // Network devices with same connection type allow any direction
-      const isNetworkEthernet = fromPort.connectionType === 'Ethernet' && toPort.connectionType === 'Ethernet' && 
-                               fromIsNetworkDevice && toIsNetworkDevice;
-      const validDirection = isNetworkEthernet || 
-                            fromPort.isInput !== toPort.isInput;
+
+      // Check if either endpoint is a riser - risers are always valid endpoints
+      const fromIsRiser = risers.some(r => r.id === fromPort.instanceId);
+      const toIsRiser = risers.some(r => r.id === toPort.instanceId);
+
       const sameType = fromPort.connectionType === toPort.connectionType;
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
-      
-      if (!validDirection || !sameType || !differentDevice) {
-        setConnectingState(null);
-        connectingStateRef.current = null;
-        setHoveredPortId(null);
-        return;
+
+      // If either is a riser, only check type and different device
+      if (fromIsRiser || toIsRiser) {
+        if (!sameType || !differentDevice) {
+          setConnectingState(null);
+          connectingStateRef.current = null;
+          setHoveredPortId(null);
+          return;
+        }
+      } else {
+        // Regular device-to-device validation
+        const fromDevice = canvasProducts.find(cp => cp.instanceId === fromPort.instanceId);
+        const toDevice = canvasProducts.find(cp => cp.instanceId === toPort.instanceId);
+        const fromIsNetworkDevice = isNetworkDevice(fromDevice);
+        const toIsNetworkDevice = isNetworkDevice(toDevice);
+
+        // Network devices with same connection type allow any direction
+        const isNetworkEthernet = fromPort.connectionType === 'Ethernet' && toPort.connectionType === 'Ethernet' && 
+                                 fromIsNetworkDevice && toIsNetworkDevice;
+        const validDirection = isNetworkEthernet || 
+                              fromPort.isInput !== toPort.isInput;
+
+        if (!validDirection || !sameType || !differentDevice) {
+          setConnectingState(null);
+          connectingStateRef.current = null;
+          setHoveredPortId(null);
+          return;
+        }
       }
 
       const fromId = fromPort.isInput ? toPort.instanceId : fromPort.instanceId;
