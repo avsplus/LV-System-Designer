@@ -3,63 +3,37 @@ import { Button } from "@/components/ui/button";
 
 const SYMBOL_CATEGORIES = {
   'Audio/Video': [
-    { id: 'AV-LS', label: 'Loudspeaker', color: '#f97316' },
-    { id: 'AV-DM', label: 'Display Monitor', color: '#f97316' },
-    { id: 'AV-VC', label: 'Video Camera', color: '#f97316' },
-    { id: 'AV-PS', label: 'Projection Screen', color: '#f97316' },
-    { id: 'AV-RC', label: 'Remote AV Control', color: '#f97316' },
-    { id: 'AV-WB', label: 'White Board', color: '#f97316' },
-    { id: 'AV-MIC', label: 'Microphone', color: '#f97316' }
+    { id: 'AV-SP', label: 'Speaker', color: '#f97316' },
+    { id: 'AV-TV', label: 'Television', color: '#f97316' },
+    { id: 'AV-PS', label: 'Projector Screen', color: '#f97316' },
+    { id: 'AV-AVO', label: 'AV Outlet', color: '#f97316' }
   ],
   'Communications': [
-    { id: 'COMM-PP', label: 'Phone Port', color: '#06b6d4' },
-    { id: 'COMM-DP', label: 'Data Port', color: '#06b6d4' },
-    { id: 'COMM-PDP', label: 'Phone and Data Port', color: '#06b6d4' },
-    { id: 'COMM-TP', label: 'Touch Pad', color: '#06b6d4' },
-    { id: 'COMM-CLK', label: 'Clock', color: '#06b6d4' },
-    { id: 'COMM-IS', label: 'Intercom Station', color: '#06b6d4' },
-    { id: 'COMM-KB', label: 'Keyboard', color: '#06b6d4' }
-  ],
-  'Security': [
-    { id: 'SEC-KP', label: 'Keypad', color: '#ef4444' },
-    { id: 'SEC-CP', label: 'Control Panel', color: '#ef4444' },
-    { id: 'SEC-FC', label: 'Fire Control', color: '#ef4444' },
-    { id: 'SEC-CS', label: 'Contact Switch', color: '#ef4444' },
-    { id: 'SEC-VC', label: 'Video Camera', color: '#ef4444' },
-    { id: 'SEC-AD', label: 'Audio Device', color: '#ef4444' },
-    { id: 'SEC-DET', label: 'Detector', color: '#ef4444' }
-  ],
-  'Environmental': [
-    { id: 'ENV-THERM', label: 'Thermostat', color: '#3b82f6' },
-    { id: 'ENV-HUM', label: 'Humidistat', color: '#3b82f6' },
-    { id: 'ENV-TH', label: 'Temp/Humidity', color: '#3b82f6' },
-    { id: 'ENV-TS', label: 'Temperature Sensor', color: '#3b82f6' },
-    { id: 'ENV-HS', label: 'Humidity Sensor', color: '#3b82f6' },
-    { id: 'ENV-MISC', label: 'Miscellaneous', color: '#3b82f6' }
-  ],
-  'Control': [
-    { id: 'CTRL-KP', label: 'Keypad', color: '#a855f7' },
-    { id: 'CTRL-TP', label: 'Touch Panel', color: '#a855f7' },
-    { id: 'CTRL-VOL', label: 'Volume Control', color: '#a855f7' },
-    { id: 'CTRL-JOY', label: 'Joystick', color: '#a855f7' },
-    { id: 'CTRL-BTN', label: 'Button', color: '#a855f7' },
-    { id: 'CTRL-SW', label: 'Control Switch', color: '#a855f7' }
-  ],
-  'Electrical': [
-    { id: 'ELEC-SW', label: 'Switch', color: '#8b5cf6' },
-    { id: 'ELEC-RECEPT', label: 'Receptacle', color: '#8b5cf6' },
-    { id: 'ELEC-BATT', label: 'Battery', color: '#8b5cf6' },
-    { id: 'ELEC-SURGE', label: 'Surge Protector', color: '#8b5cf6' },
-    { id: 'ELEC-INVERTER', label: 'Inverter', color: '#8b5cf6' },
-    { id: 'ELEC-CHARGER', label: 'Charger Controller', color: '#8b5cf6' }
+    { id: 'COMM-PO', label: 'Phone Outlet', color: '#06b6d4' },
+    { id: 'COMM-IC', label: 'Intercom', color: '#06b6d4' },
+    { id: 'COMM-DV', label: 'Data & VoIP', color: '#06b6d4' }
   ],
   'Network': [
-    { id: 'W-6A', label: 'WAP Cat6A', color: '#8b5cf6' },
-    { id: 'W-6', label: 'WAP Cat6', color: '#8b5cf6' },
-    { id: '#D', label: 'Data Outlet', color: '#3b82f6' },
-    { id: '#D@V', label: 'Data + VoIP', color: '#3b82f6' },
-    { id: '#D-AV', label: 'AV Outlet', color: '#3b82f6' },
-    { id: '#D-C', label: 'Camera Outlet', color: '#3b82f6' }
+    { id: 'NET-WAP', label: 'Wireless AP', color: '#8b5cf6' },
+    { id: 'NET-DO', label: 'Data Outlet', color: '#3b82f6' },
+    { id: 'NET-PO', label: 'Phone Outlet', color: '#3b82f6' },
+    { id: 'NET-DP', label: 'Data & Phone', color: '#3b82f6' }
+  ],
+  'Control': [
+    { id: 'CTRL-WTP', label: 'Wall TP', color: '#a855f7' },
+    { id: 'CTRL-KP', label: 'Keypad', color: '#a855f7' },
+    { id: 'CTRL-VC', label: 'Volume Ctr', color: '#a855f7' },
+    { id: 'CTRL-TTP', label: 'Tabletop TP', color: '#a855f7' }
+  ],
+  'Surveillance': [
+    { id: 'SURV-DOME', label: 'Dome', color: '#ef4444' },
+    { id: 'SURV-BULLET', label: 'Bullet', color: '#ef4444' },
+    { id: 'SURV-TURRET', label: 'Turret', color: '#ef4444' }
+  ],
+  'Electrical': [
+    { id: 'ELEC-1G', label: '1 Gang Outlet', color: '#8b5cf6' },
+    { id: 'ELEC-2G', label: '2 Gang Outlet', color: '#8b5cf6' },
+    { id: 'ELEC-DL', label: 'Dedicated Line', color: '#8b5cf6' }
   ]
 };
 
