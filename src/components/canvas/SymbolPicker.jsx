@@ -86,22 +86,44 @@ const SymbolIcon = ({ id, color }) => {
 };
 
 export default function SymbolPicker({ onSelect, onClose }) {
+  const [activeCategory, setActiveCategory] = useState(Object.keys(SYMBOL_CATEGORIES)[0]);
+  const symbols = SYMBOL_CATEGORIES[activeCategory];
+
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-3 w-80">
       <label className="text-xs font-medium text-gray-400 block">Insert Symbol</label>
-      <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-        {SYMBOLS.map(symbol => (
+      
+      {/* Category tabs */}
+      <div className="flex flex-wrap gap-2">
+        {Object.keys(SYMBOL_CATEGORIES).map(category => (
+          <button
+            key={category}
+            onClick={() => setActiveCategory(category)}
+            className={`text-xs px-2 py-1 rounded transition-colors ${
+              activeCategory === category
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {/* Symbols grid */}
+      <div className="grid grid-cols-4 gap-2 max-h-72 overflow-y-auto">
+        {symbols.map(symbol => (
           <Button
             key={symbol.id}
             onClick={() => {
               onSelect(symbol.id);
               onClose();
             }}
-            className="h-auto flex flex-col items-center justify-center p-3 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 text-gray-200 transition-all"
+            className="h-auto flex flex-col items-center justify-center p-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 text-gray-200 transition-all"
             title={symbol.label}
           >
             <SymbolIcon id={symbol.id} color={symbol.color} />
-            <span className="text-xs font-medium text-center mt-1">{symbol.label}</span>
+            <span className="text-[10px] font-medium text-center mt-1 line-clamp-2">{symbol.label}</span>
           </Button>
         ))}
       </div>
