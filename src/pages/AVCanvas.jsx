@@ -1084,7 +1084,9 @@ function AVCanvasContent() {
                          !e.target.closest('path') && 
                          !e.target.closest('circle') &&
                          !e.target.closest('text') &&
-                         !e.target.closest('rect'));
+                         !e.target.closest('rect') &&
+                         !e.target.closest('polygon') &&
+                         !e.target.closest('g[class*="cursor-move"]'));
 
     if (isEmptySpace) {
       setSelectedProduct(null);
