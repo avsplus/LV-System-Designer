@@ -1260,17 +1260,21 @@ function AVCanvasContent() {
         saveAnnotations(annotations);
         setDraggingAnnotation(null);
         setAnnotationDragStart(null);
-        setSelectedAnnotation(null);
+        annotationJustDraggedRef.current = false;
         annotationMouseDownRef.current = null;
         return;
       }
       
-      // Clear mousedown ref only if we didn't drag
-      if (annotationMouseDownRef.current !== null && draggingAnnotation === null) {
+      // Select annotation only if we didn't drag
+      if (annotationMouseDownRef.current !== null && !annotationJustDraggedRef.current) {
         setSelectedAnnotation(annotationMouseDownRef.current.idx);
         annotationMouseDownRef.current = null;
         return;
       }
+      
+      // Clear drag state
+      annotationJustDraggedRef.current = false;
+      annotationMouseDownRef.current = null;
 
       // Complete arrow drawing
       if (drawingArrow) {
