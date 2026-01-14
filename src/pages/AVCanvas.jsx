@@ -2874,8 +2874,10 @@ function AVCanvasContent() {
                          return null;
                          })}
 
+                {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
+
                 {/* Drawing annotation preview */}
-                {drawingAnnotation && (
+                {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (
                   <g>
                     {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && (
                       <rect
