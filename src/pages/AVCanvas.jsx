@@ -2475,6 +2475,7 @@ function AVCanvasContent() {
                              if (canvasRect) {
                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                               setSelectedAnnotation(idx);
                                setDraggingAnnotation(idx);
                                setAnnotationDragStart({
                                  mouseStartX: mouseWorldX,
@@ -2482,12 +2483,6 @@ function AVCanvasContent() {
                                  startPosition: { ...ann.position }
                                });
                              }
-                           }
-                         }}
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
-                             setSelectedAnnotation(idx);
                            }
                          }}
                          onDoubleClick={() => setEditingText(ann.id)}
