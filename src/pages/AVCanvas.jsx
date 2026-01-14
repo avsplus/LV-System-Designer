@@ -2704,7 +2704,9 @@ function AVCanvasContent() {
                        {(isHovered || isSelected) && (
                          <g
                            className="pointer-events-auto cursor-pointer"
-                           onClick={async () => {
+                           style={{ pointerEvents: 'auto' }}
+                           onClick={async (e) => {
+                             e.stopPropagation();
                              const confirmed = await confirmDialog('Delete this annotation?', {
                                title: 'Delete Annotation',
                                type: 'warning'
@@ -2717,9 +2719,9 @@ function AVCanvasContent() {
                              }
                            }}
                          >
-                           <circle cx={ann.endPosition.x + 15} cy={ann.endPosition.y - 15} r="16" fill="#ef4444" />
-                           <line x1={ann.endPosition.x + 10} y1={ann.endPosition.y - 20} x2={ann.endPosition.x + 20} y2={ann.endPosition.y - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                           <line x1={ann.endPosition.x + 20} y1={ann.endPosition.y - 20} x2={ann.endPosition.x + 10} y2={ann.endPosition.y - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                           <circle cx={ann.endPosition.x + 15} cy={ann.endPosition.y - 15} r="16" fill="#ef4444" style={{ pointerEvents: 'auto' }} />
+                           <line x1={ann.endPosition.x + 10} y1={ann.endPosition.y - 20} x2={ann.endPosition.x + 20} y2={ann.endPosition.y - 10} stroke="white" strokeWidth="3" strokeLinecap="round" style={{ pointerEvents: 'auto' }} />
+                           <line x1={ann.endPosition.x + 20} y1={ann.endPosition.y - 20} x2={ann.endPosition.x + 10} y2={ann.endPosition.y - 10} stroke="white" strokeWidth="3" strokeLinecap="round" style={{ pointerEvents: 'auto' }} />
                          </g>
                        )}
                          </g>
