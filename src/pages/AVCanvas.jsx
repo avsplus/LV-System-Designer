@@ -1201,16 +1201,24 @@ function AVCanvasContent() {
           const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
           const dx = mouseWorldX - annotationDragStart.mouseStartX;
           const dy = mouseWorldY - annotationDragStart.mouseStartY;
-          
+
           setAnnotations(prev => prev.map((ann, idx) => {
             if (idx !== draggingAnnotation) return ann;
-            return {
+            const updated = {
               ...ann,
               position: {
                 x: annotationDragStart.startPosition.x + dx,
                 y: annotationDragStart.startPosition.y + dy
               }
             };
+            // For lines, also move the end position
+            if (ann.type === 'line' && annotationDragStart.startPosition.endPosition) {
+              updated.endPosition = {
+                x: annotationDragStart.startPosition.endPosition.x + dx,
+                y: annotationDragStart.startPosition.endPosition.y + dy
+              };
+            }
+            return updated;
           }));
         }
         return;
