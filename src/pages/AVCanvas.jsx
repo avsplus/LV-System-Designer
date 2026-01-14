@@ -1970,7 +1970,7 @@ function AVCanvasContent() {
               pointerEvents: 'auto'
             }}>
               {/* Risers Layer */}
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: 'none', overflow: 'visible' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: 'auto', overflow: 'visible' }}>
                 {risers.filter(r => {
                   if (!r.floorplanId) return true;
                   const floorplan = floorplans.find(fp => fp.id === r.floorplanId);
