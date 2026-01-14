@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Type, Square, Circle, Minus, MousePointer } from "lucide-react";
+import { Type, Square, Circle, Minus, MousePointer, Grid3x3 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
