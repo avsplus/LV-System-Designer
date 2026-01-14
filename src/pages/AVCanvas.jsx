@@ -2424,6 +2424,18 @@ function AVCanvasContent() {
                   } else if (ann.type === 'rectangle') {
                     return (
                       <g key={ann.id}>
+                        {/* Invisible larger hit area */}
+                        <rect
+                          x={ann.position.x - 10}
+                          y={ann.position.y - 10}
+                          width={ann.width + 20}
+                          height={ann.height + 20}
+                          fill="transparent"
+                          className="pointer-events-auto cursor-pointer"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                        />
                         <rect
                           x={ann.position.x}
                           y={ann.position.y}
@@ -2433,10 +2445,7 @@ function AVCanvasContent() {
                           strokeWidth={ann.strokeWidth}
                           fill={ann.fill ? ann.color : 'none'}
                           fillOpacity={ann.fill ? 0.3 : 0}
-                          className="pointer-events-auto cursor-pointer"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                          className="pointer-events-none"
                         />
                         {(isHovered || isSelected) && (
                           <circle
@@ -2466,6 +2475,17 @@ function AVCanvasContent() {
                   } else if (ann.type === 'circle') {
                     return (
                       <g key={ann.id}>
+                        {/* Invisible larger hit area */}
+                        <circle
+                          cx={ann.position.x}
+                          cy={ann.position.y}
+                          r={ann.radius + 10}
+                          fill="transparent"
+                          className="pointer-events-auto cursor-pointer"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                        />
                         <circle
                           cx={ann.position.x}
                           cy={ann.position.y}
@@ -2474,10 +2494,7 @@ function AVCanvasContent() {
                           strokeWidth={ann.strokeWidth}
                           fill={ann.fill ? ann.color : 'none'}
                           fillOpacity={ann.fill ? 0.3 : 0}
-                          className="pointer-events-auto cursor-pointer"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                          className="pointer-events-none"
                         />
                         {(isHovered || isSelected) && (
                           <circle
@@ -2522,7 +2539,7 @@ function AVCanvasContent() {
                           x2={ann.endPosition.x}
                           y2={ann.endPosition.y}
                           stroke="transparent"
-                          strokeWidth="20"
+                          strokeWidth="40"
                           className="pointer-events-auto cursor-pointer"
                           onMouseEnter={() => setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
