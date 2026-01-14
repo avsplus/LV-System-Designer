@@ -2655,22 +2655,18 @@ function AVCanvasContent() {
                              if (canvasRect) {
                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                               setDraggingAnnotation(idx);
-                               setAnnotationDragStart({
-                                 mouseStartX: mouseWorldX,
-                                 mouseStartY: mouseWorldY,
+                               annotationMouseDownRef.current = {
+                                 idx,
+                                 clientX: e.clientX,
+                                 clientY: e.clientY,
+                                 mouseWorldX,
+                                 mouseWorldY,
                                  startPosition: { ...ann.position }
-                               });
+                               };
                              }
                            }
                          }}
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
-                             setSelectedAnnotation(idx);
-                           }
-                         }}
-                         />
+                       />
                          </g>
                          );
                          }
