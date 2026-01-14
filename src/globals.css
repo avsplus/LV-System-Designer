@@ -30,7 +30,13 @@ css
 
 /* Disable text selection while dragging on canvas */
 body.canvas-dragging {
-  user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Also apply to all children */
+body.canvas-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
