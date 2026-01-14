@@ -31,6 +31,7 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
+import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
@@ -112,6 +113,16 @@ function AVCanvasContent() {
   const [arrows, setArrows] = useState([]);
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
+  const [annotations, setAnnotations] = useState([]);
+  const [activeTool, setActiveTool] = useState('select');
+  const [drawingAnnotation, setDrawingAnnotation] = useState(null);
+  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
+  const [hoveredAnnotation, setHoveredAnnotation] = useState(null);
+  const [annotationColor, setAnnotationColor] = useState('#3b82f6');
+  const [annotationStrokeWidth, setAnnotationStrokeWidth] = useState(2);
+  const [annotationFill, setAnnotationFill] = useState(false);
+  const [annotationFontSize, setAnnotationFontSize] = useState(16);
+  const [editingText, setEditingText] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -250,6 +261,7 @@ function AVCanvasContent() {
     setCurrentProject(project);
     loadProject(project);
     setArrows(project.arrows || []);
+    setAnnotations(project.annotations || []);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
@@ -1029,6 +1041,28 @@ function AVCanvasContent() {
   };
 
   const handleCanvasClick = (e) => {
+    // Handle text tool click
+    if (activeTool === 'text' && currentProject) {
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (canvasRect) {
+        const x = (e.clientX - canvasRect.left - pan.x) / zoom;
+        const y = (e.clientY - canvasRect.top - pan.y) / zoom;
+        const newAnnotation = {
+          id: Date.now().toString(),
+          type: 'text',
+          position: { x, y },
+          text: 'Text',
+          color: annotationColor,
+          fontSize: annotationFontSize
+        };
+        setEditingText(newAnnotation.id);
+        const updated = [...annotations, newAnnotation];
+        setAnnotations(updated);
+        saveAnnotations(updated);
+      }
+      return;
+    }
+    
     // Only trigger if clicking directly on the canvas background, not on products/connections
     const isEmptySpace = e.target === e.currentTarget || 
                         e.target.tagName === 'svg' || 
@@ -1036,7 +1070,9 @@ function AVCanvasContent() {
                         (!e.target.closest('[data-instance-id]') && 
                          !e.target.closest('[data-floorplan]') && 
                          !e.target.closest('path') && 
-                         !e.target.closest('circle'));
+                         !e.target.closest('circle') &&
+                         !e.target.closest('text') &&
+                         !e.target.closest('rect'));
 
     if (isEmptySpace) {
       setSelectedProduct(null);
@@ -1047,6 +1083,8 @@ function AVCanvasContent() {
       setShowFloorplanManager(false);
       setShowRoomManager(false);
       setSelectedFloorplanId(null);
+      setSelectedAnnotation(null);
+      setEditingText(null);
     }
   };
 
@@ -1067,6 +1105,46 @@ function AVCanvasContent() {
     handlePinchEnd();
   };
 
+  const saveAnnotations = (annotationsToSave) => {
+    if (markLocalChangeRef.current) markLocalChangeRef.current();
+    if (currentProject?.id) {
+      base44.entities.AVProject.update(currentProject.id, {
+        canvas_products: canvasProducts,
+        connections: connections,
+        rooms: rooms,
+        floorplans: floorplans,
+        arrows: arrows,
+        annotations: annotationsToSave
+      }).catch(err => console.error('Failed to save annotations:', err));
+    }
+  };
+
+  const handleAnnotationMouseDown = (e) => {
+    if (activeTool === 'select' || !currentProject) return;
+    
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+
+    const x = (e.clientX - canvasRect.left - pan.x) / zoom;
+    const y = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+    const newAnnotation = {
+      id: Date.now().toString(),
+      type: activeTool,
+      position: { x, y },
+      color: annotationColor,
+      strokeWidth: annotationStrokeWidth,
+      fill: annotationFill
+    };
+
+    if (activeTool === 'text') {
+      newAnnotation.text = 'Text';
+      newAnnotation.fontSize = annotationFontSize;
+    }
+
+    setDrawingAnnotation(newAnnotation);
+  };
+
   useEffect(() => {
     const handleDragMove = (e) => {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
@@ -1081,6 +1159,40 @@ function AVCanvasContent() {
             ...prev,
             end: { x: mouseWorldX, y: mouseWorldY }
           }));
+        }
+        return;
+      }
+
+      // Handle annotation drawing
+      if (drawingAnnotation && activeTool !== 'text') {
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        if (canvasRect) {
+          const mouseX = (e.clientX - canvasRect.left - pan.x) / zoom;
+          const mouseY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+          if (activeTool === 'line') {
+            setDrawingAnnotation(prev => ({
+              ...prev,
+              endPosition: { x: mouseX, y: mouseY }
+            }));
+          } else if (activeTool === 'rectangle') {
+            setDrawingAnnotation(prev => ({
+              ...prev,
+              width: Math.abs(mouseX - prev.position.x),
+              height: Math.abs(mouseY - prev.position.y),
+              position: {
+                x: Math.min(prev.position.x, mouseX),
+                y: Math.min(prev.position.y, mouseY)
+              }
+            }));
+          } else if (activeTool === 'circle') {
+            const dx = mouseX - drawingAnnotation.position.x;
+            const dy = mouseY - drawingAnnotation.position.y;
+            setDrawingAnnotation(prev => ({
+              ...prev,
+              radius: Math.sqrt(dx * dx + dy * dy)
+            }));
+          }
         }
         return;
       }
@@ -1107,11 +1219,38 @@ function AVCanvasContent() {
               connections: connections,
               rooms: rooms,
               floorplans: floorplans,
-              arrows: newArrows
+              arrows: newArrows,
+              annotations: annotations
             }).catch(err => console.error('Failed to save arrows:', err));
           }
         }
         setDrawingArrow(null);
+        return;
+      }
+
+      // Complete annotation drawing
+      if (drawingAnnotation) {
+        const minSize = 10;
+        let shouldSave = false;
+
+        if (activeTool === 'line' && drawingAnnotation.endPosition) {
+          const dist = Math.sqrt(
+            Math.pow(drawingAnnotation.endPosition.x - drawingAnnotation.position.x, 2) +
+            Math.pow(drawingAnnotation.endPosition.y - drawingAnnotation.position.y, 2)
+          );
+          shouldSave = dist > minSize;
+        } else if (activeTool === 'rectangle') {
+          shouldSave = drawingAnnotation.width > minSize && drawingAnnotation.height > minSize;
+        } else if (activeTool === 'circle') {
+          shouldSave = drawingAnnotation.radius > minSize;
+        }
+
+        if (shouldSave) {
+          const updated = [...annotations, drawingAnnotation];
+          setAnnotations(updated);
+          saveAnnotations(updated);
+        }
+        setDrawingAnnotation(null);
         return;
       }
 
@@ -1125,7 +1264,7 @@ function AVCanvasContent() {
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, pan, zoom]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, drawingAnnotation, activeTool, pan, zoom, annotations]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -1765,8 +1904,14 @@ function AVCanvasContent() {
             }}
             {...provided.droppableProps}
             onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
-              onMouseDown={currentProject ? handleMouseDown : undefined}
-              onClick={currentProject ? handleCanvasClick : undefined}
+            onMouseDown={currentProject ? (e) => {
+              if (activeTool !== 'select' && activeTool !== 'text') {
+                handleAnnotationMouseDown(e);
+              } else {
+                handleMouseDown(e);
+              }
+            } : undefined}
+            onClick={currentProject ? handleCanvasClick : undefined}
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
@@ -2223,6 +2368,233 @@ function AVCanvasContent() {
                   </g>
                 )}
 
+                {/* Saved annotations */}
+                {annotations.map((ann, idx) => {
+                  const isHovered = hoveredAnnotation === idx;
+                  const isSelected = selectedAnnotation === idx;
+                  const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
+                  
+                  if (ann.type === 'text') {
+                    return (
+                      <g key={ann.id}>
+                        <text
+                          x={ann.position.x}
+                          y={ann.position.y}
+                          fill={ann.color}
+                          fontSize={ann.fontSize}
+                          fontWeight="500"
+                          className="pointer-events-auto cursor-pointer select-none"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onClick={() => {
+                            if (activeTool === 'select') {
+                              setSelectedAnnotation(idx);
+                              setEditingText(ann.id);
+                            }
+                          }}
+                          onDoubleClick={() => setEditingText(ann.id)}
+                        >
+                          {ann.text}
+                        </text>
+                        {(isHovered || isSelected) && (
+                          <circle
+                            cx={ann.position.x - 15}
+                            cy={ann.position.y - 5}
+                            r="8"
+                            fill="#ef4444"
+                            className="pointer-events-auto cursor-pointer"
+                            onClick={async () => {
+                              const confirmed = await confirmDialog('Delete this annotation?', {
+                                title: 'Delete Annotation',
+                                type: 'warning'
+                              });
+                              if (confirmed) {
+                                const updated = annotations.filter((_, i) => i !== idx);
+                                setAnnotations(updated);
+                                saveAnnotations(updated);
+                                setSelectedAnnotation(null);
+                              }
+                            }}
+                          >
+                            <title>Delete</title>
+                          </circle>
+                        )}
+                      </g>
+                    );
+                  } else if (ann.type === 'rectangle') {
+                    return (
+                      <g key={ann.id}>
+                        <rect
+                          x={ann.position.x}
+                          y={ann.position.y}
+                          width={ann.width}
+                          height={ann.height}
+                          stroke={strokeColor}
+                          strokeWidth={ann.strokeWidth}
+                          fill={ann.fill ? ann.color : 'none'}
+                          fillOpacity={ann.fill ? 0.3 : 0}
+                          className="pointer-events-auto cursor-pointer"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                        />
+                        {(isHovered || isSelected) && (
+                          <circle
+                            cx={ann.position.x + ann.width + 10}
+                            cy={ann.position.y - 10}
+                            r="8"
+                            fill="#ef4444"
+                            className="pointer-events-auto cursor-pointer"
+                            onClick={async () => {
+                              const confirmed = await confirmDialog('Delete this annotation?', {
+                                title: 'Delete Annotation',
+                                type: 'warning'
+                              });
+                              if (confirmed) {
+                                const updated = annotations.filter((_, i) => i !== idx);
+                                setAnnotations(updated);
+                                saveAnnotations(updated);
+                                setSelectedAnnotation(null);
+                              }
+                            }}
+                          >
+                            <title>Delete</title>
+                          </circle>
+                        )}
+                      </g>
+                    );
+                  } else if (ann.type === 'circle') {
+                    return (
+                      <g key={ann.id}>
+                        <circle
+                          cx={ann.position.x}
+                          cy={ann.position.y}
+                          r={ann.radius}
+                          stroke={strokeColor}
+                          strokeWidth={ann.strokeWidth}
+                          fill={ann.fill ? ann.color : 'none'}
+                          fillOpacity={ann.fill ? 0.3 : 0}
+                          className="pointer-events-auto cursor-pointer"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                        />
+                        {(isHovered || isSelected) && (
+                          <circle
+                            cx={ann.position.x + ann.radius + 10}
+                            cy={ann.position.y - ann.radius - 10}
+                            r="8"
+                            fill="#ef4444"
+                            className="pointer-events-auto cursor-pointer"
+                            onClick={async () => {
+                              const confirmed = await confirmDialog('Delete this annotation?', {
+                                title: 'Delete Annotation',
+                                type: 'warning'
+                              });
+                              if (confirmed) {
+                                const updated = annotations.filter((_, i) => i !== idx);
+                                setAnnotations(updated);
+                                saveAnnotations(updated);
+                                setSelectedAnnotation(null);
+                              }
+                            }}
+                          >
+                            <title>Delete</title>
+                          </circle>
+                        )}
+                      </g>
+                    );
+                  } else if (ann.type === 'line') {
+                    return (
+                      <g key={ann.id}>
+                        <line
+                          x1={ann.position.x}
+                          y1={ann.position.y}
+                          x2={ann.endPosition.x}
+                          y2={ann.endPosition.y}
+                          stroke={strokeColor}
+                          strokeWidth={isHovered || isSelected ? ann.strokeWidth + 1 : ann.strokeWidth}
+                          className="pointer-events-none"
+                        />
+                        <line
+                          x1={ann.position.x}
+                          y1={ann.position.y}
+                          x2={ann.endPosition.x}
+                          y2={ann.endPosition.y}
+                          stroke="transparent"
+                          strokeWidth="20"
+                          className="pointer-events-auto cursor-pointer"
+                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onClick={async () => {
+                            if (activeTool === 'select') {
+                              const confirmed = await confirmDialog('Delete this annotation?', {
+                                title: 'Delete Annotation',
+                                type: 'warning'
+                              });
+                              if (confirmed) {
+                                const updated = annotations.filter((_, i) => i !== idx);
+                                setAnnotations(updated);
+                                saveAnnotations(updated);
+                                setSelectedAnnotation(null);
+                              }
+                            }
+                          }}
+                        />
+                      </g>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Drawing annotation preview */}
+                {drawingAnnotation && (
+                  <g>
+                    {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && (
+                      <rect
+                        x={drawingAnnotation.position.x}
+                        y={drawingAnnotation.position.y}
+                        width={drawingAnnotation.width}
+                        height={drawingAnnotation.height}
+                        stroke={drawingAnnotation.color}
+                        strokeWidth={drawingAnnotation.strokeWidth}
+                        fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
+                        fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
+                        strokeDasharray="8,4"
+                        className="pointer-events-none"
+                        opacity="0.8"
+                      />
+                    )}
+                    {drawingAnnotation.type === 'circle' && drawingAnnotation.radius && (
+                      <circle
+                        cx={drawingAnnotation.position.x}
+                        cy={drawingAnnotation.position.y}
+                        r={drawingAnnotation.radius}
+                        stroke={drawingAnnotation.color}
+                        strokeWidth={drawingAnnotation.strokeWidth}
+                        fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
+                        fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
+                        strokeDasharray="8,4"
+                        className="pointer-events-none"
+                        opacity="0.8"
+                      />
+                    )}
+                    {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (
+                      <line
+                        x1={drawingAnnotation.position.x}
+                        y1={drawingAnnotation.position.y}
+                        x2={drawingAnnotation.endPosition.x}
+                        y2={drawingAnnotation.endPosition.y}
+                        stroke={drawingAnnotation.color}
+                        strokeWidth={drawingAnnotation.strokeWidth}
+                        strokeDasharray="8,4"
+                        className="pointer-events-none"
+                        opacity="0.8"
+                      />
+                    )}
+                  </g>
+                )}
+
                 {/* Arrowhead marker definitions */}
                 <defs>
                   <marker
@@ -2354,6 +2726,63 @@ function AVCanvasContent() {
           </div>
           )}
           </Droppable>
+
+          {/* Annotation Toolbar */}
+          {currentProject && (
+            <AnnotationToolbar
+              activeTool={activeTool}
+              onToolChange={setActiveTool}
+              color={annotationColor}
+              onColorChange={setAnnotationColor}
+              strokeWidth={annotationStrokeWidth}
+              onStrokeWidthChange={setAnnotationStrokeWidth}
+              fill={annotationFill}
+              onFillChange={setAnnotationFill}
+              fontSize={annotationFontSize}
+              onFontSizeChange={setAnnotationFontSize}
+            />
+          )}
+
+          {/* Text editing overlay */}
+          {editingText && annotations.find(a => a.id === editingText) && (() => {
+            const ann = annotations.find(a => a.id === editingText);
+            const screenX = ann.position.x * zoom + pan.x;
+            const screenY = ann.position.y * zoom + pan.y;
+            return (
+              <div
+                style={{
+                  position: 'fixed',
+                  left: `${screenX}px`,
+                  top: `${screenY - 10}px`,
+                  zIndex: 9999
+                }}
+              >
+                <input
+                  type="text"
+                  autoFocus
+                  value={ann.text}
+                  onChange={(e) => {
+                    const updated = annotations.map(a => 
+                      a.id === editingText ? { ...a, text: e.target.value } : a
+                    );
+                    setAnnotations(updated);
+                  }}
+                  onBlur={() => {
+                    setEditingText(null);
+                    saveAnnotations(annotations);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === 'Escape') {
+                      setEditingText(null);
+                      saveAnnotations(annotations);
+                    }
+                  }}
+                  className="bg-gray-900 border-2 border-blue-500 rounded px-2 py-1 text-white"
+                  style={{ fontSize: `${ann.fontSize}px`, minWidth: '100px' }}
+                />
+              </div>
+            );
+          })()}
         </div>
 
         {selectedConnection && (
