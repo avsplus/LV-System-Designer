@@ -516,6 +516,8 @@ function AVCanvasContent() {
     let closestPort = null;
     let closestDistance = PORT_HIT_RADIUS;
 
+    console.log('🔍 hitTestPort called:', { mouseX, mouseY, riserCount: risers.length, canvasRect });
+
     // Check risers first - they accept any connection type
     for (const riser of risers) {
       // Calculate screen position: canvas position + (world position + center offset) * zoom
@@ -526,6 +528,15 @@ function AVCanvasContent() {
         Math.pow(mouseX - riserCenterX, 2) + 
         Math.pow(mouseY - riserCenterY, 2)
       );
+
+      console.log('🎯 Testing riser:', { 
+        id: riser.id, 
+        riserPos: riser.position,
+        screenPos: { x: riserCenterX, y: riserCenterY },
+        distance, 
+        threshold: PORT_HIT_RADIUS,
+        withinRange: distance < closestDistance 
+      });
 
       if (distance < closestDistance) {
         closestDistance = distance;
@@ -543,6 +554,7 @@ function AVCanvasContent() {
           position, 
           distance 
         };
+        console.log('✅ Riser selected as closest port:', closestPort);
       }
     }
 
