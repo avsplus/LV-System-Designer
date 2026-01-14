@@ -773,7 +773,7 @@ function AVCanvasContent() {
     setConnectingState(null);
     connectingStateRef.current = null;
     setHoveredPortId(null);
-  }, [canvasProducts, connections]);
+    }, [canvasProducts, connections, risers]);
 
   const handleDeleteConnection = () => {
     if (selectedConnection) {
