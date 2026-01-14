@@ -1988,12 +1988,15 @@ function AVCanvasContent() {
            style={{ ...provided.droppableProps.style, backgroundColor: 'transparent !important' }}
            onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
             onMouseDown={currentProject ? (e) => {
+              document.body.classList.add('canvas-dragging');
               if (activeTool !== 'select' && activeTool !== 'text') {
                 handleAnnotationMouseDown(e);
               } else {
                 handleMouseDown(e);
               }
             } : undefined}
+            onMouseUp={() => document.body.classList.remove('canvas-dragging')}
+            onMouseLeave={() => document.body.classList.remove('canvas-dragging')}
             onClick={currentProject ? handleCanvasClick : undefined}
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
