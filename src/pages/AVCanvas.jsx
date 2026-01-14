@@ -1258,12 +1258,15 @@ function AVCanvasContent() {
 
   // Auto-complete riser connections
   useEffect(() => {
+    console.log('🎯 useEffect triggered:', { connectingFrom, connectingTo, pendingConnection: !!pendingConnection });
     if (connectingFrom && connectingTo && pendingConnection) {
       const fromRiser = risers.find(r => r.id === connectingFrom);
       const toRiser = risers.find(r => r.id === connectingTo);
 
+      console.log('🔍 Checking for risers:', { fromRiser: !!fromRiser, toRiser: !!toRiser });
+
       if (fromRiser || toRiser) {
-        console.log('🔗 Auto-completing riser connection:', pendingConnection);
+        console.log('✅ Auto-completing riser connection:', pendingConnection);
         handleConnectionTypeSelect({
           type: pendingConnection.connectionType,
           fromPort: null,
