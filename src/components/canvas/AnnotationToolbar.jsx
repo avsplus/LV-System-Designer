@@ -20,6 +20,11 @@ const COLORS = [
 
 const STROKE_WIDTHS = [1, 2, 3, 4, 6];
 
+const SYMBOLS = [
+  '#D', '#D@V', '#D-AV', '#D-C', '#D-J', 'E',
+  '#T', '#T-A', '#T-F', '#T-W', 'W-6A', 'W-6'
+];
+
 export default function AnnotationToolbar({ 
   activeTool, 
   onToolChange, 
