@@ -1977,7 +1977,6 @@ function AVCanvasContent() {
                canvasRef.current = el;
              }}
              {...provided.droppableProps}
-             style={{ ...provided.droppableProps.style, background: 'transparent' }}
             onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
             onMouseDown={currentProject ? (e) => {
               if (activeTool !== 'select' && activeTool !== 'text') {
