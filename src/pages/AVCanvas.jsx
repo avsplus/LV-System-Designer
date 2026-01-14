@@ -518,8 +518,9 @@ function AVCanvasContent() {
 
     // Check risers first - they accept any connection type
     for (const riser of risers) {
-      const riserCenterX = canvasRect.left + pan.x + (riser.position.x + 32) * zoom;
-      const riserCenterY = canvasRect.top + pan.y + (riser.position.y + 32) * zoom;
+      // Calculate screen position: canvas position + (world position + center offset) * zoom
+      const riserCenterX = canvasRect.left + (riser.position.x + 32) * zoom + pan.x;
+      const riserCenterY = canvasRect.top + (riser.position.y + 32) * zoom + pan.y;
 
       const distance = Math.sqrt(
         Math.pow(mouseX - riserCenterX, 2) + 
