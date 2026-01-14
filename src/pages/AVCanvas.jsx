@@ -1173,23 +1173,15 @@ function AVCanvasContent() {
         return;
       }
 
-      // Handle annotation dragging with threshold
-      if (annotationMouseDownRef.current !== null) {
+      // Handle annotation dragging - start immediately on mousedown
+      if (annotationMouseDownRef.current !== null && draggingAnnotation === null) {
         const mouseDownData = annotationMouseDownRef.current;
-        const dist = Math.sqrt(
-          Math.pow(e.clientX - mouseDownData.clientX, 2) +
-          Math.pow(e.clientY - mouseDownData.clientY, 2)
-        );
-        
-        // Start dragging only if moved more than 5px
-        if (dist > 5 && draggingAnnotation === null) {
-          setDraggingAnnotation(mouseDownData.idx);
-          setAnnotationDragStart({
-            mouseStartX: mouseDownData.mouseWorldX,
-            mouseStartY: mouseDownData.mouseWorldY,
-            startPosition: mouseDownData.startPosition
-          });
-        }
+        setDraggingAnnotation(mouseDownData.idx);
+        setAnnotationDragStart({
+          mouseStartX: mouseDownData.mouseWorldX,
+          mouseStartY: mouseDownData.mouseWorldY,
+          startPosition: mouseDownData.startPosition
+        });
       }
 
       if (draggingAnnotation !== null && annotationDragStart) {
