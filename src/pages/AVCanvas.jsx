@@ -517,8 +517,8 @@ function AVCanvasContent() {
     let closestDistance = PORT_HIT_RADIUS;
 
     // Check risers first - they accept any connection type
-    // Risers use a MUCH larger hit radius for easy targeting
-    const riserHitRadius = 100; // Large fixed radius regardless of zoom
+    // Risers use a radius that scales with zoom level for consistent targeting
+    const riserHitRadius = 64 * zoom; // 64px in world space = riser radius + buffer
     for (const riser of risers) {
       // Calculate screen position: canvas position + (world position + center offset) * zoom
       const riserCenterX = canvasRect.left + (riser.position.x + 32) * zoom + pan.x;
@@ -529,7 +529,15 @@ function AVCanvasContent() {
         Math.pow(mouseY - riserCenterY, 2)
       );
 
-      console.log('🎯 Riser hit test:', { id: riser.id, distance, threshold: riserHitRadius, detected: distance < riserHitRadius });
+      console.log('🎯 Riser hit test:', { 
+        id: riser.id, 
+        zoom,
+        mouseScreen: { x: mouseX, y: mouseY },
+        riserScreen: { x: riserCenterX, y: riserCenterY },
+        distance, 
+        threshold: riserHitRadius, 
+        detected: distance < riserHitRadius 
+      });
 
       if (distance < riserHitRadius) {
         const position = {
