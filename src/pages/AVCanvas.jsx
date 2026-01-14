@@ -2556,21 +2556,28 @@ function AVCanvasContent() {
                     return (
                       <g key={ann.id}>
                         {/* Invisible larger hit area */}
-                        <rect
-                          x={ann.position.x - 10}
-                          y={ann.position.y - 10}
-                          width={ann.width + 20}
-                          height={ann.height + 20}
-                          fill="transparent"
-                          className="pointer-events-auto cursor-move"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onMouseDown={(e) => {
-                            if (activeTool === 'select') {
-                              e.stopPropagation();
-                              setSelectedAnnotation(idx);
-                            }
-                          }}
+                         <rect
+                           x={ann.position.x - 10}
+                           y={ann.position.y - 10}
+                           width={ann.width + 20}
+                           height={ann.height + 20}
+                           fill="transparent"
+                           className="pointer-events-auto cursor-move"
+                           onMouseEnter={() => setHoveredAnnotation(idx)}
+                           onMouseLeave={() => setHoveredAnnotation(null)}
+                           onMouseDown={(e) => {
+                             if (activeTool === 'select') {
+                               e.stopPropagation();
+                               setSelectedAnnotation(idx);
+                               setSelectedProduct(null);
+                               setSelectedCanvasProduct(null);
+                               setSelectedConnection(null);
+                               setShowFloorplanManager(false);
+                               setShowRoomManager(false);
+                               setSelectedFloorplanId(null);
+                               setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                             }
+                           }}
                           onDoubleClick={(e) => {
                             if (activeTool === 'select') {
                               e.stopPropagation();
