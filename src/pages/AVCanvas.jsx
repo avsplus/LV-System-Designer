@@ -2985,6 +2985,23 @@ function AVCanvasContent() {
               onFillChange={setAnnotationFill}
               fontSize={annotationFontSize}
               onFontSizeChange={setAnnotationFontSize}
+              onAddSymbol={(symbol) => {
+                if (!canvasRef.current) return;
+                const canvasRect = canvasRef.current.getBoundingClientRect();
+                const centerX = (canvasRect.width / 2 - pan.x) / zoom;
+                const centerY = (canvasRect.height / 2 - pan.y) / zoom;
+                const newAnnotation = {
+                  id: Date.now().toString(),
+                  type: 'text',
+                  position: { x: centerX, y: centerY },
+                  text: symbol,
+                  color: annotationColor,
+                  fontSize: annotationFontSize
+                };
+                const updated = [...annotations, newAnnotation];
+                setAnnotations(updated);
+                saveAnnotations(updated);
+              }}
             />
           )}
 
