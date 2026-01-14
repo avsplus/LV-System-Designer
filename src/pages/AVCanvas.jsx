@@ -2603,11 +2603,16 @@ function AVCanvasContent() {
                           onMouseDown={(e) => {
                             if (activeTool === 'select') {
                               e.stopPropagation();
+                              setSelectedAnnotation(idx);
+                            }
+                          }}
+                          onDoubleClick={(e) => {
+                            if (activeTool === 'select') {
+                              e.stopPropagation();
                               const canvasRect = canvasRef.current?.getBoundingClientRect();
                               if (canvasRect) {
                                 const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
                                 const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                setSelectedAnnotation(idx);
                                 setDraggingAnnotation(idx);
                                 setAnnotationDragStart({
                                   mouseStartX: mouseWorldX,
@@ -2617,8 +2622,8 @@ function AVCanvasContent() {
                               }
                             }
                           }}
-                        />
-                        <circle
+                          />
+                          <circle
                           cx={ann.position.x}
                           cy={ann.position.y}
                           r={ann.radius}
