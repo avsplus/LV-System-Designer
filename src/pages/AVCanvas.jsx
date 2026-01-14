@@ -5,6 +5,7 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X, Crop, Layers, Wrench } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import FloorplanManager from "../components/canvas/FloorplanManager";
 import { ToastProvider, useToast } from "../components/ui/Toast";
 import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
