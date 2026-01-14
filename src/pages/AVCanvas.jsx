@@ -125,6 +125,7 @@ function AVCanvasContent() {
   const [editingText, setEditingText] = useState(null);
   const [draggingAnnotation, setDraggingAnnotation] = useState(null);
   const [annotationDragStart, setAnnotationDragStart] = useState(null);
+  const annotationJustDraggedRef = useRef(false);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -1233,6 +1234,10 @@ function AVCanvasContent() {
         setDraggingAnnotation(null);
         setAnnotationDragStart(null);
         setSelectedAnnotation(null);
+        annotationJustDraggedRef.current = true;
+        setTimeout(() => {
+          annotationJustDraggedRef.current = false;
+        }, 50);
         return;
       }
 
@@ -2500,7 +2505,7 @@ function AVCanvasContent() {
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (activeTool === 'select' && !draggingAnnotation) {
+                            if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
                               setSelectedAnnotation(idx);
                             }
                           }}
@@ -2569,7 +2574,7 @@ function AVCanvasContent() {
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (activeTool === 'select' && !draggingAnnotation) {
+                            if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
                               setSelectedAnnotation(idx);
                             }
                           }}
@@ -2647,16 +2652,16 @@ function AVCanvasContent() {
                          }}
                          onClick={(e) => {
                            e.stopPropagation();
-                           if (activeTool === 'select' && !draggingAnnotation) {
+                           if (activeTool === 'select' && !draggingAnnotation && !annotationJustDraggedRef.current) {
                              setSelectedAnnotation(idx);
                            }
                          }}
-                       />
-                      </g>
-                    );
-                  }
-                  return null;
-                })}
+                         />
+                         </g>
+                         );
+                         }
+                         return null;
+                         })}
 
                 {/* Drawing annotation preview */}
                 {drawingAnnotation && (
