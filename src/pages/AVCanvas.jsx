@@ -123,6 +123,8 @@ function AVCanvasContent() {
   const [annotationFill, setAnnotationFill] = useState(false);
   const [annotationFontSize, setAnnotationFontSize] = useState(16);
   const [editingText, setEditingText] = useState(null);
+  const [draggingAnnotation, setDraggingAnnotation] = useState(null);
+  const [annotationDragStart, setAnnotationDragStart] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -1163,6 +1165,29 @@ function AVCanvasContent() {
         return;
       }
 
+      // Handle annotation dragging
+      if (draggingAnnotation !== null && annotationDragStart) {
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        if (canvasRect) {
+          const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+          const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+          const dx = mouseWorldX - annotationDragStart.mouseStartX;
+          const dy = mouseWorldY - annotationDragStart.mouseStartY;
+          
+          setAnnotations(prev => prev.map((ann, idx) => {
+            if (idx !== draggingAnnotation) return ann;
+            return {
+              ...ann,
+              position: {
+                x: annotationDragStart.startPosition.x + dx,
+                y: annotationDragStart.startPosition.y + dy
+              }
+            };
+          }));
+        }
+        return;
+      }
+
       // Handle annotation drawing
       if (drawingAnnotation && activeTool !== 'text') {
         const canvasRect = canvasRef.current?.getBoundingClientRect();
@@ -1202,6 +1227,14 @@ function AVCanvasContent() {
     };
 
     const handleDragEnd = (e) => {
+      // Complete annotation dragging
+      if (draggingAnnotation !== null) {
+        saveAnnotations(annotations);
+        setDraggingAnnotation(null);
+        setAnnotationDragStart(null);
+        return;
+      }
+
       // Complete arrow drawing
       if (drawingArrow) {
         const dist = Math.sqrt(
@@ -2375,27 +2408,43 @@ function AVCanvasContent() {
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
                   
                   if (ann.type === 'text') {
-                    return (
-                      <g key={ann.id}>
-                        <text
-                          x={ann.position.x}
-                          y={ann.position.y}
-                          fill={ann.color}
-                          fontSize={ann.fontSize}
-                          fontWeight="500"
-                          className="pointer-events-auto cursor-pointer select-none"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onClick={() => {
-                            if (activeTool === 'select') {
-                              setSelectedAnnotation(idx);
-                              setEditingText(ann.id);
-                            }
-                          }}
-                          onDoubleClick={() => setEditingText(ann.id)}
-                        >
-                          {ann.text}
-                        </text>
+                   return (
+                     <g key={ann.id}>
+                       <text
+                         x={ann.position.x}
+                         y={ann.position.y}
+                         fill={ann.color}
+                         fontSize={ann.fontSize}
+                         fontWeight="500"
+                         className="pointer-events-auto cursor-move select-none"
+                         onMouseEnter={() => setHoveredAnnotation(idx)}
+                         onMouseLeave={() => setHoveredAnnotation(null)}
+                         onMouseDown={(e) => {
+                           if (activeTool === 'select') {
+                             e.stopPropagation();
+                             const canvasRect = canvasRef.current?.getBoundingClientRect();
+                             if (canvasRect) {
+                               const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                               const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                               setDraggingAnnotation(idx);
+                               setAnnotationDragStart({
+                                 mouseStartX: mouseWorldX,
+                                 mouseStartY: mouseWorldY,
+                                 startPosition: { ...ann.position }
+                               });
+                             }
+                           }
+                         }}
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           if (activeTool === 'select' && !draggingAnnotation) {
+                             setSelectedAnnotation(idx);
+                           }
+                         }}
+                         onDoubleClick={() => setEditingText(ann.id)}
+                       >
+                         {ann.text}
+                       </text>
                         {(isHovered || isSelected) && (
                           <g
                             className="pointer-events-auto cursor-pointer"
@@ -2429,10 +2478,31 @@ function AVCanvasContent() {
                           width={ann.width + 20}
                           height={ann.height + 20}
                           fill="transparent"
-                          className="pointer-events-auto cursor-pointer"
+                          className="pointer-events-auto cursor-move"
                           onMouseEnter={() => setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
-                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                          onMouseDown={(e) => {
+                            if (activeTool === 'select') {
+                              e.stopPropagation();
+                              const canvasRect = canvasRef.current?.getBoundingClientRect();
+                              if (canvasRect) {
+                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                                setDraggingAnnotation(idx);
+                                setAnnotationDragStart({
+                                  mouseStartX: mouseWorldX,
+                                  mouseStartY: mouseWorldY,
+                                  startPosition: { ...ann.position }
+                                });
+                              }
+                            }
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeTool === 'select' && !draggingAnnotation) {
+                              setSelectedAnnotation(idx);
+                            }
+                          }}
                         />
                         <rect
                           x={ann.position.x}
@@ -2477,10 +2547,31 @@ function AVCanvasContent() {
                           cy={ann.position.y}
                           r={ann.radius + 10}
                           fill="transparent"
-                          className="pointer-events-auto cursor-pointer"
+                          className="pointer-events-auto cursor-move"
                           onMouseEnter={() => setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
-                          onClick={() => activeTool === 'select' && setSelectedAnnotation(idx)}
+                          onMouseDown={(e) => {
+                            if (activeTool === 'select') {
+                              e.stopPropagation();
+                              const canvasRect = canvasRef.current?.getBoundingClientRect();
+                              if (canvasRect) {
+                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                                setDraggingAnnotation(idx);
+                                setAnnotationDragStart({
+                                  mouseStartX: mouseWorldX,
+                                  mouseStartY: mouseWorldY,
+                                  startPosition: { ...ann.position }
+                                });
+                              }
+                            }
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeTool === 'select' && !draggingAnnotation) {
+                              setSelectedAnnotation(idx);
+                            }
+                          }}
                         />
                         <circle
                           cx={ann.position.x}
@@ -2516,42 +2607,50 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'line') {
-                    return (
-                      <g key={ann.id}>
-                        <line
-                          x1={ann.position.x}
-                          y1={ann.position.y}
-                          x2={ann.endPosition.x}
-                          y2={ann.endPosition.y}
-                          stroke={strokeColor}
-                          strokeWidth={isHovered || isSelected ? ann.strokeWidth + 1 : ann.strokeWidth}
-                          className="pointer-events-none"
-                        />
-                        <line
-                          x1={ann.position.x}
-                          y1={ann.position.y}
-                          x2={ann.endPosition.x}
-                          y2={ann.endPosition.y}
-                          stroke="transparent"
-                          strokeWidth="40"
-                          className="pointer-events-auto cursor-pointer"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onClick={async () => {
-                            if (activeTool === 'select') {
-                              const confirmed = await confirmDialog('Delete this annotation?', {
-                                title: 'Delete Annotation',
-                                type: 'warning'
-                              });
-                              if (confirmed) {
-                                const updated = annotations.filter((_, i) => i !== idx);
-                                setAnnotations(updated);
-                                saveAnnotations(updated);
-                                setSelectedAnnotation(null);
-                              }
-                            }
-                          }}
-                        />
+                   return (
+                     <g key={ann.id}>
+                       <line
+                         x1={ann.position.x}
+                         y1={ann.position.y}
+                         x2={ann.endPosition.x}
+                         y2={ann.endPosition.y}
+                         stroke={strokeColor}
+                         strokeWidth={isHovered || isSelected ? ann.strokeWidth + 1 : ann.strokeWidth}
+                         className="pointer-events-none"
+                       />
+                       <line
+                         x1={ann.position.x}
+                         y1={ann.position.y}
+                         x2={ann.endPosition.x}
+                         y2={ann.endPosition.y}
+                         stroke="transparent"
+                         strokeWidth="40"
+                         className="pointer-events-auto cursor-move"
+                         onMouseEnter={() => setHoveredAnnotation(idx)}
+                         onMouseLeave={() => setHoveredAnnotation(null)}
+                         onMouseDown={(e) => {
+                           if (activeTool === 'select') {
+                             e.stopPropagation();
+                             const canvasRect = canvasRef.current?.getBoundingClientRect();
+                             if (canvasRect) {
+                               const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                               const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                               setDraggingAnnotation(idx);
+                               setAnnotationDragStart({
+                                 mouseStartX: mouseWorldX,
+                                 mouseStartY: mouseWorldY,
+                                 startPosition: { ...ann.position }
+                               });
+                             }
+                           }
+                         }}
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           if (activeTool === 'select' && !draggingAnnotation) {
+                             setSelectedAnnotation(idx);
+                           }
+                         }}
+                       />
                       </g>
                     );
                   }
