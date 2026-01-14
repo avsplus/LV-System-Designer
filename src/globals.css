@@ -39,4 +39,14 @@ body.canvas-dragging {
 body.canvas-dragging * {
   user-select: none !important;
   -webkit-user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+/* Disable selection highlight while dragging */
+body.canvas-dragging ::selection {
+  background: transparent !important;
+}
+
+body.canvas-dragging *::selection {
+  background: transparent !important;
 }
