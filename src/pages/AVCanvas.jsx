@@ -1090,12 +1090,12 @@ function AVCanvasContent() {
       setSelectedProduct(null);
       setSelectedCanvasProduct(null);
       setSelectedConnection(null);
+      setSelectedAnnotation(null);
       setHighlightedConnections([]);
       setPanelHistory([]);
       setShowFloorplanManager(false);
       setShowRoomManager(false);
       setSelectedFloorplanId(null);
-      setSelectedAnnotation(null);
       setEditingText(null);
     }
   };
