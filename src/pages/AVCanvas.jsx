@@ -2004,11 +2004,18 @@ function AVCanvasContent() {
             onMouseUp={() => {
               console.log('🖱️ Canvas mouseUp - removing canvas-dragging class');
               document.body.classList.remove('canvas-dragging');
+              document.body.style.userSelect = '';
               console.log('📋 Body classes:', document.body.className);
             }}
             onMouseLeave={() => {
               console.log('🖱️ Canvas mouseLeave - removing canvas-dragging class');
               document.body.classList.remove('canvas-dragging');
+              document.body.style.userSelect = '';
+            }}
+            onDoubleClick={(e) => {
+              console.log('🖱️ Canvas doubleClick - preventing selection');
+              e.preventDefault();
+              e.stopPropagation();
             }}
             onClick={currentProject ? handleCanvasClick : undefined}
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
