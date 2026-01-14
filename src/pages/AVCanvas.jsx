@@ -585,19 +585,19 @@ function AVCanvasContent() {
     
     let validHitPort = null;
     if (hitPort) {
-      // Check if either endpoint is a riser - risers are always valid endpoints
+      // Check if either endpoint is a riser - risers accept all connection types
       const fromIsRiser = risers.some(r => r.id === currentState.fromPort.instanceId);
       const toIsRiser = risers.some(r => r.id === hitPort.instanceId);
 
-      const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
       const differentDevice = currentState.fromPort.instanceId !== hitPort.instanceId;
 
-      // If either is a riser, only check type and different device
+      // If either is a riser, only check different device
       if (fromIsRiser || toIsRiser) {
-        if (sameType && differentDevice) {
+        if (differentDevice) {
           validHitPort = hitPort;
         }
       } else {
+        const sameType = currentState.fromPort.connectionType === hitPort.connectionType;
         // Regular device-to-device validation
         const fromDevice = canvasProducts.find(cp => cp.instanceId === currentState.fromPort.instanceId);
         const toDevice = canvasProducts.find(cp => cp.instanceId === hitPort.instanceId);
@@ -651,22 +651,22 @@ function AVCanvasContent() {
       const toPort = currentState.hoveredPort;
       const { fromPort } = currentState;
 
-      // Check if either endpoint is a riser - risers are always valid endpoints
+      // Check if either endpoint is a riser - risers accept all connection types
       const fromIsRiser = risers.some(r => r.id === fromPort.instanceId);
       const toIsRiser = risers.some(r => r.id === toPort.instanceId);
 
-      const sameType = fromPort.connectionType === toPort.connectionType;
       const differentDevice = fromPort.instanceId !== toPort.instanceId;
 
-      // If either is a riser, only check type and different device
+      // If either is a riser, only check different device
       if (fromIsRiser || toIsRiser) {
-        if (!sameType || !differentDevice) {
+        if (!differentDevice) {
           setConnectingState(null);
           connectingStateRef.current = null;
           setHoveredPortId(null);
           return;
         }
       } else {
+        const sameType = fromPort.connectionType === toPort.connectionType;
         // Regular device-to-device validation
         const fromDevice = canvasProducts.find(cp => cp.instanceId === fromPort.instanceId);
         const toDevice = canvasProducts.find(cp => cp.instanceId === toPort.instanceId);
