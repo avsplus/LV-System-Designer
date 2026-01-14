@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import SymbolPicker from "./SymbolPicker";
 
 const COLORS = [
   { name: 'Blue', value: '#3b82f6' },
