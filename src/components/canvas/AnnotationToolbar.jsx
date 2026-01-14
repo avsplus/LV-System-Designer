@@ -75,6 +75,37 @@ export default function AnnotationToolbar({
           })}
         </div>
 
+        {/* Symbols Button */}
+        <Popover open={showSymbols} onOpenChange={setShowSymbols}>
+          <PopoverTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 text-gray-400 hover:text-white hover:bg-gray-800"
+              title="Add Symbol"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 bg-gray-900 border-gray-700 p-3" side="top">
+            <label className="text-xs font-medium text-gray-400 mb-3 block">Insert Symbol</label>
+            <div className="grid grid-cols-3 gap-2">
+              {SYMBOLS.map(symbol => (
+                <button
+                  key={symbol}
+                  onClick={() => {
+                    onAddSymbol(symbol);
+                    setShowSymbols(false);
+                  }}
+                  className="h-10 rounded border border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700 hover:border-gray-600 text-sm font-medium transition-all"
+                >
+                  {symbol}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
         {/* Settings Button */}
         {activeTool !== 'select' && (
           <Popover open={showSettings} onOpenChange={setShowSettings}>
