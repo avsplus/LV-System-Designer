@@ -761,9 +761,10 @@ function AVCanvasContent() {
         }
       }
 
-      // Use the device's connection type, not the riser's
+      // Use the device's connection type, not the riser's 'Universal' type
       const connectionType = fromIsRiser ? toPort.connectionType : (toIsRiser ? fromPort.connectionType : fromPort.connectionType);
 
+      console.log('🔗 Creating pending connection:', { fromId, toId, connectionType, fromIsRiser, toIsRiser });
       setPendingConnection({ fromId, toId, connectionType });
       setConnectingFrom(fromId);
       setConnectingTo(toId);
