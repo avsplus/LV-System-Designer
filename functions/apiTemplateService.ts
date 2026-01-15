@@ -295,15 +295,87 @@ Deno.serve(async (req) => {
                 </div>`;
               });
 
+              // Build annotations overlay
+              let annotationsOverlay = '';
+              if (annotations && annotations.length > 0) {
+                const DEVICE_CARD_WIDTH = 320;
+                const DEVICE_CARD_HEIGHT = 280;
+
+                annotations.forEach(annotation => {
+                  if (!annotation || !annotation.position) return;
+
+                  const annX = annotation.position.x;
+                  const annY = annotation.position.y;
+                  const fpMinX = fpPos.x;
+                  const fpMaxX = fpPos.x + fp.imageWidth / canvasToImageScale;
+                  const fpMinY = fpPos.y;
+                  const fpMaxY = fpPos.y + fp.imageHeight / canvasToImageScale;
+
+                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
+                    return; // Skip annotations outside floorplan
+                  }
+
+                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
+                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
+
+                  const percentX = (imgPixelX / fp.imageWidth) * 100;
+                  const percentY = (imgPixelY / fp.imageHeight) * 100;
+
+                  if (annotation.type === 'text') {
+                    const color = annotation.color || '#000000';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${annotation.fontSize || 14}px; font-weight:500; white-space:nowrap; z-index:15;">${annotation.text || ''}</div>`;
+                  } else if (annotation.type === 'rectangle') {
+                    const color = annotation.color || '#3b82f6';
+                    const width = annotation.width || 40;
+                    const height = annotation.height || 30;
+                    const percentWidth = (width / fp.imageWidth) * 100;
+                    const percentHeight = (height / fp.imageHeight) * 100;
+                    const stroke = annotation.strokeWidth || 2;
+                    const fill = annotation.fill ? `background:${color}80;` : '';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%); border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
+                  } else if (annotation.type === 'circle') {
+                    const color = annotation.color || '#3b82f6';
+                    const radius = (annotation.radius || 20) / 2;
+                    const percentSize = (radius * 2 / fp.imageWidth) * 100;
+                    const stroke = annotation.strokeWidth || 2;
+                    const fill = annotation.fill ? `background:${color}80;` : '';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%); border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
+                  } else if (annotation.type === 'line') {
+                    const color = annotation.color || '#000000';
+                    const endPos = annotation.endPosition;
+                    if (endPos) {
+                      const endImgX = (endPos.x - fpPos.x) * canvasToImageScale;
+                      const endImgY = (endPos.y - fpPos.y) * canvasToImageScale;
+                      const endPercentX = (endImgX / fp.imageWidth) * 100;
+                      const endPercentY = (endImgY / fp.imageHeight) * 100;
+                      const stroke = annotation.strokeWidth || 2;
+                      const absX = imgPixelX;
+                      const absY = imgPixelY;
+                      const absEndX = endImgX;
+                      const absEndY = endImgY;
+                      const length = Math.sqrt(Math.pow(absEndX - absX, 2) + Math.pow(absEndY - absY, 2));
+                      const angle = Math.atan2(absEndY - absY, absEndX - absX) * 180 / Math.PI;
+                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${(length/fp.imageWidth)*100}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
+                    }
+                  } else if (annotation.type === 'symbol') {
+                    const color = annotation.color || '#3b82f6';
+                    const size = (annotation.scale || 1) * 6;
+                    const percentSize = (size / fp.imageWidth) * 100;
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; background:${color}; border-radius:50%; transform:translate(-50%,-50%); z-index:15;"></div>`;
+                  }
+                });
+              }
+
               bodyHtml += `
-<section class="keep-together">
-  <h2>${fp.name}</h2>
-  <div style="position:relative; text-align:center; margin:20px auto; max-width:95%; display:inline-block;">
-    <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
-    ${devicesOverlay}
-    ${connectionsOverlay}
-    ${arrowsOverlay}
-  </div>
+              <section class="keep-together">
+              <h2>${fp.name}</h2>
+              <div style="position:relative; text-align:center; margin:20px auto; max-width:95%; display:inline-block;">
+              <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
+              ${devicesOverlay}
+              ${connectionsOverlay}
+              ${arrowsOverlay}
+              ${annotationsOverlay}
+              </div>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
     <p><strong>Calibration:</strong> ${fp.pixelsPerInch ? fp.pixelsPerInch.toFixed(2) + ' px/inch' : 'Not calibrated'}</p>
