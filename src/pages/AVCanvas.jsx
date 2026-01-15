@@ -2585,25 +2585,24 @@ function AVCanvasContent() {
                                setShowRoomManager(false);
                                setSelectedFloorplanId(null);
                                setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                               // Start dragging immediately on mousedown
+                               const canvasRect = canvasRef.current?.getBoundingClientRect();
+                               if (canvasRect) {
+                                 setAnnotationDragInitial({
+                                   clientX: e.clientX,
+                                   clientY: e.clientY,
+                                   annotationX: ann.position.x,
+                                   annotationY: ann.position.y
+                                 });
+                               }
                              }
                            }}
-                          onDoubleClick={(e) => {
+                           onDoubleClick={(e) => {
                             if (activeTool === 'select') {
                               e.stopPropagation();
-                              const canvasRect = canvasRef.current?.getBoundingClientRect();
-                              if (canvasRect) {
-                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                setDraggingAnnotation(idx);
-                                setAnnotationDragStart({
-                                  mouseStartX: mouseWorldX,
-                                  mouseStartY: mouseWorldY,
-                                  startPosition: { ...ann.position }
-                                });
-                              }
                             }
-                          }}
-                          />
+                           }}
+                           />
                           <rect
                           x={ann.position.x}
                           y={ann.position.y}
