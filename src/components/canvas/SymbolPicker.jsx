@@ -38,7 +38,7 @@ const SYMBOL_CATEGORIES = {
 };
 
 const SymbolIcon = ({ id, color }) => {
-  const commonProps = { viewBox: "0 0 60 60", style: { width: '120px', height: '120px' } };
+  const commonProps = { viewBox: "0 0 60 60", style: { width: '32px', height: '32px' } };
   
   // Audio/Video symbols
   if (id === 'AV-SP') { // Loudspeaker
