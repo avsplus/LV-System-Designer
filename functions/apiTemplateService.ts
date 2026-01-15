@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       }
 
       case 'generateInstallationPackage': {
-        const { canvasProducts = [], connections = [], rooms = [], floorplans = [], arrows = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
+        const { canvasProducts = [], connections = [], rooms = [], floorplans = [], arrows = [], annotations = [], projectName, clientName, location, orgSettings, exportType = 'installer' } = params;
         const TEMPLATE_ID = 'c0377b23582ce40c';
         
         // Export type flags
