@@ -273,6 +273,26 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     );
   }
   
+  // 2 Gang Outlet
+  if (symbolId === 'ELEC-2G') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 94 77" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,77) scale(0.1,-0.1)" fill={color}>
+            <path d="M462 588 c-19 -6 -53 -33 -75 -60 l-42 -48 -87 0 c-52 0 -88 -4 -88 -10 0 -6 35 -10 85 -10 l85 0 0 -45 0 -44 -82 -3 c-54 -2 -83 -7 -86 -15 -3 -10 20 -13 90 -13 93 0 94 0 111 -30 44 -74 161 -105 242 -63 49 25 70 47 90 96 33 79 4 177 -65 223 -44 29 -127 39 -178 22z m126 -23 c43 -18 82 -53 82 -72 0 -10 -30 -13 -140 -13 -77 0 -140 3 -140 8 0 20 36 56 74 72 51 23 77 24 124 5z m108 -129 c3 -14 3 -34 -1 -45 -6 -20 -13 -21 -166 -21 l-159 0 0 45 0 45 160 0 160 0 6 -24z m-26 -105 c0 -5 -16 -23 -35 -39 -61 -55 -149 -55 -210 0 -19 16 -35 34 -35 39 0 5 63 9 140 9 77 0 140 -4 140 -9z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
   // Fallback: return simple circle for unknown symbols
   return (
     <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
