@@ -2473,7 +2473,7 @@ function AVCanvasContent() {
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
                   // Render symbol annotation
-                  if (ann.type === 'symbol') {
+                  if (ann.type === 'symbol' && ann.symbolId) {
                     const symbolColor = ann.color || '#3b82f6';
                     return (
                       <g key={ann.id}>
