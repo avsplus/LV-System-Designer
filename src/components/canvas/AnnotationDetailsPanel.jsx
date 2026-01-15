@@ -176,8 +176,8 @@ export default function AnnotationDetailsPanel({
           </div>
         )}
 
-        {/* Color - always show for symbols */}
-        {annotation.type === 'symbol' || true && (
+        {/* Color Control */}
+        {(annotation.type === 'symbol' || annotation.type === 'text' || annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'line') && (
           <div>
             <p className="text-sm text-gray-500 mb-2">{annotation.type === 'symbol' ? 'Icon Color Overlay' : 'Color'}</p>
             <div className="flex gap-3 items-center">
