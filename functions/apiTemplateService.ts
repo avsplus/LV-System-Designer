@@ -387,7 +387,7 @@ Deno.serve(async (req) => {
                 });
               }
 
-              // Build SVG overlay for symbols as colored badges with label
+              // Build SVG overlay for symbol PNG icons
               let svgSymbolsContent = '';
               if (annotations && annotations.length > 0) {
                 annotations.forEach(annotation => {
@@ -406,15 +406,13 @@ Deno.serve(async (req) => {
                   const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
-                    const color = annotation.color || '#3b82f6';
-                    const size = Math.max(12, (annotation.scale || 1) * 20);
-                    const label = annotation.symbolId.split('-')[1] || '●';
+                    const iconUrl = SYMBOL_ICONS[annotation.symbolId];
+                    const size = Math.max(24, (annotation.scale || 1) * 40);
 
-                    // Render symbol as colored badge with label
-                    svgSymbolsContent += `<g transform="translate(${imgPixelX}, ${imgPixelY})">
-                      <rect x="${-size}" y="${-size}" width="${size * 2}" height="${size * 2}" rx="${size / 3}" fill="${color}" opacity="0.9" stroke="white" stroke-width="1.5"/>
-                      <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${Math.max(8, size * 0.5)}" font-weight="bold" font-family="Arial">${label}</text>
-                    </g>`;
+                    if (iconUrl) {
+                      // Use PNG icon
+                      svgSymbolsContent += `<image href="${iconUrl}" x="${imgPixelX - size / 2}" y="${imgPixelY - size / 2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet"/>`;
+                    }
                   }
                 });
               }
