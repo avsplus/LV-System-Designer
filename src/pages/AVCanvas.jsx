@@ -2679,27 +2679,7 @@ function AVCanvasContent() {
                           fillOpacity={ann.fill ? 0.3 : 0}
                           className="pointer-events-none"
                         />
-                        {(isHovered || isSelected) && (
-                          <g
-                            className="pointer-events-auto cursor-pointer"
-                            onClick={async () => {
-                              const confirmed = await confirmDialog('Delete this annotation?', {
-                                title: 'Delete Annotation',
-                                type: 'warning'
-                              });
-                              if (confirmed) {
-                                const updated = annotations.filter((_, i) => i !== idx);
-                                setAnnotations(updated);
-                                saveAnnotations(updated);
-                                setSelectedAnnotation(null);
-                              }
-                            }}
-                          >
-                            <circle cx={ann.position.x + ann.radius + 15} cy={ann.position.y - ann.radius - 15} r="16" fill="#ef4444" />
-                            <line x1={ann.position.x + ann.radius + 10} y1={ann.position.y - ann.radius - 20} x2={ann.position.x + ann.radius + 20} y2={ann.position.y - ann.radius - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                            <line x1={ann.position.x + ann.radius + 20} y1={ann.position.y - ann.radius - 20} x2={ann.position.x + ann.radius + 10} y2={ann.position.y - ann.radius - 10} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                          </g>
-                        )}
+
                       </g>
                     );
                   } else if (ann.type === 'line' && ann.endPosition) {
