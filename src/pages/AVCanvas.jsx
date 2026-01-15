@@ -2567,27 +2567,7 @@ function AVCanvasContent() {
                        >
                          {ann.text}
                        </text>
-                        {(isHovered || isSelected) && (
-                          <g
-                            className="pointer-events-auto cursor-pointer"
-                            onClick={async () => {
-                              const confirmed = await confirmDialog('Delete this annotation?', {
-                                title: 'Delete Annotation',
-                                type: 'warning'
-                              });
-                              if (confirmed) {
-                                const updated = annotations.filter((_, i) => i !== idx);
-                                setAnnotations(updated);
-                                saveAnnotations(updated);
-                                setSelectedAnnotation(null);
-                              }
-                            }}
-                          >
-                            <circle cx={ann.position.x - 20} cy={ann.position.y - 10} r="16" fill="#ef4444" />
-                            <line x1={ann.position.x - 25} y1={ann.position.y - 15} x2={ann.position.x - 15} y2={ann.position.y - 5} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                            <line x1={ann.position.x - 15} y1={ann.position.y - 15} x2={ann.position.x - 25} y2={ann.position.y - 5} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                          </g>
-                        )}
+
                       </g>
                     );
                   } else if (ann.type === 'rectangle') {
