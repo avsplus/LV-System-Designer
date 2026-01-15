@@ -1,17 +1,47 @@
 import React from 'react';
 
-// Renders symbols with the exact same SVG design as shown in SymbolPicker
-export default function SymbolRenderer({ symbolId, position, color, scale = 1, rotation = 0, flipped = false }) {
-        const baseSize = 60; // Match the size from SymbolPicker
-        const scaledSize = baseSize * scale;
+const SYMBOL_ICONS = {
+  'ELEC-1G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/a507aab66_1outlet.png',
+  'ELEC-2G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/30549fe07_2outlet.png',
+  'ELEC-4G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/6f91237bb_4outlet.png',
+  'AV-AVO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/4b027c262_AVOutlet.png',
+  'NET-DP': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/840062b6f_DatanPhone.png',
+  'NET-DO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/abebe1c72_dataoutlet.png',
+  'NET-PO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/9753c0b01_phoneoutlet.png',
+  'AV-SPK': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/044d65a16_speaker.png',
+  'NET-WAP': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/4b96578ff_WirelesAP.png'
+};
 
-        // Log symbolId for debugging
+// Renders symbols with PNG icons or fallback SVGs
+export default function SymbolRenderer({ symbolId, position, color, scale = 1, rotation = 0, flipped = false }) {
+        const baseSize = 60;
+        const scaledSize = baseSize * scale;
+        const iconUrl = SYMBOL_ICONS[symbolId];
+
         if (!symbolId) {
           console.warn('SymbolRenderer: No symbolId provided', { position, color });
           return null;
         }
 
-        // Speaker
+        // Use PNG icon if available
+        if (iconUrl) {
+          const filterValue = color && color !== '#ffffff' ? `hue-rotate(${getHueRotation(color)}deg) brightness(1.1)` : 'none';
+          return (
+            <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+              <image 
+                href={iconUrl}
+                x={-scaledSize / 2}
+                y={-scaledSize / 2}
+                width={scaledSize}
+                height={scaledSize}
+                style={{ filter: filterValue }}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </g>
+          );
+        }
+
+        // Speaker (fallback)
         if (symbolId === 'AV-SPK') {
     return (
       <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
