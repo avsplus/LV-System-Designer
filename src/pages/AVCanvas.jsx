@@ -2540,6 +2540,24 @@ function AVCanvasContent() {
                             scale={ann.scale || 1}
                             rotation={ann.rotation || 0}
                             flipped={ann.flipped || false}
+                            onMouseDown={(e) => {
+                              if (activeTool === 'select') {
+                                e.stopPropagation();
+                                const canvasRect = canvasRef.current?.getBoundingClientRect();
+                                if (canvasRect) {
+                                  const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
+                                  const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
+                                  annotationMouseDownRef.current = {
+                                    idx,
+                                    clientX: e.clientX,
+                                    clientY: e.clientY,
+                                    mouseWorldX,
+                                    mouseWorldY,
+                                    startPosition: { ...ann.position }
+                                  };
+                                }
+                              }
+                            }}
                           />
                         </g>
 
