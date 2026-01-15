@@ -2,11 +2,17 @@ import React from 'react';
 
 // Renders symbols with the exact same SVG design as shown in SymbolPicker
 export default function SymbolRenderer({ symbolId, position, color, scale = 1, rotation = 0, flipped = false }) {
-  const baseSize = 60; // Match the size from SymbolPicker
-  const scaledSize = baseSize * scale;
-  
-  // Speaker
-  if (symbolId === 'AV-SPK') {
+        const baseSize = 60; // Match the size from SymbolPicker
+        const scaledSize = baseSize * scale;
+
+        // Log symbolId for debugging
+        if (!symbolId) {
+          console.warn('SymbolRenderer: No symbolId provided', { position, color });
+          return null;
+        }
+
+        // Speaker
+        if (symbolId === 'AV-SPK') {
     return (
       <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
         <svg 
