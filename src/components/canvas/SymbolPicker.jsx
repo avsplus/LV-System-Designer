@@ -50,15 +50,6 @@ const SymbolIcon = ({ id, color }) => {
       </svg>
     );
   }
-
-  if (id === 'AV-SP') { // Loudspeaker
-    return (
-      <svg {...commonProps}>
-        <path d="M15,20 L25,20 L35,12 L35,48 L25,40 L15,40 Z" fill="none" stroke={color} strokeWidth="2" />
-        <path d="M40,22 Q45,30 40,38" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    );
-  }
   
   if (id === 'AV-TV') { // Television
     return (
