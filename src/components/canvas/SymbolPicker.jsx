@@ -190,9 +190,11 @@ const SymbolIcon = ({ id, color }) => {
   
   if (id === 'CTRL-TTP') { // Tabletop Touch Pad
     return (
-      <svg {...commonProps}>
-        <rect x="15" y="20" width="30" height="20" rx="2" fill="none" stroke={color} strokeWidth="2" />
-        <rect x="20" y="25" width="20" height="10" fill="none" stroke={color} strokeWidth="1.5" />
+      <svg {...commonProps} viewBox="0 0 87 84" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,84) scale(0.05,-0.05)" fill={color}>
+          <path d="M457 1422 l-47 -38 0 -534 c0 -657 -54 -590 474 -590 526 0 476 -62 476 591 l0 511 -49 49 c-68 68 -772 77 -854 11z m804 -43 c48 -25 61 -989 15 -1035 -34 -34 -758 -34 -792 0 -43 43 -33 1009 11 1034 47 28 716 28 766 1z"/>
+          <path d="M528 1325 c-38 -37 -41 -784 -4 -821 15 -15 85 -24 180 -24 142 0 189 -17 136 -50 -31 -19 -23 -64 14 -79 47 -18 103 40 70 73 -46 46 -23 56 132 56 95 0 165 9 180 24 41 41 33 784 -9 826 -44 44 -654 40 -699 -5z m647 -410 l-5 -365 -290 0 -290 0 -5 365 -6 365 301 0 301 0 -6 -365z"/>
+        </g>
       </svg>
     );
   }
