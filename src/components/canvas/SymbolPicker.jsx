@@ -170,17 +170,10 @@ const SymbolIcon = ({ id, color }) => {
   
   if (id === 'CTRL-KP') { // Keypad
     return (
-      <svg {...commonProps}>
-        <rect x="15" y="15" width="30" height="30" rx="2" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="23" cy="23" r="2" fill={color} />
-        <circle cx="30" cy="23" r="2" fill={color} />
-        <circle cx="37" cy="23" r="2" fill={color} />
-        <circle cx="23" cy="30" r="2" fill={color} />
-        <circle cx="30" cy="30" r="2" fill={color} />
-        <circle cx="37" cy="30" r="2" fill={color} />
-        <circle cx="23" cy="37" r="2" fill={color} />
-        <circle cx="30" cy="37" r="2" fill={color} />
-        <circle cx="37" cy="37" r="2" fill={color} />
+      <svg {...commonProps} viewBox="0 0 91 77" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,77) scale(0.1,-0.1)" fill={color}>
+          <path d="M241 682 c-12 -24 -12 -580 0 -588 8 -4 307 -8 407 -4 9 0 12 67 12 299 0 258 -2 300 -15 305 -8 3 -101 5 -205 6 -169 0 -191 -2 -199 -18z m189 -102 l0 -80 -80 0 -80 0 0 80 0 80 80 0 80 0 0 -80z m190 0 l0 -80 -80 0 -80 0 0 80 0 80 80 0 80 0 0 -80z m-190 -190 l0 -81 -77 3 -78 3 -3 78 -3 77 81 0 80 0 0 -80z m190 0 l0 -80 -80 0 -80 0 0 80 0 80 80 0 80 0 0 -80z m-190 -191 l0 -79 -80 0 -80 0 0 73 c0 41 2 76 4 78 2 2 38 4 80 5 l76 1 0 -78z m190 -1 l0 -78 -80 0 -80 0 0 78 0 78 80 0 80 -1 0 -77z"/>
+        </g>
       </svg>
     );
   }
