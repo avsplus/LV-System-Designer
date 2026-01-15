@@ -71,19 +71,25 @@ export default function AnnotationToolbar({
           })}
         </div>
 
-        {/* Symbols Panel */}
-        <div className="pl-2 border-l border-gray-700 flex items-center">
-          <div className="px-2">
+        {/* Symbols Button */}
+        <Popover open={showSymbols} onOpenChange={setShowSymbols}>
+          <PopoverTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 text-gray-400 hover:text-white hover:bg-gray-800"
+              title="Add Symbol"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto bg-gray-900 border-gray-700 p-0" side="top" sideOffset={16}>
             <SymbolPicker 
-              onSelect={(symbol) => {
-                onAddSymbol(symbol);
-                setShowSymbolCategories(false);
-              }}
-              onClose={() => setShowSymbolCategories(false)}
-              compact={true}
+              onSelect={onAddSymbol}
+              onClose={() => setShowSymbols(false)}
             />
-          </div>
-        </div>
+          </PopoverContent>
+        </Popover>
 
         {/* Settings Button */}
         {activeTool !== 'select' && (
