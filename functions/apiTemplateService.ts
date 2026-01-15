@@ -374,8 +374,8 @@ Deno.serve(async (req) => {
                 });
               }
 
-              // Build SVG overlay for annotations, arrows, and symbols
-              let svgAnnotationsContent = '';
+              // Build SVG overlay for symbols
+              let svgSymbolsContent = '';
               if (annotations && annotations.length > 0) {
                 annotations.forEach(annotation => {
                   if (!annotation || !annotation.position) return;
@@ -394,11 +394,15 @@ Deno.serve(async (req) => {
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const color = annotation.color || '#3b82f6';
-                    const svgStr = getSymbolSVG(annotation.symbolId, color);
-                    const size = Math.max(20, (annotation.scale || 1) * 40);
+                    const size = Math.max(8, (annotation.scale || 1) * 15);
                     const rotation = annotation.rotation || 0;
-                    const flipped = annotation.flipped ? -1 : 1;
-                    svgAnnotationsContent += `<g transform="translate(${imgPixelX}, ${imgPixelY}) rotate(${rotation}) scale(${flipped}, 1)"><g transform="scale(${size / 60})">${svgStr.replace(/<svg[^>]*>|<\/svg>/g, '')}</g></g>`;
+
+                    // Render symbol as a styled circle/badge with SVG
+                    svgSymbolsContent += `
+                      <g transform="translate(${imgPixelX}, ${imgPixelY}) rotate(${rotation})">
+                        <circle cx="0" cy="0" r="${size}" fill="${color}" opacity="0.8" stroke="white" stroke-width="1.5"/>
+                        <text x="0" y="0" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${size * 0.8}" font-weight="bold" font-family="Arial">●</text>
+                      </g>`;
                   }
                 });
               }
