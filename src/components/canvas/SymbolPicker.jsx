@@ -93,7 +93,7 @@ export default function SymbolPicker({ onSelect, onClose }) {
               onSelect(symbol.id);
               onClose();
             }}
-            className="h-auto flex flex-col items-center justify-center p-3 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-gray-200 transition-all rounded-full w-20 h-20"
+            className="h-auto flex flex-col items-center justify-center p-3 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-gray-200 transition-all rounded-lg w-28 h-24"
             title={symbol.label}
           >
             <SymbolIcon id={symbol.id} color={symbol.color} />
