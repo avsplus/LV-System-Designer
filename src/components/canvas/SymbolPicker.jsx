@@ -67,8 +67,8 @@ export default function SymbolPicker({ onSelect, onClose }) {
     <div className="p-6 space-y-4 w-96">
       <label className="text-sm font-semibold text-gray-300 block">Insert Symbol</label>
       
-      {/* Category tabs */}
-      <div className="flex flex-wrap gap-2">
+      {/* Category tabs - 2 rows × 3 columns */}
+      <div className="grid grid-cols-3 gap-2">
         {Object.keys(SYMBOL_CATEGORIES).map(category => (
           <button
             key={category}
