@@ -3174,6 +3174,7 @@ function AVCanvasContent() {
                     rooms,
                     floorplans: exportFloorplans || [],
                     arrows,
+                    annotations,
                     projectName: currentProject?.name || 'AV-System-Design',
                     clientName,
                     location,
