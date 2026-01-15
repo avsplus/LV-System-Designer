@@ -298,9 +298,6 @@ Deno.serve(async (req) => {
               // Build annotations overlay
               let annotationsOverlay = '';
               if (annotations && annotations.length > 0) {
-                const DEVICE_CARD_WIDTH = 320;
-                const DEVICE_CARD_HEIGHT = 280;
-
                 annotations.forEach(annotation => {
                   if (!annotation || !annotation.position) return;
 
@@ -323,45 +320,49 @@ Deno.serve(async (req) => {
 
                   if (annotation.type === 'text') {
                     const color = annotation.color || '#000000';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${annotation.fontSize || 14}px; font-weight:500; white-space:nowrap; z-index:15;">${annotation.text || ''}</div>`;
+                    // Scale font size to match floorplan image (much smaller than canvas)
+                    const scaledFontSize = Math.max(8, (annotation.fontSize || 16) * (fp.imageWidth / 2000));
+                    const rotation = annotation.rotation ? `transform:rotate(${annotation.rotation}deg);` : '';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${scaledFontSize}px; font-weight:500; white-space:nowrap; z-index:15; ${rotation}">${annotation.text || ''}</div>`;
                   } else if (annotation.type === 'rectangle') {
                     const color = annotation.color || '#3b82f6';
                     const width = annotation.width || 40;
                     const height = annotation.height || 30;
                     const percentWidth = (width / fp.imageWidth) * 100;
                     const percentHeight = (height / fp.imageHeight) * 100;
-                    const stroke = annotation.strokeWidth || 2;
+                    const stroke = Math.max(0.5, annotation.strokeWidth || 2);
                     const fill = annotation.fill ? `background:${color}80;` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%); border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
+                    const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
                   } else if (annotation.type === 'circle') {
                     const color = annotation.color || '#3b82f6';
-                    const radius = (annotation.radius || 20) / 2;
-                    const percentSize = (radius * 2 / fp.imageWidth) * 100;
-                    const stroke = annotation.strokeWidth || 2;
+                    const radius = annotation.radius || 20;
+                    const percentSize = (radius / fp.imageWidth) * 100 * 2;
+                    const stroke = Math.max(0.5, annotation.strokeWidth || 2);
                     const fill = annotation.fill ? `background:${color}80;` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%); border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
+                    const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
                   } else if (annotation.type === 'line') {
                     const color = annotation.color || '#000000';
                     const endPos = annotation.endPosition;
                     if (endPos) {
                       const endImgX = (endPos.x - fpPos.x) * canvasToImageScale;
                       const endImgY = (endPos.y - fpPos.y) * canvasToImageScale;
-                      const endPercentX = (endImgX / fp.imageWidth) * 100;
-                      const endPercentY = (endImgY / fp.imageHeight) * 100;
-                      const stroke = annotation.strokeWidth || 2;
-                      const absX = imgPixelX;
-                      const absY = imgPixelY;
-                      const absEndX = endImgX;
-                      const absEndY = endImgY;
-                      const length = Math.sqrt(Math.pow(absEndX - absX, 2) + Math.pow(absEndY - absY, 2));
-                      const angle = Math.atan2(absEndY - absY, absEndX - absX) * 180 / Math.PI;
-                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${(length/fp.imageWidth)*100}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
+                      const dx = endImgX - imgPixelX;
+                      const dy = endImgY - imgPixelY;
+                      const length = Math.sqrt(dx * dx + dy * dy);
+                      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                      const stroke = Math.max(0.5, annotation.strokeWidth || 2);
+                      const percentLength = (length / fp.imageWidth) * 100;
+                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentLength}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
                     }
                   } else if (annotation.type === 'symbol') {
                     const color = annotation.color || '#3b82f6';
-                    const size = (annotation.scale || 1) * 6;
+                    // Symbols scale relative to floorplan image
+                    const size = Math.max(2, (annotation.scale || 1) * 3);
                     const percentSize = (size / fp.imageWidth) * 100;
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; background:${color}; border-radius:50%; transform:translate(-50%,-50%); z-index:15;"></div>`;
+                    const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; background:${color}; border-radius:50%; transform:translate(-50%,-50%) ${rotation}; z-index:15;"></div>`;
                   }
                 });
               }
