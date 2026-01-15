@@ -3250,6 +3250,7 @@ function AVCanvasContent() {
                   action: 'generateWireSchedule',
                   canvasProducts: devices,
                   connections: conns,
+                  annotations,
                   projectName: pName || currentProject?.name,
                   clientName: cName,
                   orgSettings
