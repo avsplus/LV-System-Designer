@@ -2641,6 +2641,18 @@ function AVCanvasContent() {
                               setShowRoomManager(false);
                               setSelectedFloorplanId(null);
                               setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                              // Start dragging immediately on mousedown
+                              const canvasRect = canvasRef.current?.getBoundingClientRect();
+                              if (canvasRect) {
+                                setAnnotationDragInitial({
+                                  clientX: e.clientX,
+                                  clientY: e.clientY,
+                                  annotationX: ann.position.x,
+                                  annotationY: ann.position.y
+                                });
+                              }
+                            } else if (activeTool === 'text') {
+                              setEditingText(ann.id);
                             }
                           }}
                           onDoubleClick={(e) => {
