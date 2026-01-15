@@ -190,6 +190,27 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     );
   }
   
+  // Wall Touch Panel
+  if (symbolId === 'CTRL-WTP') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 87 83" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,83) scale(0.05,-0.05)" fill={color}>
+            <path d="M405 865 l5 -595 470 0 470 0 0 590 0 590 -475 5 -476 6 6 -596z m891 35 c3 -269 0 -510 -6 -535 l-11 -46 -404 6 -405 5 -5 510 c-3 280 -1 521 4 535 8 20 99 25 416 20 l405 -5 6 -490z"/>
+            <path d="M529 1335 c-5 -14 -7 -237 -4 -495 l5 -470 332 -5 c419 -7 380 -61 373 518 l-5 467 -345 5 c-269 5 -348 0 -356 -20z m631 -70 c6 -398 -2 -815 -16 -829 -9 -9 -138 -15 -286 -12 l-268 6 -5 435 -6 435 291 0 c263 0 290 -3 290 -35z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
   // Fallback: return simple circle for unknown symbols
   return (
     <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>

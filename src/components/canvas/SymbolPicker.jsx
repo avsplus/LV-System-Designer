@@ -159,11 +159,11 @@ const SymbolIcon = ({ id, color }) => {
   // Control symbols
   if (id === 'CTRL-WTP') { // Wall Touch Panel
     return (
-      <svg {...commonProps}>
-        <rect x="18" y="15" width="24" height="30" rx="2" fill="none" stroke={color} strokeWidth="2" />
-        <rect x="22" y="20" width="16" height="12" fill="none" stroke={color} strokeWidth="1.5" />
-        <circle cx="26" cy="38" r="2" fill={color} />
-        <circle cx="34" cy="38" r="2" fill={color} />
+      <svg {...commonProps} viewBox="0 0 87 83" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,83) scale(0.05,-0.05)" fill={color}>
+          <path d="M405 865 l5 -595 470 0 470 0 0 590 0 590 -475 5 -476 6 6 -596z m891 35 c3 -269 0 -510 -6 -535 l-11 -46 -404 6 -405 5 -5 510 c-3 280 -1 521 4 535 8 20 99 25 416 20 l405 -5 6 -490z"/>
+          <path d="M529 1335 c-5 -14 -7 -237 -4 -495 l5 -470 332 -5 c419 -7 380 -61 373 518 l-5 467 -345 5 c-269 5 -348 0 -356 -20z m631 -70 c6 -398 -2 -815 -16 -829 -9 -9 -138 -15 -286 -12 l-268 6 -5 435 -6 435 291 0 c263 0 290 -3 290 -35z"/>
+        </g>
       </svg>
     );
   }
