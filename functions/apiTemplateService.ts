@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import sharp from 'npm:sharp@0.33.1';
 
 const API_KEY = Deno.env.get('APITEMPLATE_API_KEY');
 
