@@ -116,38 +116,33 @@ const SymbolIcon = ({ id, color }) => {
   if (id === 'NET-WAP') { // Wireless Access Point
     return (
       <svg {...commonProps}>
-        <path d="M18,25 L22,30 L18,35" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <path d="M30,20 L30,40" stroke={color} strokeWidth="2" />
-        <path d="M42,25 L38,30 L42,35" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <circle cx="30" cy="15" r="3" fill={color} />
+        <rect x="20" y="35" width="20" height="10" fill="none" stroke={color} strokeWidth="2" />
+        <path d="M25,30 Q30,25 35,30" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <path d="M22,25 Q30,18 38,25" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
       </svg>
     );
   }
-  
+
   if (id === 'NET-DO') { // Data Outlet
     return (
       <svg {...commonProps}>
-        <path d="M25,15 L15,25 L15,40 L45,40 L45,25 L35,15 Z" fill="none" stroke={color} strokeWidth="2" />
-        <path d="M20,30 L40,30" stroke={color} strokeWidth="2" />
+        <path d="M15,30 L30,15 L30,45 Z" fill={color} />
       </svg>
     );
   }
-  
+
   if (id === 'NET-PO') { // Phone Outlet
     return (
       <svg {...commonProps}>
-        <path d="M25,18 L18,25 L18,38 L25,45 L35,45 L42,38 L42,25 L35,18 Z" fill="none" stroke={color} strokeWidth="2" />
-        <path d="M22,30 L38,30" stroke={color} strokeWidth="2" />
+        <path d="M15,30 L30,15 L30,45 Z" fill={color} />
       </svg>
     );
   }
-  
+
   if (id === 'NET-DP') { // Data & Phone
     return (
       <svg {...commonProps}>
-        <path d="M15,20 L15,35 L27,45 L33,45 L45,35 L45,20 Z" fill="none" stroke={color} strokeWidth="2" />
-        <path d="M18,28 L42,28" stroke={color} strokeWidth="2" />
-        <line x1="30" y1="20" x2="30" y2="35" stroke={color} strokeWidth="2" />
+        <path d="M15,30 L30,15 L30,45 Z" fill="none" stroke={color} strokeWidth="2" />
       </svg>
     );
   }
