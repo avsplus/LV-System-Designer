@@ -2144,16 +2144,7 @@ function AVCanvasContent() {
                           pointerEvents: 'none'
                         }}
                       />
-                      {/* Floorplan name overlay */}
-                      <div 
-                        className="absolute bottom-4 right-4 text-center"
-                        style={{ pointerEvents: 'none' }}
-                      >
-                        <div className="text-5xl font-bold" style={{ color: '#1e40af', textShadow: '1px 1px 3px rgba(255,255,255,0.4)' }}>{fp.name}</div>
-                        <div className="text-xl font-normal mt-1 inline-block px-3 py-1 border border-black" style={{ color: '#000', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                          Uploaded Date: {new Date(parseInt(fp.id)).toLocaleDateString()}
-                        </div>
-                      </div>
+
                       {isSelected && !fp.locked && (
                         <>
                           {/* Corner resize handles */}
