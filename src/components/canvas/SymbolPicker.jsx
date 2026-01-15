@@ -234,10 +234,10 @@ const SymbolIcon = ({ id, color }) => {
   // Electrical symbols
   if (id === 'ELEC-1G') { // Single Gang Outlet
     return (
-      <svg {...commonProps}>
-        <circle cx="30" cy="30" r="12" fill="none" stroke={color} strokeWidth="2" />
-        <line x1="30" y1="24" x2="30" y2="36" stroke={color} strokeWidth="2" />
-        <line x1="24" y1="30" x2="36" y2="30" stroke={color} strokeWidth="2" />
+      <svg {...commonProps} viewBox="0 0 100 72" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,72) scale(0.1,-0.1)" fill={color}>
+          <path d="M454 545 c-39 -17 -92 -77 -100 -113 -3 -15 -7 -31 -8 -36 -1 -5 -41 -10 -89 -10 -118 -1 -118 -20 1 -24 91 -3 92 -3 92 -28 0 -64 107 -154 184 -154 73 0 151 57 184 133 35 82 -21 202 -111 236 -38 15 -115 12 -153 -4z m166 -37 c41 -28 69 -65 72 -96 l3 -23 -158 0 c-87 -1 -161 2 -164 4 -7 7 32 79 54 99 48 44 141 51 193 16z m80 -160 c0 -6 -11 -30 -25 -54 -26 -45 -90 -84 -137 -84 -56 0 -126 48 -157 107 -21 42 -18 43 154 43 119 0 165 -3 165 -12z"/>
+        </g>
       </svg>
     );
   }
