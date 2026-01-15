@@ -374,12 +374,10 @@ Deno.serve(async (req) => {
                 });
               }
 
-              // Build SVG overlay for symbols - will convert to PNG later
+              // Build SVG overlay for symbols as colored badges with label
               let svgSymbolsContent = '';
-              let symbolPngPromises = [];
-
               if (annotations && annotations.length > 0) {
-                annotations.forEach((annotation, idx) => {
+                annotations.forEach(annotation => {
                   if (!annotation || !annotation.position) return;
 
                   const annX = annotation.position.x;
@@ -396,26 +394,16 @@ Deno.serve(async (req) => {
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const color = annotation.color || '#3b82f6';
-                    const size = Math.max(8, (annotation.scale || 1) * 15);
-                    const pngId = `symbol_${fp.id || 'fp'}_${idx}`;
+                    const size = Math.max(12, (annotation.scale || 1) * 20);
+                    const label = annotation.symbolId.split('-')[1] || '●';
 
-                    // Schedule PNG conversion
-                    symbolPngPromises.push(
-                      svgToPng(annotation.symbolId, color).then(pngUrl => {
-                        svgSymbolsContent += `<image href="${pngUrl}" x="${imgPixelX - size}" y="${imgPixelY - size}" width="${size * 2}" height="${size * 2}" />`;
-                      }).catch(err => {
-                        console.error(`Failed to convert symbol ${annotation.symbolId} to PNG:`, err);
-                        // Fallback to colored circle
-                        svgSymbolsContent += `<circle cx="${imgPixelX}" cy="${imgPixelY}" r="${size}" fill="${color}" opacity="0.85"/>`;
-                      })
-                    );
+                    // Render symbol as colored badge with label
+                    svgSymbolsContent += `<g transform="translate(${imgPixelX}, ${imgPixelY})">
+                      <rect x="${-size}" y="${-size}" width="${size * 2}" height="${size * 2}" rx="${size / 3}" fill="${color}" opacity="0.9" stroke="white" stroke-width="1.5"/>
+                      <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${Math.max(8, size * 0.5)}" font-weight="bold" font-family="Arial">${label}</text>
+                    </g>`;
                   }
                 });
-              }
-
-              // Wait for all PNG conversions
-              if (symbolPngPromises.length > 0) {
-                await Promise.all(symbolPngPromises);
               }
 
               bodyHtml += `
