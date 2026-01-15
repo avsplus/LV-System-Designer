@@ -1355,6 +1355,17 @@ function AVCanvasContent() {
     return () => document.body.classList.remove('canvas-dragging');
   }, [annotationDragInitial]);
 
+  // Prevent browser selection during canvas interactions (works instantly)
+  useEffect(() => {
+    const preventSelect = (e) => {
+      if (document.body.classList.contains('canvas-dragging')) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('selectstart', preventSelect);
+    return () => document.removeEventListener('selectstart', preventSelect);
+  }, []);
+
   // Default port definitions by product category - fallback when database doesn't have connections
   // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
   const connectionsByCategory = {
