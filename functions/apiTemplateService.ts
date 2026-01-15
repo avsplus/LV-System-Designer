@@ -798,15 +798,6 @@ function generateCableLabelHTML(connection, fromDevice, toDevice) {
   return `<!DOCTYPE html><html><head><style>body{margin:0;padding:10px;font-family:-apple-system,sans-serif;background:white;}.label{background:${color};color:white;border-radius:6px;padding:12px 15px;}.wire-id{font-size:16px;font-weight:700;}.route{font-size:11px;opacity:0.9;}</style></head><body><div class="label"><div class="wire-id">${connection.wireId || 'CABLE'}</div><div class="route">${fromDevice?.label || 'Source'} → ${toDevice?.label || 'Destination'}</div></div></body></html>`;
 }
 
-// Convert SVG to PNG data URL with specified color
-async function svgToPng(symbolId, color) {
-  const svg = getSymbolSVG(symbolId, color);
-  const svg64 = Buffer.from(svg).toString('base64');
-  const image = Buffer.from(svg64, 'base64');
-  const png = await sharp(image).png().toBuffer();
-  return 'data:image/png;base64,' + png.toString('base64');
-}
-
 function getSymbolSVG(symbolId, color) {
   const svgs = {
     'AV-SPK': `<svg viewBox="0 0 106 93" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%;"><g transform="translate(0,93) scale(0.1,-0.1)" fill="${color}"><path d="M565 780 l-110 -110 -107 0 -108 0 0 -174 c0 -130 3 -175 12 -178 7 -3 58 -4 112 -3 l100 2 105 -108 c57 -60 111 -109 118 -109 10 0 13 75 13 395 0 312 -3 395 -13 395 -7 0 -62 -49 -122 -110z m101 -617 c-2 -2 -46 39 -96 91 l-93 96 -104 0 -104 0 3 147 3 147 101 -3 101 -3 94 101 94 100 3 -336 c1 -185 0 -338 -2 -340z"/></g></svg>`,
