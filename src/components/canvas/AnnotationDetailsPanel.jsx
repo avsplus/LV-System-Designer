@@ -176,19 +176,24 @@ export default function AnnotationDetailsPanel({
           </div>
         )}
 
-        {/* Color */}
-        <div>
-          <p className="text-sm text-gray-500 mb-2">Color</p>
-          <div className="flex gap-3 items-center">
-            <input
-              type="color"
-              value={annotation.color || '#3b82f6'}
-              onChange={handleColorChange}
-              className="w-12 h-10 rounded cursor-pointer border border-gray-700"
-            />
-            <span className="text-sm text-gray-400">{annotation.color}</span>
+        {/* Color - always show for symbols */}
+        {annotation.type === 'symbol' || true && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">{annotation.type === 'symbol' ? 'Icon Color Overlay' : 'Color'}</p>
+            <div className="flex gap-3 items-center">
+              <input
+                type="color"
+                value={annotation.color || '#3b82f6'}
+                onChange={handleColorChange}
+                className="w-12 h-10 rounded cursor-pointer border border-gray-700"
+              />
+              <span className="text-sm text-gray-400">{annotation.color}</span>
+            </div>
+            {annotation.type === 'symbol' && (
+              <p className="text-xs text-gray-500 mt-2">Adjust hue and brightness of the icon</p>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Stroke Width */}
         {annotation.type !== 'text' && annotation.type !== 'symbol' && (
