@@ -232,6 +232,27 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     );
   }
   
+  // Volume Control
+  if (symbolId === 'CTRL-VC') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 102 80" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,80) scale(0.1,-0.1)" fill={color}>
+            <path d="M287 704 c-4 -4 -7 -142 -7 -306 l0 -298 205 0 205 0 -2 303 -3 302 -196 3 c-107 1 -198 -1 -202 -4z m365 -304 l1 -265 -172 -3 -171 -2 0 270 0 270 171 -2 171 -3 0 -265z"/>
+            <path d="M403 505 c-82 -65 -62 -189 36 -228 50 -21 101 -6 142 40 24 28 29 43 29 83 0 43 -5 54 -38 90 -35 36 -44 40 -88 40 -37 0 -57 -6 -81 -25z m121 -16 c33 -15 59 -71 51 -108 -16 -73 -111 -102 -160 -49 -44 47 -29 124 30 156 26 15 48 15 79 1z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
   // Fallback: return simple circle for unknown symbols
   return (
     <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
