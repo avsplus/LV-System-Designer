@@ -1345,12 +1345,15 @@ function AVCanvasContent() {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
 
-  // Prevent browser selection during any interaction
+  // Disable text selection when dragging annotations
   useEffect(() => {
-    const preventSelect = (e) => e.preventDefault();
-    document.addEventListener('selectstart', preventSelect);
-    return () => document.removeEventListener('selectstart', preventSelect);
-  }, []);
+    if (annotationDragInitial) {
+      document.body.classList.add('canvas-dragging');
+    } else {
+      document.body.classList.remove('canvas-dragging');
+    }
+    return () => document.body.classList.remove('canvas-dragging');
+  }, [annotationDragInitial]);
 
   // Default port definitions by product category - fallback when database doesn't have connections
   // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
@@ -1987,23 +1990,23 @@ function AVCanvasContent() {
            {...provided.droppableProps}
            style={{ ...provided.droppableProps.style, backgroundColor: 'transparent !important' }}
            onWheel={currentProject ? (e) => handleWheel(e, canvasRef.current) : undefined}
-            onPointerDown={currentProject ? (e) => {
-              e.preventDefault();
-              if (activeTool !== 'select' && activeTool !== 'text') {
-                handleAnnotationMouseDown(e);
-              } else {
-                handleMouseDown(e);
-              }
-            } : undefined}
-            onPointerUp={() => {}}
-            onPointerLeave={() => {}}
             onMouseDown={currentProject ? (e) => {
+              document.body.classList.add('canvas-dragging');
+              document.body.style.userSelect = 'none';
               if (activeTool !== 'select' && activeTool !== 'text') {
                 handleAnnotationMouseDown(e);
               } else {
                 handleMouseDown(e);
               }
             } : undefined}
+            onMouseUp={() => {
+              document.body.classList.remove('canvas-dragging');
+              document.body.style.userSelect = '';
+            }}
+            onMouseLeave={() => {
+              document.body.classList.remove('canvas-dragging');
+              document.body.style.userSelect = '';
+            }}
             onClick={currentProject ? handleCanvasClick : undefined}
               onTouchStart={currentProject ? handleCanvasTouchStart : undefined}
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
