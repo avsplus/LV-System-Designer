@@ -362,3 +362,20 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     </g>
   );
 }
+
+// Helper to convert hex color to hue rotation
+function getHueRotation(color) {
+  if (!color || color === '#ffffff') return 0;
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  if (max === r) h = ((g - b) / (max - min)) % 6;
+  else if (max === g) h = (b - r) / (max - min) + 2;
+  else h = (r - g) / (max - min) + 4;
+  h = (h * 60 + 360) % 360;
+  return h;
+}
