@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, FlipHorizontal, RotateCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AnnotationDetailsPanel({ 
   annotation, 
@@ -46,6 +47,23 @@ export default function AnnotationDetailsPanel({
     onUpdate(index, { ...annotation, height: value[0] });
   };
 
+  const handleScaleChange = (value) => {
+    onUpdate(index, { ...annotation, scale: value[0] });
+  };
+
+  const handleFlipHorizontal = () => {
+    onUpdate(index, { ...annotation, flipped: !annotation.flipped });
+  };
+
+  const handleRotate = () => {
+    const currentRotation = annotation.rotation || 0;
+    onUpdate(index, { ...annotation, rotation: (currentRotation + 90) % 360 });
+  };
+
+  const handleDescriptionChange = (e) => {
+    onUpdate(index, { ...annotation, description: e.target.value });
+  };
+
   const getAnnotationLabel = () => {
     if (annotation.type === 'text') return 'Text';
     if (annotation.type === 'rectangle') return 'Rectangle';
@@ -81,6 +99,67 @@ export default function AnnotationDetailsPanel({
               {annotation.symbolId}
             </div>
           </div>
+        )}
+
+        {/* Symbol Controls */}
+        {annotation.type === 'symbol' && (
+          <>
+            {/* Scale */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-gray-500">Size</p>
+                <span className="text-sm text-blue-400 font-medium">{Math.round((annotation.scale || 1) * 100)}%</span>
+              </div>
+              <Slider
+                value={[annotation.scale || 1]}
+                onValueChange={handleScaleChange}
+                min={0.25}
+                max={3}
+                step={0.25}
+                className="w-full"
+              />
+            </div>
+
+            {/* Rotation */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-gray-500">Rotation</p>
+                <span className="text-sm text-blue-400 font-medium">{annotation.rotation || 0}°</span>
+              </div>
+              <Button
+                onClick={handleRotate}
+                variant="outline"
+                className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <RotateCw className="w-4 h-4 mr-2" />
+                Rotate 90°
+              </Button>
+            </div>
+
+            {/* Flip Horizontal */}
+            <div>
+              <Button
+                onClick={handleFlipHorizontal}
+                variant="outline"
+                className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <FlipHorizontal className="w-4 h-4 mr-2" />
+                {annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
+              </Button>
+            </div>
+
+            {/* Description */}
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Description</p>
+              <Textarea
+                value={annotation.description || ''}
+                onChange={handleDescriptionChange}
+                placeholder="Add notes or description..."
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
+                rows={3}
+              />
+            </div>
+          </>
         )}
 
         {/* Text Content */}

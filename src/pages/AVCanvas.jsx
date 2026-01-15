@@ -2537,7 +2537,9 @@ function AVCanvasContent() {
                             symbolId={ann.symbolId} 
                             position={ann.position} 
                             color={symbolColor}
-                            scale={1}
+                            scale={ann.scale || 1}
+                            rotation={ann.rotation || 0}
+                            flipped={ann.flipped || false}
                           />
                         </g>
 
