@@ -128,8 +128,10 @@ const SymbolIcon = ({ id, color }) => {
 
   if (id === 'NET-DO') { // Data Outlet
     return (
-      <svg {...commonProps}>
-        <path d="M15,30 L30,15 L30,45 Z" fill={color} />
+      <svg {...commonProps} viewBox="0 0 114 85" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,85) scale(0.1,-0.1)" fill={color}>
+          <path d="M750 753 c-52 -31 -108 -63 -125 -73 -16 -9 -106 -61 -200 -114 -93 -53 -176 -103 -183 -110 -14 -14 -11 -16 93 -76 357 -206 521 -297 528 -291 11 11 4 714 -8 717 -5 1 -53 -23 -105 -53z"/>
+        </g>
       </svg>
     );
   }
