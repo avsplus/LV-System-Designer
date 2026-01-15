@@ -150,6 +150,26 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     );
   }
   
+  // AV Outlet
+  if (symbolId === 'AV-AVO') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 119 89" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,89) scale(0.1,-0.1)" fill={color}>
+            <path d="M590 709 c-123 -71 -226 -129 -228 -129 -2 0 -16 -8 -30 -19 -15 -10 -49 -31 -77 -46 -71 -39 -72 -41 -29 -63 22 -10 80 -43 129 -72 118 -69 266 -155 335 -193 30 -17 72 -41 92 -54 21 -13 42 -23 48 -23 7 0 10 124 10 365 0 286 -3 365 -12 364 -7 0 -114 -59 -238 -130z m222 -66 c-2 -82 -4 -149 -5 -150 -6 -5 -527 -7 -527 -2 0 3 12 12 27 20 28 14 262 146 318 179 17 9 62 36 100 59 39 22 75 41 80 41 6 0 9 -54 7 -147z m-5 -186 c6 -7 6 -297 0 -297 -5 0 -21 8 -35 18 -15 11 -52 32 -82 49 -59 32 -85 47 -195 111 -38 23 -102 58 -142 79 -39 20 -70 40 -68 43 3 4 517 2 522 -3z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
   // Fallback: return simple circle for unknown symbols
   return (
     <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
