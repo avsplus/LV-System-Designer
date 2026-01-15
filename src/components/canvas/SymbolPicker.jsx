@@ -85,7 +85,7 @@ export default function SymbolPicker({ onSelect, onClose }) {
       </div>
 
       {/* Symbols grid */}
-      <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2">
+      <div className="grid grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2 justify-items-center">
         {symbols.map(symbol => (
           <Button
             key={symbol.id}
