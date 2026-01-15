@@ -267,7 +267,14 @@ function AVCanvasContent() {
     setCurrentProject(project);
     loadProject(project);
     setArrows(project.arrows || []);
-    setAnnotations(project.annotations || []);
+    const annotations = (project.annotations || []).map(ann => {
+      // Ensure symbols have correct structure
+      if (ann.type === 'symbol' && !ann.symbolId) {
+        console.warn('Symbol annotation missing symbolId:', ann);
+      }
+      return ann;
+    });
+    setAnnotations(annotations);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
