@@ -43,7 +43,7 @@ const SymbolIcon = ({ id, color }) => {
   // Audio/Video symbols
   if (id === 'AV-SPK') { // Speaker
     return (
-      <svg width="32px" height="32px" viewBox="0 0 106 93" preserveAspectRatio="xMidYMid meet">
+      <svg {...commonProps} viewBox="0 0 106 93" preserveAspectRatio="xMidYMid meet">
         <g transform="translate(0,93) scale(0.1,-0.1)" fill={color}>
           <path d="M565 780 l-110 -110 -107 0 -108 0 0 -174 c0 -130 3 -175 12 -178 7 -3 58 -4 112 -3 l100 2 105 -108 c57 -60 111 -109 118 -109 10 0 13 75 13 395 0 312 -3 395 -13 395 -7 0 -62 -49 -122 -110z m101 -617 c-2 -2 -46 39 -96 91 l-93 96 -104 0 -104 0 3 147 3 147 101 -3 101 -3 94 101 94 100 3 -336 c1 -185 0 -338 -2 -340z"/>
         </g>
@@ -53,7 +53,7 @@ const SymbolIcon = ({ id, color }) => {
   
   if (id === 'AV-TV') { // Television
     return (
-      <svg width="32px" height="32px" viewBox="0 0 106 85" preserveAspectRatio="xMidYMid meet">
+      <svg {...commonProps} viewBox="0 0 106 85" preserveAspectRatio="xMidYMid meet">
         <g transform="translate(0,85) scale(0.1,-0.1)" fill={color}>
           <path d="M262 438 l3 -193 280 0 280 0 0 190 0 190 -283 3 -282 2 2 -192z m82 -6 l1 -162 -27 0 -28 0 0 158 c0 87 3 162 7 166 4 4 16 6 26 4 18 -3 20 -14 21 -166z m366 1 l0 -163 -165 0 -165 0 0 163 0 162 165 0 165 0 0 -162z m82 2 l0 -160 -26 -3 -26 -3 0 159 c0 87 3 162 7 166 4 4 16 6 26 4 17 -3 19 -14 19 -163z"/>
         </g>
