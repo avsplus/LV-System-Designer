@@ -28,48 +28,46 @@ css
   scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
 }
 
-/* Disable text selection while dragging on canvas */
-body.canvas-dragging {
+/* Canvas selection prevention */
+[data-canvas-background="true"] {
   user-select: none !important;
   -webkit-user-select: none !important;
   -ms-user-select: none !important;
   -moz-user-select: none !important;
 }
 
-/* Also apply to all children */
-body.canvas-dragging * {
+[data-canvas-background="true"] * {
   user-select: none !important;
   -webkit-user-select: none !important;
   -webkit-user-drag: none !important;
   -moz-user-select: none !important;
 }
 
-/* Disable selection highlight while dragging */
-body.canvas-dragging ::selection {
+/* Disable all selection on canvas */
+[data-canvas-background="true"] ::selection {
   background: transparent !important;
-  color: inherit !important;
 }
 
-body.canvas-dragging *::selection {
+[data-canvas-background="true"] *::selection {
   background: transparent !important;
-  color: inherit !important;
 }
 
-body.canvas-dragging ::-moz-selection {
+[data-canvas-background="true"] ::-moz-selection {
   background: transparent !important;
-  color: inherit !important;
 }
 
-body.canvas-dragging *::-moz-selection {
+[data-canvas-background="true"] *::-moz-selection {
   background: transparent !important;
-  color: inherit !important;
 }
 
-/* Images and SVGs */
-body.canvas-dragging img,
-body.canvas-dragging svg {
+/* Disable focus outline on canvas */
+[data-canvas-background="true"]:focus,
+[data-canvas-background="true"]:focus-visible {
+  outline: none !important;
+}
+
+/* Prevent drag ghost images */
+[data-canvas-background="true"] {
   -webkit-user-drag: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -moz-user-select: none;
+  user-drag: none;
 }
