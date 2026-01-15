@@ -5,6 +5,26 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
   const baseSize = 60; // Match the size from SymbolPicker
   const scaledSize = baseSize * scale;
   
+  // Speaker
+  if (symbolId === 'AV-SPK') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 106 93" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,93) scale(0.1,-0.1)" fill={color}>
+            <path d="M565 780 l-110 -110 -107 0 -108 0 0 -174 c0 -130 3 -175 12 -178 7 -3 58 -4 112 -3 l100 2 105 -108 c57 -60 111 -109 118 -109 10 0 13 75 13 395 0 312 -3 395 -13 395 -7 0 -62 -49 -122 -110z m101 -617 c-2 -2 -46 39 -96 91 l-93 96 -104 0 -104 0 3 147 3 147 101 -3 101 -3 94 101 94 100 3 -336 c1 -185 0 -338 -2 -340z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
   // Wireless AP
   if (symbolId === 'NET-WAP') {
     return (

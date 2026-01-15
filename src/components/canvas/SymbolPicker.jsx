@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const SYMBOL_CATEGORIES = {
   'Audio/Video': [
-    { id: 'AV-SP', label: 'Speaker', color: '#f97316' },
+    { id: 'AV-SPK', label: 'Speaker', color: '#f97316' },
     { id: 'AV-TV', label: 'Television', color: '#f97316' },
     { id: 'AV-PS', label: 'Projector Screen', color: '#f97316' },
     { id: 'AV-AVO', label: 'AV Outlet', color: '#f97316' }
@@ -39,8 +39,18 @@ const SYMBOL_CATEGORIES = {
 
 const SymbolIcon = ({ id, color }) => {
   const commonProps = { viewBox: "0 0 60 60", style: { width: '32px', height: '32px' } };
-  
+
   // Audio/Video symbols
+  if (id === 'AV-SPK') { // Speaker
+    return (
+      <svg {...commonProps} viewBox="0 0 106 93" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,93) scale(0.1,-0.1)" fill={color}>
+          <path d="M565 780 l-110 -110 -107 0 -108 0 0 -174 c0 -130 3 -175 12 -178 7 -3 58 -4 112 -3 l100 2 105 -108 c57 -60 111 -109 118 -109 10 0 13 75 13 395 0 312 -3 395 -13 395 -7 0 -62 -49 -122 -110z m101 -617 c-2 -2 -46 39 -96 91 l-93 96 -104 0 -104 0 3 147 3 147 101 -3 101 -3 94 101 94 100 3 -336 c1 -185 0 -338 -2 -340z"/>
+        </g>
+      </svg>
+    );
+  }
+
   if (id === 'AV-SP') { // Loudspeaker
     return (
       <svg {...commonProps}>
