@@ -35,7 +35,11 @@ export default function AnnotationToolbar({
   onAddSymbol
 }) {
   const [showSettings, setShowSettings] = useState(false);
-  const [showSymbols, setShowSymbols] = useState(false);
+  const [showSymbols, setShowSymbols] = useState(true);
+
+  useEffect(() => {
+    setShowSymbols(true);
+  }, []);
 
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Select' },
