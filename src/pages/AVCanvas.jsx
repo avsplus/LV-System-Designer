@@ -2516,27 +2516,7 @@ function AVCanvasContent() {
                           />
                         </g>
 
-                        {(isHovered || isSelected) && (
-                          <g
-                            className="pointer-events-auto cursor-pointer"
-                            onClick={async () => {
-                              const confirmed = await confirmDialog('Delete this annotation?', {
-                                title: 'Delete Annotation',
-                                type: 'warning'
-                              });
-                              if (confirmed) {
-                                const updated = annotations.filter((_, i) => i !== idx);
-                                setAnnotations(updated);
-                                saveAnnotations(updated);
-                                setSelectedAnnotation(null);
-                              }
-                            }}
-                          >
-                            <circle cx={ann.position.x + 40} cy={ann.position.y - 40} r="16" fill="#ef4444" />
-                            <line x1={ann.position.x + 35} y1={ann.position.y - 45} x2={ann.position.x + 45} y2={ann.position.y - 35} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                            <line x1={ann.position.x + 45} y1={ann.position.y - 45} x2={ann.position.x + 35} y2={ann.position.y - 35} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                          </g>
-                        )}
+
                       </g>
                     );
                   }
