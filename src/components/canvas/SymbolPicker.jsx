@@ -53,18 +53,34 @@ const SYMBOL_CATEGORIES = {
 const SymbolIcon = ({ id, color }) => {
   const iconUrl = SYMBOL_ICONS[id];
   
-  // Use PNG icon if available, with color overlay via filter
+  // Use PNG icon if available, with color overlay
   if (iconUrl) {
     return (
-      <img 
-        src={iconUrl} 
-        alt={id} 
-        style={{ 
-          width: '32px', 
-          height: '32px',
-          filter: color && color !== '#ffffff' ? `hue-rotate(${getHueRotation(color)}deg) brightness(1.1)` : 'none'
-        }}
-      />
+      <div style={{ position: 'relative', width: '32px', height: '32px', display: 'inline-block' }}>
+        <img 
+          src={iconUrl} 
+          alt={id} 
+          style={{ 
+            width: '32px', 
+            height: '32px'
+          }}
+        />
+        {color && color !== '#ffffff' && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: color,
+              opacity: 0.3,
+              borderRadius: '2px',
+              pointerEvents: 'none'
+            }}
+          />
+        )}
+      </div>
     );
   }
 
