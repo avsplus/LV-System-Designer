@@ -374,6 +374,35 @@ Deno.serve(async (req) => {
                 });
               }
 
+              // Build SVG overlay for annotations, arrows, and symbols
+              let svgAnnotationsContent = '';
+              if (annotations && annotations.length > 0) {
+                annotations.forEach(annotation => {
+                  if (!annotation || !annotation.position) return;
+
+                  const annX = annotation.position.x;
+                  const annY = annotation.position.y;
+                  const fpMinX = fpPos.x;
+                  const fpMaxX = fpPos.x + (fp.imageWidth / canvasToImageScale);
+                  const fpMinY = fpPos.y;
+                  const fpMaxY = fpPos.y + (fp.imageHeight / canvasToImageScale);
+
+                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) return;
+
+                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
+                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
+
+                  if (annotation.type === 'symbol' && annotation.symbolId) {
+                    const color = annotation.color || '#3b82f6';
+                    const svgStr = getSymbolSVG(annotation.symbolId, color);
+                    const size = Math.max(20, (annotation.scale || 1) * 40);
+                    const rotation = annotation.rotation || 0;
+                    const flipped = annotation.flipped ? -1 : 1;
+                    svgAnnotationsContent += `<g transform="translate(${imgPixelX}, ${imgPixelY}) rotate(${rotation}) scale(${flipped}, 1)"><g transform="scale(${size / 60})">${svgStr.replace(/<svg[^>]*>|<\/svg>/g, '')}</g></g>`;
+                  }
+                });
+              }
+
               bodyHtml += `
               <section class="keep-together">
               <h2>${fp.name}</h2>
@@ -382,8 +411,11 @@ Deno.serve(async (req) => {
               ${devicesOverlay}
               ${connectionsOverlay}
               ${arrowsOverlay}
-              ${annotationsOverlay}
               </div>
+              <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
+              ${svgAnnotationsContent}
+              ${arrowsOverlay.includes('<svg') ? arrowsOverlay : ''}
+              </svg>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
     <p><strong>Calibration:</strong> ${fp.pixelsPerInch ? fp.pixelsPerInch.toFixed(2) + ' px/inch' : 'Not calibrated'}</p>
