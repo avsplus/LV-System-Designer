@@ -363,13 +363,12 @@ Deno.serve(async (req) => {
                     const color = annotation.color || '#3b82f6';
                     const symbolId = annotation.symbolId;
                     if (symbolId) {
-                      // SVG will be converted to PNG during PDF generation
+                      const svgHtml = getSymbolSVG(symbolId, color);
                       const size = Math.max(1, (annotation.scale || 1) * 2);
                       const percentSize = (size / fp.imageWidth) * 100;
                       const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
                       const flipped = annotation.flipped ? 'scaleX(-1)' : '';
-                      // Store annotation data for later PNG conversion
-                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation} ${flipped}; z-index:15; background-color:${color}; opacity:0.8; border-radius:50%;"></div>`;
+                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation} ${flipped}; z-index:15;">${svgHtml}</div>`;
                     }
                   }
                 });
