@@ -33,6 +33,7 @@ body.canvas-dragging {
   user-select: none !important;
   -webkit-user-select: none !important;
   -ms-user-select: none !important;
+  -moz-user-select: none !important;
 }
 
 /* Also apply to all children */
@@ -40,17 +41,28 @@ body.canvas-dragging * {
   user-select: none !important;
   -webkit-user-select: none !important;
   -webkit-user-drag: none !important;
+  -moz-user-select: none !important;
 }
 
 /* Disable selection highlight while dragging */
 body.canvas-dragging ::selection {
   background: transparent !important;
-  color: inherit;
+  color: inherit !important;
 }
 
 body.canvas-dragging *::selection {
   background: transparent !important;
-  color: inherit;
+  color: inherit !important;
+}
+
+body.canvas-dragging ::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+body.canvas-dragging *::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 
 /* Images and SVGs */
@@ -59,4 +71,5 @@ body.canvas-dragging svg {
   -webkit-user-drag: none;
   -webkit-user-select: none;
   user-select: none;
+  -moz-user-select: none;
 }
