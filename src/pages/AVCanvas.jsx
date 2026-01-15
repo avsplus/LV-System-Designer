@@ -127,8 +127,7 @@ function AVCanvasContent() {
   const [editingText, setEditingText] = useState(null);
   const [draggingAnnotation, setDraggingAnnotation] = useState(null);
   const [annotationDragStart, setAnnotationDragStart] = useState(null);
-  const annotationMouseDownRef = useRef(null);
-  const annotationJustDraggedRef = useRef(false);
+  const [annotationDragInitial, setAnnotationDragInitial] = useState(null);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -1174,9 +1173,49 @@ function AVCanvasContent() {
     setDrawingAnnotation(newAnnotation);
   };
 
+  const handleSymbolAnnotationDragStart = (e, idx) => {
+    e.stopPropagation();
+    setSelectedAnnotation(idx);
+    setAnnotationDragInitial({
+      clientX: e.clientX,
+      clientY: e.clientY,
+      annotationX: annotations[idx].position.x,
+      annotationY: annotations[idx].position.y
+    });
+  };
+
   useEffect(() => {
     const handleDragMove = (e) => {
       setDragMousePosition({ x: e.clientX, y: e.clientY });
+      
+      // Handle symbol/annotation dragging
+      if (annotationDragInitial !== null) {
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        if (canvasRect) {
+          const dx = (e.clientX - annotationDragInitial.clientX) / zoom;
+          const dy = (e.clientY - annotationDragInitial.clientY) / zoom;
+
+          setAnnotations(prev => prev.map((ann, idx) => {
+            if (idx !== selectedAnnotation) return ann;
+            const updated = {
+              ...ann,
+              position: {
+                x: annotationDragInitial.annotationX + dx,
+                y: annotationDragInitial.annotationY + dy
+              }
+            };
+            // For lines, also move the end position
+            if (ann.type === 'line' && ann.endPosition) {
+              updated.endPosition = {
+                x: (annotations[idx].endPosition?.x || 0) + dx,
+                y: (annotations[idx].endPosition?.y || 0) + dy
+              };
+            }
+            return updated;
+          }));
+        }
+        return;
+      }
       
       // Handle arrow drawing
       if (drawingArrow) {
@@ -1187,56 +1226,6 @@ function AVCanvasContent() {
           setDrawingArrow(prev => ({
             ...prev,
             end: { x: mouseWorldX, y: mouseWorldY }
-          }));
-        }
-        return;
-      }
-
-      // Handle annotation dragging with release detection
-      if (annotationMouseDownRef.current !== null && draggingAnnotation === null) {
-        const mouseDownData = annotationMouseDownRef.current;
-        const dist = Math.sqrt(
-          Math.pow(e.clientX - mouseDownData.clientX, 2) +
-          Math.pow(e.clientY - mouseDownData.clientY, 2)
-        );
-        
-        // Only start dragging if we've moved at least 1px
-        if (dist > 1) {
-          annotationJustDraggedRef.current = true;
-          setDraggingAnnotation(mouseDownData.idx);
-          setAnnotationDragStart({
-            mouseStartX: mouseDownData.mouseWorldX,
-            mouseStartY: mouseDownData.mouseWorldY,
-            startPosition: mouseDownData.startPosition
-          });
-        }
-      }
-
-      if (draggingAnnotation !== null && annotationDragStart) {
-        const canvasRect = canvasRef.current?.getBoundingClientRect();
-        if (canvasRect) {
-          const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-          const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-          const dx = mouseWorldX - annotationDragStart.mouseStartX;
-          const dy = mouseWorldY - annotationDragStart.mouseStartY;
-
-          setAnnotations(prev => prev.map((ann, idx) => {
-            if (idx !== draggingAnnotation) return ann;
-            const updated = {
-              ...ann,
-              position: {
-                x: annotationDragStart.startPosition.x + dx,
-                y: annotationDragStart.startPosition.y + dy
-              }
-            };
-            // For lines, also move the end position
-            if (ann.type === 'line' && annotationDragStart.startPosition.endPosition) {
-              updated.endPosition = {
-                x: annotationDragStart.startPosition.endPosition.x + dx,
-                y: annotationDragStart.startPosition.endPosition.y + dy
-              };
-            }
-            return updated;
           }));
         }
         return;
@@ -1281,26 +1270,12 @@ function AVCanvasContent() {
     };
 
     const handleDragEnd = (e) => {
-      // Complete annotation dragging
-      if (draggingAnnotation !== null) {
+      // Complete symbol/annotation dragging
+      if (annotationDragInitial !== null) {
         saveAnnotations(annotations);
-        setDraggingAnnotation(null);
-        setAnnotationDragStart(null);
-        annotationJustDraggedRef.current = false;
-        annotationMouseDownRef.current = null;
+        setAnnotationDragInitial(null);
         return;
       }
-      
-      // Select annotation only if we didn't drag
-      if (annotationMouseDownRef.current !== null && !annotationJustDraggedRef.current) {
-        setSelectedAnnotation(annotationMouseDownRef.current.idx);
-        annotationMouseDownRef.current = null;
-        return;
-      }
-      
-      // Clear drag state
-      annotationJustDraggedRef.current = false;
-      annotationMouseDownRef.current = null;
 
       // Complete arrow drawing
       if (drawingArrow) {
@@ -1364,7 +1339,7 @@ function AVCanvasContent() {
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, drawingAnnotation, activeTool, pan, zoom, annotations]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, drawingAnnotation, activeTool, pan, zoom, annotations, annotationDragInitial, selectedAnnotation]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
@@ -2514,22 +2489,7 @@ function AVCanvasContent() {
                               setShowRoomManager(false);
                               setSelectedFloorplanId(null);
                               setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                            }
-                          }}
-                          onDoubleClick={(e) => {
-                            if (activeTool === 'select') {
-                              e.stopPropagation();
-                              const canvasRect = canvasRef.current?.getBoundingClientRect();
-                              if (canvasRect) {
-                                const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-                                const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                setDraggingAnnotation(idx);
-                                setAnnotationDragStart({
-                                  mouseStartX: mouseWorldX,
-                                  mouseStartY: mouseWorldY,
-                                  startPosition: { ...ann.position }
-                                });
-                              }
+                              handleSymbolAnnotationDragStart(e, idx);
                             }
                           }}
                         >
@@ -2540,24 +2500,6 @@ function AVCanvasContent() {
                             scale={ann.scale || 1}
                             rotation={ann.rotation || 0}
                             flipped={ann.flipped || false}
-                            onMouseDown={(e) => {
-                              if (activeTool === 'select') {
-                                e.stopPropagation();
-                                const canvasRect = canvasRef.current?.getBoundingClientRect();
-                                if (canvasRect) {
-                                  const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-                                  const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                                  annotationMouseDownRef.current = {
-                                    idx,
-                                    clientX: e.clientX,
-                                    clientY: e.clientY,
-                                    mouseWorldX,
-                                    mouseWorldY,
-                                    startPosition: { ...ann.position }
-                                  };
-                                }
-                              }
-                            }}
                           />
                         </g>
 
