@@ -63,10 +63,10 @@ const SymbolIcon = ({ id, color }) => {
   
   if (id === 'AV-PS') { // Projection Screen
     return (
-      <svg {...commonProps}>
-        <rect x="12" y="20" width="36" height="25" fill="none" stroke={color} strokeWidth="2" />
-        <line x1="20" y1="15" x2="40" y2="15" stroke={color} strokeWidth="2" />
-        <line x1="30" y1="15" x2="30" y2="20" stroke={color} strokeWidth="2" />
+      <svg {...commonProps} viewBox="0 0 115 81" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,81) scale(0.1,-0.1)" fill={color}>
+          <path d="M260 569 c0 -6 9 -13 20 -16 18 -5 20 -15 22 -162 l3 -156 280 0 280 0 3 157 c2 152 3 157 24 160 12 2 23 9 26 16 3 9 -67 12 -327 12 -233 0 -331 -3 -331 -11z m580 -164 l0 -145 -252 2 -253 3 -3 129 c-1 72 0 136 2 143 4 10 59 13 256 13 l250 0 0 -145z"/>
+        </g>
       </svg>
     );
   }

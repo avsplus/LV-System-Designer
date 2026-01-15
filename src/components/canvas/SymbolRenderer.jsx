@@ -130,6 +130,26 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     );
   }
   
+  // Projector Screen
+  if (symbolId === 'AV-PS') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 115 81" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,81) scale(0.1,-0.1)" fill={color}>
+            <path d="M260 569 c0 -6 9 -13 20 -16 18 -5 20 -15 22 -162 l3 -156 280 0 280 0 3 157 c2 152 3 157 24 160 12 2 23 9 26 16 3 9 -67 12 -327 12 -233 0 -331 -3 -331 -11z m580 -164 l0 -145 -252 2 -253 3 -3 129 c-1 72 0 136 2 143 4 10 59 13 256 13 l250 0 0 -145z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
   // Fallback: return simple circle for unknown symbols
   return (
     <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
