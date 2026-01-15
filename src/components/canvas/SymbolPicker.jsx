@@ -115,10 +115,13 @@ const SymbolIcon = ({ id, color }) => {
   // Network symbols
   if (id === 'NET-WAP') { // Wireless Access Point
     return (
-      <svg {...commonProps}>
-        <rect x="20" y="35" width="20" height="10" fill="none" stroke={color} strokeWidth="2" />
-        <path d="M25,30 Q30,25 35,30" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <path d="M22,25 Q30,18 38,25" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <svg {...commonProps} viewBox="0 0 128 84" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,84) scale(0.1,-0.1)" fill={color}>
+          <path d="M422 713 c2 -12 14 -19 37 -21 19 -2 44 -10 57 -19 36 -23 67 -79 60 -108 -5 -21 -3 -25 15 -25 19 0 21 4 14 37 -10 56 -74 133 -109 133 -8 0 -18 5 -21 10 -3 6 -17 10 -31 10 -19 0 -25 -5 -22 -17z"/>
+          <path d="M425 672 c-13 -13 -2 -22 26 -22 41 0 89 -50 89 -92 0 -17 4 -27 10 -23 24 15 5 72 -39 111 -23 21 -75 36 -86 26z"/>
+          <path d="M419 630 c-8 -6 -1 -13 24 -23 24 -11 38 -24 43 -41 7 -30 34 -35 34 -7 0 21 -42 67 -69 74 -10 2 -25 1 -32 -3z"/>
+          <path d="M420 515 c0 -52 -1 -55 -25 -55 l-25 0 0 -150 0 -150 280 0 280 0 0 150 0 150 -240 0 -240 0 0 55 c0 42 -3 55 -15 55 -12 0 -15 -13 -15 -55z m480 -205 l0 -120 -255 0 -255 0 0 120 0 120 255 0 255 0 0 -120z"/>
+        </g>
       </svg>
     );
   }
