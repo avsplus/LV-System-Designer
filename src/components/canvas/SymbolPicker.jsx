@@ -136,8 +136,10 @@ const SymbolIcon = ({ id, color }) => {
 
   if (id === 'NET-PO') { // Phone Outlet
     return (
-      <svg {...commonProps}>
-        <path d="M15,30 L30,15 L30,45 Z" fill={color} />
+      <svg {...commonProps} viewBox="0 0 112 91" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,91) scale(0.1,-0.1)" fill={color}>
+          <path d="M600 724 c-107 -63 -206 -120 -220 -128 -97 -52 -153 -85 -177 -102 l-27 -20 85 -50 c46 -27 87 -50 91 -52 4 -2 108 -61 230 -132 147 -85 226 -125 233 -119 11 11 20 584 10 667 -4 31 -11 52 -18 51 -7 -1 -100 -52 -207 -115z m198 -244 c1 -167 -2 -308 -6 -312 -5 -5 -48 14 -98 43 -49 28 -103 60 -120 69 -288 164 -334 194 -326 202 19 19 527 307 537 304 6 -2 11 -115 13 -306z"/>
+        </g>
       </svg>
     );
   }
