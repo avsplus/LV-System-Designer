@@ -175,6 +175,7 @@ function AVCanvasContent() {
 
 
   const lastMiddleClickRef = useRef(0);
+  const annotationMouseDownRef = useRef(null);
   
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
