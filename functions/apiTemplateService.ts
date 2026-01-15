@@ -417,8 +417,8 @@ Deno.serve(async (req) => {
               ${arrowsOverlay}
               </div>
               <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
-              ${svgAnnotationsContent}
-              ${arrowsOverlay.includes('<svg') ? arrowsOverlay : ''}
+                ${svgSymbolsContent}
+                ${arrowsOverlay.includes('<svg') ? arrowsOverlay : ''}
               </svg>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
