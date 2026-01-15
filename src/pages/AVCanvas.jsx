@@ -2928,7 +2928,7 @@ function AVCanvasContent() {
               fontSize={annotationFontSize}
               onFontSizeChange={setAnnotationFontSize}
               onAddSymbol={(symbol) => {
-                if (!canvasRef.current) return;
+                if (!canvasRef.current || !currentProject?.id) return;
                 const canvasRect = canvasRef.current.getBoundingClientRect();
                 const centerX = (canvasRect.width / 2 - pan.x) / zoom;
                 const centerY = (canvasRect.height / 2 - pan.y) / zoom;
@@ -2941,7 +2941,15 @@ function AVCanvasContent() {
                 };
                 const updated = [...annotations, newAnnotation];
                 setAnnotations(updated);
-                saveAnnotations(updated);
+                markLocalChangeRef.current?.();
+                base44.entities.AVProject.update(currentProject.id, {
+                  canvas_products: canvasProducts,
+                  connections: connections,
+                  rooms: rooms,
+                  floorplans: floorplans,
+                  arrows: arrows,
+                  annotations: updated
+                }).catch(err => console.error('Failed to save symbol:', err));
               }}
             />
           )}
