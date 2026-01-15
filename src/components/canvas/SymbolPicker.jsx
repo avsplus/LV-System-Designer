@@ -3,38 +3,38 @@ import { Button } from "@/components/ui/button";
 
 const SYMBOL_CATEGORIES = {
   'Audio/Video': [
-    { id: 'AV-SPK', label: 'Speaker', color: '#f97316' },
-    { id: 'AV-TV', label: 'Television', color: '#f97316' },
-    { id: 'AV-PS', label: 'Projector Screen', color: '#f97316' },
-    { id: 'AV-AVO', label: 'AV Outlet', color: '#f97316' }
+    { id: 'AV-SPK', label: 'Speaker', color: '#ffffff' },
+    { id: 'AV-TV', label: 'Television', color: '#ffffff' },
+    { id: 'AV-PS', label: 'Projector Screen', color: '#ffffff' },
+    { id: 'AV-AVO', label: 'AV Outlet', color: '#ffffff' }
   ],
   'Communications': [
-    { id: 'COMM-PO', label: 'Phone Outlet', color: '#06b6d4' },
-    { id: 'COMM-IC', label: 'Intercom', color: '#06b6d4' },
-    { id: 'COMM-DV', label: 'Data & VoIP', color: '#06b6d4' }
+    { id: 'COMM-PO', label: 'Phone Outlet', color: '#ffffff' },
+    { id: 'COMM-IC', label: 'Intercom', color: '#ffffff' },
+    { id: 'COMM-DV', label: 'Data & VoIP', color: '#ffffff' }
   ],
   'Network': [
-    { id: 'NET-WAP', label: 'Wireless AP', color: '#8b5cf6' },
-    { id: 'NET-DO', label: 'Data Outlet', color: '#3b82f6' },
-    { id: 'NET-PO', label: 'Phone Outlet', color: '#3b82f6' },
-    { id: 'NET-DP', label: 'Data & Phone', color: '#3b82f6' }
+    { id: 'NET-WAP', label: 'Wireless AP', color: '#ffffff' },
+    { id: 'NET-DO', label: 'Data Outlet', color: '#ffffff' },
+    { id: 'NET-PO', label: 'Phone Outlet', color: '#ffffff' },
+    { id: 'NET-DP', label: 'Data & Phone', color: '#ffffff' }
   ],
   'Control': [
-    { id: 'CTRL-WTP', label: 'Wall TP', color: '#a855f7' },
-    { id: 'CTRL-KP', label: 'Keypad', color: '#a855f7' },
-    { id: 'CTRL-VC', label: 'Volume Ctr', color: '#a855f7' },
-    { id: 'CTRL-TTP', label: 'Tabletop TP', color: '#a855f7' }
+    { id: 'CTRL-WTP', label: 'Wall TP', color: '#ffffff' },
+    { id: 'CTRL-KP', label: 'Keypad', color: '#ffffff' },
+    { id: 'CTRL-VC', label: 'Volume Ctr', color: '#ffffff' },
+    { id: 'CTRL-TTP', label: 'Tabletop TP', color: '#ffffff' }
   ],
   'Surveillance': [
-    { id: 'SURV-DOME', label: 'Dome', color: '#ef4444' },
-    { id: 'SURV-BULLET', label: 'Bullet', color: '#ef4444' },
-    { id: 'SURV-TURRET', label: 'Turret', color: '#ef4444' }
+    { id: 'SURV-DOME', label: 'Dome', color: '#ffffff' },
+    { id: 'SURV-BULLET', label: 'Bullet', color: '#ffffff' },
+    { id: 'SURV-TURRET', label: 'Turret', color: '#ffffff' }
   ],
   'Electrical': [
-    { id: 'ELEC-1G', label: '1 Gang Outlet', color: '#8b5cf6' },
-    { id: 'ELEC-2G', label: '2 Gang Outlet', color: '#8b5cf6' },
-    { id: 'ELEC-4G', label: '4 Gang Outlet', color: '#8b5cf6' },
-    { id: 'ELEC-DL', label: 'Dedicated Line', color: '#8b5cf6' }
+    { id: 'ELEC-1G', label: '1 Gang Outlet', color: '#ffffff' },
+    { id: 'ELEC-2G', label: '2 Gang Outlet', color: '#ffffff' },
+    { id: 'ELEC-4G', label: '4 Gang Outlet', color: '#ffffff' },
+    { id: 'ELEC-DL', label: 'Dedicated Line', color: '#ffffff' }
   ]
 };
 
