@@ -141,8 +141,10 @@ const SymbolIcon = ({ id, color }) => {
 
   if (id === 'NET-DP') { // Data & Phone
     return (
-      <svg {...commonProps}>
-        <path d="M40 30 L20 15 L20 45 Z" fill={color} />
+      <svg {...commonProps} viewBox="0 0 120 86" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,86) scale(0.1,-0.1)" fill={color}>
+          <path d="M635 673 c-126 -73 -239 -138 -250 -143 -50 -24 -128 -76 -126 -85 4 -15 615 -364 624 -356 11 11 4 714 -8 716 -5 2 -113 -58 -240 -132z m233 -387 c1 -79 -2 -144 -7 -149 -6 -6 -20 -2 -39 12 -17 11 -33 21 -36 21 -4 0 -36 18 -72 40 -36 22 -67 40 -68 40 -4 0 -300 171 -305 176 -3 2 114 3 260 2 l264 -3 3 -139z"/>
+        </g>
       </svg>
     );
   }
