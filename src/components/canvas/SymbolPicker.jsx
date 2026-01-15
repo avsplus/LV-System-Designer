@@ -283,9 +283,45 @@ const SymbolIcon = ({ id, color }) => {
   );
 };
 
-export default function SymbolPicker({ onSelect, onClose }) {
+export default function SymbolPicker({ onSelect, onClose, compact = false }) {
   const [activeCategory, setActiveCategory] = useState(Object.keys(SYMBOL_CATEGORIES)[0]);
   const symbols = SYMBOL_CATEGORIES[activeCategory];
+
+  if (compact) {
+    return (
+      <div className="space-y-2 max-w-[360px]">
+        {/* Category tabs */}
+        <div className="flex flex-wrap gap-1">
+          {Object.keys(SYMBOL_CATEGORIES).map(category => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`text-[10px] px-2 py-1 rounded transition-colors whitespace-nowrap ${
+                activeCategory === category
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        {/* Symbols grid */}
+        <div className="grid grid-cols-6 gap-1 max-h-32 overflow-y-auto">
+          {symbols.map(symbol => (
+            <button
+              key={symbol.id}
+              onClick={() => onSelect(symbol.id)}
+              className="h-10 w-10 flex items-center justify-center bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-gray-200 rounded transition-all"
+              title={symbol.label}
+            >
+              <SymbolIcon id={symbol.id} color={symbol.color} />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-4 w-96">
