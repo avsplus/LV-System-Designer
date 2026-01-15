@@ -329,7 +329,7 @@ Deno.serve(async (req) => {
     }
 
     const requestData = await req.json();
-    const { action, canvasProducts, connections, projectName, rooms = [], clientName, location, orgSettings, floorplans = [] } = requestData;
+    const { action, canvasProducts, connections, projectName, rooms = [], clientName, location, orgSettings, floorplans = [], annotations = [] } = requestData;
 
     // Handle label and diagram generation actions
     if (action === 'generateDeviceLabel') {
