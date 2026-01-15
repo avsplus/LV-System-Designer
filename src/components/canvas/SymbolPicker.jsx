@@ -51,6 +51,24 @@ const SYMBOL_CATEGORIES = {
 };
 
 const SymbolIcon = ({ id, color }) => {
+  const iconUrl = SYMBOL_ICONS[id];
+  
+  // Use PNG icon if available, with color overlay via filter
+  if (iconUrl) {
+    return (
+      <img 
+        src={iconUrl} 
+        alt={id} 
+        style={{ 
+          width: '32px', 
+          height: '32px',
+          filter: color && color !== '#ffffff' ? `hue-rotate(${getHueRotation(color)}deg) brightness(1.1)` : 'none'
+        }}
+      />
+    );
+  }
+
+  // Fallback SVG symbols for non-PNG types
   const commonProps = { viewBox: "0 0 60 60", style: { width: '32px', height: '32px' } };
 
   // Audio/Video symbols
