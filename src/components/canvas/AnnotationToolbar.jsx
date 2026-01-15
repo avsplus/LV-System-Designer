@@ -88,13 +88,14 @@ export default function AnnotationToolbar({
                 <Grid3x3 className="w-4 h-4" />
               </Button>
             </PopoverTrigger>
-          <PopoverContent className="w-auto bg-gray-900 border-gray-700 p-0" side="top" sideOffset={16}>
-            <SymbolPicker 
-              onSelect={onAddSymbol}
-              onClose={() => setShowSymbols(false)}
-            />
-          </PopoverContent>
-        </Popover>
+            <PopoverContent className="w-auto bg-gray-900 border-gray-700 p-0" side="top" sideOffset={16}>
+              <SymbolPicker 
+                onSelect={onAddSymbol}
+                onClose={() => setShowSymbols(false)}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
 
         {/* Settings Button */}
         {activeTool !== 'select' && (
