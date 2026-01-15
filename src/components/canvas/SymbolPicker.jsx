@@ -60,12 +60,12 @@ const SymbolIcon = ({ id, color }) => {
     );
   }
   
-  if (id === 'AV-TV') { // Display Monitor
+  if (id === 'AV-TV') { // Television
     return (
-      <svg {...commonProps}>
-        <rect x="10" y="15" width="40" height="25" fill="none" stroke={color} strokeWidth="2" />
-        <line x1="30" y1="40" x2="30" y2="45" stroke={color} strokeWidth="2" />
-        <line x1="20" y1="45" x2="40" y2="45" stroke={color} strokeWidth="2" />
+      <svg {...commonProps} viewBox="0 0 106 85" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,85) scale(0.1,-0.1)" fill={color}>
+          <path d="M262 438 l3 -193 280 0 280 0 0 190 0 190 -283 3 -282 2 2 -192z m82 -6 l1 -162 -27 0 -28 0 0 158 c0 87 3 162 7 166 4 4 16 6 26 4 18 -3 20 -14 21 -166z m366 1 l0 -163 -165 0 -165 0 0 163 0 162 165 0 165 0 0 -162z m82 2 l0 -160 -26 -3 -26 -3 0 159 c0 87 3 162 7 166 4 4 16 6 26 4 17 -3 19 -14 19 -163z"/>
+        </g>
       </svg>
     );
   }

@@ -25,6 +25,28 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
     );
   }
   
+  // Television
+  if (symbolId === 'AV-TV') {
+    return (
+      <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+        <svg 
+          x={-scaledSize / 2} 
+          y={-scaledSize / 2} 
+          width={scaledSize} 
+          height={scaledSize}
+          viewBox="0 0 106 85" 
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <g transform="translate(0,85) scale(0.1,-0.1)" fill={color}>
+            <path d="M262 438 l3 -193 280 0 280 0 0 190 0 190 -283 3 -282 2 2 -192z m82 -6 l1 -162 -27 0 -28 0 0 158 c0 87 3 162 7 166 4 4 16 6 26 4 18 -3 20 -14 21 -166z m366 1 l0 -163 -165 0 -165 0 0 163 0 162 165 0 165 0 0 -162z m82 2 l0 -160 -26 -3 -26 -3 0 159 c0 87 3 162 7 166 4 4 16 6 26 4 17 -3 19 -14 19 -163z"/>
+          </g>
+        </svg>
+      </g>
+    );
+  }
+  
+  // Wireless AP
+  
   // Wireless AP
   if (symbolId === 'NET-WAP') {
     return (
