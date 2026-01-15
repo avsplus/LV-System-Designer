@@ -33,6 +33,7 @@ import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
 import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
 import AnnotationDetailsPanel from "../components/canvas/AnnotationDetailsPanel";
+import SymbolRenderer from "../components/canvas/SymbolRenderer";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
@@ -2495,10 +2496,9 @@ function AVCanvasContent() {
                   // Render symbol annotation
                   if (ann.type === 'symbol') {
                     const symbolColor = ann.color || '#3b82f6';
-                    const isWAP = ann.symbolId?.startsWith('W-');
                     return (
                       <g key={ann.id}>
-                        {/* Symbol Group */}
+                        {/* Symbol Group - renders exact SVG from SymbolPicker */}
                         <g
                           className="pointer-events-auto cursor-move"
                           onMouseEnter={() => setHoveredAnnotation(idx)}
@@ -2533,20 +2533,12 @@ function AVCanvasContent() {
                             }
                           }}
                         >
-                          {isWAP ? (
-                            /* WAP Symbol - Circle with antennae */
-                            <>
-                              <circle cx={ann.position.x} cy={ann.position.y} r={12} fill={symbolColor} />
-                              <line x1={ann.position.x} y1={ann.position.y - 18} x2={ann.position.x} y2={ann.position.y - 24} stroke={symbolColor} strokeWidth="2" strokeLinecap="round" />
-                              <line x1={ann.position.x - 8} y1={ann.position.y - 14} x2={ann.position.x - 12} y2={ann.position.y - 20} stroke={symbolColor} strokeWidth="1.5" strokeLinecap="round" />
-                              <line x1={ann.position.x + 8} y1={ann.position.y - 14} x2={ann.position.x + 12} y2={ann.position.y - 20} stroke={symbolColor} strokeWidth="1.5" strokeLinecap="round" />
-                            </>
-                          ) : (
-                            /* Regular Outlet Symbol - Triangle pointing down */
-                            <>
-                              <polygon points={`${ann.position.x},${ann.position.y - 16} ${ann.position.x + 18},${ann.position.y + 12} ${ann.position.x - 18},${ann.position.y + 12}`} fill={symbolColor} />
-                            </>
-                          )}
+                          <SymbolRenderer 
+                            symbolId={ann.symbolId} 
+                            position={ann.position} 
+                            color={symbolColor}
+                            scale={1}
+                          />
                         </g>
 
                         {(isHovered || isSelected) && (
@@ -2565,9 +2557,9 @@ function AVCanvasContent() {
                               }
                             }}
                           >
-                            <circle cx={ann.position.x + 25} cy={ann.position.y - 25} r="16" fill="#ef4444" />
-                            <line x1={ann.position.x + 20} y1={ann.position.y - 30} x2={ann.position.x + 30} y2={ann.position.y - 20} stroke="white" strokeWidth="3" strokeLinecap="round" />
-                            <line x1={ann.position.x + 30} y1={ann.position.y - 30} x2={ann.position.x + 20} y2={ann.position.y - 20} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                            <circle cx={ann.position.x + 40} cy={ann.position.y - 40} r="16" fill="#ef4444" />
+                            <line x1={ann.position.x + 35} y1={ann.position.y - 45} x2={ann.position.x + 45} y2={ann.position.y - 35} stroke="white" strokeWidth="3" strokeLinecap="round" />
+                            <line x1={ann.position.x + 45} y1={ann.position.y - 45} x2={ann.position.x + 35} y2={ann.position.y - 35} stroke="white" strokeWidth="3" strokeLinecap="round" />
                           </g>
                         )}
                       </g>
