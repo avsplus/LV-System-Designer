@@ -191,7 +191,7 @@ export default function AnnotationDetailsPanel({
         </div>
 
         {/* Stroke Width */}
-        {annotation.type !== 'text' && (
+        {annotation.type !== 'text' && annotation.type !== 'symbol' && (
           <div>
             <div className="flex justify-between items-center mb-2">
               <p className="text-sm text-gray-500">Stroke Width</p>
@@ -209,7 +209,7 @@ export default function AnnotationDetailsPanel({
         )}
 
         {/* Fill Toggle */}
-        {annotation.type !== 'text' && annotation.type !== 'line' && (
+        {annotation.type !== 'text' && annotation.type !== 'line' && annotation.type !== 'symbol' && (
           <div className="flex items-center gap-3 py-2">
             <input
               type="checkbox"
