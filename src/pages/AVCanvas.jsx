@@ -1345,6 +1345,16 @@ function AVCanvasContent() {
     connectingStateRef.current = connectingState;
   }, [connectingState]);
 
+  // Disable text selection when dragging annotations
+  useEffect(() => {
+    if (annotationDragInitial) {
+      document.body.classList.add('canvas-dragging');
+    } else {
+      document.body.classList.remove('canvas-dragging');
+    }
+    return () => document.body.classList.remove('canvas-dragging');
+  }, [annotationDragInitial]);
+
   // Default port definitions by product category - fallback when database doesn't have connections
   // All ports normalized to {id, label, direction} objects to prevent React reconciliation errors
   const connectionsByCategory = {
