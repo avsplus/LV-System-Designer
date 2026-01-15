@@ -23,9 +23,8 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
           return null;
         }
 
-        // Use PNG icon if available
+        // Use PNG icon if available with color overlay
         if (iconUrl) {
-          const filterValue = color && color !== '#ffffff' ? `hue-rotate(${getHueRotation(color)}deg) brightness(1.1)` : 'none';
           return (
             <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
               <image 
@@ -34,9 +33,19 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
                 y={-scaledSize / 2}
                 width={scaledSize}
                 height={scaledSize}
-                style={{ filter: filterValue }}
                 preserveAspectRatio="xMidYMid meet"
               />
+              {color && color !== '#ffffff' && (
+                <rect
+                  x={-scaledSize / 2}
+                  y={-scaledSize / 2}
+                  width={scaledSize}
+                  height={scaledSize}
+                  fill={color}
+                  opacity="0.3"
+                  rx="2"
+                />
+              )}
             </g>
           );
         }
