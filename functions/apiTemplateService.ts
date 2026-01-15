@@ -358,11 +358,15 @@ Deno.serve(async (req) => {
                     }
                   } else if (annotation.type === 'symbol') {
                     const color = annotation.color || '#3b82f6';
-                    // Symbols scale relative to floorplan image
-                    const size = Math.max(2, (annotation.scale || 1) * 3);
-                    const percentSize = (size / fp.imageWidth) * 100;
-                    const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; background:${color}; border-radius:50%; transform:translate(-50%,-50%) ${rotation}; z-index:15;"></div>`;
+                    const symbolId = annotation.symbolId;
+                    if (symbolId) {
+                      const svgHtml = getSymbolSVG(symbolId, color);
+                      const size = Math.max(1, (annotation.scale || 1) * 2);
+                      const percentSize = (size / fp.imageWidth) * 100;
+                      const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
+                      const flipped = annotation.flipped ? 'scaleX(-1)' : '';
+                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation} ${flipped}; z-index:15;">${svgHtml}</div>`;
+                    }
                   }
                 });
               }
