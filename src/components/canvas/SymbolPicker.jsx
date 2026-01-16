@@ -53,34 +53,31 @@ const SYMBOL_CATEGORIES = {
 const SymbolIcon = ({ id, color }) => {
   const iconUrl = SYMBOL_ICONS[id];
   
-  // Use PNG icon if available, with color overlay
+  // Use PNG icon if available, with color filter
   if (iconUrl) {
+    const rgb = hexToRgb(color || '#3b82f6');
+    const filterId = `icon-filter-${id}`;
+    
     return (
-      <div style={{ position: 'relative', width: '32px', height: '32px', display: 'inline-block' }}>
-        <img 
-          src={iconUrl} 
-          alt={id} 
-          style={{ 
-            width: '32px', 
-            height: '32px'
-          }}
+      <svg width="32" height="32" style={{ display: 'block' }}>
+        <defs>
+          <filter id={filterId}>
+            <feColorMatrix
+              type="matrix"
+              values={`0 0 0 0 ${rgb.r / 255}
+                      0 0 0 0 ${rgb.g / 255}
+                      0 0 0 0 ${rgb.b / 255}
+                      0 0 0 1 0`}
+            />
+          </filter>
+        </defs>
+        <image 
+          href={iconUrl}
+          width="32"
+          height="32"
+          filter={color && color !== '#ffffff' ? `url(#${filterId})` : 'none'}
         />
-        {color && color !== '#ffffff' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: color,
-              opacity: 0.3,
-              borderRadius: '2px',
-              pointerEvents: 'none'
-            }}
-          />
-        )}
-      </div>
+      </svg>
     );
   }
 
