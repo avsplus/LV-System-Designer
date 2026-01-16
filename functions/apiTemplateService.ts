@@ -215,6 +215,7 @@ Deno.serve(async (req) => {
               const fpPos = fp.position || { x: 0, y: 0 };
               const fpScale = fp.scale || 1;
               console.log('Floorplan:', fp.name, 'fpScale:', fpScale, 'fpPos:', fpPos, 'imageSize:', fp.imageWidth, 'x', fp.imageHeight);
+              console.log('Canvas dimensions on screen:', fp.imageWidth * fpScale, 'x', fp.imageHeight * fpScale);
               
               // Direct coordinate mapping: positions are already in the same space as the floorplan
               // No scale transformation needed - positions map 1:1 to image
