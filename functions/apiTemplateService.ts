@@ -214,8 +214,9 @@ Deno.serve(async (req) => {
               // Calculate overlay positions for devices and connections
               const fpPos = fp.position || { x: 0, y: 0 };
               const fpScale = fp.scale || 1;
-              // Canvas to image scale: fpScale represents display scaling
-              const canvasToImageScale = fpScale;
+              const pixelsPerInch = fp.pixelsPerInch || 96;
+              // Canvas-to-image scale: accounts for both display scale and calibration
+              const canvasToImageScale = pixelsPerInch / fpScale;
               const DEVICE_CARD_WIDTH = 320;
               const DEVICE_CARD_HEIGHT = 280;
               
