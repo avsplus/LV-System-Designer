@@ -25,8 +25,22 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
 
         // Use PNG icon if available with color overlay
         if (iconUrl) {
+          const filterId = `color-overlay-${symbolId}-${position.x}-${position.y}`;
+          const rgb = hexToRgb(color || '#3b82f6');
+          
           return (
             <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+              <defs>
+                <filter id={filterId}>
+                  <feColorMatrix
+                    type="matrix"
+                    values={`0 0 0 0 ${rgb.r / 255}
+                            0 0 0 0 ${rgb.g / 255}
+                            0 0 0 0 ${rgb.b / 255}
+                            0 0 0 1 0`}
+                  />
+                </filter>
+              </defs>
               <image 
                 href={iconUrl}
                 x={-scaledSize / 2}
@@ -34,18 +48,8 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
                 width={scaledSize}
                 height={scaledSize}
                 preserveAspectRatio="xMidYMid meet"
+                filter={color && color !== '#ffffff' ? `url(#${filterId})` : 'none'}
               />
-              {color && color !== '#ffffff' && (
-                <rect
-                  x={-scaledSize / 2}
-                  y={-scaledSize / 2}
-                  width={scaledSize}
-                  height={scaledSize}
-                  fill={color}
-                  opacity="0.3"
-                  rx="2"
-                />
-              )}
             </g>
           );
         }
