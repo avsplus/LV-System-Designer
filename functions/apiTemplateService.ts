@@ -339,24 +339,24 @@ Deno.serve(async (req) => {
 
                   if (annotation.type === 'text') {
                     const color = annotation.color || '#000000';
-                    const fontSize = annotation.fontSize || 16;
+                    const fontSize = (annotation.fontSize || 16) / fpScale;
                     const rotation = annotation.rotation ? `transform:rotate(${annotation.rotation}deg);` : '';
                     annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${fontSize}px; font-weight:500; white-space:nowrap; z-index:15; ${rotation}">${annotation.text || ''}</div>`;
                   } else if (annotation.type === 'rectangle') {
                     const color = annotation.color || '#3b82f6';
-                    const width = annotation.width || 40;
-                    const height = annotation.height || 30;
+                    const width = (annotation.width || 40) / fpScale;
+                    const height = (annotation.height || 30) / fpScale;
                     const percentWidth = (width / fp.imageWidth) * 100;
                     const percentHeight = (height / fp.imageHeight) * 100;
-                    const stroke = annotation.strokeWidth || 2;
+                    const stroke = (annotation.strokeWidth || 2) / fpScale;
                     const fill = annotation.fill ? `background:${color}80;` : '';
                     const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
                     annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
                   } else if (annotation.type === 'circle') {
                     const color = annotation.color || '#3b82f6';
-                    const radius = annotation.radius || 20;
+                    const radius = (annotation.radius || 20) / fpScale;
                     const percentSize = (radius / fp.imageWidth) * 100 * 2;
-                    const stroke = annotation.strokeWidth || 2;
+                    const stroke = (annotation.strokeWidth || 2) / fpScale;
                     const fill = annotation.fill ? `background:${color}80;` : '';
                     const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
                     annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
@@ -364,13 +364,13 @@ Deno.serve(async (req) => {
                     const color = annotation.color || '#000000';
                     const endPos = annotation.endPosition;
                     if (endPos) {
-                      const endImgX = endPos.x - fpPos.x;
-                      const endImgY = endPos.y - fpPos.y;
+                      const endImgX = (endPos.x - fpPos.x) / fpScale;
+                      const endImgY = (endPos.y - fpPos.y) / fpScale;
                       const dx = endImgX - imgPixelX;
                       const dy = endImgY - imgPixelY;
                       const length = Math.sqrt(dx * dx + dy * dy);
                       const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                      const stroke = annotation.strokeWidth || 2;
+                      const stroke = (annotation.strokeWidth || 2) / fpScale;
                       const percentLength = (length / fp.imageWidth) * 100;
                       annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentLength}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
                     }
