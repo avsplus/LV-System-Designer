@@ -226,9 +226,9 @@ Deno.serve(async (req) => {
               canvasProducts.forEach(cp => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
                 const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
-                // Direct coordinate conversion: canvas position minus floorplan origin
-                const imgPixelX = deviceCenterX - fpPos.x;
-                const imgPixelY = deviceCenterY - fpPos.y;
+                // Convert canvas coordinates to image pixels: subtract floorplan origin and divide by scale
+                const imgPixelX = (deviceCenterX - fpPos.x) / fpScale;
+                const imgPixelY = (deviceCenterY - fpPos.y) / fpScale;
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
                 
