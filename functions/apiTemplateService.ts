@@ -214,9 +214,10 @@ Deno.serve(async (req) => {
               // Calculate overlay positions for devices and connections
               const fpPos = fp.position || { x: 0, y: 0 };
               const fpScale = fp.scale || 1;
-              // World to image pixel conversion: inverse of display scale
-              // If fpScale=2, the image is displayed at 2x, so divide by 2 to get image pixels
-              const canvasToImageScale = 1 / fpScale;
+              console.log('Floorplan:', fp.name, 'fpScale:', fpScale, 'fpPos:', fpPos, 'imageSize:', fp.imageWidth, 'x', fp.imageHeight);
+              
+              // Direct coordinate mapping: positions are already in the same space as the floorplan
+              // No scale transformation needed - positions map 1:1 to image
               const DEVICE_CARD_WIDTH = 320;
               const DEVICE_CARD_HEIGHT = 280;
               
