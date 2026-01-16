@@ -278,10 +278,10 @@ Deno.serve(async (req) => {
               // Build arrow overlays
               let arrowsOverlay = '';
               arrows.forEach(arrow => {
-                const startImgX = (arrow.start.x - fpPos.x) * canvasToImageScale;
-                const startImgY = (arrow.start.y - fpPos.y) * canvasToImageScale;
-                const endImgX = (arrow.end.x - fpPos.x) * canvasToImageScale;
-                const endImgY = (arrow.end.y - fpPos.y) * canvasToImageScale;
+                const startImgX = arrow.start.x - fpPos.x;
+                const startImgY = arrow.start.y - fpPos.y;
+                const endImgX = arrow.end.x - fpPos.x;
+                const endImgY = arrow.end.y - fpPos.y;
 
                 if ((startImgX < 0 && endImgX < 0) || (startImgX > fp.imageWidth && endImgX > fp.imageWidth) ||
                     (startImgY < 0 && endImgY < 0) || (startImgY > fp.imageHeight && endImgY > fp.imageHeight)) {
