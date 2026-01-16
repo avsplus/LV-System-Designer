@@ -228,11 +228,13 @@ Deno.serve(async (req) => {
               canvasProducts.forEach(cp => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
                 const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
-                console.log('Device:', cp.label, 'canvasPos:', deviceCenterX, deviceCenterY);
+                console.log('Device:', cp.label, 'rawPos:', cp.position, 'centerPos:', deviceCenterX, deviceCenterY);
                 // Convert canvas world coordinates to floorplan image pixels
                 const imgPixelX = (deviceCenterX - fpPos.x) / fpScale;
                 const imgPixelY = (deviceCenterY - fpPos.y) / fpScale;
-                console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'bounds check:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
+                const percentX = (imgPixelX / fp.imageWidth) * 100;
+                const percentY = (imgPixelY / fp.imageHeight) * 100;
+                console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'percent:', percentX.toFixed(2) + '%', percentY.toFixed(2) + '%', 'inBounds:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
                 
