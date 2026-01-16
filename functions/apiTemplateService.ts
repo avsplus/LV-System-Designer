@@ -410,7 +410,10 @@ Deno.serve(async (req) => {
                   const fpMinY = fpPos.y;
                   const fpMaxY = fpPos.y + (fp.imageHeight * fpScale);
 
-                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) return;
+                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
+                    console.log('  -> OUTSIDE floorplan bounds, skipping');
+                    return;
+                  }
 
                   const imgPixelX = (annX - fpPos.x) / fpScale;
                   const imgPixelY = (annY - fpPos.y) / fpScale;
