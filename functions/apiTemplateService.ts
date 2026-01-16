@@ -43,15 +43,15 @@ async function isValidImageUrl(url) {
 
 // Symbol icon mapping to PNG URLs
       const SYMBOL_ICONS = {
-        'ELEC-1G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/a507aab66_1outlet.png',
-        'ELEC-2G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/30549fe07_2outlet.png',
-        'ELEC-4G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/6f91237bb_4outlet.png',
-        'AV-AVO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/4b027c262_AVOutlet.png',
-        'NET-DP': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/840062b6f_DatanPhone.png',
-        'NET-DO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/abebe1c72_dataoutlet.png',
-        'NET-PO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/9753c0b01_phoneoutlet.png',
-        'AV-SPK': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/044d65a16_speaker.png',
-        'NET-WAP': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/4b96578ff_WirelesAP.png'
+        'ELEC-1G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/227d623c7_1GangOutlet.png',
+        'ELEC-2G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/f2f62ac3e_2GangOutlet.png',
+        'ELEC-4G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/906dd9057_4GangOutlet.png',
+        'AV-AVO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/9517c489b_AVOutlet_1.png',
+        'NET-DP': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/99333e95d_PhoneData.png',
+        'NET-DO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/4de12c8e1_DataOutlet.png',
+        'NET-PO': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/fb6f727f5_PhoneOutlet.png',
+        'AV-SPK': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/9e3a38c86_Speaker.png',
+        'NET-WAP': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/04cee7fda_WirelessAP.png'
       };
 
 // Helper to make API requests to APITemplate.io
