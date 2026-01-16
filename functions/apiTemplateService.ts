@@ -448,13 +448,13 @@ Deno.serve(async (req) => {
               bodyHtml += `
               <section class="keep-together">
               <h2>${fp.name}</h2>
-              <div style="position:relative; text-align:center; margin:20px auto; max-width:95%; display:inline-block;">
-              <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
+              <div style="position:relative; margin:20px auto; max-width:95%; width:${fp.imageWidth}px; height:${fp.imageHeight}px;">
+              <img src="${fp.url}" style="position:absolute; top:0; left:0; width:${fp.imageWidth}px; height:${fp.imageHeight}px; border:1px solid #e5e7eb; border-radius:8px;" />
               ${devicesOverlay}
               ${connectionsOverlay}
               ${arrowsOverlay}
               ${annotationsOverlay}
-              <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
+              <svg style="position:absolute; top:0; left:0; width:${fp.imageWidth}px; height:${fp.imageHeight}px; pointer-events:none;">
                 <defs>${svgFilters}</defs>
                 ${svgSymbolsContent}
               </svg>
