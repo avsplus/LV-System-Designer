@@ -389,8 +389,9 @@ Deno.serve(async (req) => {
 
               // Build SVG overlay for symbol PNG icons
               let svgSymbolsContent = '';
+              let svgFilters = '';
               if (annotations && annotations.length > 0) {
-                annotations.forEach(annotation => {
+                annotations.forEach((annotation, idx) => {
                   if (!annotation || !annotation.position) return;
 
                   const annX = annotation.position.x;
@@ -408,10 +409,20 @@ Deno.serve(async (req) => {
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const iconUrl = SYMBOL_ICONS[annotation.symbolId];
                     const size = Math.max(24, (annotation.scale || 1) * 40);
+                    const color = annotation.color || '#3b82f6';
 
                     if (iconUrl) {
-                      // Use PNG icon
-                      svgSymbolsContent += `<image href="${iconUrl}" x="${imgPixelX - size / 2}" y="${imgPixelY - size / 2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet"/>`;
+                      // Generate color filter
+                      const filterId = `symbol-color-${idx}`;
+                      const hex = color.replace('#', '');
+                      const r = parseInt(hex.substring(0, 2), 16) / 255;
+                      const g = parseInt(hex.substring(2, 4), 16) / 255;
+                      const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+                      svgFilters += `<filter id="${filterId}"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 1 0"/></filter>`;
+
+                      // Use PNG icon with color filter
+                      svgSymbolsContent += `<image href="${iconUrl}" x="${imgPixelX - size / 2}" y="${imgPixelY - size / 2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" filter="url(#${filterId})"/>`;
                     }
                   }
                 });
