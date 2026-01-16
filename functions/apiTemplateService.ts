@@ -326,14 +326,17 @@ Deno.serve(async (req) => {
 
               // Build annotations overlay
               let annotationsOverlay = '';
-              console.log('ANNOTATIONS: count=', annotations?.length || 0);
+              console.log('ANNOTATIONS: total count=', annotations?.length || 0);
               if (annotations && annotations.length > 0) {
-                annotations.forEach(annotation => {
-                  if (!annotation || !annotation.position) return;
+                annotations.forEach((annotation, idx) => {
+                  if (!annotation || !annotation.position) {
+                    console.log('Skipping annotation', idx, '- missing position');
+                    return;
+                  }
 
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
-                  console.log('Annotation:', annotation.type, annotation.id, 'pos:', annX, annY);
+                  console.log('Annotation', idx, ':', annotation.type, annotation.id || annotation.symbolId, 'canvasPos:', annX, annY);
 
                   // Check if annotation is within floorplan bounds (in world coordinates)
                   const fpMinX = fpPos.x;
