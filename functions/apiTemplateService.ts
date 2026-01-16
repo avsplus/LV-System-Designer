@@ -214,34 +214,23 @@ Deno.serve(async (req) => {
               // Calculate overlay positions for devices and connections
               const fpPos = fp.position || { x: 0, y: 0 };
               const fpScale = fp.scale || 1;
-              console.log('Floorplan:', fp.name, 'fpScale:', fpScale, 'fpPos:', fpPos, 'imageSize:', fp.imageWidth, 'x', fp.imageHeight);
-              console.log('Canvas dimensions on screen:', fp.imageWidth * fpScale, 'x', fp.imageHeight * fpScale);
-              
-              // CRITICAL INSIGHT: Device positions in cp.position appear to already be CENTER coordinates
-              // Testing theory: if we use position directly without adding offsets, what do we get?
+              // Scale factor to convert canvas coordinates to image coordinates
+              const canvasToImageScale = 1 / fpScale;
+              const DEVICE_CARD_WIDTH = 320;
+              const DEVICE_CARD_HEIGHT = 280;
               
               // Build device overlay HTML
               let devicesOverlay = '';
-              console.log('DEVICE MAPPING - fpPos:', fpPos, 'fpScale:', fpScale);
-              console.log('Total devices in project:', canvasProducts.length);
-              console.log('Floorplan world bounds:', { 
-                minX: fpPos.x, 
-                maxX: fpPos.x + (fp.imageWidth * fpScale), 
-                minY: fpPos.y, 
-                maxY: fpPos.y + (fp.imageHeight * fpScale) 
-              });
               canvasProducts.forEach(cp => {
-                // TEST: Use position directly as if it's already the center point
-                const deviceX = cp.position.x;
-                const deviceY = cp.position.y;
-                console.log('Device:', cp.label, 'position:', cp.position);
-                
-                // Convert canvas world coordinates to floorplan image pixels
-                const imgPixelX = (deviceX - fpPos.x) / fpScale;
-                const imgPixelY = (deviceY - fpPos.y) / fpScale;
-                console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'percent:', ((imgPixelX / fp.imageWidth) * 100).toFixed(2) + '%', ((imgPixelY / fp.imageHeight) * 100).toFixed(2) + '%', 'inBounds:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
+                const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
+                const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
+                const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
+                const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
+                
+                const percentX = (imgPixelX / fp.imageWidth) * 100;
+                const percentY = (imgPixelY / fp.imageHeight) * 100;
                 
                 // Format category name
                 const category = cp.product?.category ? cp.product.category.replace(/_/g, ' ').toUpperCase() : 'DEVICE';
@@ -267,7 +256,7 @@ Deno.serve(async (req) => {
                   ? `<img src="${cp.product.image_url}" style="width:6px; height:6px; object-fit:cover; border-radius:1px; margin-right:1px;" />`
                   : '';
 
-                devicesOverlay += `<div style="position:absolute; left:${imgPixelX}px; top:${imgPixelY}px; transform:translate(-50%,-50%); z-index:10;">
+                devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
                   <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1; display:flex; align-items:center; gap:1px;">
                     ${deviceImageHtml}
                     <div>
@@ -286,10 +275,10 @@ Deno.serve(async (req) => {
               // Build arrow overlays
               let arrowsOverlay = '';
               arrows.forEach(arrow => {
-                const startImgX = (arrow.start.x - fpPos.x) / fpScale;
-                const startImgY = (arrow.start.y - fpPos.y) / fpScale;
-                const endImgX = (arrow.end.x - fpPos.x) / fpScale;
-                const endImgY = (arrow.end.y - fpPos.y) / fpScale;
+                const startImgX = (arrow.start.x - fpPos.x) * canvasToImageScale;
+                const startImgY = (arrow.start.y - fpPos.y) * canvasToImageScale;
+                const endImgX = (arrow.end.x - fpPos.x) * canvasToImageScale;
+                const endImgY = (arrow.end.y - fpPos.y) * canvasToImageScale;
 
                 if ((startImgX < 0 && endImgX < 0) || (startImgX > fp.imageWidth && endImgX > fp.imageWidth) ||
                     (startImgY < 0 && endImgY < 0) || (startImgY > fp.imageHeight && endImgY > fp.imageHeight)) {
@@ -321,66 +310,68 @@ Deno.serve(async (req) => {
 
               // Build annotations overlay
               let annotationsOverlay = '';
-              console.log('ANNOTATIONS: total count=', annotations?.length || 0);
               if (annotations && annotations.length > 0) {
-                annotations.forEach((annotation, idx) => {
-                  if (!annotation || !annotation.position) {
-                    console.log('Skipping annotation', idx, '- missing position');
-                    return;
-                  }
+                annotations.forEach(annotation => {
+                  if (!annotation || !annotation.position) return;
 
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
-                  console.log('Annotation', idx, ':', annotation.type, annotation.id || annotation.symbolId, 'canvasPos:', annX, annY);
 
-                  // Check if annotation is within floorplan bounds (in world coordinates)
+                  // Check if annotation is within floorplan bounds using canvas scale
                   const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + (fp.imageWidth * fpScale);
+                  const fpMaxX = fpPos.x + (fp.imageWidth / canvasToImageScale);
                   const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + (fp.imageHeight * fpScale);
+                  const fpMaxY = fpPos.y + (fp.imageHeight / canvasToImageScale);
 
                   if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
                     return; // Skip annotations outside floorplan
                   }
 
-                  // Convert canvas coordinates to image pixels
-                  const imgPixelX = (annX - fpPos.x) / fpScale;
-                  const imgPixelY = (annY - fpPos.y) / fpScale;
-                  console.log('  -> imgPixel:', imgPixelX, imgPixelY);
+                  // Convert canvas coordinates to image pixel coordinates
+                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
+                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
+
+                  const percentX = (imgPixelX / fp.imageWidth) * 100;
+                  const percentY = (imgPixelY / fp.imageHeight) * 100;
 
                   if (annotation.type === 'text') {
                     const color = annotation.color || '#000000';
-                    const fontSize = (annotation.fontSize || 16) / fpScale;
+                    // Scale font size to match floorplan image size
+                    const canvasFontSize = annotation.fontSize || 16;
+                    const scaledFontSize = Math.max(4, canvasFontSize * canvasToImageScale);
                     const rotation = annotation.rotation ? `transform:rotate(${annotation.rotation}deg);` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${imgPixelX}px; top:${imgPixelY}px; color:${color}; font-size:${fontSize}px; font-weight:500; white-space:nowrap; z-index:15; ${rotation}">${annotation.text || ''}</div>`;
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${scaledFontSize}px; font-weight:500; white-space:nowrap; z-index:15; ${rotation}">${annotation.text || ''}</div>`;
                   } else if (annotation.type === 'rectangle') {
                     const color = annotation.color || '#3b82f6';
-                    const width = (annotation.width || 40) / fpScale;
-                    const height = (annotation.height || 30) / fpScale;
-                    const stroke = (annotation.strokeWidth || 2) / fpScale;
+                    const width = (annotation.width || 40) * canvasToImageScale;
+                    const height = (annotation.height || 30) * canvasToImageScale;
+                    const percentWidth = (width / fp.imageWidth) * 100;
+                    const percentHeight = (height / fp.imageHeight) * 100;
+                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
                     const fill = annotation.fill ? `background:${color}80;` : '';
                     const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${imgPixelX}px; top:${imgPixelY}px; width:${width}px; height:${height}px; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
                   } else if (annotation.type === 'circle') {
                     const color = annotation.color || '#3b82f6';
-                    const radius = (annotation.radius || 20) / fpScale;
-                    const diameter = radius * 2;
-                    const stroke = (annotation.strokeWidth || 2) / fpScale;
+                    const radius = (annotation.radius || 20) * canvasToImageScale;
+                    const percentSize = (radius / fp.imageWidth) * 100 * 2;
+                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
                     const fill = annotation.fill ? `background:${color}80;` : '';
                     const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${imgPixelX}px; top:${imgPixelY}px; width:${diameter}px; height:${diameter}px; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
+                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
                   } else if (annotation.type === 'line') {
                     const color = annotation.color || '#000000';
                     const endPos = annotation.endPosition;
                     if (endPos) {
-                      const endImgX = (endPos.x - fpPos.x) / fpScale;
-                      const endImgY = (endPos.y - fpPos.y) / fpScale;
+                      const endImgX = (endPos.x - fpPos.x) * canvasToImageScale;
+                      const endImgY = (endPos.y - fpPos.y) * canvasToImageScale;
                       const dx = endImgX - imgPixelX;
                       const dy = endImgY - imgPixelY;
                       const length = Math.sqrt(dx * dx + dy * dy);
                       const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                      const stroke = (annotation.strokeWidth || 2) / fpScale;
-                      annotationsOverlay += `<div style="position:absolute; left:${imgPixelX}px; top:${imgPixelY}px; width:${length}px; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
+                      const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
+                      const percentLength = (length / fp.imageWidth) * 100;
+                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentLength}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
                     }
                   }
                 });
@@ -396,23 +387,20 @@ Deno.serve(async (req) => {
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
                   const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + (fp.imageWidth * fpScale);
+                  const fpMaxX = fpPos.x + (fp.imageWidth / canvasToImageScale);
                   const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + (fp.imageHeight * fpScale);
+                  const fpMaxY = fpPos.y + (fp.imageHeight / canvasToImageScale);
 
-                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
-                    console.log('  -> OUTSIDE floorplan bounds, skipping');
-                    return;
-                  }
+                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) return;
 
-                  const imgPixelX = (annX - fpPos.x) / fpScale;
-                  const imgPixelY = (annY - fpPos.y) / fpScale;
-                  console.log('  -> SVG symbol imgPixel:', imgPixelX, imgPixelY);
+                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
+                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const iconUrl = SYMBOL_ICONS[annotation.symbolId];
-                    const baseSize = (60 * (annotation.scale || 1)) / fpScale;
-                    const size = baseSize;
+                    // Scale symbol size to match floorplan image
+                    const baseSize = 60 * (annotation.scale || 1);
+                    const size = Math.max(20, baseSize * canvasToImageScale);
                     const color = annotation.color || '#3b82f6';
 
                     if (iconUrl) {
@@ -439,13 +427,13 @@ Deno.serve(async (req) => {
               bodyHtml += `
               <section class="keep-together">
               <h2>${fp.name}</h2>
-              <div style="position:relative; margin:20px auto; max-width:95%; width:${fp.imageWidth}px; height:${fp.imageHeight}px;">
-              <img src="${fp.url}" style="position:absolute; top:0; left:0; width:${fp.imageWidth}px; height:${fp.imageHeight}px; border:1px solid #e5e7eb; border-radius:8px;" />
+              <div style="position:relative; text-align:center; margin:20px auto; max-width:95%; display:inline-block;">
+              <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
               ${devicesOverlay}
               ${connectionsOverlay}
               ${arrowsOverlay}
               ${annotationsOverlay}
-              <svg style="position:absolute; top:0; left:0; width:${fp.imageWidth}px; height:${fp.imageHeight}px; pointer-events:none;">
+              <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
                 <defs>${svgFilters}</defs>
                 ${svgSymbolsContent}
               </svg>
@@ -455,23 +443,23 @@ Deno.serve(async (req) => {
     <p><strong>Calibration:</strong> ${fp.pixelsPerInch ? fp.pixelsPerInch.toFixed(2) + ' px/inch' : 'Not calibrated'}</p>
     ${fp.imageWidth ? `<p><strong>Dimensions:</strong> ${fp.imageWidth} × ${fp.imageHeight} pixels</p>` : ''}
     <p><strong>Devices shown:</strong> ${canvasProducts.filter(cp => {
-      const deviceX = cp.position.x;
-      const deviceY = cp.position.y;
-      const imgPixelX = (deviceX - fpPos.x) / fpScale;
-      const imgPixelY = (deviceY - fpPos.y) / fpScale;
+      const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
+      const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
+      const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
+      const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
       return imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight;
     }).length} | <strong>Connections:</strong> ${connections.filter(conn => {
       const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
       const toDevice = canvasProducts.find(cp => cp.instanceId === conn.to);
       if (!fromDevice || !toDevice) return false;
-      const fromX = fromDevice.position.x;
-      const fromY = fromDevice.position.y;
-      const toX = toDevice.position.x;
-      const toY = toDevice.position.y;
-      const fromImgX = (fromX - fpPos.x) / fpScale;
-      const fromImgY = (fromY - fpPos.y) / fpScale;
-      const toImgX = (toX - fpPos.x) / fpScale;
-      const toImgY = (toY - fpPos.y) / fpScale;
+      const fromCenterX = fromDevice.position.x + DEVICE_CARD_WIDTH / 2;
+      const fromCenterY = fromDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+      const toCenterX = toDevice.position.x + DEVICE_CARD_WIDTH / 2;
+      const toCenterY = toDevice.position.y + DEVICE_CARD_HEIGHT / 2;
+      const fromImgX = (fromCenterX - fpPos.x) * canvasToImageScale;
+      const fromImgY = (fromCenterY - fpPos.y) * canvasToImageScale;
+      const toImgX = (toCenterX - fpPos.x) * canvasToImageScale;
+      const toImgY = (toCenterY - fpPos.y) * canvasToImageScale;
       return fromImgX >= 0 && fromImgY >= 0 && fromImgX <= fp.imageWidth && fromImgY <= fp.imageHeight &&
              toImgX >= 0 && toImgY >= 0 && toImgX <= fp.imageWidth && toImgY <= fp.imageHeight;
     }).length}</p>
