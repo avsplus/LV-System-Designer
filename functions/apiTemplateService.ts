@@ -217,10 +217,8 @@ Deno.serve(async (req) => {
               console.log('Floorplan:', fp.name, 'fpScale:', fpScale, 'fpPos:', fpPos, 'imageSize:', fp.imageWidth, 'x', fp.imageHeight);
               console.log('Canvas dimensions on screen:', fp.imageWidth * fpScale, 'x', fp.imageHeight * fpScale);
               
-              // Direct coordinate mapping: positions are already in the same space as the floorplan
-              // No scale transformation needed - positions map 1:1 to image
-              const DEVICE_CARD_WIDTH = 320;
-              const DEVICE_CARD_HEIGHT = 280;
+              // CRITICAL INSIGHT: Device positions in cp.position appear to already be CENTER coordinates
+              // Testing theory: if we use position directly without adding offsets, what do we get?
               
               // Build device overlay HTML
               let devicesOverlay = '';
@@ -233,12 +231,14 @@ Deno.serve(async (req) => {
                 maxY: fpPos.y + (fp.imageHeight * fpScale) 
               });
               canvasProducts.forEach(cp => {
-                const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
-                const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
-                console.log('Device:', cp.label, 'rawPos:', cp.position, 'centerPos:', deviceCenterX, deviceCenterY);
+                // TEST: Use position directly as if it's already the center point
+                const deviceX = cp.position.x;
+                const deviceY = cp.position.y;
+                console.log('Device:', cp.label, 'position:', cp.position);
+                
                 // Convert canvas world coordinates to floorplan image pixels
-                const imgPixelX = (deviceCenterX - fpPos.x) / fpScale;
-                const imgPixelY = (deviceCenterY - fpPos.y) / fpScale;
+                const imgPixelX = (deviceX - fpPos.x) / fpScale;
+                const imgPixelY = (deviceY - fpPos.y) / fpScale;
                 console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'percent:', ((imgPixelX / fp.imageWidth) * 100).toFixed(2) + '%', ((imgPixelY / fp.imageHeight) * 100).toFixed(2) + '%', 'inBounds:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
