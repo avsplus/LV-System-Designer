@@ -239,9 +239,7 @@ Deno.serve(async (req) => {
                 // Convert canvas world coordinates to floorplan image pixels
                 const imgPixelX = (deviceCenterX - fpPos.x) / fpScale;
                 const imgPixelY = (deviceCenterY - fpPos.y) / fpScale;
-                const percentX = (imgPixelX / fp.imageWidth) * 100;
-                const percentY = (imgPixelY / fp.imageHeight) * 100;
-                console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'percent:', percentX.toFixed(2) + '%', percentY.toFixed(2) + '%', 'inBounds:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
+                console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'percent:', ((imgPixelX / fp.imageWidth) * 100).toFixed(2) + '%', ((imgPixelY / fp.imageHeight) * 100).toFixed(2) + '%', 'inBounds:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
                 
