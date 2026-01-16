@@ -41,6 +41,125 @@ async function isValidImageUrl(url) {
   }
 }
 
+// Convert canvas world coordinates to image pixel coordinates
+function canvasToImagePx(worldPos, fp) {
+  const fpPos = fp.position || { x: 0, y: 0 };
+  const scale = (fp.pixelsPerInch || 1) / (fp.scale || 1);
+  return {
+    x: (worldPos.x - fpPos.x) * scale,
+    y: (worldPos.y - fpPos.y) * scale
+  };
+}
+
+// Build complete SVG overlay for floorplan
+function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], connections = [] }) {
+  const scale = (fp.pixelsPerInch || 1) / (fp.scale || 1);
+  const DEVICE_CARD_WIDTH = 320;
+  const DEVICE_CARD_HEIGHT = 280;
+  
+  let svg = `<svg width="${fp.imageWidth}" height="${fp.imageHeight}" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" xmlns="http://www.w3.org/2000/svg" style="position:absolute; top:0; left:0; pointer-events:none;">`;
+  
+  // Arrowhead marker definition
+  svg += `<defs><marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="#3b82f6" /></marker>`;
+  
+  // Color filters for symbol icons
+  let filterDefs = '';
+  
+  // Draw arrows
+  for (const arrow of arrows) {
+    const start = canvasToImagePx(arrow.start, fp);
+    const end = canvasToImagePx(arrow.end, fp);
+    
+    // Skip if arrow is completely outside bounds
+    if ((start.x < 0 && end.x < 0) || (start.x > fp.imageWidth && end.x > fp.imageWidth) ||
+        (start.y < 0 && end.y < 0) || (start.y > fp.imageHeight && end.y > fp.imageHeight)) {
+      continue;
+    }
+    
+    // Clamp to bounds
+    const clampedStartX = Math.max(0, Math.min(fp.imageWidth, start.x));
+    const clampedStartY = Math.max(0, Math.min(fp.imageHeight, start.y));
+    const clampedEndX = Math.max(0, Math.min(fp.imageWidth, end.x));
+    const clampedEndY = Math.max(0, Math.min(fp.imageHeight, end.y));
+    
+    svg += `<line x1="${clampedStartX}" y1="${clampedStartY}" x2="${clampedEndX}" y2="${clampedEndY}" stroke="#3b82f6" stroke-width="${1.5 * scale}" marker-end="url(#arrowhead)" />`;
+  }
+  
+  // Draw annotations
+  for (let idx = 0; idx < annotations.length; idx++) {
+    const ann = annotations[idx];
+    if (!ann || !ann.position) continue;
+    
+    const pos = canvasToImagePx(ann.position, fp);
+    
+    // Skip if outside bounds
+    if (pos.x < 0 || pos.y < 0 || pos.x > fp.imageWidth || pos.y > fp.imageHeight) continue;
+    
+    if (ann.type === 'text') {
+      const fontSize = Math.max(8, (ann.fontSize || 16) * scale);
+      const color = ann.color || '#000000';
+      const rotation = ann.rotation || 0;
+      svg += `<text x="${pos.x}" y="${pos.y}" font-size="${fontSize}" fill="${color}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rotation}, ${pos.x}, ${pos.y})">${escapeHtml(ann.text || '')}</text>`;
+    }
+    
+    if (ann.type === 'rectangle') {
+      const w = (ann.width || 40) * scale;
+      const h = (ann.height || 30) * scale;
+      const color = ann.color || '#3b82f6';
+      const strokeWidth = (ann.strokeWidth || 2) * scale;
+      const rotation = ann.rotation || 0;
+      svg += `<rect x="${pos.x - w/2}" y="${pos.y - h/2}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" transform="rotate(${rotation}, ${pos.x}, ${pos.y})" />`;
+    }
+    
+    if (ann.type === 'circle') {
+      const r = (ann.radius || 20) * scale;
+      const color = ann.color || '#3b82f6';
+      const strokeWidth = (ann.strokeWidth || 2) * scale;
+      svg += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
+    }
+    
+    if (ann.type === 'line') {
+      const endPos = ann.endPosition;
+      if (endPos) {
+        const end = canvasToImagePx(endPos, fp);
+        const color = ann.color || '#000000';
+        const strokeWidth = (ann.strokeWidth || 2) * scale;
+        svg += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
+      }
+    }
+    
+    if (ann.type === 'symbol' && ann.symbolId) {
+      const iconUrl = SYMBOL_ICONS[ann.symbolId];
+      if (iconUrl) {
+        const baseSize = 60 * (ann.scale || 1);
+        const size = Math.max(20, baseSize * scale);
+        const color = ann.color || '#3b82f6';
+        const rotation = ann.rotation || 0;
+        const flip = ann.flipped ? -1 : 1;
+        
+        // Generate color filter
+        const filterId = `symbol-color-${idx}`;
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        
+        filterDefs += `<filter id="${filterId}"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 1 0"/></filter>`;
+        
+        svg += `<image href="${iconUrl}" x="${pos.x - size/2}" y="${pos.y - size/2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" filter="url(#${filterId})" transform="rotate(${rotation}, ${pos.x}, ${pos.y}) scale(${flip}, 1)" transform-origin="${pos.x} ${pos.y}" />`;
+      }
+    }
+  }
+  
+  svg += filterDefs + `</defs></svg>`;
+  return svg;
+}
+
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
 // Symbol icon mapping to PNG URLs
       const SYMBOL_ICONS = {
         'ELEC-1G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/227d623c7_1GangOutlet.png',
@@ -211,15 +330,12 @@ Deno.serve(async (req) => {
             bodyHtml += `<section><h1>Floorplans</h1><div class="info-box"><div class="info-box-title">Site Layout</div><p>The following pages show device and wiring locations on the actual floor plans.</p></div></section><div class="page-break"></div>`;
             
             for (const fp of visibleFloorplans) {
-              // Calculate overlay positions for devices and connections
-              const fpPos = fp.position || { x: 0, y: 0 };
-              const fpScale = fp.scale || 1;
-              const pixelsPerInch = fp.pixelsPerInch || 1;
-              const canvasToImageScale = pixelsPerInch / fpScale;
               const DEVICE_CARD_WIDTH = 320;
               const DEVICE_CARD_HEIGHT = 280;
+              const fpPos = fp.position || { x: 0, y: 0 };
+              const canvasToImageScale = (fp.pixelsPerInch || 1) / (fp.scale || 1);
               
-              // Build device overlay HTML
+              // Build device overlay HTML (still uses HTML for device cards)
               let devicesOverlay = '';
               canvasProducts.forEach(cp => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
@@ -232,12 +348,10 @@ Deno.serve(async (req) => {
                 const percentX = (imgPixelX / fp.imageWidth) * 100;
                 const percentY = (imgPixelY / fp.imageHeight) * 100;
                 
-                // Format category name
                 const category = cp.product?.category ? cp.product.category.replace(/_/g, ' ').toUpperCase() : 'DEVICE';
                 const brand = cp.product?.brand || '';
                 const model = cp.product?.model || '';
                 
-                // Find all wire IDs connected to this device with their colors
                 const connectedWireData = connections
                   .filter(conn => conn.from === cp.instanceId || conn.to === cp.instanceId)
                   .map(conn => {
@@ -251,7 +365,6 @@ Deno.serve(async (req) => {
                   `<span style="color:${wire.color};">${wire.wireId}</span>`
                 ).join(', ');
 
-                // Build device image HTML if available
                 const deviceImageHtml = cp.product?.image_url 
                   ? `<img src="${cp.product.image_url}" style="width:6px; height:6px; object-fit:cover; border-radius:1px; margin-right:1px;" />`
                   : '';
@@ -269,174 +382,16 @@ Deno.serve(async (req) => {
                 </div>`;
               });
               
-              // Connection lines removed per user request
-              let connectionsOverlay = '';
-
-              // Build arrow overlays
-              let arrowsOverlay = '';
-              arrows.forEach(arrow => {
-                const startImgX = (arrow.start.x - fpPos.x) * canvasToImageScale;
-                const startImgY = (arrow.start.y - fpPos.y) * canvasToImageScale;
-                const endImgX = (arrow.end.x - fpPos.x) * canvasToImageScale;
-                const endImgY = (arrow.end.y - fpPos.y) * canvasToImageScale;
-
-                if ((startImgX < 0 && endImgX < 0) || (startImgX > fp.imageWidth && endImgX > fp.imageWidth) ||
-                    (startImgY < 0 && endImgY < 0) || (startImgY > fp.imageHeight && endImgY > fp.imageHeight)) {
-                  return; // Arrow completely outside floorplan
-                }
-
-                // Clamp coordinates to floorplan bounds
-                const clampedStartX = Math.max(0, Math.min(fp.imageWidth, startImgX));
-                const clampedStartY = Math.max(0, Math.min(fp.imageHeight, startImgY));
-                const clampedEndX = Math.max(0, Math.min(fp.imageWidth, endImgX));
-                const clampedEndY = Math.max(0, Math.min(fp.imageHeight, endImgY));
-
-                // Calculate arrow direction for arrowhead
-                const dx = clampedEndX - clampedStartX;
-                const dy = clampedEndY - clampedStartY;
-                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-                arrowsOverlay += `<div style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
-                  <svg style="position:absolute; top:0; left:0; width:100%; height:100%;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
-                    <defs>
-                      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                        <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
-                      </marker>
-                    </defs>
-                    <line x1="${clampedStartX}" y1="${clampedStartY}" x2="${clampedEndX}" y2="${clampedEndY}" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowhead)" />
-                  </svg>
-                </div>`;
-              });
-
-              // Build annotations overlay
-              let annotationsOverlay = '';
-              if (annotations && annotations.length > 0) {
-                annotations.forEach(annotation => {
-                  if (!annotation || !annotation.position) return;
-
-                  const annX = annotation.position.x;
-                  const annY = annotation.position.y;
-
-                  // Check if annotation is within floorplan bounds using canvas scale
-                  const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + (fp.imageWidth / canvasToImageScale);
-                  const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + (fp.imageHeight / canvasToImageScale);
-
-                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
-                    return; // Skip annotations outside floorplan
-                  }
-
-                  // Convert canvas coordinates to image pixel coordinates
-                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
-                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
-
-                  const percentX = (imgPixelX / fp.imageWidth) * 100;
-                  const percentY = (imgPixelY / fp.imageHeight) * 100;
-
-                  if (annotation.type === 'text') {
-                    const color = annotation.color || '#000000';
-                    // Scale font size to match floorplan - convert canvas size to image pixels
-                    const canvasFontSize = annotation.fontSize || 16;
-                    const scaledFontSize = Math.max(4, canvasFontSize * canvasToImageScale * 0.8);
-                    const rotation = annotation.rotation ? `transform:rotate(${annotation.rotation}deg);` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${scaledFontSize}px; font-weight:500; white-space:nowrap; z-index:15; ${rotation}">${annotation.text || ''}</div>`;
-                  } else if (annotation.type === 'rectangle') {
-                    const color = annotation.color || '#3b82f6';
-                    const width = (annotation.width || 40) * canvasToImageScale;
-                    const height = (annotation.height || 30) * canvasToImageScale;
-                    const percentWidth = (width / fp.imageWidth) * 100;
-                    const percentHeight = (height / fp.imageHeight) * 100;
-                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
-                    const fill = annotation.fill ? `background:${color}80;` : '';
-                    const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
-                  } else if (annotation.type === 'circle') {
-                    const color = annotation.color || '#3b82f6';
-                    const radius = (annotation.radius || 20) * canvasToImageScale;
-                    const percentSize = (radius / fp.imageWidth) * 100 * 2;
-                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
-                    const fill = annotation.fill ? `background:${color}80;` : '';
-                    const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
-                    annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
-                  } else if (annotation.type === 'line') {
-                    const color = annotation.color || '#000000';
-                    const endPos = annotation.endPosition;
-                    if (endPos) {
-                      const endImgX = (endPos.x - fpPos.x) * canvasToImageScale;
-                      const endImgY = (endPos.y - fpPos.y) * canvasToImageScale;
-                      const dx = endImgX - imgPixelX;
-                      const dy = endImgY - imgPixelY;
-                      const length = Math.sqrt(dx * dx + dy * dy);
-                      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                      const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
-                      const percentLength = (length / fp.imageWidth) * 100;
-                      annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentLength}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
-                    }
-                  }
-                });
-              }
-
-              // Build SVG overlay for symbol PNG icons
-              let svgSymbolsContent = '';
-              let svgFilters = '';
-              if (annotations && annotations.length > 0) {
-                annotations.forEach((annotation, idx) => {
-                  if (!annotation || !annotation.position) return;
-
-                  const annX = annotation.position.x;
-                  const annY = annotation.position.y;
-                  const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + (fp.imageWidth / canvasToImageScale);
-                  const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + (fp.imageHeight / canvasToImageScale);
-
-                  if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) return;
-
-                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
-                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
-
-                  if (annotation.type === 'symbol' && annotation.symbolId) {
-                    const iconUrl = SYMBOL_ICONS[annotation.symbolId];
-                    // Convert canvas size (60px base) to image pixels
-                    const baseSize = 60 * (annotation.scale || 1);
-                    const size = Math.max(20, baseSize * canvasToImageScale);
-                    const color = annotation.color || '#3b82f6';
-
-                    if (iconUrl) {
-                      // Generate color filter
-                      const filterId = `symbol-color-${idx}`;
-                      const hex = color.replace('#', '');
-                      const r = parseInt(hex.substring(0, 2), 16) / 255;
-                      const g = parseInt(hex.substring(2, 4), 16) / 255;
-                      const b = parseInt(hex.substring(4, 6), 16) / 255;
-
-                      svgFilters += `<filter id="${filterId}"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 1 0"/></filter>`;
-
-                      // Use PNG icon with color filter - apply rotation and flip
-                      const rotation = annotation.rotation || 0;
-                      const flip = annotation.flipped ? -1 : 1;
-                      const transform = `translate(${imgPixelX}, ${imgPixelY}) rotate(${rotation}) scale(${flip}, 1) translate(${-size/2}, ${-size/2})`;
-                      
-                      svgSymbolsContent += `<image href="${iconUrl}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" filter="url(#${filterId})" transform="${transform}"/>`;
-                    }
-                  }
-                });
-              }
+              // Generate pure SVG overlay for annotations, symbols, and arrows
+              const svgOverlay = buildFloorplanSVG({ fp, canvasProducts, annotations, arrows, connections });
 
               bodyHtml += `
               <section class="keep-together">
               <h2>${fp.name}</h2>
-              <div style="position:relative; text-align:center; margin:20px auto; max-width:95%; display:inline-block;">
-              <img src="${fp.url}" style="width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; display:block;" />
+              <div style="position:relative; width:${fp.imageWidth}px; height:${fp.imageHeight}px; margin:20px auto; max-width:95%;">
+              <img src="${fp.url}" width="${fp.imageWidth}" height="${fp.imageHeight}" style="display:block; border:1px solid #e5e7eb; border-radius:8px;" />
               ${devicesOverlay}
-              ${connectionsOverlay}
-              ${arrowsOverlay}
-              ${annotationsOverlay}
-              <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
-                <defs>${svgFilters}</defs>
-                ${svgSymbolsContent}
-              </svg>
+              ${svgOverlay}
               </div>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
