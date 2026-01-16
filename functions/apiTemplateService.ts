@@ -388,20 +388,19 @@ Deno.serve(async (req) => {
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
                   const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + (fp.imageWidth / canvasToImageScale);
+                  const fpMaxX = fpPos.x + fp.imageWidth;
                   const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + (fp.imageHeight / canvasToImageScale);
+                  const fpMaxY = fpPos.y + fp.imageHeight;
 
                   if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) return;
 
-                  const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
-                  const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
+                  const imgPixelX = annX - fpPos.x;
+                  const imgPixelY = annY - fpPos.y;
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const iconUrl = SYMBOL_ICONS[annotation.symbolId];
-                    // Scale symbol size to match floorplan image
                     const baseSize = 60 * (annotation.scale || 1);
-                    const size = Math.max(20, baseSize * canvasToImageScale);
+                    const size = baseSize;
                     const color = annotation.color || '#3b82f6';
 
                     if (iconUrl) {
