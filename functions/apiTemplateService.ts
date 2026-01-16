@@ -243,9 +243,6 @@ Deno.serve(async (req) => {
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
                 
-                const percentX = (imgPixelX / fp.imageWidth) * 100;
-                const percentY = (imgPixelY / fp.imageHeight) * 100;
-                
                 // Format category name
                 const category = cp.product?.category ? cp.product.category.replace(/_/g, ' ').toUpperCase() : 'DEVICE';
                 const brand = cp.product?.brand || '';
@@ -270,7 +267,7 @@ Deno.serve(async (req) => {
                   ? `<img src="${cp.product.image_url}" style="width:6px; height:6px; object-fit:cover; border-radius:1px; margin-right:1px;" />`
                   : '';
 
-                devicesOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; transform:translate(-50%,-50%); z-index:10;">
+                devicesOverlay += `<div style="position:absolute; left:${imgPixelX}px; top:${imgPixelY}px; transform:translate(-50%,-50%); z-index:10;">
                   <div style="background:white; padding:1px 3px; border:1px solid #d1d5db; border-radius:2px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1; display:flex; align-items:center; gap:1px;">
                     ${deviceImageHtml}
                     <div>
