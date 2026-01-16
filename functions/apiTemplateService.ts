@@ -91,7 +91,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     if (pos.x < 0 || pos.y < 0 || pos.x > fp.imageWidth || pos.y > fp.imageHeight) continue;
     
     if (ann.type === 'text') {
-      const fontSize = Math.max(8, (ann.fontSize || 16) * scale);
+      const fontSize = Math.max(10, (ann.fontSize || 16) * scale * 0.85);
       const color = ann.color || '#000000';
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
@@ -99,8 +99,8 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     }
     
     if (ann.type === 'rectangle') {
-      const w = (ann.width || 40) * scale;
-      const h = (ann.height || 30) * scale;
+      const w = (ann.width || 40) * scale * 0.9;
+      const h = (ann.height || 30) * scale * 0.9;
       const color = ann.color || '#3b82f6';
       const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
       const rotation = ann.rotation || 0;
@@ -109,7 +109,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     }
     
     if (ann.type === 'circle') {
-      const r = (ann.radius || 20) * scale;
+      const r = (ann.radius || 20) * scale * 0.9;
       const color = ann.color || '#3b82f6';
       const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
       svgContent += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
@@ -120,7 +120,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       if (endPos) {
         const end = canvasToImagePx(endPos, fp);
         const color = ann.color || '#000000';
-        const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
+        const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale * 0.9);
         svgContent += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
       }
     }
@@ -128,8 +128,8 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     if (ann.type === 'symbol' && ann.symbolId) {
       const iconUrl = SYMBOL_ICONS[ann.symbolId];
       if (iconUrl) {
-        const baseSize = 60 * (ann.scale || 1);
-        const size = Math.max(20, baseSize * scale);
+        const baseSize = 40 * (ann.scale || 1);
+        const size = Math.max(16, baseSize * scale);
         const color = ann.color || '#3b82f6';
         const rotation = ann.rotation || 0;
         const flip = ann.flipped ? -1 : 1;
