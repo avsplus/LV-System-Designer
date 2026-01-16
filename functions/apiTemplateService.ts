@@ -224,7 +224,14 @@ Deno.serve(async (req) => {
               
               // Build device overlay HTML
               let devicesOverlay = '';
-              console.log('DEVICE MAPPING - fpPos:', fpPos, 'fpScale:', fpScale, 'deviceCount:', canvasProducts.length);
+              console.log('DEVICE MAPPING - fpPos:', fpPos, 'fpScale:', fpScale);
+              console.log('Total devices in project:', canvasProducts.length);
+              console.log('Floorplan world bounds:', { 
+                minX: fpPos.x, 
+                maxX: fpPos.x + (fp.imageWidth * fpScale), 
+                minY: fpPos.y, 
+                maxY: fpPos.y + (fp.imageHeight * fpScale) 
+              });
               canvasProducts.forEach(cp => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
                 const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
