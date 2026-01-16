@@ -99,19 +99,19 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     }
     
     if (ann.type === 'rectangle') {
-      const w = (ann.width || 40) * scale * 0.9;
-      const h = (ann.height || 30) * scale * 0.9;
+      const w = (ann.width || 40) * scale;
+      const h = (ann.height || 30) * scale;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
+      const strokeWidth = Math.max(1, (ann.strokeWidth || 2) * scale);
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
       svgContent += `<rect x="${pos.x - w/2}" y="${pos.y - h/2}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}"${transform} />`;
     }
     
     if (ann.type === 'circle') {
-      const r = (ann.radius || 20) * scale * 0.9;
+      const r = (ann.radius || 20) * scale;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
+      const strokeWidth = Math.max(1, (ann.strokeWidth || 2) * scale);
       svgContent += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
     }
     
@@ -120,7 +120,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       if (endPos) {
         const end = canvasToImagePx(endPos, fp);
         const color = ann.color || '#000000';
-        const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale * 0.9);
+        const strokeWidth = Math.max(1, (ann.strokeWidth || 2) * scale);
         svgContent += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
       }
     }
