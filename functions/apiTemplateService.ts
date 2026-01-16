@@ -336,26 +336,26 @@ Deno.serve(async (req) => {
 
                   if (annotation.type === 'text') {
                     const color = annotation.color || '#000000';
-                    // Scale font size to match floorplan - convert canvas size to image pixels
+                    // Scale font size - annotations are sized for canvas view, scale to image
                     const canvasFontSize = annotation.fontSize || 16;
-                    const scaledFontSize = Math.max(4, canvasFontSize * canvasToImageScale * 0.8);
+                    const scaledFontSize = Math.max(4, (canvasFontSize / canvasToImageScale) * 0.8);
                     const rotation = annotation.rotation ? `transform:rotate(${annotation.rotation}deg);` : '';
                     annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; color:${color}; font-size:${scaledFontSize}px; font-weight:500; white-space:nowrap; z-index:15; ${rotation}">${annotation.text || ''}</div>`;
                   } else if (annotation.type === 'rectangle') {
                     const color = annotation.color || '#3b82f6';
-                    const width = (annotation.width || 40) * canvasToImageScale;
-                    const height = (annotation.height || 30) * canvasToImageScale;
+                    const width = (annotation.width || 40) / canvasToImageScale;
+                    const height = (annotation.height || 30) / canvasToImageScale;
                     const percentWidth = (width / fp.imageWidth) * 100;
                     const percentHeight = (height / fp.imageHeight) * 100;
-                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
+                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) / canvasToImageScale);
                     const fill = annotation.fill ? `background:${color}80;` : '';
                     const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
                     annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentWidth}%; height:${percentHeight}%; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:2px; z-index:10;"></div>`;
                   } else if (annotation.type === 'circle') {
                     const color = annotation.color || '#3b82f6';
-                    const radius = (annotation.radius || 20) * canvasToImageScale;
+                    const radius = (annotation.radius || 20) / canvasToImageScale;
                     const percentSize = (radius / fp.imageWidth) * 100 * 2;
-                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
+                    const stroke = Math.max(0.5, (annotation.strokeWidth || 2) / canvasToImageScale);
                     const fill = annotation.fill ? `background:${color}80;` : '';
                     const rotation = annotation.rotation ? `rotate(${annotation.rotation}deg)` : '';
                     annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentSize}%; aspect-ratio:1; transform:translate(-50%,-50%) ${rotation}; border:${stroke}px solid ${color}; ${fill} border-radius:50%; z-index:10;"></div>`;
@@ -369,7 +369,7 @@ Deno.serve(async (req) => {
                       const dy = endImgY - imgPixelY;
                       const length = Math.sqrt(dx * dx + dy * dy);
                       const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                      const stroke = Math.max(0.5, (annotation.strokeWidth || 2) * canvasToImageScale);
+                      const stroke = Math.max(0.5, (annotation.strokeWidth || 2) / canvasToImageScale);
                       const percentLength = (length / fp.imageWidth) * 100;
                       annotationsOverlay += `<div style="position:absolute; left:${percentX}%; top:${percentY}%; width:${percentLength}%; height:${stroke}px; background:${color}; transform:rotate(${angle}deg); transform-origin:left center; z-index:10;"></div>`;
                     }
@@ -398,9 +398,9 @@ Deno.serve(async (req) => {
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const iconUrl = SYMBOL_ICONS[annotation.symbolId];
-                    // Convert canvas size (60px base) to image pixels
+                    // Scale symbol size from canvas to image
                     const baseSize = 60 * (annotation.scale || 1);
-                    const size = Math.max(20, baseSize * canvasToImageScale);
+                    const size = Math.max(20, baseSize / canvasToImageScale);
                     const color = annotation.color || '#3b82f6';
 
                     if (iconUrl) {
