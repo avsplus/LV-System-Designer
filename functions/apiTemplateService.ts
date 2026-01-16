@@ -223,12 +223,15 @@ Deno.serve(async (req) => {
               
               // Build device overlay HTML
               let devicesOverlay = '';
+              console.log('DEVICE MAPPING - fpPos:', fpPos, 'fpScale:', fpScale);
               canvasProducts.forEach(cp => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
                 const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
-                // Convert canvas coordinates to image pixels: subtract floorplan origin and divide by scale
-                const imgPixelX = (deviceCenterX - fpPos.x) / fpScale;
-                const imgPixelY = (deviceCenterY - fpPos.y) / fpScale;
+                console.log('Device:', cp.label, 'canvasPos:', deviceCenterX, deviceCenterY);
+                // Direct mapping: canvas coordinates directly correspond to scaled floorplan coordinates
+                const imgPixelX = (deviceCenterX - fpPos.x) * (fp.imageWidth / (fp.imageWidth * fpScale));
+                const imgPixelY = (deviceCenterY - fpPos.y) * (fp.imageHeight / (fp.imageHeight * fpScale));
+                console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'bounds check:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
                 
