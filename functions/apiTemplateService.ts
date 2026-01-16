@@ -351,6 +351,7 @@ Deno.serve(async (req) => {
                   // Convert canvas coordinates to image pixels
                   const imgPixelX = (annX - fpPos.x) / fpScale;
                   const imgPixelY = (annY - fpPos.y) / fpScale;
+                  console.log('  -> imgPixel:', imgPixelX, imgPixelY);
 
                   const percentX = (imgPixelX / fp.imageWidth) * 100;
                   const percentY = (imgPixelY / fp.imageHeight) * 100;
