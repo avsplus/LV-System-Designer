@@ -57,12 +57,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
   const DEVICE_CARD_WIDTH = 320;
   const DEVICE_CARD_HEIGHT = 280;
   
-  let svg = `<svg width="100%" height="100%" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" xmlns="http://www.w3.org/2000/svg" style="position:absolute; top:0; left:0; pointer-events:none;" preserveAspectRatio="xMidYMid meet">`;
-  
-  // Arrowhead marker definition
-  svg += `<defs><marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="#3b82f6" /></marker>`;
-  
-  // Color filters for symbol icons
+  let svgContent = '';
   let filterDefs = '';
   
   // Draw arrows
@@ -82,7 +77,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     const clampedEndX = Math.max(0, Math.min(fp.imageWidth, end.x));
     const clampedEndY = Math.max(0, Math.min(fp.imageHeight, end.y));
     
-    svg += `<line x1="${clampedStartX}" y1="${clampedStartY}" x2="${clampedEndX}" y2="${clampedEndY}" stroke="#3b82f6" stroke-width="${1.5 * scale}" marker-end="url(#arrowhead)" />`;
+    svgContent += `<line x1="${clampedStartX}" y1="${clampedStartY}" x2="${clampedEndX}" y2="${clampedEndY}" stroke="#3b82f6" stroke-width="${Math.max(1, 1.5 * scale)}" marker-end="url(#arrowhead)" />`;
   }
   
   // Draw annotations
@@ -99,23 +94,25 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       const fontSize = Math.max(8, (ann.fontSize || 16) * scale);
       const color = ann.color || '#000000';
       const rotation = ann.rotation || 0;
-      svg += `<text x="${pos.x}" y="${pos.y}" font-size="${fontSize}" fill="${color}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rotation}, ${pos.x}, ${pos.y})">${escapeHtml(ann.text || '')}</text>`;
+      const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
+      svgContent += `<text x="${pos.x}" y="${pos.y}" font-size="${fontSize}" font-family="Arial, sans-serif" font-weight="600" fill="${color}" text-anchor="middle" dominant-baseline="middle"${transform}>${escapeHtml(ann.text || '')}</text>`;
     }
     
     if (ann.type === 'rectangle') {
       const w = (ann.width || 40) * scale;
       const h = (ann.height || 30) * scale;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = (ann.strokeWidth || 2) * scale;
+      const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
       const rotation = ann.rotation || 0;
-      svg += `<rect x="${pos.x - w/2}" y="${pos.y - h/2}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" transform="rotate(${rotation}, ${pos.x}, ${pos.y})" />`;
+      const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
+      svgContent += `<rect x="${pos.x - w/2}" y="${pos.y - h/2}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}"${transform} />`;
     }
     
     if (ann.type === 'circle') {
       const r = (ann.radius || 20) * scale;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = (ann.strokeWidth || 2) * scale;
-      svg += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
+      const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
+      svgContent += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
     }
     
     if (ann.type === 'line') {
@@ -123,8 +120,8 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       if (endPos) {
         const end = canvasToImagePx(endPos, fp);
         const color = ann.color || '#000000';
-        const strokeWidth = (ann.strokeWidth || 2) * scale;
-        svg += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
+        const strokeWidth = Math.max(0.5, (ann.strokeWidth || 2) * scale);
+        svgContent += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
       }
     }
     
@@ -138,7 +135,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
         const flip = ann.flipped ? -1 : 1;
         
         // Generate color filter
-        const filterId = `symbol-color-${idx}`;
+        const filterId = `symbol-filter-${idx}`;
         const hex = color.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16) / 255;
         const g = parseInt(hex.substring(2, 4), 16) / 255;
@@ -146,13 +143,28 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
         
         filterDefs += `<filter id="${filterId}"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 1 0"/></filter>`;
         
-        svg += `<image href="${iconUrl}" x="${pos.x - size/2}" y="${pos.y - size/2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" filter="url(#${filterId})" transform="rotate(${rotation}, ${pos.x}, ${pos.y}) scale(${flip}, 1)" transform-origin="${pos.x} ${pos.y}" />`;
+        // Build transform
+        const transforms = [];
+        transforms.push(`translate(${pos.x} ${pos.y})`);
+        if (rotation) transforms.push(`rotate(${rotation})`);
+        if (flip === -1) transforms.push(`scale(-1 1)`);
+        transforms.push(`translate(${-size/2} ${-size/2})`);
+        
+        svgContent += `<image href="${iconUrl}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" filter="url(#${filterId})" transform="${transforms.join(' ')}" />`;
       }
     }
   }
   
-  svg += filterDefs + `</defs></svg>`;
-  return svg;
+  // Wrap in SVG with proper structure
+  return `<svg width="100%" height="100%" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" xmlns="http://www.w3.org/2000/svg" style="position:absolute; top:0; left:0; pointer-events:none;">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+      </marker>
+      ${filterDefs}
+    </defs>
+    ${svgContent}
+  </svg>`;
 }
 
 function escapeHtml(text) {
