@@ -418,6 +418,7 @@ Deno.serve(async (req) => {
 
                   const imgPixelX = (annX - fpPos.x) / fpScale;
                   const imgPixelY = (annY - fpPos.y) / fpScale;
+                  console.log('  -> SVG symbol imgPixel:', imgPixelX, imgPixelY);
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const iconUrl = SYMBOL_ICONS[annotation.symbolId];
