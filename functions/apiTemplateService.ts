@@ -445,8 +445,8 @@ Deno.serve(async (req) => {
     <p><strong>Devices shown:</strong> ${canvasProducts.filter(cp => {
       const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
       const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
-      const imgPixelX = (deviceCenterX - fpPos.x) * canvasToImageScale;
-      const imgPixelY = (deviceCenterY - fpPos.y) * canvasToImageScale;
+      const imgPixelX = deviceCenterX - fpPos.x;
+      const imgPixelY = deviceCenterY - fpPos.y;
       return imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight;
     }).length} | <strong>Connections:</strong> ${connections.filter(conn => {
       const fromDevice = canvasProducts.find(cp => cp.instanceId === conn.from);
@@ -456,10 +456,10 @@ Deno.serve(async (req) => {
       const fromCenterY = fromDevice.position.y + DEVICE_CARD_HEIGHT / 2;
       const toCenterX = toDevice.position.x + DEVICE_CARD_WIDTH / 2;
       const toCenterY = toDevice.position.y + DEVICE_CARD_HEIGHT / 2;
-      const fromImgX = (fromCenterX - fpPos.x) * canvasToImageScale;
-      const fromImgY = (fromCenterY - fpPos.y) * canvasToImageScale;
-      const toImgX = (toCenterX - fpPos.x) * canvasToImageScale;
-      const toImgY = (toCenterY - fpPos.y) * canvasToImageScale;
+      const fromImgX = fromCenterX - fpPos.x;
+      const fromImgY = fromCenterY - fpPos.y;
+      const toImgX = toCenterX - fpPos.x;
+      const toImgY = toCenterY - fpPos.y;
       return fromImgX >= 0 && fromImgY >= 0 && fromImgX <= fp.imageWidth && fromImgY <= fp.imageHeight &&
              toImgX >= 0 && toImgY >= 0 && toImgX <= fp.imageWidth && toImgY <= fp.imageHeight;
     }).length}</p>
