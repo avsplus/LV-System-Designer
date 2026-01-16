@@ -228,9 +228,9 @@ Deno.serve(async (req) => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
                 const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
                 console.log('Device:', cp.label, 'canvasPos:', deviceCenterX, deviceCenterY);
-                // Direct mapping: canvas coordinates directly correspond to scaled floorplan coordinates
-                const imgPixelX = (deviceCenterX - fpPos.x) * (fp.imageWidth / (fp.imageWidth * fpScale));
-                const imgPixelY = (deviceCenterY - fpPos.y) * (fp.imageHeight / (fp.imageHeight * fpScale));
+                // Convert canvas world coordinates to floorplan image pixels
+                const imgPixelX = (deviceCenterX - fpPos.x) / fpScale;
+                const imgPixelY = (deviceCenterY - fpPos.y) / fpScale;
                 console.log('  -> imgPixel:', imgPixelX, imgPixelY, 'bounds check:', imgPixelX >= 0 && imgPixelY >= 0 && imgPixelX <= fp.imageWidth && imgPixelY <= fp.imageHeight);
                 
                 if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) return;
