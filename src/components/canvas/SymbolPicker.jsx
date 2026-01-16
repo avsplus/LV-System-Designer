@@ -59,7 +59,7 @@ const SymbolIcon = ({ id, color }) => {
     const filterId = `icon-filter-${id}`;
     
     return (
-      <svg width="32" height="32" style={{ display: 'block' }}>
+      <svg width="32" height="32" viewBox="0 0 32 32" style={{ display: 'block' }}>
         <defs>
           <filter id={filterId}>
             <feColorMatrix
@@ -73,8 +73,11 @@ const SymbolIcon = ({ id, color }) => {
         </defs>
         <image 
           href={iconUrl}
+          x="0"
+          y="0"
           width="32"
           height="32"
+          preserveAspectRatio="xMidYMid meet"
           filter={color && color !== '#ffffff' ? `url(#${filterId})` : 'none'}
         />
       </svg>

@@ -436,11 +436,12 @@ Deno.serve(async (req) => {
               ${devicesOverlay}
               ${connectionsOverlay}
               ${arrowsOverlay}
-              </div>
+              ${annotationsOverlay}
               <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" preserveAspectRatio="none">
                 <defs>${svgFilters}</defs>
                 ${svgSymbolsContent}
               </svg>
+              </div>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
     <p><strong>Calibration:</strong> ${fp.pixelsPerInch ? fp.pixelsPerInch.toFixed(2) + ' px/inch' : 'Not calibrated'}</p>
