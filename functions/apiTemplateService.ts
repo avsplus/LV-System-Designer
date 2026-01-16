@@ -57,7 +57,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
   const DEVICE_CARD_WIDTH = 320;
   const DEVICE_CARD_HEIGHT = 280;
   
-  let svg = `<svg width="${fp.imageWidth}" height="${fp.imageHeight}" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" xmlns="http://www.w3.org/2000/svg" style="position:absolute; top:0; left:0; pointer-events:none;">`;
+  let svg = `<svg width="100%" height="100%" viewBox="0 0 ${fp.imageWidth} ${fp.imageHeight}" xmlns="http://www.w3.org/2000/svg" style="position:absolute; top:0; left:0; pointer-events:none;" preserveAspectRatio="xMidYMid meet">`;
   
   // Arrowhead marker definition
   svg += `<defs><marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="#3b82f6" /></marker>`;
@@ -388,8 +388,8 @@ Deno.serve(async (req) => {
               bodyHtml += `
               <section class="keep-together">
               <h2>${fp.name}</h2>
-              <div style="position:relative; width:${fp.imageWidth}px; height:${fp.imageHeight}px; margin:20px auto; max-width:95%;">
-              <img src="${fp.url}" width="${fp.imageWidth}" height="${fp.imageHeight}" style="display:block; border:1px solid #e5e7eb; border-radius:8px;" />
+              <div style="position:relative; margin:20px auto; max-width:95%; display:inline-block;">
+              <img src="${fp.url}" style="width:100%; height:auto; display:block; border:1px solid #e5e7eb; border-radius:8px;" />
               ${devicesOverlay}
               ${svgOverlay}
               </div>
