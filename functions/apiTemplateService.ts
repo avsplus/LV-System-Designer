@@ -319,12 +319,14 @@ Deno.serve(async (req) => {
 
               // Build annotations overlay
               let annotationsOverlay = '';
+              console.log('ANNOTATIONS: count=', annotations?.length || 0);
               if (annotations && annotations.length > 0) {
                 annotations.forEach(annotation => {
                   if (!annotation || !annotation.position) return;
 
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
+                  console.log('Annotation:', annotation.type, annotation.id, 'pos:', annX, annY);
 
                   // Check if annotation is within floorplan bounds (in world coordinates)
                   const fpMinX = fpPos.x;
