@@ -320,19 +320,19 @@ Deno.serve(async (req) => {
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
 
-                  // Check if annotation is within floorplan bounds
+                  // Check if annotation is within floorplan bounds (in world coordinates)
                   const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + fp.imageWidth;
+                  const fpMaxX = fpPos.x + (fp.imageWidth * fpScale);
                   const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + fp.imageHeight;
+                  const fpMaxY = fpPos.y + (fp.imageHeight * fpScale);
 
                   if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
                     return; // Skip annotations outside floorplan
                   }
 
-                  // Direct coordinate conversion
-                  const imgPixelX = annX - fpPos.x;
-                  const imgPixelY = annY - fpPos.y;
+                  // Convert canvas coordinates to image pixels
+                  const imgPixelX = (annX - fpPos.x) / fpScale;
+                  const imgPixelY = (annY - fpPos.y) / fpScale;
 
                   const percentX = (imgPixelX / fp.imageWidth) * 100;
                   const percentY = (imgPixelY / fp.imageHeight) * 100;
