@@ -224,7 +224,7 @@ Deno.serve(async (req) => {
               
               // Build device overlay HTML
               let devicesOverlay = '';
-              console.log('DEVICE MAPPING - fpPos:', fpPos, 'fpScale:', fpScale);
+              console.log('DEVICE MAPPING - fpPos:', fpPos, 'fpScale:', fpScale, 'deviceCount:', canvasProducts.length);
               canvasProducts.forEach(cp => {
                 const deviceCenterX = cp.position.x + DEVICE_CARD_WIDTH / 2;
                 const deviceCenterY = cp.position.y + DEVICE_CARD_HEIGHT / 2;
