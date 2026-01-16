@@ -373,11 +373,11 @@ export default function SymbolPicker({ onSelect, onClose }) {
               onSelect(symbol.id);
               onClose();
             }}
-            className="h-auto flex flex-col items-center justify-center p-3 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-gray-200 transition-all rounded-lg w-full"
+            className="h-24 flex flex-col items-center justify-center p-3 bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-gray-200 transition-all rounded-lg w-full"
             title={symbol.label}
           >
             <SymbolIcon id={symbol.id} color={symbol.color} />
-            <span className="text-xs font-medium text-center mt-2 line-clamp-2 w-full">{symbol.label}</span>
+            <span className="text-xs font-medium text-center mt-2 line-clamp-1 w-full">{symbol.label}</span>
           </Button>
         ))}
       </div>
