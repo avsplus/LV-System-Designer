@@ -388,18 +388,18 @@ Deno.serve(async (req) => {
                   const annX = annotation.position.x;
                   const annY = annotation.position.y;
                   const fpMinX = fpPos.x;
-                  const fpMaxX = fpPos.x + fp.imageWidth;
+                  const fpMaxX = fpPos.x + (fp.imageWidth * fpScale);
                   const fpMinY = fpPos.y;
-                  const fpMaxY = fpPos.y + fp.imageHeight;
+                  const fpMaxY = fpPos.y + (fp.imageHeight * fpScale);
 
                   if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) return;
 
-                  const imgPixelX = annX - fpPos.x;
-                  const imgPixelY = annY - fpPos.y;
+                  const imgPixelX = (annX - fpPos.x) / fpScale;
+                  const imgPixelY = (annY - fpPos.y) / fpScale;
 
                   if (annotation.type === 'symbol' && annotation.symbolId) {
                     const iconUrl = SYMBOL_ICONS[annotation.symbolId];
-                    const baseSize = 60 * (annotation.scale || 1);
+                    const baseSize = (60 * (annotation.scale || 1)) / fpScale;
                     const size = baseSize;
                     const color = annotation.color || '#3b82f6';
 
