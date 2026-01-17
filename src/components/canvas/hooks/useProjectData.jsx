@@ -87,13 +87,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     const roomsJson = JSON.stringify(rooms);
     const floorplansJson = JSON.stringify(floorplans || []);
 
-    if (lastSavedRef.current.products === productsJson && 
-        lastSavedRef.current.connections === connectionsJson &&
-        lastSavedRef.current.rooms === roomsJson &&
-        lastSavedRef.current.floorplans === floorplansJson) {
-      return;
-    }
-
     if (isSavingRef.current) return;
 
     const saveTimer = setTimeout(() => {
@@ -106,10 +99,12 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         try {
           console.log('💾 Saving floorplans to database:', JSON.stringify(floorplans, null, 2));
           const updatedProject = await base44.entities.AVProject.update(currentProject.id, {
-            canvas_products: canvasProducts,
-            connections: connections,
-            rooms: rooms,
-            floorplans: floorplans || []
+           canvas_products: canvasProducts,
+           connections: connections,
+           rooms: rooms,
+           floorplans: floorplans || [],
+           arrows: currentProject.arrows || [],
+           annotations: currentProject.annotations || []
           });
           lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson };
           console.log('✅ Project saved - Floorplans:', floorplans.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
@@ -185,13 +180,13 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, [markLocalChange]);
 
   // Handle sync updates from collaborators
-  const handleProjectUpdatedFromSync = useCallback((updatedProject) => {
+   const handleProjectUpdatedFromSync = useCallback((updatedProject) => {
     console.log('🔄 Syncing from collaborator - Floorplans:', updatedProject.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);
     setFloorplans(updatedProject.floorplans || []);
-    
+
     lastSavedRef.current = {
       products: JSON.stringify(updatedProject.canvas_products || []),
       connections: JSON.stringify(updatedProject.connections || []),
@@ -199,6 +194,14 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       floorplans: JSON.stringify(updatedProject.floorplans || [])
     };
   }, []);
+
+  // Return method to update currentProject with annotations/arrows
+  const updateCurrentProjectData = useCallback((data) => {
+    if (currentProject) {
+      currentProject.annotations = data.annotations || currentProject.annotations;
+      currentProject.arrows = data.arrows || currentProject.arrows;
+    }
+  }, [currentProject]);
 
   // Room operations
   const handleAddRoom = useCallback((roomName, floorplanId) => {
