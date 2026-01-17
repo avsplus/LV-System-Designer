@@ -3150,6 +3150,11 @@ function AVCanvasContent() {
                 setZoom(1);
               }
             }}
+            annotations={annotations}
+            onAnnotationsChange={(updatedAnnotations) => {
+              setAnnotations(updatedAnnotations);
+              saveAnnotations(updatedAnnotations);
+            }}
           />
         )}
 

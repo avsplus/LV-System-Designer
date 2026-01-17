@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug, Edit3 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
+import FabricFloorplanCanvas from './FabricFloorplanCanvas';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -37,7 +38,7 @@ const categoryIcons = {
   ip_cameras: Camera
 };
 
-export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover, onCenterDevice }) {
+export default function FloorplanManager({ floorplans = [], onUpdate, onClose, selectedFloorplanId, onSelectFloorplan, rooms = [], onAddRoom, onDeleteRoom, onRenameRoom, canvasProducts = [], onDeviceRoomChange, onDeviceHover, onCenterDevice, annotations = [], onAnnotationsChange }) {
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ name: '' });
   const [calibrating, setCalibrating] = useState(null);
@@ -51,6 +52,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [dragOverRoom, setDragOverRoom] = useState(null);
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [editingRoomName, setEditingRoomName] = useState('');
+  const [editingFloorplan, setEditingFloorplan] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -325,6 +327,57 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     }
   }, [calibrating, calibrationPoints, calibrationZoom]);
 
+  // Fabric Editor Modal
+  if (editingFloorplan) {
+    return (
+      <div className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4">
+        <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-7xl h-[90vh] flex flex-col">
+          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Edit Floorplan: {editingFloorplan.name}</h2>
+              <p className="text-sm text-gray-400">Draw annotations, add labels, and mark important areas</p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setEditingFloorplan(null)}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="flex-1 overflow-auto p-6 bg-gray-950">
+            <FabricFloorplanCanvas
+              floorplanUrl={editingFloorplan.url}
+              annotations={annotations.filter(a => a.floorplanId === editingFloorplan.id)}
+              onAnnotationsChange={(newAnnotations) => {
+                // Merge with annotations from other floorplans
+                const updatedAnnotations = [
+                  ...annotations.filter(a => a.floorplanId !== editingFloorplan.id),
+                  ...newAnnotations.map(a => ({ ...a, floorplanId: editingFloorplan.id }))
+                ];
+                if (onAnnotationsChange) {
+                  onAnnotationsChange(updatedAnnotations);
+                }
+              }}
+              width={1400}
+              height={900}
+              readOnly={false}
+            />
+          </div>
+          <div className="p-4 border-t border-gray-800 flex justify-end">
+            <Button
+              onClick={() => setEditingFloorplan(null)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Done Editing
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (calibrating) {
     return (
       <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
@@ -553,6 +606,18 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                       )}
                     </div>
                     <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingFloorplan(fp);
+                        }}
+                        className="h-7 w-7 text-blue-400 hover:text-blue-300"
+                        title="Edit with Fabric Canvas"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"
