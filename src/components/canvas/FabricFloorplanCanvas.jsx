@@ -135,7 +135,12 @@ const FabricFloorplanCanvas = React.forwardRef(({
         } else if (activeToolRef.current === 'line') {
           const line = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
             stroke: '#3b82f6',
-            strokeWidth: 2
+            strokeWidth: 2,
+            selectable: true,
+            hasControls: true,
+            hasBorders: true,
+            perPixelTargetFind: true,
+            targetFindTolerance: 10
           });
           canvas.add(line);
           drawingObjectRef.current = line;
@@ -349,7 +354,9 @@ const FabricFloorplanCanvas = React.forwardRef(({
               ann.endPosition.y
             ], {
               stroke: ann.color || '#000000',
-              strokeWidth: ann.strokeWidth || 2
+              strokeWidth: ann.strokeWidth || 2,
+              perPixelTargetFind: true,
+              targetFindTolerance: 10
             });
           }
           break;
