@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
 import FabricFloorplanCanvas from './FabricFloorplanCanvas';
+import AnnotationDetailsPanel from './AnnotationDetailsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -61,9 +62,11 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [editorStrokeWidth, setEditorStrokeWidth] = useState(2);
   const [editorFill, setEditorFill] = useState(false);
   const [editorFontSize, setEditorFontSize] = useState(20);
+  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+  const fabricEditorCanvasRef = useRef(null);
 
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'];
   const STROKE_WIDTHS = [1, 2, 3, 4, 6, 8];
@@ -340,26 +343,30 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
 
   // Fabric Editor Modal
   if (editingFloorplan) {
+    const currentAnnotations = annotations.filter(a => a.floorplanId === editingFloorplan.id);
+
     return (
       <div className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4">
-        <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-7xl h-[90vh] flex flex-col">
-          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-white">Edit Floorplan: {editingFloorplan.name}</h2>
-              <p className="text-sm text-gray-400">Draw annotations, add labels, and mark important areas</p>
+        <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-7xl h-[90vh] flex">
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Edit Floorplan: {editingFloorplan.name}</h2>
+                <p className="text-sm text-gray-400">Draw annotations, add labels, and mark important areas</p>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  setEditingFloorplan(null);
+                  setEditorActiveTool(null);
+                  setSelectedAnnotation(null);
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => {
-                setEditingFloorplan(null);
-                setEditorActiveTool(null);
-              }}
-              className="text-gray-400 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
 
           {/* Toolbar */}
           <div className="px-6 py-3 border-b border-gray-800 flex items-center gap-3 bg-gray-900/50">
@@ -476,38 +483,77 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
             )}
           </div>
 
-          <div className="flex-1 overflow-auto p-6 bg-gray-950">
-            <FabricFloorplanCanvas
-              floorplanUrl={editingFloorplan.url}
-              annotations={annotations.filter(a => a.floorplanId === editingFloorplan.id)}
-              onAnnotationsChange={(newAnnotations) => {
-                // Merge with annotations from other floorplans
-                const updatedAnnotations = [
+            <div className="flex-1 overflow-auto p-6 bg-gray-950">
+              <FabricFloorplanCanvas
+                ref={fabricEditorCanvasRef}
+                floorplanUrl={editingFloorplan.url}
+                annotations={currentAnnotations}
+                onAnnotationsChange={(newAnnotations) => {
+                  // Merge with annotations from other floorplans
+                  const updatedAnnotations = [
+                    ...annotations.filter(a => a.floorplanId !== editingFloorplan.id),
+                    ...newAnnotations.map(a => ({ ...a, floorplanId: editingFloorplan.id }))
+                  ];
+                  if (onAnnotationsChange) {
+                    onAnnotationsChange(updatedAnnotations);
+                  }
+                }}
+                width={1400}
+                height={900}
+                readOnly={false}
+                activeTool={editorActiveTool}
+                onToolUsed={() => setEditorActiveTool(null)}
+                onSelectionChange={(annotationId) => {
+                  const ann = currentAnnotations.find(a => a.id === annotationId);
+                  setSelectedAnnotation(ann || null);
+                }}
+              />
+            </div>
+            <div className="p-4 border-t border-gray-800 flex justify-end">
+              <Button
+                onClick={() => {
+                  setEditingFloorplan(null);
+                  setEditorActiveTool(null);
+                  setSelectedAnnotation(null);
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Done Editing
+              </Button>
+            </div>
+          </div>
+
+          {/* Annotation Details Panel */}
+          {selectedAnnotation && (
+            <AnnotationDetailsPanel
+              annotation={selectedAnnotation}
+              onUpdate={(updates) => {
+                const updatedAnnotations = currentAnnotations.map(a => 
+                  a.id === selectedAnnotation.id ? { ...a, ...updates } : a
+                );
+                const allAnnotations = [
                   ...annotations.filter(a => a.floorplanId !== editingFloorplan.id),
-                  ...newAnnotations.map(a => ({ ...a, floorplanId: editingFloorplan.id }))
+                  ...updatedAnnotations.map(a => ({ ...a, floorplanId: editingFloorplan.id }))
                 ];
                 if (onAnnotationsChange) {
-                  onAnnotationsChange(updatedAnnotations);
+                  onAnnotationsChange(allAnnotations);
                 }
+                setSelectedAnnotation({ ...selectedAnnotation, ...updates });
               }}
-              width={1400}
-              height={900}
-              readOnly={false}
-              activeTool={editorActiveTool}
-              onToolUsed={() => setEditorActiveTool(null)}
+              onDelete={() => {
+                const updatedAnnotations = currentAnnotations.filter(a => a.id !== selectedAnnotation.id);
+                const allAnnotations = [
+                  ...annotations.filter(a => a.floorplanId !== editingFloorplan.id),
+                  ...updatedAnnotations.map(a => ({ ...a, floorplanId: editingFloorplan.id }))
+                ];
+                if (onAnnotationsChange) {
+                  onAnnotationsChange(allAnnotations);
+                }
+                setSelectedAnnotation(null);
+              }}
+              onClose={() => setSelectedAnnotation(null)}
             />
-          </div>
-          <div className="p-4 border-t border-gray-800 flex justify-end">
-            <Button
-              onClick={() => {
-                setEditingFloorplan(null);
-                setEditorActiveTool(null);
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Done Editing
-            </Button>
-          </div>
+          )}
         </div>
       </div>
     );

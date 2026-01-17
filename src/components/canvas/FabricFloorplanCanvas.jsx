@@ -15,7 +15,8 @@ const FabricFloorplanCanvas = React.forwardRef(({
   height = 800,
   readOnly = false,
   activeTool = null,
-  onToolUsed = null
+  onToolUsed = null,
+  onSelectionChange = null
 }, ref) => {
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
@@ -25,6 +26,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
   const activeToolRef = useRef(activeTool);
   const onToolUsedRef = useRef(onToolUsed);
   const onAnnotationsChangeRef = useRef(onAnnotationsChange);
+  const onSelectionChangeRef = useRef(onSelectionChange);
   const isLoadingAnnotationsRef = useRef(false);
 
   // Keep refs in sync
@@ -32,6 +34,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
     activeToolRef.current = activeTool;
     onToolUsedRef.current = onToolUsed;
     onAnnotationsChangeRef.current = onAnnotationsChange;
+    onSelectionChangeRef.current = onSelectionChange;
     
     // Update cursor when tool changes
     if (fabricCanvasRef.current) {
@@ -267,6 +270,23 @@ const FabricFloorplanCanvas = React.forwardRef(({
       canvas.on('object:modified', handleChange);
       canvas.on('object:added', handleChange);
       canvas.on('object:removed', handleChange);
+
+      // Handle selection changes
+      canvas.on('selection:created', (e) => {
+        if (onSelectionChangeRef.current && e.selected?.[0]?.annotationId) {
+          onSelectionChangeRef.current(e.selected[0].annotationId);
+        }
+      });
+      canvas.on('selection:updated', (e) => {
+        if (onSelectionChangeRef.current && e.selected?.[0]?.annotationId) {
+          onSelectionChangeRef.current(e.selected[0].annotationId);
+        }
+      });
+      canvas.on('selection:cleared', () => {
+        if (onSelectionChangeRef.current) {
+          onSelectionChangeRef.current(null);
+        }
+      });
     }
 
     return () => {
