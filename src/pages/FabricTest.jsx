@@ -4,11 +4,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { Upload } from "lucide-react";
+import * as pdfjsLib from 'pdfjs-dist';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function FabricTest() {
   const [floorplanUrl, setFloorplanUrl] = useState('');
   const [annotations, setAnnotations] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  const convertPdfToImage = async (file) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    
+    const viewport = page.getViewport({ scale: 2.0 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    
+    await page.render({
+      canvasContext: canvas.getContext('2d'),
+      viewport: viewport
+    }).promise;
+    
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(new File([blob], file.name.replace('.pdf', '.png'), { type: 'image/png' }));
+      }, 'image/png');
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -22,25 +47,25 @@ export default function FabricTest() {
               <div className="flex gap-2">
                 <Input
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                  accept="image/*,application/pdf"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     
-                    // Validate file type
-                    if (!file.type.startsWith('image/')) {
-                      alert('Please upload an image file (PNG, JPEG, GIF, or WebP). PDFs are not supported.');
-                      e.target.value = '';
-                      return;
-                    }
-                    
                     setUploading(true);
                     try {
-                      const response = await base44.integrations.Core.UploadFile({ file });
+                      let fileToUpload = file;
+                      
+                      // Convert PDF to image first
+                      if (file.type === 'application/pdf') {
+                        fileToUpload = await convertPdfToImage(file);
+                      }
+                      
+                      const response = await base44.integrations.Core.UploadFile({ file: fileToUpload });
                       setFloorplanUrl(response.file_url);
                     } catch (error) {
                       console.error('Upload failed:', error);
-                      alert('Failed to upload image');
+                      alert('Failed to upload file: ' + error.message);
                     }
                     setUploading(false);
                   }}
@@ -57,7 +82,7 @@ export default function FabricTest() {
             <div className="text-sm text-gray-600 space-y-1">
               <p><strong>Instructions:</strong></p>
               <ul className="list-disc ml-5">
-                <li>Paste a floorplan image URL above</li>
+                <li>Upload an image or PDF floorplan (PDFs auto-convert to images)</li>
                 <li>Click objects to select/move/resize them</li>
                 <li>Hold Alt + Drag to pan around</li>
                 <li>Use zoom controls in top-right</li>
