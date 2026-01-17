@@ -22,10 +22,17 @@ export default function FabricTest() {
               <div className="flex gap-2">
                 <Input
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                      alert('Please upload an image file (PNG, JPEG, GIF, or WebP). PDFs are not supported.');
+                      e.target.value = '';
+                      return;
+                    }
                     
                     setUploading(true);
                     try {
