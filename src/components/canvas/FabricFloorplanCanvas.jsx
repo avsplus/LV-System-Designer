@@ -419,7 +419,9 @@ const FabricFloorplanCanvas = React.forwardRef(({
       )}
     </div>
   );
-}
+});
+
+FabricFloorplanCanvas.displayName = 'FabricFloorplanCanvas';
 
 // Export utility for external use
 FabricFloorplanCanvas.exportToSVG = (fabricCanvasRef) => {
