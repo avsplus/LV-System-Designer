@@ -192,8 +192,14 @@ const FabricFloorplanCanvas = React.forwardRef(({
       this.selection = !readOnly;
 
       if (isDrawingRef.current && drawingObjectRef.current) {
+        // Keep the newly drawn object selected
+        const drawnObject = drawingObjectRef.current;
         isDrawingRef.current = false;
         drawingObjectRef.current = null;
+
+        // Set as active object so it stays selected
+        canvas.setActiveObject(drawnObject);
+
         if (onToolUsedRef.current) onToolUsedRef.current();
         canvas.renderAll();
       }
