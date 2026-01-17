@@ -13,6 +13,8 @@ export default function FabricTest() {
   const [annotations, setAnnotations] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  console.log('Current floorplan URL:', floorplanUrl);
+
   const convertPdfToImage = async (file) => {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -62,6 +64,7 @@ export default function FabricTest() {
                       }
                       
                       const response = await base44.integrations.Core.UploadFile({ file: fileToUpload });
+                      console.log('Upload response:', response);
                       setFloorplanUrl(response.file_url);
                     } catch (error) {
                       console.error('Upload failed:', error);
