@@ -16,6 +16,7 @@ export default function FabricTest() {
   console.log('Current floorplan URL:', floorplanUrl);
 
   const convertPdfToImage = async (file) => {
+    console.log('Converting PDF to image...');
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const page = await pdf.getPage(1);
@@ -32,7 +33,9 @@ export default function FabricTest() {
     
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
-        resolve(new File([blob], file.name.replace('.pdf', '.png'), { type: 'image/png' }));
+        const pngFile = new File([blob], file.name.replace(/\.pdf$/i, '.png'), { type: 'image/png' });
+        console.log('PDF converted to PNG:', pngFile.name, pngFile.size, 'bytes');
+        resolve(pngFile);
       }, 'image/png');
     });
   };

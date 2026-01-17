@@ -109,7 +109,8 @@ export default function FabricFloorplanCanvas({
           opacity: 0.7
         });
 
-        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        canvas.backgroundImage = img;
+        canvas.renderAll();
         console.log('Background image set and rendered');
       })
       .catch((error) => {
