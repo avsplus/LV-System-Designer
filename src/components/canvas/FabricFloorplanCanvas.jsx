@@ -25,6 +25,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
   const activeToolRef = useRef(activeTool);
   const onToolUsedRef = useRef(onToolUsed);
   const onAnnotationsChangeRef = useRef(onAnnotationsChange);
+  const isLoadingAnnotationsRef = useRef(false);
 
   // Keep refs in sync
   useEffect(() => {
@@ -170,7 +171,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
 
     // Emit changes when objects are modified
     const handleChange = () => {
-      if (readOnly) return;
+      if (readOnly || isLoadingAnnotationsRef.current) return;
       
       const objects = canvas.getObjects();
       const exported = objects.map(obj => {
@@ -268,6 +269,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
     if (!fabricCanvasRef.current || !annotations.length) return;
 
     const canvas = fabricCanvasRef.current;
+    isLoadingAnnotationsRef.current = true;
     canvas.clear();
 
     annotations.forEach(ann => {
@@ -349,6 +351,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
     });
 
     canvas.renderAll();
+    isLoadingAnnotationsRef.current = false;
   }, [annotations, readOnly]);
 
 
