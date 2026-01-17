@@ -2635,10 +2635,15 @@ function AVCanvasContent() {
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
                   // Get floorplan and convert coordinates
-                  const floorplan = floorplans.find(fp => fp.id === ann.floorplanId);
-                  if (!floorplan || !floorplan.visible) return null;
+                  const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
+                  
+                  // Skip if floorplan-based but floorplan not found or not visible
+                  if (ann.floorplanId && (!floorplan || !floorplan.visible)) return null;
 
-                  const canvasPos = floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan);
+                  // Use floorplan coordinates if available, otherwise use absolute canvas coordinates (backward compatibility)
+                  const canvasPos = floorplan 
+                    ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
+                    : ann.position;
 
                   // Render symbol annotation
                   if (ann.type === 'symbol') {
@@ -2730,23 +2735,30 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'rectangle') {
-                    const fpScale = floorplan.scale || 1;
-                    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-                    let fpWidth, fpHeight;
-                    if (hasCalibration) {
-                      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-                      fpWidth = floorplan.imageWidth * scaleFactor;
-                      fpHeight = floorplan.imageHeight * scaleFactor;
-                    } else if (floorplan.imageWidth && floorplan.imageHeight) {
-                      fpWidth = 500 * fpScale;
-                      fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
-                    } else {
-                      fpWidth = 500 * fpScale;
-                      fpHeight = 500 * fpScale;
-                    }
+                    let canvasWidth, canvasHeight;
                     
-                    const canvasWidth = ann.width * fpWidth;
-                    const canvasHeight = ann.height * fpHeight;
+                    if (floorplan) {
+                      const fpScale = floorplan.scale || 1;
+                      const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                      let fpWidth, fpHeight;
+                      if (hasCalibration) {
+                        const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                        fpWidth = floorplan.imageWidth * scaleFactor;
+                        fpHeight = floorplan.imageHeight * scaleFactor;
+                      } else if (floorplan.imageWidth && floorplan.imageHeight) {
+                        fpWidth = 500 * fpScale;
+                        fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+                      } else {
+                        fpWidth = 500 * fpScale;
+                        fpHeight = 500 * fpScale;
+                      }
+                      canvasWidth = ann.width * fpWidth;
+                      canvasHeight = ann.height * fpHeight;
+                    } else {
+                      // Backward compatibility: use absolute dimensions
+                      canvasWidth = ann.width || 0;
+                      canvasHeight = ann.height || 0;
+                    }
                     
                     return (
                       <g key={ann.id}>
@@ -2804,17 +2816,23 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'circle') {
-                    const fpScale = floorplan.scale || 1;
-                    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-                    let fpWidth;
-                    if (hasCalibration) {
-                      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-                      fpWidth = floorplan.imageWidth * scaleFactor;
-                    } else {
-                      fpWidth = 500 * fpScale;
-                    }
+                    let canvasRadius;
                     
-                    const canvasRadius = ann.radius * fpWidth;
+                    if (floorplan) {
+                      const fpScale = floorplan.scale || 1;
+                      const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                      let fpWidth;
+                      if (hasCalibration) {
+                        const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                        fpWidth = floorplan.imageWidth * scaleFactor;
+                      } else {
+                        fpWidth = 500 * fpScale;
+                      }
+                      canvasRadius = ann.radius * fpWidth;
+                    } else {
+                      // Backward compatibility: use absolute radius
+                      canvasRadius = ann.radius || 0;
+                    }
                     
                     return (
                       <g key={ann.id}>
@@ -2872,7 +2890,9 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'line' && ann.endPosition) {
-                   const endCanvasPos = floorplanToCanvasCoords(ann.endPosition.x, ann.endPosition.y, floorplan);
+                   const endCanvasPos = floorplan 
+                     ? floorplanToCanvasCoords(ann.endPosition.x, ann.endPosition.y, floorplan)
+                     : ann.endPosition;
                    
                    return (
                      <g key={ann.id}>
