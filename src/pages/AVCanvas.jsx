@@ -2000,7 +2000,8 @@ function AVCanvasContent() {
                             connections: connections,
                             rooms: rooms,
                             floorplans: floorplans,
-                            arrows: arrows
+                            arrows: arrows,
+                            annotations: annotations
                           });
                           toast.success('Project saved successfully!');
                         } catch (error) {
