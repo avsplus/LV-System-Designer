@@ -103,7 +103,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     if (pos.x < 0 || pos.y < 0 || pos.x > fp.imageWidth || pos.y > fp.imageHeight) continue;
     
     if (ann.type === 'text') {
-      const fontSize = (ann.fontSize || 16) * 0.03 * fp.imageWidth;
+      const fontSize = (ann.fontSize || 16) * 0.75;
       const color = ann.color || '#000000';
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
@@ -143,8 +143,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     if (ann.type === 'symbol' && ann.symbolId) {
       const iconUrl = SYMBOL_ICONS[ann.symbolId];
       if (iconUrl) {
-        // Symbol size matches circle scaling: relative scale * baseSize * imageWidth
-        const size = (ann.scale || 1) * 0.015 * fp.imageWidth;
+        const size = (ann.scale || 1) * 35;
         const color = ann.color || '#3b82f6';
         const rotation = ann.rotation || 0;
         const flip = ann.flipped ? -1 : 1;
