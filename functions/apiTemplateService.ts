@@ -89,6 +89,10 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
   }
   
   // Draw annotations
+  // Scale factor to match original canvas rendering (annotations are sized based on 1280px reference width)
+  const canvasReferenceWidth = 1280;
+  const annotationScale = fp.imageWidth / canvasReferenceWidth;
+  
   for (let idx = 0; idx < annotations.length; idx++) {
     const ann = annotations[idx];
     if (!ann || !ann.position) continue;
@@ -103,7 +107,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     if (pos.x < 0 || pos.y < 0 || pos.x > fp.imageWidth || pos.y > fp.imageHeight) continue;
     
     if (ann.type === 'text') {
-      const fontSize = (ann.fontSize || 16) * 0.75;
+      const fontSize = (ann.fontSize || 16) * annotationScale * 0.75;
       const color = ann.color || '#000000';
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
@@ -115,7 +119,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       const w = (ann.width || 0.1) * fp.imageWidth;
       const h = (ann.height || 0.1) * fp.imageHeight;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = ann.strokeWidth || 2;
+      const strokeWidth = (ann.strokeWidth || 2) * annotationScale;
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
       svgContent += `<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}"${transform} />`;
@@ -125,7 +129,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       // Radius is relative to floorplan width
       const r = (ann.radius || 0.05) * fp.imageWidth;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = ann.strokeWidth || 2;
+      const strokeWidth = (ann.strokeWidth || 2) * annotationScale;
       svgContent += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
     }
     
@@ -135,7 +139,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
         // End position is also floorplan-relative
         const end = relativeToImagePx(endPos.x, endPos.y, fp);
         const color = ann.color || '#000000';
-        const strokeWidth = ann.strokeWidth || 2;
+        const strokeWidth = (ann.strokeWidth || 2) * annotationScale;
         svgContent += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
       }
     }
@@ -144,7 +148,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       const iconUrl = SYMBOL_ICONS[ann.symbolId];
       if (iconUrl) {
         const baseSize = 40 * (ann.scale || 1);
-        const size = Math.max(16, baseSize);
+        const size = Math.max(16, baseSize * annotationScale);
         const color = ann.color || '#3b82f6';
         const rotation = ann.rotation || 0;
         const flip = ann.flipped ? -1 : 1;
