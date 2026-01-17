@@ -77,9 +77,11 @@ const FabricFloorplanCanvas = React.forwardRef(({
     updateCursor();
 
     // Handle mouse events for drawing and panning
+    let wasDrawing = false;
+
     canvas.on('mouse:down', function(opt) {
       const evt = opt.e;
-      
+
       // Panning with Alt+drag
       if (evt.altKey === true) {
         this.isDragging = true;
@@ -93,6 +95,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
       if (activeToolRef.current && !readOnly) {
         const pointer = canvas.getPointer(opt.e);
         isDrawingRef.current = true;
+        wasDrawing = true;
         this.selection = false;
 
         if (activeToolRef.current === 'text') {
@@ -189,19 +192,28 @@ const FabricFloorplanCanvas = React.forwardRef(({
     canvas.on('mouse:up', function() {
       this.setViewportTransform(this.viewportTransform);
       this.isDragging = false;
-      this.selection = !readOnly;
+
+      // Only re-enable selection if we weren't drawing
+      if (!wasDrawing) {
+        this.selection = !readOnly;
+      }
 
       if (isDrawingRef.current && drawingObjectRef.current) {
         // Keep the newly drawn object selected
         const drawnObject = drawingObjectRef.current;
         isDrawingRef.current = false;
         drawingObjectRef.current = null;
+        wasDrawing = false;
 
         // Set as active object so it stays selected
         canvas.setActiveObject(drawnObject);
 
+        this.selection = !readOnly;
+
         if (onToolUsedRef.current) onToolUsedRef.current();
         canvas.renderAll();
+      } else {
+        wasDrawing = false;
       }
     });
 
