@@ -1285,6 +1285,11 @@ function AVCanvasContent() {
     if (activeTool === 'text') {
       newAnnotation.text = 'Text';
       newAnnotation.fontSize = annotationFontSize;
+    } else if (activeTool === 'rectangle') {
+      newAnnotation.width = 0;
+      newAnnotation.height = 0;
+    } else if (activeTool === 'circle') {
+      newAnnotation.radius = 0;
     }
 
     setDrawingAnnotation(newAnnotation);
@@ -1467,7 +1472,7 @@ function AVCanvasContent() {
 
       // Complete annotation drawing
       if (drawingAnnotation) {
-        const minRelSize = 0.01; // Minimum relative size (1% of floorplan)
+        const minRelSize = 0.005; // Minimum relative size (0.5% of floorplan)
         let shouldSave = false;
 
         if (activeTool === 'line' && drawingAnnotation.endPosition) {
@@ -2916,33 +2921,19 @@ function AVCanvasContent() {
                          onMouseEnter={() => setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
-                           if (activeTool === 'select') {
-                             e.stopPropagation();
-                             setSelectedAnnotation(idx);
-                             setSelectedProduct(null);
-                             setSelectedCanvasProduct(null);
-                             setSelectedConnection(null);
-                             setShowFloorplanManager(false);
-                             setShowRoomManager(false);
-                             setSelectedFloorplanId(null);
-                             setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                           }
-                         }}
-                         onDoubleClick={(e) => {
-                           if (activeTool === 'select') {
-                             e.stopPropagation();
-                             const canvasRect = canvasRef.current?.getBoundingClientRect();
-                             if (canvasRect) {
-                               const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-                               const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                               setDraggingAnnotation(idx);
-                               setAnnotationDragStart({
-                                 mouseStartX: mouseWorldX,
-                                 mouseStartY: mouseWorldY,
-                                 startPosition: { ...ann.position, endPosition: { ...ann.endPosition } }
-                               });
-                             }
-                           }
+                          if (activeTool === 'select') {
+                            e.stopPropagation();
+                            setSelectedAnnotation(idx);
+                            setSelectedProduct(null);
+                            setSelectedCanvasProduct(null);
+                            setSelectedConnection(null);
+                            setShowFloorplanManager(false);
+                            setShowRoomManager(false);
+                            setSelectedFloorplanId(null);
+                            setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                            // Start dragging immediately
+                            handleSymbolAnnotationDragStart(e, idx);
+                          }
                          }}
                          />
 
