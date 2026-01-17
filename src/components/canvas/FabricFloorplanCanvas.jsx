@@ -7,17 +7,25 @@ import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
  * Standalone Fabric.js canvas component for floorplan editing
  * Independent from main app - can be removed/debugged without affecting other code
  */
-export default function FabricFloorplanCanvas({
+const FabricFloorplanCanvas = React.forwardRef(({
   floorplanUrl,
   annotations = [],
   onAnnotationsChange,
   width = 1200,
   height = 800,
-  readOnly = false
-}) {
+  readOnly = false,
+  activeTool = null,
+  onToolUsed = null
+}, ref) => {
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const [zoom, setZoom] = useState(1);
+  const isDrawingRef = useRef(false);
+  const drawingObjectRef = useRef(null);
+
+  React.useImperativeHandle(ref, () => ({
+    getCanvas: () => fabricCanvasRef.current
+  }));
 
   // Initialize Fabric canvas
   useEffect(() => {
@@ -33,18 +41,76 @@ export default function FabricFloorplanCanvas({
 
     fabricCanvasRef.current = canvas;
 
-    // Enable panning with Alt+drag
+    // Handle mouse events for drawing and panning
     canvas.on('mouse:down', function(opt) {
       const evt = opt.e;
+      
+      // Panning with Alt+drag
       if (evt.altKey === true) {
         this.isDragging = true;
         this.selection = false;
         this.lastPosX = evt.clientX;
         this.lastPosY = evt.clientY;
+        return;
+      }
+
+      // Drawing mode
+      if (activeTool && !readOnly) {
+        const pointer = canvas.getPointer(opt.e);
+        isDrawingRef.current = true;
+
+        if (activeTool === 'text') {
+          const text = new fabric.IText('Click to edit', {
+            left: pointer.x,
+            top: pointer.y,
+            fontSize: 20,
+            fill: '#3b82f6',
+            fontFamily: 'Arial',
+            fontWeight: 600
+          });
+          canvas.add(text);
+          canvas.setActiveObject(text);
+          text.enterEditing();
+          if (onToolUsed) onToolUsed();
+          isDrawingRef.current = false;
+        } else if (activeTool === 'rect') {
+          const rect = new fabric.Rect({
+            left: pointer.x,
+            top: pointer.y,
+            width: 0,
+            height: 0,
+            fill: 'transparent',
+            stroke: '#3b82f6',
+            strokeWidth: 2
+          });
+          canvas.add(rect);
+          drawingObjectRef.current = rect;
+        } else if (activeTool === 'circle') {
+          const circle = new fabric.Circle({
+            left: pointer.x,
+            top: pointer.y,
+            radius: 0,
+            fill: 'transparent',
+            stroke: '#3b82f6',
+            strokeWidth: 2
+          });
+          canvas.add(circle);
+          drawingObjectRef.current = circle;
+        } else if (activeTool === 'line') {
+          const line = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+            stroke: '#3b82f6',
+            strokeWidth: 2
+          });
+          canvas.add(line);
+          drawingObjectRef.current = line;
+        }
+        
+        canvas.renderAll();
       }
     });
 
     canvas.on('mouse:move', function(opt) {
+      // Panning
       if (this.isDragging) {
         const e = opt.e;
         const vpt = this.viewportTransform;
@@ -53,6 +119,29 @@ export default function FabricFloorplanCanvas({
         this.requestRenderAll();
         this.lastPosX = e.clientX;
         this.lastPosY = e.clientY;
+        return;
+      }
+
+      // Drawing
+      if (isDrawingRef.current && drawingObjectRef.current && activeTool) {
+        const pointer = canvas.getPointer(opt.e);
+        const obj = drawingObjectRef.current;
+
+        if (activeTool === 'rect') {
+          obj.set({
+            width: Math.abs(pointer.x - obj.left),
+            height: Math.abs(pointer.y - obj.top)
+          });
+        } else if (activeTool === 'circle') {
+          const radius = Math.sqrt(
+            Math.pow(pointer.x - obj.left, 2) + Math.pow(pointer.y - obj.top, 2)
+          );
+          obj.set({ radius });
+        } else if (activeTool === 'line') {
+          obj.set({ x2: pointer.x, y2: pointer.y });
+        }
+
+        canvas.renderAll();
       }
     });
 
@@ -60,6 +149,13 @@ export default function FabricFloorplanCanvas({
       this.setViewportTransform(this.viewportTransform);
       this.isDragging = false;
       this.selection = !readOnly;
+
+      if (isDrawingRef.current && drawingObjectRef.current) {
+        isDrawingRef.current = false;
+        drawingObjectRef.current = null;
+        if (onToolUsed) onToolUsed();
+        canvas.renderAll();
+      }
     });
 
     // Emit changes when objects are modified
@@ -78,7 +174,7 @@ export default function FabricFloorplanCanvas({
     return () => {
       canvas.dispose();
     };
-  }, [width, height, readOnly]);
+  }, [width, height, readOnly, activeTool, onToolUsed]);
 
   // Load floorplan image
   useEffect(() => {
@@ -329,3 +425,5 @@ export default function FabricFloorplanCanvas({
 FabricFloorplanCanvas.exportToSVG = (fabricCanvasRef) => {
   return fabricCanvasRef.current?.toSVG();
 };
+
+export default FabricFloorplanCanvas;

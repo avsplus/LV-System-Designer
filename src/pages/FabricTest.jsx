@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import FabricFloorplanCanvas from '../components/canvas/FabricFloorplanCanvas';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
-import { Upload } from "lucide-react";
+import { Upload, Type, Square, Circle, Minus } from "lucide-react";
 import * as pdfjsLib from 'pdfjs-dist';
+import * as fabric from 'fabric';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -12,6 +13,8 @@ export default function FabricTest() {
   const [floorplanUrl, setFloorplanUrl] = useState('');
   const [annotations, setAnnotations] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [activeTool, setActiveTool] = useState(null);
+  const fabricCanvasRef = useRef(null);
 
   console.log('Current floorplan URL:', floorplanUrl);
 
@@ -109,14 +112,59 @@ export default function FabricTest() {
         </div>
 
         {floorplanUrl && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            {/* Drawing Tools */}
+            <div className="flex gap-2 items-center border-b pb-4">
+              <span className="text-sm font-medium mr-2">Tools:</span>
+              <Button
+                size="sm"
+                variant={activeTool === 'text' ? 'default' : 'outline'}
+                onClick={() => setActiveTool(activeTool === 'text' ? null : 'text')}
+              >
+                <Type className="w-4 h-4 mr-2" />
+                Text
+              </Button>
+              <Button
+                size="sm"
+                variant={activeTool === 'rect' ? 'default' : 'outline'}
+                onClick={() => setActiveTool(activeTool === 'rect' ? null : 'rect')}
+              >
+                <Square className="w-4 h-4 mr-2" />
+                Rectangle
+              </Button>
+              <Button
+                size="sm"
+                variant={activeTool === 'circle' ? 'default' : 'outline'}
+                onClick={() => setActiveTool(activeTool === 'circle' ? null : 'circle')}
+              >
+                <Circle className="w-4 h-4 mr-2" />
+                Circle
+              </Button>
+              <Button
+                size="sm"
+                variant={activeTool === 'line' ? 'default' : 'outline'}
+                onClick={() => setActiveTool(activeTool === 'line' ? null : 'line')}
+              >
+                <Minus className="w-4 h-4 mr-2" />
+                Line
+              </Button>
+              {activeTool && (
+                <span className="text-xs text-gray-500 ml-4">
+                  Click on canvas to add {activeTool}
+                </span>
+              )}
+            </div>
+
             <FabricFloorplanCanvas
+              ref={fabricCanvasRef}
               floorplanUrl={floorplanUrl}
               annotations={annotations}
               onAnnotationsChange={setAnnotations}
               width={1400}
               height={900}
               readOnly={false}
+              activeTool={activeTool}
+              onToolUsed={() => setActiveTool(null)}
             />
           </div>
         )}

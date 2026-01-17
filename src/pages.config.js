@@ -3,6 +3,7 @@ import Admin from './pages/Admin';
 import AgentManager from './pages/AgentManager';
 import Billing from './pages/Billing';
 import DeviceManager from './pages/DeviceManager';
+import FabricTest from './pages/FabricTest';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import NetworkMapping from './pages/NetworkMapping';
@@ -12,7 +13,6 @@ import Settings from './pages/Settings';
 import SetupOrganization from './pages/SetupOrganization';
 import WirePricing from './pages/WirePricing';
 import account from './pages/account';
-import FabricTest from './pages/FabricTest';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +22,7 @@ export const PAGES = {
     "AgentManager": AgentManager,
     "Billing": Billing,
     "DeviceManager": DeviceManager,
+    "FabricTest": FabricTest,
     "Home": Home,
     "Landing": Landing,
     "NetworkMapping": NetworkMapping,
@@ -31,7 +32,6 @@ export const PAGES = {
     "SetupOrganization": SetupOrganization,
     "WirePricing": WirePricing,
     "account": account,
-    "FabricTest": FabricTest,
 }
 
 export const pagesConfig = {
