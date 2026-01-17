@@ -50,7 +50,7 @@ const SYMBOL_CATEGORIES = {
   ]
 };
 
-const SymbolIcon = ({ id, color }) => {
+function SymbolIcon({ id, color }) {
   const iconUrl = SYMBOL_ICONS[id];
   
   // Use PNG icon if available, with color filter
@@ -327,7 +327,7 @@ const SymbolIcon = ({ id, color }) => {
       </text>
     </svg>
   );
-};
+}
 
 // Helper to convert hex color to RGB
 function hexToRgb(hex) {
