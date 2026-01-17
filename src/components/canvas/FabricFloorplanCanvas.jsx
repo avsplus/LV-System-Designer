@@ -86,35 +86,35 @@ export default function FabricFloorplanCanvas({
 
     console.log('Loading floorplan:', floorplanUrl);
     
-    fabric.Image.fromURL(floorplanUrl, (img, isError) => {
-      if (isError) {
-        console.error('Failed to load image:', floorplanUrl);
-        return;
-      }
+    // Fabric v6 uses promises, not callbacks
+    fabric.FabricImage.fromURL(floorplanUrl, { crossOrigin: 'anonymous' })
+      .then((img) => {
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) return;
 
-      const canvas = fabricCanvasRef.current;
-      if (!canvas) return;
+        console.log('Image loaded successfully:', img.width, 'x', img.height);
+        
+        // Scale image to fit canvas
+        const scale = Math.min(
+          canvas.width / img.width,
+          canvas.height / img.height
+        ) * 0.9;
 
-      console.log('Image loaded successfully:', img.width, 'x', img.height);
-      
-      // Scale image to fit canvas
-      const scale = Math.min(
-        canvas.width / img.width,
-        canvas.height / img.height
-      ) * 0.9;
+        img.scale(scale);
+        img.set({
+          left: (canvas.width - img.width * scale) / 2,
+          top: (canvas.height - img.height * scale) / 2,
+          selectable: false,
+          evented: false,
+          opacity: 0.7
+        });
 
-      img.scale(scale);
-      img.set({
-        left: (canvas.width - img.width * scale) / 2,
-        top: (canvas.height - img.height * scale) / 2,
-        selectable: false,
-        evented: false,
-        opacity: 0.7
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        console.log('Background image set and rendered');
+      })
+      .catch((error) => {
+        console.error('Failed to load image:', floorplanUrl, error);
       });
-
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
-      console.log('Background image set and rendered');
-    }, { crossOrigin: 'anonymous' });
   }, [floorplanUrl]);
 
   // Load annotations
