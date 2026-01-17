@@ -24,12 +24,14 @@ const FabricFloorplanCanvas = React.forwardRef(({
   const drawingObjectRef = useRef(null);
   const activeToolRef = useRef(activeTool);
   const onToolUsedRef = useRef(onToolUsed);
+  const onAnnotationsChangeRef = useRef(onAnnotationsChange);
 
   // Keep refs in sync
   useEffect(() => {
     activeToolRef.current = activeTool;
     onToolUsedRef.current = onToolUsed;
-  }, [activeTool, onToolUsed]);
+    onAnnotationsChangeRef.current = onAnnotationsChange;
+  }, [activeTool, onToolUsed, onAnnotationsChange]);
 
   React.useImperativeHandle(ref, () => ({
     getCanvas: () => fabricCanvasRef.current
@@ -167,16 +169,55 @@ const FabricFloorplanCanvas = React.forwardRef(({
     });
 
     // Emit changes when objects are modified
+    const handleChange = () => {
+      if (readOnly) return;
+      
+      const objects = canvas.getObjects();
+      const exported = objects.map(obj => {
+        const annotation = {
+          id: obj.annotationId || `ann_${Date.now()}_${Math.random()}`,
+          position: { x: obj.left, y: obj.top }
+        };
+
+        if (obj.type === 'i-text') {
+          annotation.type = 'text';
+          annotation.text = obj.text;
+          annotation.fontSize = obj.fontSize;
+          annotation.color = obj.fill;
+          annotation.rotation = obj.angle;
+        } else if (obj.type === 'rect') {
+          annotation.type = 'rectangle';
+          annotation.width = obj.width;
+          annotation.height = obj.height;
+          annotation.color = obj.stroke;
+          annotation.strokeWidth = obj.strokeWidth;
+          annotation.fill = obj.fill !== 'transparent';
+          annotation.rotation = obj.angle;
+        } else if (obj.type === 'circle') {
+          annotation.type = 'circle';
+          annotation.radius = obj.radius;
+          annotation.color = obj.stroke;
+          annotation.strokeWidth = obj.strokeWidth;
+          annotation.fill = obj.fill !== 'transparent';
+        } else if (obj.type === 'line') {
+          annotation.type = 'line';
+          annotation.endPosition = { x: obj.x2, y: obj.y2 };
+          annotation.color = obj.stroke;
+          annotation.strokeWidth = obj.strokeWidth;
+        }
+
+        return annotation;
+      });
+
+      if (onAnnotationsChangeRef.current) {
+        onAnnotationsChangeRef.current(exported);
+      }
+    };
+
     if (!readOnly) {
-      canvas.on('object:modified', () => {
-        exportAnnotations();
-      });
-      canvas.on('object:added', () => {
-        exportAnnotations();
-      });
-      canvas.on('object:removed', () => {
-        exportAnnotations();
-      });
+      canvas.on('object:modified', handleChange);
+      canvas.on('object:added', handleChange);
+      canvas.on('object:removed', handleChange);
     }
 
     return () => {
@@ -310,53 +351,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
     canvas.renderAll();
   }, [annotations, readOnly]);
 
-  // Export annotations from Fabric canvas
-  const exportAnnotations = () => {
-    if (!fabricCanvasRef.current || readOnly) return;
 
-    const canvas = fabricCanvasRef.current;
-    const objects = canvas.getObjects();
-    
-    const exported = objects.map(obj => {
-      const annotation = {
-        id: obj.annotationId || `ann_${Date.now()}_${Math.random()}`,
-        position: { x: obj.left, y: obj.top }
-      };
-
-      if (obj.type === 'i-text') {
-        annotation.type = 'text';
-        annotation.text = obj.text;
-        annotation.fontSize = obj.fontSize;
-        annotation.color = obj.fill;
-        annotation.rotation = obj.angle;
-      } else if (obj.type === 'rect') {
-        annotation.type = 'rectangle';
-        annotation.width = obj.width;
-        annotation.height = obj.height;
-        annotation.color = obj.stroke;
-        annotation.strokeWidth = obj.strokeWidth;
-        annotation.fill = obj.fill !== 'transparent';
-        annotation.rotation = obj.angle;
-      } else if (obj.type === 'circle') {
-        annotation.type = 'circle';
-        annotation.radius = obj.radius;
-        annotation.color = obj.stroke;
-        annotation.strokeWidth = obj.strokeWidth;
-        annotation.fill = obj.fill !== 'transparent';
-      } else if (obj.type === 'line') {
-        annotation.type = 'line';
-        annotation.endPosition = { x: obj.x2, y: obj.y2 };
-        annotation.color = obj.stroke;
-        annotation.strokeWidth = obj.strokeWidth;
-      }
-
-      return annotation;
-    });
-
-    if (onAnnotationsChange) {
-      onAnnotationsChange(exported);
-    }
-  };
 
   // Zoom controls
   const handleZoomIn = () => {
