@@ -6,8 +6,6 @@ import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown,
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
-import FabricFloorplanCanvas from './FabricFloorplanCanvas';
-import AnnotationDetailsPanel from './AnnotationDetailsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -56,17 +54,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [dragOverRoom, setDragOverRoom] = useState(null);
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [editingRoomName, setEditingRoomName] = useState('');
-  const [editingFloorplan, setEditingFloorplan] = useState(null);
-  const [editorActiveTool, setEditorActiveTool] = useState(null);
-  const [editorColor, setEditorColor] = useState('#3b82f6');
-  const [editorStrokeWidth, setEditorStrokeWidth] = useState(2);
-  const [editorFill, setEditorFill] = useState(false);
-  const [editorFontSize, setEditorFontSize] = useState(20);
-  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
-  const fabricEditorCanvasRef = useRef(null);
 
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'];
   const STROKE_WIDTHS = [1, 2, 3, 4, 6, 8];

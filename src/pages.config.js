@@ -3,7 +3,6 @@ import Admin from './pages/Admin';
 import AgentManager from './pages/AgentManager';
 import Billing from './pages/Billing';
 import DeviceManager from './pages/DeviceManager';
-import FabricTest from './pages/FabricTest';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import NetworkMapping from './pages/NetworkMapping';
@@ -22,7 +21,6 @@ export const PAGES = {
     "AgentManager": AgentManager,
     "Billing": Billing,
     "DeviceManager": DeviceManager,
-    "FabricTest": FabricTest,
     "Home": Home,
     "Landing": Landing,
     "NetworkMapping": NetworkMapping,
