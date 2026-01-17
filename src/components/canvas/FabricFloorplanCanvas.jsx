@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
