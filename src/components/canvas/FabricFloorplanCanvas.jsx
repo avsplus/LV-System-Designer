@@ -32,7 +32,16 @@ const FabricFloorplanCanvas = React.forwardRef(({
     activeToolRef.current = activeTool;
     onToolUsedRef.current = onToolUsed;
     onAnnotationsChangeRef.current = onAnnotationsChange;
-  }, [activeTool, onToolUsed, onAnnotationsChange]);
+    
+    // Update cursor when tool changes
+    if (fabricCanvasRef.current) {
+      if (activeTool && !readOnly) {
+        fabricCanvasRef.current.defaultCursor = 'crosshair';
+      } else {
+        fabricCanvasRef.current.defaultCursor = 'default';
+      }
+    }
+  }, [activeTool, onToolUsed, onAnnotationsChange, readOnly]);
 
   React.useImperativeHandle(ref, () => ({
     getCanvas: () => fabricCanvasRef.current
@@ -47,10 +56,25 @@ const FabricFloorplanCanvas = React.forwardRef(({
       height,
       backgroundColor: '#f8fafc',
       selection: !readOnly,
-      renderOnAddRemove: true
+      renderOnAddRemove: true,
+      preserveObjectStacking: true
     });
 
+    // Set default cursor
+    canvas.defaultCursor = 'default';
+    canvas.hoverCursor = 'move';
+
     fabricCanvasRef.current = canvas;
+
+    // Update cursor based on active tool
+    const updateCursor = () => {
+      if (activeToolRef.current && !readOnly) {
+        canvas.defaultCursor = 'crosshair';
+      } else {
+        canvas.defaultCursor = 'default';
+      }
+    };
+    updateCursor();
 
     // Handle mouse events for drawing and panning
     canvas.on('mouse:down', function(opt) {
@@ -69,6 +93,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
       if (activeToolRef.current && !readOnly) {
         const pointer = canvas.getPointer(opt.e);
         isDrawingRef.current = true;
+        this.selection = false;
 
         if (activeToolRef.current === 'text') {
           const text = new fabric.IText('Click to edit', {

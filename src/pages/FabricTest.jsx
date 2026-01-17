@@ -149,8 +149,13 @@ export default function FabricTest() {
                 Line
               </Button>
               {activeTool && (
+                <span className="text-xs text-blue-600 font-medium ml-4 animate-pulse">
+                  ✏️ Click on canvas to draw {activeTool}
+                </span>
+              )}
+              {!activeTool && (
                 <span className="text-xs text-gray-500 ml-4">
-                  Click on canvas to add {activeTool}
+                  Select a tool to start drawing | Hold Alt + Drag to pan
                 </span>
               )}
             </div>
