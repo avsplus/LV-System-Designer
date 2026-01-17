@@ -84,8 +84,18 @@ export default function FabricFloorplanCanvas({
   useEffect(() => {
     if (!fabricCanvasRef.current || !floorplanUrl) return;
 
-    fabric.Image.fromURL(floorplanUrl, (img) => {
+    console.log('Loading floorplan:', floorplanUrl);
+    
+    fabric.Image.fromURL(floorplanUrl, (img, isError) => {
+      if (isError) {
+        console.error('Failed to load image:', floorplanUrl);
+        return;
+      }
+
       const canvas = fabricCanvasRef.current;
+      if (!canvas) return;
+
+      console.log('Image loaded successfully:', img.width, 'x', img.height);
       
       // Scale image to fit canvas
       const scale = Math.min(
@@ -103,6 +113,7 @@ export default function FabricFloorplanCanvas({
       });
 
       canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+      console.log('Background image set and rendered');
     }, { crossOrigin: 'anonymous' });
   }, [floorplanUrl]);
 
