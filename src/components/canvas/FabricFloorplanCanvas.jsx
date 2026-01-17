@@ -291,11 +291,14 @@ const FabricFloorplanCanvas = React.forwardRef(({
 
   // Load annotations
   useEffect(() => {
-    if (!fabricCanvasRef.current || !annotations.length) return;
+    if (!fabricCanvasRef.current) return;
 
     const canvas = fabricCanvasRef.current;
     isLoadingAnnotationsRef.current = true;
-    canvas.clear();
+    
+    // Remove only annotation objects, preserve background
+    const objectsToRemove = canvas.getObjects();
+    objectsToRemove.forEach(obj => canvas.remove(obj));
 
     annotations.forEach(ann => {
       let obj;
