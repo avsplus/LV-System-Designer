@@ -41,7 +41,15 @@ async function isValidImageUrl(url) {
   }
 }
 
-// Convert canvas world coordinates to image pixel coordinates
+// Convert floorplan-relative coordinates (0-1) to image pixel coordinates
+function relativeToImagePx(relX, relY, fp) {
+  return {
+    x: relX * fp.imageWidth,
+    y: relY * fp.imageHeight
+  };
+}
+
+// Convert canvas world coordinates to image pixel coordinates (for devices)
 function canvasToImagePx(worldPos, fp) {
   const fpPos = fp.position || { x: 0, y: 0 };
   const scale = (fp.pixelsPerInch || 1) / (fp.scale || 1);
@@ -85,13 +93,17 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     const ann = annotations[idx];
     if (!ann || !ann.position) continue;
     
-    const pos = canvasToImagePx(ann.position, fp);
+    // Skip if annotation is not on this floorplan
+    if (ann.floorplanId && ann.floorplanId !== fp.id) continue;
+    
+    // Annotations use floorplan-relative coordinates (0-1 normalized)
+    const pos = relativeToImagePx(ann.position.x, ann.position.y, fp);
     
     // Skip if outside bounds
     if (pos.x < 0 || pos.y < 0 || pos.x > fp.imageWidth || pos.y > fp.imageHeight) continue;
     
     if (ann.type === 'text') {
-      const fontSize = Math.max(10, (ann.fontSize || 16) * scale * 0.85);
+      const fontSize = (ann.fontSize || 16) * 0.75;
       const color = ann.color || '#000000';
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
@@ -99,28 +111,31 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
     }
     
     if (ann.type === 'rectangle') {
-      const w = (ann.width || 40) * scale;
-      const h = (ann.height || 30) * scale;
+      // Width and height are relative to floorplan dimensions
+      const w = (ann.width || 0.1) * fp.imageWidth;
+      const h = (ann.height || 0.1) * fp.imageHeight;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = Math.max(1, (ann.strokeWidth || 2) * scale);
+      const strokeWidth = ann.strokeWidth || 2;
       const rotation = ann.rotation || 0;
       const transform = rotation ? ` transform="rotate(${rotation} ${pos.x} ${pos.y})"` : '';
-      svgContent += `<rect x="${pos.x - w/2}" y="${pos.y - h/2}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}"${transform} />`;
+      svgContent += `<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}"${transform} />`;
     }
     
     if (ann.type === 'circle') {
-      const r = (ann.radius || 20) * scale;
+      // Radius is relative to floorplan width
+      const r = (ann.radius || 0.05) * fp.imageWidth;
       const color = ann.color || '#3b82f6';
-      const strokeWidth = Math.max(1, (ann.strokeWidth || 2) * scale);
+      const strokeWidth = ann.strokeWidth || 2;
       svgContent += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${ann.fill ? color + '80' : 'none'}" stroke="${color}" stroke-width="${strokeWidth}" />`;
     }
     
     if (ann.type === 'line') {
       const endPos = ann.endPosition;
       if (endPos) {
-        const end = canvasToImagePx(endPos, fp);
+        // End position is also floorplan-relative
+        const end = relativeToImagePx(endPos.x, endPos.y, fp);
         const color = ann.color || '#000000';
-        const strokeWidth = Math.max(1, (ann.strokeWidth || 2) * scale);
+        const strokeWidth = ann.strokeWidth || 2;
         svgContent += `<line x1="${pos.x}" y1="${pos.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="${strokeWidth}" />`;
       }
     }
@@ -129,7 +144,7 @@ function buildFloorplanSVG({ fp, canvasProducts, annotations = [], arrows = [], 
       const iconUrl = SYMBOL_ICONS[ann.symbolId];
       if (iconUrl) {
         const baseSize = 40 * (ann.scale || 1);
-        const size = Math.max(16, baseSize * scale);
+        const size = Math.max(16, baseSize);
         const color = ann.color || '#3b82f6';
         const rotation = ann.rotation || 0;
         const flip = ann.flipped ? -1 : 1;
