@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -1845,7 +1844,7 @@ Deno.serve(async (req) => {
                 if (annotation.type === 'text') {
                   setColor(doc, annotation.color ? [parseInt(annotation.color.slice(1,3), 16), parseInt(annotation.color.slice(3,5), 16), parseInt(annotation.color.slice(5,7), 16)] : theme.colors.dark);
                   doc.setFont(undefined, 'normal');
-                  doc.setFontSize((annotation.fontSize || 16) * 0.35);
+                  doc.setFontSize((annotation.fontSize || 16) * 0.25);
                   doc.text(annotation.text || '', pdfX, pdfY);
                   
                 } else if (annotation.type === 'rectangle') {
@@ -1885,7 +1884,7 @@ Deno.serve(async (req) => {
                   // Draw simple circle for symbol with color
                   const color = annotation.color ? [parseInt(annotation.color.slice(1,3), 16), parseInt(annotation.color.slice(3,5), 16), parseInt(annotation.color.slice(5,7), 16)] : theme.colors.accent;
                   setFill(doc, color);
-                  const symbolSize = (annotation.scale || 1) * 2.5;
+                  const symbolSize = (annotation.scale || 1) * 1.8;
                   doc.circle(pdfX, pdfY, symbolSize, 'F');
                 }
                 
