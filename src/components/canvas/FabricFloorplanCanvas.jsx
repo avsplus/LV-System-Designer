@@ -22,6 +22,14 @@ const FabricFloorplanCanvas = React.forwardRef(({
   const [zoom, setZoom] = useState(1);
   const isDrawingRef = useRef(false);
   const drawingObjectRef = useRef(null);
+  const activeToolRef = useRef(activeTool);
+  const onToolUsedRef = useRef(onToolUsed);
+
+  // Keep refs in sync
+  useEffect(() => {
+    activeToolRef.current = activeTool;
+    onToolUsedRef.current = onToolUsed;
+  }, [activeTool, onToolUsed]);
 
   React.useImperativeHandle(ref, () => ({
     getCanvas: () => fabricCanvasRef.current
@@ -55,11 +63,11 @@ const FabricFloorplanCanvas = React.forwardRef(({
       }
 
       // Drawing mode
-      if (activeTool && !readOnly) {
+      if (activeToolRef.current && !readOnly) {
         const pointer = canvas.getPointer(opt.e);
         isDrawingRef.current = true;
 
-        if (activeTool === 'text') {
+        if (activeToolRef.current === 'text') {
           const text = new fabric.IText('Click to edit', {
             left: pointer.x,
             top: pointer.y,
@@ -71,9 +79,9 @@ const FabricFloorplanCanvas = React.forwardRef(({
           canvas.add(text);
           canvas.setActiveObject(text);
           text.enterEditing();
-          if (onToolUsed) onToolUsed();
+          if (onToolUsedRef.current) onToolUsedRef.current();
           isDrawingRef.current = false;
-        } else if (activeTool === 'rect') {
+        } else if (activeToolRef.current === 'rect') {
           const rect = new fabric.Rect({
             left: pointer.x,
             top: pointer.y,
@@ -85,7 +93,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
           });
           canvas.add(rect);
           drawingObjectRef.current = rect;
-        } else if (activeTool === 'circle') {
+        } else if (activeToolRef.current === 'circle') {
           const circle = new fabric.Circle({
             left: pointer.x,
             top: pointer.y,
@@ -96,7 +104,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
           });
           canvas.add(circle);
           drawingObjectRef.current = circle;
-        } else if (activeTool === 'line') {
+        } else if (activeToolRef.current === 'line') {
           const line = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
             stroke: '#3b82f6',
             strokeWidth: 2
@@ -123,21 +131,21 @@ const FabricFloorplanCanvas = React.forwardRef(({
       }
 
       // Drawing
-      if (isDrawingRef.current && drawingObjectRef.current && activeTool) {
+      if (isDrawingRef.current && drawingObjectRef.current && activeToolRef.current) {
         const pointer = canvas.getPointer(opt.e);
         const obj = drawingObjectRef.current;
 
-        if (activeTool === 'rect') {
+        if (activeToolRef.current === 'rect') {
           obj.set({
             width: Math.abs(pointer.x - obj.left),
             height: Math.abs(pointer.y - obj.top)
           });
-        } else if (activeTool === 'circle') {
+        } else if (activeToolRef.current === 'circle') {
           const radius = Math.sqrt(
             Math.pow(pointer.x - obj.left, 2) + Math.pow(pointer.y - obj.top, 2)
           );
           obj.set({ radius });
-        } else if (activeTool === 'line') {
+        } else if (activeToolRef.current === 'line') {
           obj.set({ x2: pointer.x, y2: pointer.y });
         }
 
@@ -153,7 +161,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
       if (isDrawingRef.current && drawingObjectRef.current) {
         isDrawingRef.current = false;
         drawingObjectRef.current = null;
-        if (onToolUsed) onToolUsed();
+        if (onToolUsedRef.current) onToolUsedRef.current();
         canvas.renderAll();
       }
     });
@@ -174,7 +182,7 @@ const FabricFloorplanCanvas = React.forwardRef(({
     return () => {
       canvas.dispose();
     };
-  }, [width, height, readOnly, activeTool, onToolUsed]);
+  }, [width, height, readOnly]);
 
   // Load floorplan image
   useEffect(() => {
