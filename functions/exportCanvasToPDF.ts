@@ -1823,23 +1823,20 @@ Deno.serve(async (req) => {
               annotations.forEach(annotation => {
                 if (!annotation || !annotation.position) return;
                 
-                // Check if annotation is within floorplan bounds
-                const annX = annotation.position.x;
-                const annY = annotation.position.y;
-                const fpMinX = fpPos.x;
-                const fpMaxX = fpPos.x + fp.imageWidth / canvasToImageScale;
-                const fpMinY = fpPos.y;
-                const fpMaxY = fpPos.y + fp.imageHeight / canvasToImageScale;
+                // Skip if annotation is not on this floorplan
+                if (annotation.floorplanId && annotation.floorplanId !== fp.id) return;
                 
-                if (annX < fpMinX || annY < fpMinY || annX > fpMaxX || annY > fpMaxY) {
-                  return; // Skip annotations outside floorplan
+                // Annotations use floorplan-relative coordinates (0-1 normalized)
+                // Convert to image pixels: relativePos * imageSize
+                const imgPixelX = annotation.position.x * fp.imageWidth;
+                const imgPixelY = annotation.position.y * fp.imageHeight;
+                
+                // Skip if outside bounds
+                if (imgPixelX < 0 || imgPixelY < 0 || imgPixelX > fp.imageWidth || imgPixelY > fp.imageHeight) {
+                  return;
                 }
                 
-                // Convert to image pixels
-                const imgPixelX = (annX - fpPos.x) * canvasToImageScale;
-                const imgPixelY = (annY - fpPos.y) * canvasToImageScale;
-                
-                // Convert to PDF coordinates
+                // Convert to PDF coordinates (proportional to rendered image size)
                 const pdfX = imgX + (imgPixelX / fp.imageWidth) * imgWidth;
                 const pdfY = yPos + (imgPixelY / fp.imageHeight) * imgHeight;
                 
@@ -1847,7 +1844,7 @@ Deno.serve(async (req) => {
                 if (annotation.type === 'text') {
                   setColor(doc, annotation.color ? [parseInt(annotation.color.slice(1,3), 16), parseInt(annotation.color.slice(3,5), 16), parseInt(annotation.color.slice(5,7), 16)] : theme.colors.dark);
                   doc.setFont(undefined, 'normal');
-                  doc.setFontSize(annotation.fontSize || 12);
+                  doc.setFontSize((annotation.fontSize || 16) * 0.5);
                   doc.text(annotation.text || '', pdfX, pdfY);
                   
                 } else if (annotation.type === 'rectangle') {
@@ -1855,16 +1852,18 @@ Deno.serve(async (req) => {
                   setDraw(doc, color);
                   setFill(doc, annotation.fill ? color : [255, 255, 255]);
                   doc.setLineWidth(annotation.strokeWidth || 2);
-                  const width = annotation.width || 40;
-                  const height = annotation.height || 30;
-                  doc.rect(pdfX - width/2, pdfY - height/2, width, height, annotation.fill ? 'FD' : 'S');
+                  // Width and height are relative to floorplan dimensions
+                  const width = (annotation.width || 0.1) * imgWidth;
+                  const height = (annotation.height || 0.1) * imgHeight;
+                  doc.rect(pdfX, pdfY, width, height, annotation.fill ? 'FD' : 'S');
                   
                 } else if (annotation.type === 'circle') {
                   const color = annotation.color ? [parseInt(annotation.color.slice(1,3), 16), parseInt(annotation.color.slice(3,5), 16), parseInt(annotation.color.slice(5,7), 16)] : theme.colors.accent;
                   setDraw(doc, color);
                   setFill(doc, annotation.fill ? color : [255, 255, 255]);
                   doc.setLineWidth(annotation.strokeWidth || 2);
-                  const radius = (annotation.radius || 20) / 2;
+                  // Radius is relative to floorplan width
+                  const radius = (annotation.radius || 0.05) * imgWidth;
                   doc.circle(pdfX, pdfY, radius, annotation.fill ? 'FD' : 'S');
                   
                 } else if (annotation.type === 'line') {
@@ -1873,8 +1872,9 @@ Deno.serve(async (req) => {
                   doc.setLineWidth(annotation.strokeWidth || 2);
                   const endPos = annotation.endPosition;
                   if (endPos) {
-                    const endPixelX = (endPos.x - fpPos.x) * canvasToImageScale;
-                    const endPixelY = (endPos.y - fpPos.y) * canvasToImageScale;
+                    // End position is also floorplan-relative
+                    const endPixelX = endPos.x * fp.imageWidth;
+                    const endPixelY = endPos.y * fp.imageHeight;
                     const endPdfX = imgX + (endPixelX / fp.imageWidth) * imgWidth;
                     const endPdfY = yPos + (endPixelY / fp.imageHeight) * imgHeight;
                     doc.line(pdfX, pdfY, endPdfX, endPdfY);
@@ -1884,7 +1884,8 @@ Deno.serve(async (req) => {
                   // Draw simple circle for symbol with color
                   const color = annotation.color ? [parseInt(annotation.color.slice(1,3), 16), parseInt(annotation.color.slice(3,5), 16), parseInt(annotation.color.slice(5,7), 16)] : theme.colors.accent;
                   setFill(doc, color);
-                  doc.circle(pdfX, pdfY, (annotation.scale || 1) * 3, 'F');
+                  const symbolSize = (annotation.scale || 1) * 3;
+                  doc.circle(pdfX, pdfY, symbolSize, 'F');
                 }
                 
                 annotationsDrawn++;
