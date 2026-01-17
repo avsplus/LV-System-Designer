@@ -1373,30 +1373,54 @@ function AVCanvasContent() {
               endPosition: fpCoords
             }));
           } else if (activeTool === 'rectangle') {
+            const fpScale = floorplan.scale || 1;
+            const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+            let fpWidth, fpHeight;
+            if (hasCalibration) {
+              const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+              fpWidth = floorplan.imageWidth * scaleFactor;
+              fpHeight = floorplan.imageHeight * scaleFactor;
+            } else if (floorplan.imageWidth && floorplan.imageHeight) {
+              fpWidth = 500 * fpScale;
+              fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+            } else {
+              fpWidth = 500 * fpScale;
+              fpHeight = 500 * fpScale;
+            }
+            
             const width = Math.abs(mouseX - startCanvasCoords.x);
             const height = Math.abs(mouseY - startCanvasCoords.y);
-            const fpWidth = width / ((floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1));
-            const fpHeight = height / ((floorplan.imageHeight || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1));
+            const relWidth = width / fpWidth;
+            const relHeight = height / fpHeight;
             
             setDrawingAnnotation(prev => ({
               ...prev,
-              width: fpWidth,
-              height: fpHeight,
+              width: relWidth,
+              height: relHeight,
               position: {
                 x: Math.min(prev.position.x, fpCoords.x),
                 y: Math.min(prev.position.y, fpCoords.y)
               }
             }));
           } else if (activeTool === 'circle') {
+            const fpScale = floorplan.scale || 1;
+            const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+            let fpWidth;
+            if (hasCalibration) {
+              const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+              fpWidth = floorplan.imageWidth * scaleFactor;
+            } else {
+              fpWidth = 500 * fpScale;
+            }
+            
             const dx = mouseX - startCanvasCoords.x;
             const dy = mouseY - startCanvasCoords.y;
             const canvasRadius = Math.sqrt(dx * dx + dy * dy);
-            const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
-            const fpRadius = canvasRadius / fpScale;
+            const relRadius = canvasRadius / fpWidth;
             
             setDrawingAnnotation(prev => ({
               ...prev,
-              radius: fpRadius
+              radius: relRadius
             }));
           }
         }
@@ -2706,9 +2730,23 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'rectangle') {
-                    const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
-                    const canvasWidth = ann.width * fpScale;
-                    const canvasHeight = ann.height * fpScale;
+                    const fpScale = floorplan.scale || 1;
+                    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                    let fpWidth, fpHeight;
+                    if (hasCalibration) {
+                      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                      fpWidth = floorplan.imageWidth * scaleFactor;
+                      fpHeight = floorplan.imageHeight * scaleFactor;
+                    } else if (floorplan.imageWidth && floorplan.imageHeight) {
+                      fpWidth = 500 * fpScale;
+                      fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+                    } else {
+                      fpWidth = 500 * fpScale;
+                      fpHeight = 500 * fpScale;
+                    }
+                    
+                    const canvasWidth = ann.width * fpWidth;
+                    const canvasHeight = ann.height * fpHeight;
                     
                     return (
                       <g key={ann.id}>
@@ -2766,8 +2804,17 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'circle') {
-                    const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
-                    const canvasRadius = ann.radius * fpScale;
+                    const fpScale = floorplan.scale || 1;
+                    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                    let fpWidth;
+                    if (hasCalibration) {
+                      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                      fpWidth = floorplan.imageWidth * scaleFactor;
+                    } else {
+                      fpWidth = 500 * fpScale;
+                    }
+                    
+                    const canvasRadius = ann.radius * fpWidth;
                     
                     return (
                       <g key={ann.id}>
@@ -2893,7 +2940,21 @@ function AVCanvasContent() {
                   if (!floorplan) return null;
 
                   const startCanvasPos = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan);
-                  const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
+                  
+                  const fpScale = floorplan.scale || 1;
+                  const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                  let fpWidth, fpHeight;
+                  if (hasCalibration) {
+                    const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                    fpWidth = floorplan.imageWidth * scaleFactor;
+                    fpHeight = floorplan.imageHeight * scaleFactor;
+                  } else if (floorplan.imageWidth && floorplan.imageHeight) {
+                    fpWidth = 500 * fpScale;
+                    fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+                  } else {
+                    fpWidth = 500 * fpScale;
+                    fpHeight = 500 * fpScale;
+                  }
 
                   return (
                     <g>
@@ -2901,8 +2962,8 @@ function AVCanvasContent() {
                         <rect
                           x={startCanvasPos.x}
                           y={startCanvasPos.y}
-                          width={drawingAnnotation.width * fpScale}
-                          height={drawingAnnotation.height * fpScale}
+                          width={drawingAnnotation.width * fpWidth}
+                          height={drawingAnnotation.height * fpHeight}
                           stroke={drawingAnnotation.color}
                           strokeWidth={drawingAnnotation.strokeWidth}
                           fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
@@ -2916,7 +2977,7 @@ function AVCanvasContent() {
                         <circle
                           cx={startCanvasPos.x}
                           cy={startCanvasPos.y}
-                          r={drawingAnnotation.radius * fpScale}
+                          r={drawingAnnotation.radius * fpWidth}
                           stroke={drawingAnnotation.color}
                           strokeWidth={drawingAnnotation.strokeWidth}
                           fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
