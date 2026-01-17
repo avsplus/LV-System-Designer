@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import FabricFloorplanCanvas from '../components/canvas/FabricFloorplanCanvas';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { base44 } from "@/api/base44Client";
+import { Upload } from "lucide-react";
 
 export default function FabricTest() {
   const [floorplanUrl, setFloorplanUrl] = useState('');
   const [annotations, setAnnotations] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -15,16 +18,33 @@ export default function FabricTest() {
           
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Floorplan URL</label>
+              <label className="text-sm font-medium mb-2 block">Upload Floorplan</label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Paste floorplan image URL"
-                  value={floorplanUrl}
-                  onChange={(e) => setFloorplanUrl(e.target.value)}
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    setUploading(true);
+                    try {
+                      const response = await base44.integrations.Core.UploadFile({ file });
+                      setFloorplanUrl(response.file_url);
+                    } catch (error) {
+                      console.error('Upload failed:', error);
+                      alert('Failed to upload image');
+                    }
+                    setUploading(false);
+                  }}
+                  disabled={uploading}
                   className="flex-1"
                 />
-                <Button onClick={() => setFloorplanUrl('')}>Clear</Button>
+                <Button onClick={() => setFloorplanUrl('')} disabled={!floorplanUrl}>
+                  Clear
+                </Button>
               </div>
+              {uploading && <p className="text-sm text-blue-600 mt-1">Uploading...</p>}
             </div>
 
             <div className="text-sm text-gray-600 space-y-1">
