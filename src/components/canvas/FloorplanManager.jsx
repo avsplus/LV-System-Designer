@@ -2,11 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug, Edit3 } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug, Edit3, Type, Square, Minus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
 import FabricFloorplanCanvas from './FabricFloorplanCanvas';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -53,9 +56,17 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [editingRoomName, setEditingRoomName] = useState('');
   const [editingFloorplan, setEditingFloorplan] = useState(null);
+  const [editorActiveTool, setEditorActiveTool] = useState(null);
+  const [editorColor, setEditorColor] = useState('#3b82f6');
+  const [editorStrokeWidth, setEditorStrokeWidth] = useState(2);
+  const [editorFill, setEditorFill] = useState(false);
+  const [editorFontSize, setEditorFontSize] = useState(20);
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+
+  const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'];
+  const STROKE_WIDTHS = [1, 2, 3, 4, 6, 8];
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -340,12 +351,131 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => setEditingFloorplan(null)}
+              onClick={() => {
+                setEditingFloorplan(null);
+                setEditorActiveTool(null);
+              }}
               className="text-gray-400 hover:text-white"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
+
+          {/* Toolbar */}
+          <div className="px-6 py-3 border-b border-gray-800 flex items-center gap-3 bg-gray-900/50">
+            <span className="text-sm font-medium text-gray-400">Tools:</span>
+            <Button
+              size="sm"
+              variant={editorActiveTool === 'text' ? 'default' : 'outline'}
+              onClick={() => setEditorActiveTool(editorActiveTool === 'text' ? null : 'text')}
+              className={editorActiveTool === 'text' ? 'bg-blue-600' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'}
+            >
+              <Type className="w-4 h-4 mr-2" />
+              Text
+            </Button>
+            <Button
+              size="sm"
+              variant={editorActiveTool === 'rect' ? 'default' : 'outline'}
+              onClick={() => setEditorActiveTool(editorActiveTool === 'rect' ? null : 'rect')}
+              className={editorActiveTool === 'rect' ? 'bg-blue-600' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'}
+            >
+              <Square className="w-4 h-4 mr-2" />
+              Rectangle
+            </Button>
+            <Button
+              size="sm"
+              variant={editorActiveTool === 'circle' ? 'default' : 'outline'}
+              onClick={() => setEditorActiveTool(editorActiveTool === 'circle' ? null : 'circle')}
+              className={editorActiveTool === 'circle' ? 'bg-blue-600' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'}
+            >
+              <Circle className="w-4 h-4 mr-2" />
+              Circle
+            </Button>
+            <Button
+              size="sm"
+              variant={editorActiveTool === 'line' ? 'default' : 'outline'}
+              onClick={() => setEditorActiveTool(editorActiveTool === 'line' ? null : 'line')}
+              className={editorActiveTool === 'line' ? 'bg-blue-600' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'}
+            >
+              <Minus className="w-4 h-4 mr-2" />
+              Line
+            </Button>
+
+            <div className="h-6 w-px bg-gray-700 mx-2" />
+
+            {/* Style settings */}
+            {editorActiveTool && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700">
+                    Style
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 bg-gray-800 border-gray-700">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-gray-300 text-xs mb-2 block">Color</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {COLORS.map(color => (
+                          <button
+                            key={color}
+                            onClick={() => setEditorColor(color)}
+                            className="w-8 h-8 rounded border-2 transition-all"
+                            style={{
+                              backgroundColor: color,
+                              borderColor: editorColor === color ? '#3b82f6' : 'transparent'
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {editorActiveTool !== 'text' && (
+                      <div>
+                        <Label className="text-gray-300 text-xs mb-2 block">Stroke Width</Label>
+                        <div className="flex gap-2">
+                          {STROKE_WIDTHS.map(width => (
+                            <button
+                              key={width}
+                              onClick={() => setEditorStrokeWidth(width)}
+                              className={`px-3 py-1.5 rounded text-xs transition-all ${
+                                editorStrokeWidth === width 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              }`}
+                            >
+                              {width}px
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {editorActiveTool === 'text' && (
+                      <div>
+                        <Label className="text-gray-300 text-xs mb-2 block">Font Size</Label>
+                        <RadioGroup value={String(editorFontSize)} onValueChange={(v) => setEditorFontSize(Number(v))}>
+                          {[12, 16, 20, 24, 32, 48].map(size => (
+                            <div key={size} className="flex items-center space-x-2">
+                              <RadioGroupItem value={String(size)} id={`font-${size}`} />
+                              <Label htmlFor={`font-${size}`} className="text-gray-300">{size}px</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </div>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {editorActiveTool && (
+              <span className="text-xs text-blue-400 font-medium ml-auto animate-pulse">
+                ✏️ Click on canvas to draw {editorActiveTool}
+              </span>
+            )}
+          </div>
+
           <div className="flex-1 overflow-auto p-6 bg-gray-950">
             <FabricFloorplanCanvas
               floorplanUrl={editingFloorplan.url}
@@ -363,11 +493,16 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
               width={1400}
               height={900}
               readOnly={false}
+              activeTool={editorActiveTool}
+              onToolUsed={() => setEditorActiveTool(null)}
             />
           </div>
           <div className="p-4 border-t border-gray-800 flex justify-end">
             <Button
-              onClick={() => setEditingFloorplan(null)}
+              onClick={() => {
+                setEditingFloorplan(null);
+                setEditorActiveTool(null);
+              }}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Done Editing
