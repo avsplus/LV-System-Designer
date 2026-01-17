@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X, Crop, Layers, Wrench } from "lucide-react";
 import FloorplanManager from "../components/canvas/FloorplanManager";
-import { ToastProvider, useToast } from "../components/ui/Toast";
-import { ConfirmProvider, useConfirm } from "../components/ui/ConfirmDialog";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,8 +43,6 @@ import useProjectData, { ensureNetworkInfo } from "../components/canvas/hooks/us
 import useResponsiveCanvas from "../components/canvas/hooks/useResponsiveCanvas";
 
 function AVCanvasContent() {
-    const toast = useToast();
-    const confirmDialog = useConfirm();
     const queryClient = useQueryClient();
     const { isAtLeast, loading: permLoading } = usePermissions();
     const { settings: orgSettings } = useSettings();
@@ -398,12 +395,7 @@ function AVCanvasContent() {
     }
     
     if (validation.warnings.length > 0) {
-      const proceed = await confirmDialog(validation.warnings.join('\n\n'), {
-        title: 'Connection Warning',
-        type: 'warning',
-        confirmText: 'Continue Anyway',
-        cancelText: 'Cancel'
-      });
+      const proceed = window.confirm(`Connection Warning\n\n${validation.warnings.join('\n\n')}\n\nContinue anyway?`);
       if (!proceed) {
         setConnectingFrom(null);
         setConnectingTo(null);
@@ -698,12 +690,7 @@ function AVCanvasContent() {
   };
 
   const clearCanvas = async () => {
-    const proceed = await confirmDialog('This will clear the canvas. Any unsaved changes will be lost.', {
-      title: 'Clear Canvas',
-      type: 'danger',
-      confirmText: 'Clear Canvas',
-      cancelText: 'Cancel'
-    });
+    const proceed = window.confirm('This will clear the canvas. Any unsaved changes will be lost.');
     if (proceed) {
       clearCanvasData();
       setSelectedProduct(null);
@@ -2580,10 +2567,7 @@ function AVCanvasContent() {
                         onMouseEnter={() => setHoveredArrow(idx)}
                         onMouseLeave={() => setHoveredArrow(null)}
                         onClick={async () => {
-                          const confirmed = await confirmDialog('Are you sure you want to delete this arrow?', {
-                            title: 'Delete Arrow',
-                            type: 'warning'
-                          });
+                          const confirmed = window.confirm('Are you sure you want to delete this arrow?');
                           if (confirmed) {
                             const updated = arrows.filter((_, i) => i !== idx);
                             setArrows(updated);
@@ -3754,11 +3738,5 @@ function AVCanvasContent() {
 }
 
 export default function AVCanvas() {
-  return (
-    <ToastProvider>
-      <ConfirmProvider>
-        <AVCanvasContent />
-      </ConfirmProvider>
-    </ToastProvider>
-  );
+  return <AVCanvasContent />;
 }
