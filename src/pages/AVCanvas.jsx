@@ -1060,17 +1060,116 @@ function AVCanvasContent() {
     }
   };
 
+  // Helper: Convert canvas coordinates to floorplan-relative coordinates
+  const canvasToFloorplanCoords = (canvasX, canvasY, floorplan) => {
+    if (!floorplan) return { x: canvasX, y: canvasY };
+    
+    const fpPos = floorplan.position || { x: 0, y: 0 };
+    const fpScale = floorplan.scale || 1;
+    
+    // Calculate floorplan dimensions
+    let fpWidth, fpHeight;
+    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+    if (hasCalibration) {
+      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+      fpWidth = floorplan.imageWidth * scaleFactor;
+      fpHeight = floorplan.imageHeight * scaleFactor;
+    } else if (floorplan.imageWidth && floorplan.imageHeight) {
+      fpWidth = 500 * fpScale;
+      fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+    } else {
+      fpWidth = 500 * fpScale;
+      fpHeight = 500 * fpScale;
+    }
+    
+    // Convert to floorplan-relative coordinates (0-1 normalized)
+    const relX = (canvasX - fpPos.x) / fpWidth;
+    const relY = (canvasY - fpPos.y) / fpHeight;
+    
+    return { x: relX, y: relY };
+  };
+
+  // Helper: Convert floorplan-relative coordinates to canvas coordinates
+  const floorplanToCanvasCoords = (relX, relY, floorplan) => {
+    if (!floorplan) return { x: relX, y: relY };
+    
+    const fpPos = floorplan.position || { x: 0, y: 0 };
+    const fpScale = floorplan.scale || 1;
+    
+    // Calculate floorplan dimensions
+    let fpWidth, fpHeight;
+    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+    if (hasCalibration) {
+      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+      fpWidth = floorplan.imageWidth * scaleFactor;
+      fpHeight = floorplan.imageHeight * scaleFactor;
+    } else if (floorplan.imageWidth && floorplan.imageHeight) {
+      fpWidth = 500 * fpScale;
+      fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+    } else {
+      fpWidth = 500 * fpScale;
+      fpHeight = 500 * fpScale;
+    }
+    
+    // Convert to canvas coordinates
+    const canvasX = fpPos.x + relX * fpWidth;
+    const canvasY = fpPos.y + relY * fpHeight;
+    
+    return { x: canvasX, y: canvasY };
+  };
+
+  // Helper: Find which floorplan a canvas point is on
+  const getFloorplanAtPoint = (canvasX, canvasY) => {
+    // Check floorplans in reverse order (top to bottom z-order)
+    for (let i = floorplans.length - 1; i >= 0; i--) {
+      const fp = floorplans[i];
+      if (!fp.visible) continue;
+      
+      const fpPos = fp.position || { x: 0, y: 0 };
+      const fpScale = fp.scale || 1;
+      
+      let fpWidth, fpHeight;
+      const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
+      if (hasCalibration) {
+        const scaleFactor = (1 / fp.pixelsPerInch) * fpScale;
+        fpWidth = fp.imageWidth * scaleFactor;
+        fpHeight = fp.imageHeight * scaleFactor;
+      } else if (fp.imageWidth && fp.imageHeight) {
+        fpWidth = 500 * fpScale;
+        fpHeight = fpWidth * (fp.imageHeight / fp.imageWidth);
+      } else {
+        fpWidth = 500 * fpScale;
+        fpHeight = 500 * fpScale;
+      }
+      
+      if (canvasX >= fpPos.x && canvasX <= fpPos.x + fpWidth &&
+          canvasY >= fpPos.y && canvasY <= fpPos.y + fpHeight) {
+        return fp;
+      }
+    }
+    return null;
+  };
+
   const handleCanvasClick = (e) => {
     // Handle text tool click
     if (activeTool === 'text' && currentProject) {
       const canvasRect = canvasRef.current?.getBoundingClientRect();
       if (canvasRect) {
-        const x = (e.clientX - canvasRect.left - pan.x) / zoom;
-        const y = (e.clientY - canvasRect.top - pan.y) / zoom;
+        const canvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
+        const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
+        
+        const floorplan = getFloorplanAtPoint(canvasX, canvasY);
+        if (!floorplan) {
+          toast.error('Please place annotation on a floorplan');
+          return;
+        }
+        
+        const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
         const newAnnotation = {
           id: Date.now().toString(),
           type: 'text',
-          position: { x, y },
+          floorplanId: floorplan.id,
+          position: fpCoords,
           text: 'Text',
           color: annotationColor,
           fontSize: annotationFontSize
@@ -1162,13 +1261,22 @@ function AVCanvasContent() {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
 
-    const x = (e.clientX - canvasRect.left - pan.x) / zoom;
-    const y = (e.clientY - canvasRect.top - pan.y) / zoom;
+    const canvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
+    const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
+
+    const floorplan = getFloorplanAtPoint(canvasX, canvasY);
+    if (!floorplan) {
+      toast.error('Please draw annotation on a floorplan');
+      return;
+    }
+
+    const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
 
     const newAnnotation = {
       id: Date.now().toString(),
       type: activeTool,
-      position: { x, y },
+      floorplanId: floorplan.id,
+      position: fpCoords,
       color: annotationColor,
       strokeWidth: annotationStrokeWidth,
       fill: annotationFill
@@ -1185,11 +1293,13 @@ function AVCanvasContent() {
   const handleSymbolAnnotationDragStart = (e, idx) => {
     e.stopPropagation();
     setSelectedAnnotation(idx);
+    const ann = annotations[idx];
     setAnnotationDragInitial({
       clientX: e.clientX,
       clientY: e.clientY,
-      annotationX: annotations[idx].position.x,
-      annotationY: annotations[idx].position.y
+      annotationX: ann.position.x,
+      annotationY: ann.position.y,
+      endPosition: ann.endPosition ? { ...ann.endPosition } : null
     });
   };
 
@@ -1201,23 +1311,27 @@ function AVCanvasContent() {
       if (annotationDragInitial !== null) {
         const canvasRect = canvasRef.current?.getBoundingClientRect();
         if (canvasRect) {
-          const dx = (e.clientX - annotationDragInitial.clientX) / zoom;
-          const dy = (e.clientY - annotationDragInitial.clientY) / zoom;
+          const ann = annotations[selectedAnnotation];
+          const floorplan = floorplans.find(fp => fp.id === ann?.floorplanId);
+          if (!floorplan) return;
 
-          setAnnotations(prev => prev.map((ann, idx) => {
-            if (idx !== selectedAnnotation) return ann;
+          const currentCanvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
+          const currentCanvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
+          const newFpCoords = canvasToFloorplanCoords(currentCanvasX, currentCanvasY, floorplan);
+
+          setAnnotations(prev => prev.map((a, idx) => {
+            if (idx !== selectedAnnotation) return a;
             const updated = {
-              ...ann,
-              position: {
-                x: annotationDragInitial.annotationX + dx,
-                y: annotationDragInitial.annotationY + dy
-              }
+              ...a,
+              position: newFpCoords
             };
-            // For lines, also move the end position
-            if (ann.type === 'line' && ann.endPosition) {
+            // For lines, maintain the relative end position
+            if (a.type === 'line' && a.endPosition && annotationDragInitial.endPosition) {
+              const endDx = annotationDragInitial.endPosition.x - annotationDragInitial.annotationX;
+              const endDy = annotationDragInitial.endPosition.y - annotationDragInitial.annotationY;
               updated.endPosition = {
-                x: (annotations[idx].endPosition?.x || 0) + dx,
-                y: (annotations[idx].endPosition?.y || 0) + dy
+                x: newFpCoords.x + endDx,
+                y: newFpCoords.y + endDy
               };
             }
             return updated;
@@ -1247,27 +1361,42 @@ function AVCanvasContent() {
           const mouseX = (e.clientX - canvasRect.left - pan.x) / zoom;
           const mouseY = (e.clientY - canvasRect.top - pan.y) / zoom;
 
+          const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
+          if (!floorplan) return;
+
+          const fpCoords = canvasToFloorplanCoords(mouseX, mouseY, floorplan);
+          const startCanvasCoords = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan);
+
           if (activeTool === 'line') {
             setDrawingAnnotation(prev => ({
               ...prev,
-              endPosition: { x: mouseX, y: mouseY }
+              endPosition: fpCoords
             }));
           } else if (activeTool === 'rectangle') {
+            const width = Math.abs(mouseX - startCanvasCoords.x);
+            const height = Math.abs(mouseY - startCanvasCoords.y);
+            const fpWidth = width / ((floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1));
+            const fpHeight = height / ((floorplan.imageHeight || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1));
+            
             setDrawingAnnotation(prev => ({
               ...prev,
-              width: Math.abs(mouseX - prev.position.x),
-              height: Math.abs(mouseY - prev.position.y),
+              width: fpWidth,
+              height: fpHeight,
               position: {
-                x: Math.min(prev.position.x, mouseX),
-                y: Math.min(prev.position.y, mouseY)
+                x: Math.min(prev.position.x, fpCoords.x),
+                y: Math.min(prev.position.y, fpCoords.y)
               }
             }));
           } else if (activeTool === 'circle') {
-            const dx = mouseX - drawingAnnotation.position.x;
-            const dy = mouseY - drawingAnnotation.position.y;
+            const dx = mouseX - startCanvasCoords.x;
+            const dy = mouseY - startCanvasCoords.y;
+            const canvasRadius = Math.sqrt(dx * dx + dy * dy);
+            const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
+            const fpRadius = canvasRadius / fpScale;
+            
             setDrawingAnnotation(prev => ({
               ...prev,
-              radius: Math.sqrt(dx * dx + dy * dy)
+              radius: fpRadius
             }));
           }
         }
@@ -2481,6 +2610,12 @@ function AVCanvasContent() {
                   const isSelected = selectedAnnotation === idx;
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
+                  // Get floorplan and convert coordinates
+                  const floorplan = floorplans.find(fp => fp.id === ann.floorplanId);
+                  if (!floorplan || !floorplan.visible) return null;
+
+                  const canvasPos = floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan);
+
                   // Render symbol annotation
                   if (ann.type === 'symbol') {
                     const symbolColor = ann.color || '#3b82f6';
@@ -2508,7 +2643,7 @@ function AVCanvasContent() {
                         >
                           <SymbolRenderer 
                             symbolId={ann.symbolId} 
-                            position={ann.position} 
+                            position={canvasPos} 
                             color={symbolColor}
                             scale={ann.scale || 1}
                             rotation={ann.rotation || 0}
@@ -2525,8 +2660,8 @@ function AVCanvasContent() {
                    return (
                      <g key={ann.id}>
                        <text
-                         x={ann.position.x}
-                         y={ann.position.y}
+                         x={canvasPos.x}
+                         y={canvasPos.y}
                          fill={ann.color}
                          fontSize={ann.fontSize}
                          fontWeight="500"
@@ -2571,14 +2706,18 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'rectangle') {
+                    const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
+                    const canvasWidth = ann.width * fpScale;
+                    const canvasHeight = ann.height * fpScale;
+                    
                     return (
                       <g key={ann.id}>
                         {/* Invisible larger hit area */}
                          <rect
-                           x={ann.position.x - 10}
-                           y={ann.position.y - 10}
-                           width={ann.width + 20}
-                           height={ann.height + 20}
+                           x={canvasPos.x - 10}
+                           y={canvasPos.y - 10}
+                           width={canvasWidth + 20}
+                           height={canvasHeight + 20}
                            fill="transparent"
                            className="pointer-events-auto cursor-move"
                            onMouseEnter={() => setHoveredAnnotation(idx)}
@@ -2604,36 +2743,39 @@ function AVCanvasContent() {
                                    annotationY: ann.position.y
                                  });
                                }
-                             }
-                           }}
-                           onDoubleClick={(e) => {
-                            if (activeTool === 'select') {
-                              e.stopPropagation();
-                            }
-                           }}
-                           />
-                          <rect
-                          x={ann.position.x}
-                          y={ann.position.y}
-                          width={ann.width}
-                          height={ann.height}
-                          stroke={strokeColor}
-                          strokeWidth={ann.strokeWidth}
-                          fill={ann.fill ? ann.color : 'none'}
-                          fillOpacity={ann.fill ? 0.3 : 0}
-                          className="pointer-events-none"
-                        />
+                               }
+                               }}
+                               onDoubleClick={(e) => {
+                               if (activeTool === 'select') {
+                               e.stopPropagation();
+                               }
+                               }}
+                               />
+                               <rect
+                               x={canvasPos.x}
+                               y={canvasPos.y}
+                               width={canvasWidth}
+                               height={canvasHeight}
+                               stroke={strokeColor}
+                               strokeWidth={ann.strokeWidth}
+                               fill={ann.fill ? ann.color : 'none'}
+                               fillOpacity={ann.fill ? 0.3 : 0}
+                               className="pointer-events-none"
+                               />
 
                       </g>
                     );
                   } else if (ann.type === 'circle') {
+                    const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
+                    const canvasRadius = ann.radius * fpScale;
+                    
                     return (
                       <g key={ann.id}>
                         {/* Invisible larger hit area */}
                         <circle
-                          cx={ann.position.x}
-                          cy={ann.position.y}
-                          r={ann.radius + 10}
+                          cx={canvasPos.x}
+                          cy={canvasPos.y}
+                          r={canvasRadius + 10}
                           fill="transparent"
                           className="pointer-events-auto cursor-move"
                           onMouseEnter={() => setHoveredAnnotation(idx)}
@@ -2670,9 +2812,9 @@ function AVCanvasContent() {
                           }}
                           />
                           <circle
-                          cx={ann.position.x}
-                          cy={ann.position.y}
-                          r={ann.radius}
+                          cx={canvasPos.x}
+                          cy={canvasPos.y}
+                          r={canvasRadius}
                           stroke={strokeColor}
                           strokeWidth={ann.strokeWidth}
                           fill={ann.fill ? ann.color : 'none'}
@@ -2683,22 +2825,24 @@ function AVCanvasContent() {
                       </g>
                     );
                   } else if (ann.type === 'line' && ann.endPosition) {
+                   const endCanvasPos = floorplanToCanvasCoords(ann.endPosition.x, ann.endPosition.y, floorplan);
+                   
                    return (
                      <g key={ann.id}>
                        <line
-                         x1={ann.position.x}
-                         y1={ann.position.y}
-                         x2={ann.endPosition.x}
-                         y2={ann.endPosition.y}
+                         x1={canvasPos.x}
+                         y1={canvasPos.y}
+                         x2={endCanvasPos.x}
+                         y2={endCanvasPos.y}
                          stroke={strokeColor}
                          strokeWidth={isHovered || isSelected ? ann.strokeWidth + 1 : ann.strokeWidth}
                          className="pointer-events-none"
                        />
                        <line
-                         x1={ann.position.x}
-                         y1={ann.position.y}
-                         x2={ann.endPosition.x}
-                         y2={ann.endPosition.y}
+                         x1={canvasPos.x}
+                         y1={canvasPos.y}
+                         x2={endCanvasPos.x}
+                         y2={endCanvasPos.y}
                          stroke="transparent"
                          strokeWidth="40"
                          className="pointer-events-auto cursor-move"
@@ -2744,52 +2888,60 @@ function AVCanvasContent() {
                 {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
 
                 {/* Drawing annotation preview */}
-                {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (
-                  <g>
-                    {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && (
-                      <rect
-                        x={drawingAnnotation.position.x}
-                        y={drawingAnnotation.position.y}
-                        width={drawingAnnotation.width}
-                        height={drawingAnnotation.height}
-                        stroke={drawingAnnotation.color}
-                        strokeWidth={drawingAnnotation.strokeWidth}
-                        fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
-                        fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
-                        strokeDasharray="8,4"
-                        className="pointer-events-none"
-                        opacity="0.8"
-                      />
-                    )}
-                    {drawingAnnotation.type === 'circle' && drawingAnnotation.radius && (
-                      <circle
-                        cx={drawingAnnotation.position.x}
-                        cy={drawingAnnotation.position.y}
-                        r={drawingAnnotation.radius}
-                        stroke={drawingAnnotation.color}
-                        strokeWidth={drawingAnnotation.strokeWidth}
-                        fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
-                        fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
-                        strokeDasharray="8,4"
-                        className="pointer-events-none"
-                        opacity="0.8"
-                      />
-                    )}
-                    {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (
-                      <line
-                        x1={drawingAnnotation.position.x}
-                        y1={drawingAnnotation.position.y}
-                        x2={drawingAnnotation.endPosition.x}
-                        y2={drawingAnnotation.endPosition.y}
-                        stroke={drawingAnnotation.color}
-                        strokeWidth={drawingAnnotation.strokeWidth}
-                        strokeDasharray="8,4"
-                        className="pointer-events-none"
-                        opacity="0.8"
-                      />
-                    )}
-                  </g>
-                )}
+                {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
+                  const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
+                  if (!floorplan) return null;
+
+                  const startCanvasPos = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan);
+                  const fpScale = (floorplan.imageWidth || 500) * (floorplan.scale || 1) / (floorplan.pixelsPerInch || 1);
+
+                  return (
+                    <g>
+                      {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && (
+                        <rect
+                          x={startCanvasPos.x}
+                          y={startCanvasPos.y}
+                          width={drawingAnnotation.width * fpScale}
+                          height={drawingAnnotation.height * fpScale}
+                          stroke={drawingAnnotation.color}
+                          strokeWidth={drawingAnnotation.strokeWidth}
+                          fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
+                          fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                      )}
+                      {drawingAnnotation.type === 'circle' && drawingAnnotation.radius && (
+                        <circle
+                          cx={startCanvasPos.x}
+                          cy={startCanvasPos.y}
+                          r={drawingAnnotation.radius * fpScale}
+                          stroke={drawingAnnotation.color}
+                          strokeWidth={drawingAnnotation.strokeWidth}
+                          fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
+                          fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                      )}
+                      {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (
+                        <line
+                          x1={startCanvasPos.x}
+                          y1={startCanvasPos.y}
+                          x2={floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, floorplan).x}
+                          y2={floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, floorplan).y}
+                          stroke={drawingAnnotation.color}
+                          strokeWidth={drawingAnnotation.strokeWidth}
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                      )}
+                    </g>
+                  );
+                })()}
 
                 {/* Arrowhead marker definitions */}
                 <defs>
@@ -2939,13 +3091,22 @@ function AVCanvasContent() {
               onAddSymbol={(symbol) => {
                 if (!canvasRef.current || !currentProject?.id) return;
                 const canvasRect = canvasRef.current.getBoundingClientRect();
-                const centerX = (canvasRect.width / 2 - pan.x) / zoom;
-                const centerY = (canvasRect.height / 2 - pan.y) / zoom;
+                const canvasX = (canvasRect.width / 2 - pan.x) / zoom;
+                const canvasY = (canvasRect.height / 2 - pan.y) / zoom;
+                
+                const floorplan = getFloorplanAtPoint(canvasX, canvasY);
+                if (!floorplan) {
+                  toast.error('Please place symbol on a floorplan');
+                  return;
+                }
+                
+                const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
                 const newAnnotation = {
                   id: Date.now().toString(),
                   type: 'symbol',
                   symbolId: symbol,
-                  position: { x: centerX, y: centerY },
+                  floorplanId: floorplan.id,
+                  position: fpCoords,
                   color: annotationColor
                 };
                 const updated = [...annotations, newAnnotation];
@@ -2966,8 +3127,12 @@ function AVCanvasContent() {
           {/* Text editing overlay */}
           {editingText && annotations.find(a => a.id === editingText) && (() => {
             const ann = annotations.find(a => a.id === editingText);
-            const screenX = ann.position.x * zoom + pan.x;
-            const screenY = ann.position.y * zoom + pan.y;
+            const floorplan = floorplans.find(fp => fp.id === ann.floorplanId);
+            if (!floorplan) return null;
+            
+            const canvasPos = floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan);
+            const screenX = canvasPos.x * zoom + pan.x;
+            const screenY = canvasPos.y * zoom + pan.y;
             return (
               <div
                 style={{
