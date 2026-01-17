@@ -150,8 +150,35 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   };
 
   const handleDelete = (id) => {
-    if (confirm('Delete this floorplan?')) {
+    if (confirm('Delete this floorplan? This will also remove all associated rooms, annotations, and unassign devices.')) {
+      // Get rooms for this floorplan
+      const floorplanRooms = rooms.filter(room => room.floorplanId === id);
+      const roomIds = floorplanRooms.map(r => r.id);
+      
+      // Delete all rooms on this floorplan
+      floorplanRooms.forEach(room => {
+        onDeleteRoom(room.id);
+      });
+      
+      // Filter out annotations for this floorplan
+      if (onAnnotationsChange) {
+        const filteredAnnotations = annotations.filter(ann => ann.floorplanId !== id);
+        onAnnotationsChange(filteredAnnotations);
+      }
+      
+      // Unassign devices from deleted rooms
+      if (onDeviceRoomChange) {
+        canvasProducts.forEach(cp => {
+          if (roomIds.includes(cp.room)) {
+            onDeviceRoomChange(cp.instanceId, null);
+          }
+        });
+      }
+      
+      // Finally delete the floorplan itself
       onUpdate(floorplans.filter(fp => fp.id !== id));
+      
+      toast.success('Floorplan and all related items deleted');
     }
   };
 
