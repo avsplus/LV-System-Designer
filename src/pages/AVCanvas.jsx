@@ -1467,7 +1467,7 @@ function AVCanvasContent() {
 
       // Complete annotation drawing
       if (drawingAnnotation) {
-        const minSize = 10;
+        const minRelSize = 0.01; // Minimum relative size (1% of floorplan)
         let shouldSave = false;
 
         if (activeTool === 'line' && drawingAnnotation.endPosition) {
@@ -1475,11 +1475,11 @@ function AVCanvasContent() {
             Math.pow(drawingAnnotation.endPosition.x - drawingAnnotation.position.x, 2) +
             Math.pow(drawingAnnotation.endPosition.y - drawingAnnotation.position.y, 2)
           );
-          shouldSave = dist > minSize;
+          shouldSave = dist > minRelSize;
         } else if (activeTool === 'rectangle') {
-          shouldSave = drawingAnnotation.width > minSize && drawingAnnotation.height > minSize;
+          shouldSave = drawingAnnotation.width > minRelSize && drawingAnnotation.height > minRelSize;
         } else if (activeTool === 'circle') {
-          shouldSave = drawingAnnotation.radius > minSize;
+          shouldSave = drawingAnnotation.radius > minRelSize;
         }
 
         if (shouldSave) {
