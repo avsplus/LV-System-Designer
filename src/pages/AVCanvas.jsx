@@ -2391,6 +2391,44 @@ function AVCanvasContent() {
                     </div>
                   );
                 })}
+
+                {/* Symbol Legends - rendered within canvas transform */}
+                {floorplans.filter(fp => fp.visible).map(floorplan => {
+                  const fpPos = floorplan.position || { x: 0, y: 0 };
+                  const fpScale = floorplan.scale || 1;
+                  
+                  let fpWidth, fpHeight;
+                  const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                  if (hasCalibration) {
+                    const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                    fpWidth = floorplan.imageWidth * scaleFactor;
+                    fpHeight = floorplan.imageHeight * scaleFactor;
+                  } else if (floorplan.imageWidth && floorplan.imageHeight) {
+                    fpWidth = 500 * fpScale;
+                    fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+                  } else {
+                    fpWidth = 500 * fpScale;
+                    fpHeight = 500 * fpScale;
+                  }
+                  
+                  // Legend position relative to floorplan (default bottom-left)
+                  const legendRelPos = floorplan.legendPosition || { x: 0.05, y: 0.95 };
+                  const legendCanvasX = fpPos.x + (legendRelPos.x * fpWidth);
+                  const legendCanvasY = fpPos.y + (legendRelPos.y * fpHeight);
+                  
+                  return (
+                    <div key={floorplan.id} style={{
+                      position: 'absolute',
+                      left: `${legendCanvasX}px`,
+                      top: `${legendCanvasY}px`,
+                      transformOrigin: 'top left',
+                      pointerEvents: 'auto',
+                      zIndex: 1000
+                    }}>
+                      <SymbolLegend annotations={annotations} floorplans={floorplans} floorplanId={floorplan.id} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -3043,39 +3081,7 @@ function AVCanvasContent() {
               </div>
             )}
 
-            {/* Symbol Legends - one for each visible floorplan */}
-            {floorplans.filter(fp => fp.visible).map(floorplan => {
-              const fpPos = floorplan.position || { x: 0, y: 0 };
-              const fpScale = floorplan.scale || 1;
-              
-              let fpHeight;
-              const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-              if (hasCalibration) {
-                const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-                const fpWidth = floorplan.imageWidth * scaleFactor;
-                fpHeight = floorplan.imageHeight * scaleFactor;
-              } else if (floorplan.imageWidth && floorplan.imageHeight) {
-                const fpWidth = 500 * fpScale;
-                fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
-              } else {
-                fpHeight = 500 * fpScale;
-              }
-              
-              const legendX = fpPos.x * zoom + pan.x + 20;
-              const legendY = (fpPos.y + fpHeight) * zoom + pan.y - 20;
-              
-              return (
-                <div key={floorplan.id} style={{
-                  position: 'absolute',
-                  left: `${legendX}px`,
-                  bottom: `calc(100% - ${legendY}px)`,
-                  zIndex: 1000,
-                  pointerEvents: 'auto'
-                }}>
-                  <SymbolLegend annotations={annotations} floorplans={floorplans} floorplanId={floorplan.id} />
-                </div>
-              );
-            })}
+
 
             <div style={{ 
               position: 'absolute',

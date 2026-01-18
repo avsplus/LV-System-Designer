@@ -43,7 +43,7 @@ export default function SymbolLegend({ annotations = [], floorplans = [], floorp
   }
 
   return (
-    <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700">
+    <Card className="bg-gray-900/90 backdrop-blur-sm border-gray-700 shadow-xl">
       <CardHeader className="pb-3">
         <CardTitle className="text-white text-sm font-semibold">Symbol Legend</CardTitle>
       </CardHeader>
