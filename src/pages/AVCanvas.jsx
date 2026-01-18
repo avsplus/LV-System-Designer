@@ -1205,31 +1205,15 @@ function AVCanvasContent() {
     handlePinchEnd();
   };
 
-  const saveAnnotations = (annotationsToSave) => {
-    if (markLocalChangeRef.current) markLocalChangeRef.current();
-    if (currentProject?.id) {
-      base44.entities.AVProject.update(currentProject.id, {
-        canvas_products: canvasProducts,
-        connections: connections,
-        rooms: rooms,
-        floorplans: floorplans,
-        arrows: arrows,
-        annotations: annotationsToSave
-      }).catch(err => console.error('Failed to save annotations:', err));
-    }
-  };
-
   const handleUpdateAnnotation = (index, updatedAnnotation) => {
     const updated = [...annotations];
     updated[index] = updatedAnnotation;
     setAnnotations(updated);
-    saveAnnotations(updated);
   };
 
   const handleDeleteAnnotation = (index) => {
     const updated = annotations.filter((_, i) => i !== index);
     setAnnotations(updated);
-    saveAnnotations(updated);
     setSelectedAnnotation(null);
   };
 
@@ -1417,7 +1401,6 @@ function AVCanvasContent() {
     const handleDragEnd = (e) => {
       // Complete symbol/annotation dragging
       if (annotationDragInitial !== null) {
-        saveAnnotations(annotations);
         setAnnotationDragInitial(null);
         return;
       }
@@ -1468,7 +1451,6 @@ function AVCanvasContent() {
         if (shouldSave) {
           const updated = [...annotations, drawingAnnotation];
           setAnnotations(updated);
-          saveAnnotations(updated);
         }
         setDrawingAnnotation(null);
         return;
@@ -3159,15 +3141,6 @@ function AVCanvasContent() {
                 };
                 const updated = [...annotations, newAnnotation];
                 setAnnotations(updated);
-                markLocalChangeRef.current?.();
-                base44.entities.AVProject.update(currentProject.id, {
-                  canvas_products: canvasProducts,
-                  connections: connections,
-                  rooms: rooms,
-                  floorplans: floorplans,
-                  arrows: arrows,
-                  annotations: updated
-                }).catch(err => console.error('Failed to save symbol:', err));
               }}
             />
           )}
@@ -3202,12 +3175,10 @@ function AVCanvasContent() {
                   }}
                   onBlur={() => {
                     setEditingText(null);
-                    saveAnnotations(annotations);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === 'Escape') {
                       setEditingText(null);
-                      saveAnnotations(annotations);
                     }
                   }}
                   className="bg-gray-900 border-2 border-blue-500 rounded px-2 py-1 text-white"
@@ -3360,10 +3331,7 @@ function AVCanvasContent() {
               }
             }}
             annotations={annotations}
-            onAnnotationsChange={(updatedAnnotations) => {
-              setAnnotations(updatedAnnotations);
-              saveAnnotations(updatedAnnotations);
-            }}
+            onAnnotationsChange={setAnnotations}
           />
         )}
 
