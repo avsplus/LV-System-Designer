@@ -1154,7 +1154,6 @@ function AVCanvasContent() {
         };
         setAnnotations([...annotations, newAnnotation]);
         setEditingText(newAnnotation.id);
-        saveAnnotations(updated);
       }
       return;
     }
