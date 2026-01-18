@@ -2019,8 +2019,8 @@ function AVCanvasContent() {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => {
-                      if (canvasProducts.length === 0) {
-                        toast.warning('Canvas is empty. Add some devices first.');
+                      if (canvasProducts.length === 0 && floorplans.length === 0 && annotations.length === 0) {
+                        toast.warning('Canvas is empty. Add devices or floorplans first.');
                         return;
                       }
                       setShowExportDialog(true);
