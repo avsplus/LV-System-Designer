@@ -685,20 +685,46 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
 
         // Part 6: Device Documentation (INSTALLER ONLY)
         if (isInstaller) {
-          let deviceDocHtml = '';
-          uniqueRooms.forEach(room => {
-            const roomDevices = canvasProducts.filter(cp => {
-              const deviceRoom = cp.room ? String(cp.room).trim() : 'Unassigned';
-              return deviceRoom === room;
-            });
-            if (roomDevices.length === 0) return;
-            deviceDocHtml += `<h2>${room}</h2><table><thead><tr><th>Label</th><th>Brand / Model</th><th>Category</th><th>IP Address</th><th>Switch / Port</th></tr></thead><tbody>`;
-            roomDevices.forEach(cp => {
-              deviceDocHtml += `<tr><td>${cp.label || cp.product?.brand || 'Device'}</td><td><strong>${cp.product?.brand || ''}</strong> ${cp.product?.model || ''}</td><td>${(cp.product?.category || '').replace(/_/g, ' ')}</td><td>${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? cp.networkInfo.ip : '-'}</td><td>${cp.networkInfo?.sw ? 'SW ' + cp.networkInfo.sw : '-'} · ${cp.networkInfo?.port ? 'Port ' + cp.networkInfo.port : '-'}</td></tr>`;
-            });
-            deviceDocHtml += '</tbody></table>';
-          });
-          bodyHtml += `<section><h1>Device Documentation</h1>${deviceDocHtml}</section><div class="page-break"></div>`;
+          let deviceCardsHtml = '';
+          
+          for (const cp of canvasProducts) {
+            const product = cp.product;
+            const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
+            const catColor = getCategoryColor(product?.category);
+            const catColorHex = '#' + catColor.map(c => c.toString(16).padStart(2, '0')).join('');
+            
+            // Build card with image background if available
+            let cardStyle = 'position:relative; background:#f8fafc; border-radius:12px; padding:20px; margin-bottom:20px; min-height:200px; overflow:hidden;';
+            let overlayHtml = '';
+            
+            if (product?.image_url && /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(product.image_url)) {
+              cardStyle = `position:relative; background:url('${product.image_url}') center/cover; border-radius:12px; padding:20px; margin-bottom:20px; min-height:200px; overflow:hidden;`;
+              overlayHtml = '<div style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.85); border-radius:12px;"></div>';
+            }
+            
+            deviceCardsHtml += `
+            <div style="${cardStyle}">
+              ${overlayHtml}
+              <div style="position:relative; z-index:1;">
+                <div style="display:flex; align-items:start; justify-content:space-between; margin-bottom:12px;">
+                  <div>
+                    <div style="color:${catColorHex}; font-size:10px; font-weight:600; text-transform:uppercase; margin-bottom:4px;">${(product?.category || '').replace(/_/g, ' ')}</div>
+                    <h3 style="margin:0; font-size:16px; color:#1f2937;">${cp.label || product?.brand || 'Device'}</h3>
+                    <p style="margin:4px 0 0 0; color:#6b7280; font-size:12px;"><strong>${product?.brand || ''}</strong> ${product?.model || ''}</p>
+                  </div>
+                  ${deviceConnections.length > 0 ? `<div style="background:#dbeafe; color:#1e40af; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600;">${deviceConnections.length} connections</div>` : ''}
+                </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+                  ${cp.room ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Room</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.room}</div></div>` : ''}
+                  ${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">IP Address</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.networkInfo.ip}</div></div>` : ''}
+                  ${cp.networkInfo?.sw ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Network</div><div style="font-size:12px; font-weight:500; color:#1f2937;">SW ${cp.networkInfo.sw} · Port ${cp.networkInfo.port || '-'}</div></div>` : ''}
+                </div>
+              </div>
+            </div>`;
+          }
+          
+          bodyHtml += `<section><h1>Device Documentation</h1>${deviceCardsHtml}</section><div class="page-break"></div>`;
         }
 
         // Part 7: Wire Schedule (INSTALLER ONLY)
