@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -1928,27 +1927,27 @@ Deno.serve(async (req) => {
             };
 
             if (uniqueSymbols.length > 0) {
-              // Position at bottom-left (20mm margin from edges)
-              const legendX = imgX + 20;
-              const legendY = yPos + imgHeight - 20;
-              const legendWidth = 70;
-              const itemHeight = 12;
-              const legendHeight = 12 + (uniqueSymbols.length * itemHeight) + 6;
+              // Position at bottom-left (10mm margin from edges)
+              const legendX = imgX + 10;
+              const legendY = yPos + imgHeight - 10;
+              const legendWidth = 45;
+              const itemHeight = 6;
+              const legendHeight = 8 + (uniqueSymbols.length * itemHeight) + 3;
 
               // Draw legend card background
               setFill(doc, [17, 24, 39, 0.9]); // Dark with transparency
               doc.setGState(new doc.GState({ opacity: 0.95 }));
-              drawRoundedRect(legendX, legendY - legendHeight, legendWidth, legendHeight, 3);
+              drawRoundedRect(legendX, legendY - legendHeight, legendWidth, legendHeight, 2);
               doc.setGState(new doc.GState({ opacity: 1 }));
 
               // Legend title
               setColor(doc, theme.colors.white);
               doc.setFont(undefined, 'bold');
-              doc.setFontSize(11);
-              doc.text('Symbol Legend', legendX + 4, legendY - legendHeight + 8);
+              doc.setFontSize(8);
+              doc.text('Symbol Legend', legendX + 3, legendY - legendHeight + 5);
 
               // Draw each symbol
-              let symbolY = legendY - legendHeight + 16;
+              let symbolY = legendY - legendHeight + 10;
               uniqueSymbols.forEach(symbol => {
                 // Symbol icon (simple colored circle as placeholder)
                 const color = symbol.color ? [
@@ -1957,13 +1956,13 @@ Deno.serve(async (req) => {
                   parseInt(symbol.color.slice(5,7), 16)
                 ] : theme.colors.accent;
                 setFill(doc, color);
-                doc.circle(legendX + 8, symbolY - 2, 3, 'F');
+                doc.circle(legendX + 5, symbolY - 1.5, 1.5, 'F');
 
                 // Symbol name
                 setColor(doc, [229, 231, 235]); // Light gray text
                 doc.setFont(undefined, 'medium');
-                doc.setFontSize(9);
-                doc.text(SYMBOL_NAMES[symbol.id] || symbol.id, legendX + 16, symbolY);
+                doc.setFontSize(6);
+                doc.text(SYMBOL_NAMES[symbol.id] || symbol.id, legendX + 9, symbolY);
 
                 symbolY += itemHeight;
               });
