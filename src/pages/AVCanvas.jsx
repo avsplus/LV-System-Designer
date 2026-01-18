@@ -1232,24 +1232,50 @@ function AVCanvasContent() {
 
     const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
 
-    const newAnnotation = {
-      id: Date.now().toString(),
-      type: activeTool,
-      floorplanId: floorplan.id,
-      position: fpCoords,
-      color: annotationColor,
-      strokeWidth: annotationStrokeWidth,
-      fill: annotationFill
-    };
-
+    let newAnnotation;
+    
     if (activeTool === 'text') {
-      newAnnotation.text = 'Text';
-      newAnnotation.fontSize = annotationFontSize;
+      newAnnotation = {
+        id: Date.now().toString(),
+        type: 'text',
+        floorplanId: floorplan.id,
+        position: fpCoords,
+        text: 'Text',
+        color: annotationColor,
+        fontSize: annotationFontSize
+      };
     } else if (activeTool === 'rectangle') {
-      newAnnotation.width = 0;
-      newAnnotation.height = 0;
+      newAnnotation = {
+        id: Date.now().toString(),
+        type: 'rectangle',
+        floorplanId: floorplan.id,
+        position: fpCoords,
+        color: annotationColor,
+        strokeWidth: annotationStrokeWidth,
+        fill: annotationFill,
+        width: 0,
+        height: 0
+      };
     } else if (activeTool === 'circle') {
-      newAnnotation.radius = 0;
+      newAnnotation = {
+        id: Date.now().toString(),
+        type: 'circle',
+        floorplanId: floorplan.id,
+        position: fpCoords,
+        color: annotationColor,
+        strokeWidth: annotationStrokeWidth,
+        fill: annotationFill,
+        radius: 0
+      };
+    } else if (activeTool === 'line') {
+      newAnnotation = {
+        id: Date.now().toString(),
+        type: 'line',
+        floorplanId: floorplan.id,
+        position: fpCoords,
+        color: annotationColor,
+        strokeWidth: annotationStrokeWidth
+      };
     }
 
     setDrawingAnnotation(newAnnotation);
@@ -3135,7 +3161,10 @@ function AVCanvasContent() {
                   symbolId: symbol,
                   floorplanId: floorplan.id,
                   position: fpCoords,
-                  color: annotationColor
+                  color: annotationColor,
+                  scale: 1,
+                  rotation: 0,
+                  flipped: false
                 };
                 const updated = [...annotations, newAnnotation];
                 setAnnotations(updated);
