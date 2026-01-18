@@ -109,10 +109,12 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
   const [hoveredDeviceId, setHoveredDeviceId] = useState(null);
-  const [arrows, setArrows] = useState([]);
+  const arrows = projectArrows;
+  const setArrows = setProjectArrows;
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
-  const [annotations, setAnnotations] = useState([]);
+  const annotations = projectAnnotations;
+  const setAnnotations = setProjectAnnotations;
   const [activeTool, setActiveTool] = useState('select');
   const [drawingAnnotation, setDrawingAnnotation] = useState(null);
   const [selectedAnnotation, setSelectedAnnotation] = useState(null);
@@ -145,6 +147,8 @@ function AVCanvasContent() {
   const {
     rooms, canvasProducts, connections, setConnections,
     floorplans, setFloorplans,
+    arrows: projectArrows, setArrows: setProjectArrows,
+    annotations: projectAnnotations, setAnnotations: setProjectAnnotations,
     loadProject, handleAddRoom, handleDeleteRoom, handleRenameRoom, addProductToCanvas,
     handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
     handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
@@ -263,15 +267,6 @@ function AVCanvasContent() {
   const handleProjectLoad = (project) => {
     setCurrentProject(project);
     loadProject(project);
-    setArrows(project.arrows || []);
-    const annotations = (project.annotations || []).map(ann => {
-      // Ensure symbols have correct structure
-      if (ann.type === 'symbol' && !ann.symbolId) {
-        console.warn('Symbol annotation missing symbolId:', ann);
-      }
-      return ann;
-    });
-    setAnnotations(annotations);
     setSelectedProduct(null);
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);

@@ -34,8 +34,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   const [canvasProducts, setCanvasProducts] = useState([]);
   const [connections, setConnections] = useState([]);
   const [floorplans, setFloorplans] = useState([]);
+  const [arrows, setArrows] = useState([]);
+  const [annotations, setAnnotations] = useState([]);
   
-  const lastSavedRef = useRef({ products: null, connections: null, rooms: null, floorplans: null });
+  const lastSavedRef = useRef({ products: null, connections: null, rooms: null, floorplans: null, arrows: null, annotations: null });
   const isSavingRef = useRef(false);
   const onSaveCompleteRef = useRef(onSaveComplete);
 
@@ -86,6 +88,17 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     const connectionsJson = JSON.stringify(connections);
     const roomsJson = JSON.stringify(rooms);
     const floorplansJson = JSON.stringify(floorplans || []);
+    const arrowsJson = JSON.stringify(arrows || []);
+    const annotationsJson = JSON.stringify(annotations || []);
+
+    if (lastSavedRef.current.products === productsJson && 
+        lastSavedRef.current.connections === connectionsJson &&
+        lastSavedRef.current.rooms === roomsJson &&
+        lastSavedRef.current.floorplans === floorplansJson &&
+        lastSavedRef.current.arrows === arrowsJson &&
+        lastSavedRef.current.annotations === annotationsJson) {
+      return;
+    }
 
     if (isSavingRef.current) return;
 
@@ -103,10 +116,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
            connections: connections,
            rooms: rooms,
            floorplans: floorplans || [],
-           arrows: currentProject.arrows || [],
-           annotations: currentProject.annotations || []
+           arrows: arrows || [],
+           annotations: annotations || []
           });
-          lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson };
+          lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson, arrows: arrowsJson, annotations: annotationsJson };
           console.log('✅ Project saved - Floorplans:', floorplans.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
           console.log('💾 Save complete - new timestamp:', updatedProject.updated_date);
 
@@ -125,7 +138,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     }, 200);
 
     return () => clearTimeout(saveTimer);
-    }, [canvasProducts, connections, rooms, floorplans, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange, onSaveComplete]);
+    }, [canvasProducts, connections, rooms, floorplans, arrows, annotations, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange, onSaveComplete]);
 
   // Load project data
   const loadProject = useCallback((project) => {
@@ -135,7 +148,11 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
       setFloorplans(project.floorplans || []);
+      setArrows(project.arrows || []);
+      setAnnotations(project.annotations || []);
       console.log('📍 Loaded floorplans:', project.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
+      console.log('📍 Loaded annotations:', project.annotations?.length || 0);
+      console.log('📍 Loaded arrows:', project.arrows?.length || 0);
       
       // Migrate old string-based rooms to new object format
       const loadedRooms = (project.rooms || []).map(room => {
@@ -158,7 +175,9 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         products: JSON.stringify(project.canvas_products || []),
         connections: JSON.stringify(project.connections || []),
         rooms: JSON.stringify(loadedRooms),
-        floorplans: JSON.stringify(project.floorplans || [])
+        floorplans: JSON.stringify(project.floorplans || []),
+        arrows: JSON.stringify(project.arrows || []),
+        annotations: JSON.stringify(project.annotations || [])
       };
       // Mark that project has been loaded, safe to auto-save now
       projectLoadedRef.current = true;
@@ -174,8 +193,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setConnections([]);
       setRooms([]);
       setFloorplans([]);
+      setArrows([]);
+      setAnnotations([]);
       localStorage.removeItem('av_canvas_temp_project_id');
-      lastSavedRef.current = { products: null, connections: null, rooms: null, floorplans: null };
+      lastSavedRef.current = { products: null, connections: null, rooms: null, floorplans: null, arrows: null, annotations: null };
     }
   }, [markLocalChange]);
 
@@ -186,12 +207,16 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);
     setFloorplans(updatedProject.floorplans || []);
+    setArrows(updatedProject.arrows || []);
+    setAnnotations(updatedProject.annotations || []);
 
     lastSavedRef.current = {
       products: JSON.stringify(updatedProject.canvas_products || []),
       connections: JSON.stringify(updatedProject.connections || []),
       rooms: JSON.stringify(updatedProject.rooms || []),
-      floorplans: JSON.stringify(updatedProject.floorplans || [])
+      floorplans: JSON.stringify(updatedProject.floorplans || []),
+      arrows: JSON.stringify(updatedProject.arrows || []),
+      annotations: JSON.stringify(updatedProject.annotations || [])
     };
   }, []);
 
@@ -323,6 +348,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     setConnections,
     floorplans,
     setFloorplans,
+    arrows,
+    setArrows,
+    annotations,
+    setAnnotations,
     loadProject,
     handleProjectUpdatedFromSync,
     handleAddRoom,
