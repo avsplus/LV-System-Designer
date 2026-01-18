@@ -2411,17 +2411,18 @@ function AVCanvasContent() {
                     fpHeight = 500 * fpScale;
                   }
                   
-                  // Legend position relative to floorplan (default bottom-left)
-                  const legendRelPos = floorplan.legendPosition || { x: 0.05, y: 0.95 };
-                  const legendCanvasX = fpPos.x + (legendRelPos.x * fpWidth);
-                  const legendCanvasY = fpPos.y + (legendRelPos.y * fpHeight);
+                  // Fixed spacing from bottom-left corner (20px in floorplan space)
+                  const spacing = 20;
+                  const legendCanvasX = fpPos.x + spacing;
+                  const legendCanvasY = fpPos.y + fpHeight - spacing;
                   
                   return (
                     <div key={floorplan.id} style={{
                       position: 'absolute',
                       left: `${legendCanvasX}px`,
                       top: `${legendCanvasY}px`,
-                      transformOrigin: 'top left',
+                      transform: 'translateY(-100%)',
+                      transformOrigin: 'bottom left',
                       pointerEvents: 'auto',
                       zIndex: 1000
                     }}>
