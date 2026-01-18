@@ -109,12 +109,8 @@ function AVCanvasContent() {
   const [resizeOffset, setResizeOffset] = useState({ scale: 1, position: { x: 0, y: 0 } });
   const resizingRef = useRef(null);
   const [hoveredDeviceId, setHoveredDeviceId] = useState(null);
-  const arrows = projectArrows;
-  const setArrows = setProjectArrows;
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
-  const annotations = projectAnnotations;
-  const setAnnotations = setProjectAnnotations;
   const [activeTool, setActiveTool] = useState('select');
   const [drawingAnnotation, setDrawingAnnotation] = useState(null);
   const [selectedAnnotation, setSelectedAnnotation] = useState(null);
@@ -147,8 +143,8 @@ function AVCanvasContent() {
   const {
     rooms, canvasProducts, connections, setConnections,
     floorplans, setFloorplans,
-    arrows: projectArrows, setArrows: setProjectArrows,
-    annotations: projectAnnotations, setAnnotations: setProjectAnnotations,
+    arrows, setArrows,
+    annotations, setAnnotations,
     loadProject, handleAddRoom, handleDeleteRoom, handleRenameRoom, addProductToCanvas,
     handlePositionChange, handleNetworkInfoChange, handleRemoveProduct,
     handleRemoveConnection, clearCanvas: clearCanvasData, handleProjectUpdatedFromSync
