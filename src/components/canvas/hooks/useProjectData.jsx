@@ -110,7 +110,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           markLocalChange();
         }
         try {
-          console.log('💾 Saving floorplans to database:', JSON.stringify(floorplans, null, 2));
+          console.log('💾 SAVING TO DATABASE:');
+          console.log('  - Annotations:', annotations?.length || 0, JSON.stringify(annotations, null, 2));
+          console.log('  - Arrows:', arrows?.length || 0, JSON.stringify(arrows, null, 2));
+          console.log('  - Floorplans:', floorplans?.length || 0);
           const updatedProject = await base44.entities.AVProject.update(currentProject.id, {
            canvas_products: canvasProducts,
            connections: connections,
@@ -120,8 +123,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
            annotations: annotations || []
           });
           lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson, arrows: arrowsJson, annotations: annotationsJson };
-          console.log('✅ Project saved - Floorplans:', floorplans.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
-          console.log('💾 Save complete - new timestamp:', updatedProject.updated_date);
+          console.log('✅ SAVE COMPLETE - new timestamp:', updatedProject.updated_date);
 
           // CRITICAL: Update currentProject's timestamp immediately to prevent sync race condition
           if (onSaveCompleteRef.current && updatedProject) {
@@ -143,16 +145,15 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   // Load project data
   const loadProject = useCallback((project) => {
     if (project) {
-      console.log('📂 Loading project:', project.name, 'timestamp:', project.updated_date);
-      console.log('📍 RAW floorplans from database:', JSON.stringify(project.floorplans, null, 2));
+      console.log('📂 LOADING PROJECT:', project.name, 'timestamp:', project.updated_date);
+      console.log('📍 RAW ANNOTATIONS from DB:', JSON.stringify(project.annotations, null, 2));
+      console.log('📍 RAW ARROWS from DB:', JSON.stringify(project.arrows, null, 2));
       setCanvasProducts(project.canvas_products || []);
       setConnections(project.connections || []);
       setFloorplans(project.floorplans || []);
       setArrows(project.arrows || []);
       setAnnotations(project.annotations || []);
-      console.log('📍 Loaded floorplans:', project.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
-      console.log('📍 Loaded annotations:', project.annotations?.length || 0);
-      console.log('📍 Loaded arrows:', project.arrows?.length || 0);
+      console.log('📍 STATE UPDATED - Annotations:', (project.annotations || []).length, 'Arrows:', (project.arrows || []).length);
       
       // Migrate old string-based rooms to new object format
       const loadedRooms = (project.rooms || []).map(room => {
