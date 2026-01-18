@@ -43,26 +43,26 @@ export default function SymbolLegend({ annotations = [], floorplans = [], floorp
   }
 
   return (
-    <Card className="bg-gray-900/90 backdrop-blur-sm border-gray-700 shadow-xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-white text-base font-semibold">Symbol Legend</CardTitle>
+    <Card className="bg-gray-900/90 backdrop-blur-sm border-gray-700 shadow-xl min-w-[280px]">
+      <CardHeader className="pb-5">
+        <CardTitle className="text-white text-xl font-bold">Symbol Legend</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {uniqueSymbols.map(symbol => (
-          <div key={symbol.id} className="flex items-center gap-4 py-1.5">
+          <div key={symbol.id} className="flex items-center gap-5 py-2">
             <div className="flex-shrink-0">
-              <svg width="50" height="50" viewBox="-30 -30 60 60">
+              <svg width="70" height="70" viewBox="-30 -30 60 60">
                 <SymbolRenderer
                   symbolId={symbol.id}
                   position={{ x: 0, y: 0 }}
                   color={symbol.color}
-                  scale={0.6}
+                  scale={0.8}
                   rotation={0}
                   flipped={false}
                 />
               </svg>
             </div>
-            <span className="text-gray-200 text-base font-medium">{symbol.name}</span>
+            <span className="text-gray-100 text-lg font-semibold">{symbol.name}</span>
           </div>
         ))}
       </CardContent>
