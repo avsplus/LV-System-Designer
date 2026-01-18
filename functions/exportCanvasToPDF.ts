@@ -1930,24 +1930,24 @@ Deno.serve(async (req) => {
               // Position at bottom-left (10mm margin from edges)
               const legendX = imgX + 10;
               const legendY = yPos + imgHeight - 10;
-              const legendWidth = 45;
-              const itemHeight = 6;
-              const legendHeight = 8 + (uniqueSymbols.length * itemHeight) + 3;
+              const legendWidth = 23;
+              const itemHeight = 3;
+              const legendHeight = 4 + (uniqueSymbols.length * itemHeight) + 1.5;
 
               // Draw legend card background
               setFill(doc, [17, 24, 39, 0.9]); // Dark with transparency
               doc.setGState(new doc.GState({ opacity: 0.95 }));
-              drawRoundedRect(legendX, legendY - legendHeight, legendWidth, legendHeight, 2);
+              drawRoundedRect(legendX, legendY - legendHeight, legendWidth, legendHeight, 1);
               doc.setGState(new doc.GState({ opacity: 1 }));
 
               // Legend title
               setColor(doc, theme.colors.white);
               doc.setFont(undefined, 'bold');
-              doc.setFontSize(8);
-              doc.text('Symbol Legend', legendX + 3, legendY - legendHeight + 5);
+              doc.setFontSize(4);
+              doc.text('Symbol Legend', legendX + 1.5, legendY - legendHeight + 2.5);
 
               // Draw each symbol
-              let symbolY = legendY - legendHeight + 10;
+              let symbolY = legendY - legendHeight + 5;
               uniqueSymbols.forEach(symbol => {
                 // Symbol icon (simple colored circle as placeholder)
                 const color = symbol.color ? [
@@ -1956,13 +1956,13 @@ Deno.serve(async (req) => {
                   parseInt(symbol.color.slice(5,7), 16)
                 ] : theme.colors.accent;
                 setFill(doc, color);
-                doc.circle(legendX + 5, symbolY - 1.5, 1.5, 'F');
+                doc.circle(legendX + 2.5, symbolY - 0.75, 0.75, 'F');
 
                 // Symbol name
                 setColor(doc, [229, 231, 235]); // Light gray text
                 doc.setFont(undefined, 'medium');
-                doc.setFontSize(6);
-                doc.text(SYMBOL_NAMES[symbol.id] || symbol.id, legendX + 9, symbolY);
+                doc.setFontSize(3);
+                doc.text(SYMBOL_NAMES[symbol.id] || symbol.id, legendX + 4.5, symbolY);
 
                 symbolY += itemHeight;
               });

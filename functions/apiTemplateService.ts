@@ -432,12 +432,12 @@ Deno.serve(async (req) => {
 
               let legendHtml = '';
               if (uniqueSymbols.length > 0) {
-                legendHtml = `<div style="position:absolute; bottom:10px; left:10px; background:rgba(17,24,39,0.95); border-radius:6px; padding:6px 10px; min-width:180px; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:100;">
-                  <div style="color:white; font-size:11px; font-weight:bold; margin-bottom:6px;">Symbol Legend</div>
+                legendHtml = `<div style="position:absolute; bottom:10px; left:10px; background:rgba(17,24,39,0.95); border-radius:3px; padding:3px 5px; min-width:90px; box-shadow:0 1px 4px rgba(0,0,0,0.3); z-index:100;">
+                  <div style="color:white; font-size:5.5px; font-weight:bold; margin-bottom:3px;">Symbol Legend</div>
                   ${uniqueSymbols.map(sym => `
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                      <div style="width:24px; height:24px; flex-shrink:0;">${getSymbolSVG(sym.id, sym.color)}</div>
-                      <span style="color:#e5e7eb; font-size:10px; font-weight:600;">${SYMBOL_NAMES[sym.id] || sym.id}</span>
+                    <div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;">
+                      <div style="width:12px; height:12px; flex-shrink:0;">${getSymbolSVG(sym.id, sym.color)}</div>
+                      <span style="color:#e5e7eb; font-size:5px; font-weight:600;">${SYMBOL_NAMES[sym.id] || sym.id}</span>
                     </div>
                   `).join('')}
                 </div>`;
