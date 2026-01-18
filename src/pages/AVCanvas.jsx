@@ -33,6 +33,7 @@ import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialo
 import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
 import AnnotationDetailsPanel from "../components/canvas/AnnotationDetailsPanel";
 import SymbolRenderer from "../components/canvas/SymbolRenderer";
+import SymbolLegend from "../components/canvas/SymbolLegend";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
@@ -3159,6 +3160,13 @@ function AVCanvasContent() {
                 setAnnotations(updated);
               }}
             />
+          )}
+
+          {/* Symbol Legend */}
+          {currentProject && (
+            <div className="fixed bottom-6 left-6 z-30 max-w-xs">
+              <SymbolLegend annotations={annotations} floorplans={floorplans} />
+            </div>
           )}
 
           {/* Text editing overlay */}
