@@ -699,7 +699,7 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
             
             if (product?.image_url && /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(product.image_url)) {
               cardStyle = `position:relative; background:url('${product.image_url}') center/cover; border-radius:12px; padding:20px; margin-bottom:20px; min-height:200px; overflow:hidden;`;
-              overlayHtml = '<div style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.85); border-radius:12px;"></div>';
+              overlayHtml = '<div style="position:absolute; top:0; left:0; right:0; bottom:0; background:#f0f5fa; border-radius:12px;"></div>';
             }
             
             deviceCardsHtml += `
