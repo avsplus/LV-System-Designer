@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -1272,7 +1273,6 @@ Deno.serve(async (req) => {
     centerText(doc, 'DATE', detailY, 8);
     detailY += 6;
     setColor(doc, theme.colors.white);
-    doc.setFont(undefined, 'bold');
     centerText(doc, new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), detailY, 12);
     
     // Section 3: Stats & Footer (bottom ~25%)
@@ -1465,11 +1465,11 @@ Deno.serve(async (req) => {
             // Draw image as card background (full card size)
             doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, cardX, yPos, deviceCardWidth, deviceCardHeight);
             
-            // Add semi-transparent overlay for text readability
-            doc.setGState(new doc.GState({ opacity: 0.85 }));
-            setFill(doc, [255, 255, 255]);
+            // Add white overlay for text readability (no opacity - not supported in jsPDF)
+            // doc.setGState(new doc.GState({ opacity: 0.85 }));
+            setFill(doc, [240, 245, 250]); // Very light blue-gray
             drawRoundedRect(cardX, yPos, deviceCardWidth, deviceCardHeight, 4);
-            doc.setGState(new doc.GState({ opacity: 1 }));
+            // doc.setGState(new doc.GState({ opacity: 1 }));
             
             hasImageBg = true;
           }
@@ -1505,10 +1505,11 @@ Deno.serve(async (req) => {
       const catText = product.category.replace(/_/g, ' ');
       doc.setFontSize(7);
       const catWidth = doc.getTextWidth(catText) + 8;
-      setFill(doc, [catColor[0], catColor[1], catColor[2]]);
-      doc.setGState(new doc.GState({ opacity: 0.15 }));
+      // Light tint of category color for background
+      setFill(doc, [248, 250, 252]);
+      // doc.setGState(new doc.GState({ opacity: 0.15 }));
       drawRoundedRect(cardX + 26, yPos + 20, catWidth, 9, 2);
-      doc.setGState(new doc.GState({ opacity: 1 }));
+      // doc.setGState(new doc.GState({ opacity: 1 }));
       setColor(doc, catColor);
       doc.setFont(undefined, 'normal');
       doc.text(catText, cardX + 30, yPos + 26);
@@ -1966,10 +1967,10 @@ Deno.serve(async (req) => {
               const legendHeight = 4 + (uniqueSymbols.length * itemHeight) + 1.5;
 
               // Draw legend card background
-              setFill(doc, [17, 24, 39, 0.9]); // Dark with transparency
-              doc.setGState(new doc.GState({ opacity: 0.95 }));
+              setFill(doc, [17, 24, 39]); // Dark background
+              // doc.setGState(new doc.GState({ opacity: 0.95 }));
               drawRoundedRect(legendX, legendY - legendHeight, legendWidth, legendHeight, 1);
-              doc.setGState(new doc.GState({ opacity: 1 }));
+              // doc.setGState(new doc.GState({ opacity: 1 }));
 
               // Legend title
               setColor(doc, theme.colors.white);
@@ -2072,11 +2073,11 @@ Deno.serve(async (req) => {
               // Draw image as card background
               doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, margin, yPos, contentWidth, cardHeight);
               
-              // Add semi-transparent overlay for text readability
-              doc.setGState(new doc.GState({ opacity: 0.85 }));
-              setFill(doc, [255, 255, 255]);
+              // Add white overlay for text readability (no opacity - not supported in jsPDF)
+              // doc.setGState(new doc.GState({ opacity: 0.85 }));
+              setFill(doc, [240, 245, 250]); // Very light blue-gray
               drawRoundedRect(margin, yPos, contentWidth, cardHeight, 3);
-              doc.setGState(new doc.GState({ opacity: 1 }));
+              // doc.setGState(new doc.GState({ opacity: 1 }));
               
               hasImageBg = true;
             }
@@ -2145,10 +2146,13 @@ Deno.serve(async (req) => {
         const catText = product.category.replace(/_/g, ' ');
         doc.setFontSize(7);
         const catWidth = doc.getTextWidth(catText) + 6;
-        setFill(doc, [catColor[0], catColor[1], catColor[2]]);
-        doc.setGState(new doc.GState({ opacity: 0.15 }));
+        // Light tint of category color for background
+        setFill(doc, [
+          Math.min(255, catColor[0] + 200),
+          Math.min(255, catColor[1] + 200),
+          Math.min(255, catColor[2] + 200)
+        ]);
         drawRoundedRect(pageWidth - margin - catWidth - 3, yPos + 38, catWidth, 8, 2);
-        doc.setGState(new doc.GState({ opacity: 1 }));
         setColor(doc, catColor);
         doc.text(catText, pageWidth - margin - catWidth, yPos + 44);
 
