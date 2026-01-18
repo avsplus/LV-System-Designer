@@ -411,6 +411,38 @@ Deno.serve(async (req) => {
               // Generate pure SVG overlay for annotations, symbols, and arrows
               const svgOverlay = buildFloorplanSVG({ fp, canvasProducts, annotations, arrows, connections });
 
+              // Build Symbol Legend
+              const SYMBOL_NAMES = {
+                'ELEC-1G': '1-Gang Outlet', 'ELEC-2G': '2-Gang Outlet', 'ELEC-4G': '4-Gang Outlet',
+                'AV-AVO': 'AV Outlet', 'NET-DP': 'Data & Phone', 'NET-DO': 'Data Outlet',
+                'NET-PO': 'Phone Outlet', 'AV-SPK': 'Speaker', 'NET-WAP': 'Wireless AP',
+                'AV-PS': 'Projector Screen', 'AV-TV': 'Television', 'CTRL-KP': 'Keypad',
+                'CTRL-WTP': 'Wall Touch Panel', 'CTRL-TTP': 'Tabletop Touch Panel', 'CTRL-VC': 'Volume Control'
+              };
+              
+              const symbolsOnFloorplan = annotations.filter(ann => ann.type === 'symbol' && ann.floorplanId === fp.id);
+              const uniqueSymbols = [];
+              const seenSymbols = new Set();
+              symbolsOnFloorplan.forEach(ann => {
+                if (!seenSymbols.has(ann.symbolId)) {
+                  seenSymbols.add(ann.symbolId);
+                  uniqueSymbols.push({ id: ann.symbolId, color: ann.color || '#3b82f6' });
+                }
+              });
+
+              let legendHtml = '';
+              if (uniqueSymbols.length > 0) {
+                legendHtml = `<div style="position:absolute; bottom:20px; left:20px; background:rgba(17,24,39,0.95); border-radius:8px; padding:12px 16px; min-width:280px; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:100;">
+                  <div style="color:white; font-size:16px; font-weight:bold; margin-bottom:10px;">Symbol Legend</div>
+                  ${uniqueSymbols.map(sym => `
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                      <div style="width:50px; height:50px; flex-shrink:0;">${getSymbolSVG(sym.id, sym.color)}</div>
+                      <span style="color:#e5e7eb; font-size:14px; font-weight:600;">${SYMBOL_NAMES[sym.id] || sym.id}</span>
+                    </div>
+                  `).join('')}
+                </div>`;
+              }
+
               bodyHtml += `
               <section class="keep-together">
               <h2>${fp.name}</h2>
@@ -418,6 +450,7 @@ Deno.serve(async (req) => {
               <img src="${fp.url}" style="width:100%; height:auto; display:block; border:1px solid #e5e7eb; border-radius:8px;" />
               ${devicesOverlay}
               ${svgOverlay}
+              ${legendHtml}
               </div>
   <div class="info-box">
     <div class="info-box-title">Scale Information</div>
