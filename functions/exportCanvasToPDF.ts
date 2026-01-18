@@ -1451,17 +1451,48 @@ Deno.serve(async (req) => {
       const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
       const catColor = getCategoryColor(product.category);
 
-      // Card background with subtle shadow effect
-      setFill(doc, [248, 250, 252]); // Very light gray
-      drawRoundedRect(cardX, yPos, deviceCardWidth, deviceCardHeight, 4);
+      // Try to load product image as background
+      let hasImageBg = false;
+      if (product.image_url && /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(product.image_url)) {
+        try {
+          const imgResponse = await fetch(product.image_url);
+          if (imgResponse.ok) {
+            const imgBlob = await imgResponse.blob();
+            const imgArrayBuffer = await imgBlob.arrayBuffer();
+            const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgArrayBuffer)));
+            const imgFormat = product.image_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+            
+            // Draw image as card background (full card size)
+            doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, cardX, yPos, deviceCardWidth, deviceCardHeight);
+            
+            // Add semi-transparent overlay for text readability
+            doc.setGState(new doc.GState({ opacity: 0.85 }));
+            setFill(doc, [255, 255, 255]);
+            drawRoundedRect(cardX, yPos, deviceCardWidth, deviceCardHeight, 4);
+            doc.setGState(new doc.GState({ opacity: 1 }));
+            
+            hasImageBg = true;
+          }
+        } catch (e) {
+          console.log('Could not load product image for background:', e);
+        }
+      }
+      
+      // Fallback to solid background if no image
+      if (!hasImageBg) {
+        setFill(doc, [248, 250, 252]);
+        drawRoundedRect(cardX, yPos, deviceCardWidth, deviceCardHeight, 4);
+      }
       
       // Top accent bar (thin, color-coded)
       setFill(doc, catColor);
       doc.roundedRect(cardX, yPos, deviceCardWidth, 3, 4, 4, 'F');
       doc.rect(cardX, yPos + 2, deviceCardWidth, 2, 'F'); // Square bottom of accent
 
-      // Category icon
-      drawCategoryIcon(doc, cardX + 14, yPos + 18, product.category, 16);
+      // Category icon (skip if we have image background)
+      if (!hasImageBg) {
+        drawCategoryIcon(doc, cardX + 14, yPos + 18, product.category, 16);
+      }
 
       // Device name (bold, prominent)
       setColor(doc, theme.colors.dark);
@@ -2027,16 +2058,8 @@ Deno.serve(async (req) => {
         const product = cp.product;
         const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
 
-        // Device card
-        setFill(doc, theme.colors.cardBg);
-        drawRoundedRect(margin, yPos, contentWidth, cardHeight, 3);
-
-        // Try to load product image
-        let imageLoaded = false;
-        const imageSize = 28;
-        const imageX = margin + 6;
-        const imageY = yPos + 6;
-        
+        // Try to load product image as card background
+        let hasImageBg = false;
         if (product.image_url && /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(product.image_url)) {
           try {
             const imgResponse = await fetch(product.image_url);
@@ -2046,19 +2069,30 @@ Deno.serve(async (req) => {
               const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgArrayBuffer)));
               const imgFormat = product.image_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
               
-              // Draw image with border
-              setFill(doc, theme.colors.white);
-              drawRoundedRect(imageX, imageY, imageSize, imageSize, 2);
-              doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, imageX + 1, imageY + 1, imageSize - 2, imageSize - 2);
-              imageLoaded = true;
+              // Draw image as card background
+              doc.addImage(`data:image/${imgFormat.toLowerCase()};base64,${imgBase64}`, imgFormat, margin, yPos, contentWidth, cardHeight);
+              
+              // Add semi-transparent overlay for text readability
+              doc.setGState(new doc.GState({ opacity: 0.85 }));
+              setFill(doc, [255, 255, 255]);
+              drawRoundedRect(margin, yPos, contentWidth, cardHeight, 3);
+              doc.setGState(new doc.GState({ opacity: 1 }));
+              
+              hasImageBg = true;
             }
           } catch (e) {
-            console.log('Could not load product image:', e);
+            console.log('Could not load product image for background:', e);
           }
         }
         
-        // Fallback to category icon if no image
-        if (!imageLoaded) {
+        // Fallback to solid background with category icon
+        if (!hasImageBg) {
+          setFill(doc, theme.colors.cardBg);
+          drawRoundedRect(margin, yPos, contentWidth, cardHeight, 3);
+          
+          const imageSize = 28;
+          const imageX = margin + 6;
+          const imageY = yPos + 6;
           drawCategoryIcon(doc, imageX + imageSize / 2, imageY + imageSize / 2, product.category, 20);
         }
 
