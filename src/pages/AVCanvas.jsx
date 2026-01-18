@@ -1137,16 +1137,12 @@ function AVCanvasContent() {
         const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
         
         const floorplan = getFloorplanAtPoint(canvasX, canvasY);
-        if (!floorplan) {
-          toast.error('Please place annotation on a floorplan');
-          return;
-        }
+        const fpCoords = floorplan ? canvasToFloorplanCoords(canvasX, canvasY, floorplan) : { x: canvasX, y: canvasY };
         
-        const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
         const newAnnotation = {
           id: Date.now().toString(),
           type: 'text',
-          floorplanId: floorplan.id,
+          floorplanId: floorplan?.id,
           position: fpCoords,
           text: 'Text',
           color: annotationColor,
@@ -1303,26 +1299,27 @@ function AVCanvasContent() {
         const canvasRect = canvasRef.current?.getBoundingClientRect();
         if (canvasRect) {
           const ann = annotations[selectedAnnotation];
-          const floorplan = floorplans.find(fp => fp.id === ann?.floorplanId);
-          if (!floorplan) return;
+          const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
 
           const currentCanvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
           const currentCanvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
-          const newFpCoords = canvasToFloorplanCoords(currentCanvasX, currentCanvasY, floorplan);
+          const newCoords = floorplan 
+            ? canvasToFloorplanCoords(currentCanvasX, currentCanvasY, floorplan)
+            : { x: currentCanvasX, y: currentCanvasY };
 
           setAnnotations(prev => prev.map((a, idx) => {
             if (idx !== selectedAnnotation) return a;
             const updated = {
               ...a,
-              position: newFpCoords
+              position: newCoords
             };
             // For lines, maintain the relative end position
             if (a.type === 'line' && a.endPosition && annotationDragInitial.endPosition) {
               const endDx = annotationDragInitial.endPosition.x - annotationDragInitial.annotationX;
               const endDy = annotationDragInitial.endPosition.y - annotationDragInitial.annotationY;
               updated.endPosition = {
-                x: newFpCoords.x + endDx,
-                y: newFpCoords.y + endDy
+                x: newCoords.x + endDx,
+                y: newCoords.y + endDy
               };
             }
             return updated;
@@ -2695,22 +2692,14 @@ function AVCanvasContent() {
                              setShowRoomManager(false);
                              setSelectedFloorplanId(null);
                              setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                             // Start dragging immediately
+                             handleSymbolAnnotationDragStart(e, idx);
                            }
                          }}
                          onDoubleClick={(e) => {
                            e.stopPropagation();
                            if (activeTool === 'select') {
-                             const canvasRect = canvasRef.current?.getBoundingClientRect();
-                             if (canvasRect) {
-                               const mouseWorldX = (e.clientX - canvasRect.left - pan.x) / zoom;
-                               const mouseWorldY = (e.clientY - canvasRect.top - pan.y) / zoom;
-                               setDraggingAnnotation(idx);
-                               setAnnotationDragStart({
-                                 mouseStartX: mouseWorldX,
-                                 mouseStartY: mouseWorldY,
-                                 startPosition: { ...ann.position }
-                               });
-                             }
+                             setEditingText(ann.id);
                            } else if (activeTool === 'text') {
                              setEditingText(ann.id);
                            }
