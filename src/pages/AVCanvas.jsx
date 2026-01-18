@@ -3055,6 +3055,41 @@ function AVCanvasContent() {
               transition: isPanning || draggingFloorplan ? 'none' : 'none',
               pointerEvents: 'none'
             }}>
+              {/* Symbol Legend - positioned at bottom-left of first visible floorplan */}
+              {floorplans.filter(fp => fp.visible).length > 0 && (() => {
+                const firstFloorplan = floorplans.find(fp => fp.visible);
+                if (!firstFloorplan) return null;
+                
+                const fpPos = firstFloorplan.position || { x: 0, y: 0 };
+                const fpScale = firstFloorplan.scale || 1;
+                
+                let fpHeight;
+                const hasCalibration = firstFloorplan.imageWidth && firstFloorplan.imageHeight && firstFloorplan.pixelsPerInch;
+                if (hasCalibration) {
+                  const scaleFactor = (1 / firstFloorplan.pixelsPerInch) * fpScale;
+                  const fpWidth = firstFloorplan.imageWidth * scaleFactor;
+                  fpHeight = firstFloorplan.imageHeight * scaleFactor;
+                } else if (firstFloorplan.imageWidth && firstFloorplan.imageHeight) {
+                  const fpWidth = 500 * fpScale;
+                  fpHeight = fpWidth * (firstFloorplan.imageHeight / firstFloorplan.imageWidth);
+                } else {
+                  fpHeight = 500 * fpScale;
+                }
+                
+                return (
+                  <div style={{
+                    position: 'absolute',
+                    left: `${fpPos.x + 20}px`,
+                    top: `${fpPos.y + fpHeight - 20}px`,
+                    transform: `scale(${1/zoom})`,
+                    transformOrigin: 'bottom left',
+                    pointerEvents: 'auto'
+                  }}>
+                    <SymbolLegend annotations={annotations} floorplans={floorplans} />
+                  </div>
+                );
+              })()}
+              
               {canvasProducts.map((cp) => {
                 const isHighlighted = highlightedConnections.some(idx => {
                   const conn = connections[idx];
@@ -3162,12 +3197,7 @@ function AVCanvasContent() {
             />
           )}
 
-          {/* Symbol Legend */}
-          {currentProject && (
-            <div className="fixed bottom-6 left-6 z-30 max-w-xs">
-              <SymbolLegend annotations={annotations} floorplans={floorplans} />
-            </div>
-          )}
+
 
           {/* Text editing overlay */}
           {editingText && annotations.find(a => a.id === editingText) && (() => {
