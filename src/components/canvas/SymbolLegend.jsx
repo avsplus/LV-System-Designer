@@ -20,12 +20,12 @@ const SYMBOL_NAMES = {
   'CTRL-VC': 'Volume Control'
 };
 
-export default function SymbolLegend({ annotations = [], floorplans = [] }) {
-  // Get unique symbols from annotations
+export default function SymbolLegend({ annotations = [], floorplans = [], floorplanId = null }) {
+  // Get unique symbols from annotations for this specific floorplan
   const uniqueSymbols = React.useMemo(() => {
     const symbolMap = new Map();
     annotations.forEach(ann => {
-      if (ann.type === 'symbol' && ann.symbolId) {
+      if (ann.type === 'symbol' && ann.symbolId && ann.floorplanId === floorplanId) {
         if (!symbolMap.has(ann.symbolId)) {
           symbolMap.set(ann.symbolId, {
             id: ann.symbolId,
@@ -36,14 +36,14 @@ export default function SymbolLegend({ annotations = [], floorplans = [] }) {
       }
     });
     return Array.from(symbolMap.values());
-  }, [annotations]);
+  }, [annotations, floorplanId]);
 
   if (uniqueSymbols.length === 0) {
     return null;
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700">
       <CardHeader className="pb-3">
         <CardTitle className="text-white text-sm font-semibold">Symbol Legend</CardTitle>
       </CardHeader>

@@ -3043,23 +3043,20 @@ function AVCanvasContent() {
               </div>
             )}
 
-            {/* Symbol Legend - positioned at bottom-left of first visible floorplan */}
-            {floorplans.filter(fp => fp.visible).length > 0 && (() => {
-              const firstFloorplan = floorplans.find(fp => fp.visible);
-              if (!firstFloorplan) return null;
-              
-              const fpPos = firstFloorplan.position || { x: 0, y: 0 };
-              const fpScale = firstFloorplan.scale || 1;
+            {/* Symbol Legends - one for each visible floorplan */}
+            {floorplans.filter(fp => fp.visible).map(floorplan => {
+              const fpPos = floorplan.position || { x: 0, y: 0 };
+              const fpScale = floorplan.scale || 1;
               
               let fpHeight;
-              const hasCalibration = firstFloorplan.imageWidth && firstFloorplan.imageHeight && firstFloorplan.pixelsPerInch;
+              const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
               if (hasCalibration) {
-                const scaleFactor = (1 / firstFloorplan.pixelsPerInch) * fpScale;
-                const fpWidth = firstFloorplan.imageWidth * scaleFactor;
-                fpHeight = firstFloorplan.imageHeight * scaleFactor;
-              } else if (firstFloorplan.imageWidth && firstFloorplan.imageHeight) {
+                const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                const fpWidth = floorplan.imageWidth * scaleFactor;
+                fpHeight = floorplan.imageHeight * scaleFactor;
+              } else if (floorplan.imageWidth && floorplan.imageHeight) {
                 const fpWidth = 500 * fpScale;
-                fpHeight = fpWidth * (firstFloorplan.imageHeight / firstFloorplan.imageWidth);
+                fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
               } else {
                 fpHeight = 500 * fpScale;
               }
@@ -3068,17 +3065,17 @@ function AVCanvasContent() {
               const legendY = (fpPos.y + fpHeight) * zoom + pan.y - 20;
               
               return (
-                <div style={{
+                <div key={floorplan.id} style={{
                   position: 'absolute',
                   left: `${legendX}px`,
                   bottom: `calc(100% - ${legendY}px)`,
                   zIndex: 1000,
                   pointerEvents: 'auto'
                 }}>
-                  <SymbolLegend annotations={annotations} floorplans={floorplans} />
+                  <SymbolLegend annotations={annotations} floorplans={floorplans} floorplanId={floorplan.id} />
                 </div>
               );
-            })()}
+            })}
 
             <div style={{ 
               position: 'absolute',
