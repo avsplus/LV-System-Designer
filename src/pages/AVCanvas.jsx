@@ -1152,9 +1152,8 @@ function AVCanvasContent() {
           color: annotationColor,
           fontSize: annotationFontSize
         };
+        setAnnotations([...annotations, newAnnotation]);
         setEditingText(newAnnotation.id);
-        const updated = [...annotations, newAnnotation];
-        setAnnotations(updated);
         saveAnnotations(updated);
       }
       return;
