@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
@@ -1892,6 +1893,82 @@ Deno.serve(async (req) => {
               });
               
               console.log(`Annotations drawn on floorplan: ${annotationsDrawn}`);
+            }
+
+            // Draw Symbol Legend at bottom-left
+            const symbolsOnFloorplan = annotations.filter(ann => 
+              ann.type === 'symbol' && ann.floorplanId === fp.id
+            );
+            const uniqueSymbols = [];
+            const seenSymbols = new Set();
+            
+            symbolsOnFloorplan.forEach(ann => {
+              if (!seenSymbols.has(ann.symbolId)) {
+                seenSymbols.add(ann.symbolId);
+                uniqueSymbols.push({ id: ann.symbolId, color: ann.color });
+              }
+            });
+
+            const SYMBOL_NAMES = {
+              'ELEC-1G': '1-Gang Outlet',
+              'ELEC-2G': '2-Gang Outlet',
+              'ELEC-4G': '4-Gang Outlet',
+              'AV-AVO': 'AV Outlet',
+              'NET-DP': 'Data & Phone',
+              'NET-DO': 'Data Outlet',
+              'NET-PO': 'Phone Outlet',
+              'AV-SPK': 'Speaker',
+              'NET-WAP': 'Wireless AP',
+              'AV-PS': 'Projector Screen',
+              'AV-TV': 'Television',
+              'CTRL-KP': 'Keypad',
+              'CTRL-WTP': 'Wall Touch Panel',
+              'CTRL-TTP': 'Tabletop Touch Panel',
+              'CTRL-VC': 'Volume Control'
+            };
+
+            if (uniqueSymbols.length > 0) {
+              // Position at bottom-left (20mm margin from edges)
+              const legendX = imgX + 20;
+              const legendY = yPos + imgHeight - 20;
+              const legendWidth = 70;
+              const itemHeight = 12;
+              const legendHeight = 12 + (uniqueSymbols.length * itemHeight) + 6;
+
+              // Draw legend card background
+              setFill(doc, [17, 24, 39, 0.9]); // Dark with transparency
+              doc.setGState(new doc.GState({ opacity: 0.95 }));
+              drawRoundedRect(legendX, legendY - legendHeight, legendWidth, legendHeight, 3);
+              doc.setGState(new doc.GState({ opacity: 1 }));
+
+              // Legend title
+              setColor(doc, theme.colors.white);
+              doc.setFont(undefined, 'bold');
+              doc.setFontSize(11);
+              doc.text('Symbol Legend', legendX + 4, legendY - legendHeight + 8);
+
+              // Draw each symbol
+              let symbolY = legendY - legendHeight + 16;
+              uniqueSymbols.forEach(symbol => {
+                // Symbol icon (simple colored circle as placeholder)
+                const color = symbol.color ? [
+                  parseInt(symbol.color.slice(1,3), 16),
+                  parseInt(symbol.color.slice(3,5), 16),
+                  parseInt(symbol.color.slice(5,7), 16)
+                ] : theme.colors.accent;
+                setFill(doc, color);
+                doc.circle(legendX + 8, symbolY - 2, 3, 'F');
+
+                // Symbol name
+                setColor(doc, [229, 231, 235]); // Light gray text
+                doc.setFont(undefined, 'medium');
+                doc.setFontSize(9);
+                doc.text(SYMBOL_NAMES[symbol.id] || symbol.id, legendX + 16, symbolY);
+
+                symbolY += itemHeight;
+              });
+
+              console.log(`Symbol Legend drawn with ${uniqueSymbols.length} symbols`);
             }
 
           } catch (error) {
