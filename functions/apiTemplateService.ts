@@ -690,14 +690,12 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
           for (const cp of canvasProducts) {
             const product = cp.product;
             const deviceConnections = connections.filter(c => c.from === cp.instanceId || c.to === cp.instanceId);
-            const catColor = getCategoryColor(product?.category);
-            const catColorHex = '#' + catColor.map(c => c.toString(16).padStart(2, '0')).join('');
             
             deviceCardsHtml += `
             <div style="position:relative; background:#f8fafc; border-radius:12px; padding:20px; margin-bottom:20px; min-height:140px;">
               <div style="display:flex; align-items:start; justify-content:space-between; margin-bottom:12px;">
                 <div style="flex:1;">
-                  <div style="color:${catColorHex}; font-size:10px; font-weight:600; text-transform:uppercase; margin-bottom:4px;">${(product?.category || '').replace(/_/g, ' ')}</div>
+                  <div style="color:#3b82f6; font-size:10px; font-weight:600; text-transform:uppercase; margin-bottom:4px;">${(product?.category || '').replace(/_/g, ' ')}</div>
                   <h3 style="margin:0; font-size:16px; color:#1f2937;">${cp.label || product?.brand || 'Device'}</h3>
                   <p style="margin:4px 0 0 0; color:#6b7280; font-size:12px;"><strong>${product?.brand || ''}</strong> ${product?.model || ''}</p>
                 </div>
