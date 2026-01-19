@@ -259,11 +259,22 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   // Get used ports for a connection type
   const getUsedPorts = (connectionType, ports, isInput) => {
     const used = new Set();
+    const isBidirectional = ['network_switches', 'routers'].includes(productData.category) && connectionType === 'Ethernet';
+    
     deviceConnections.forEach(conn => {
-      const isCorrectDirection = isInput ? (conn.to === instanceId) : (conn.from === instanceId);
-      if (!isCorrectDirection || conn.type !== connectionType) return;
+      if (conn.type !== connectionType) return;
+      
+      // For bidirectional devices, mark port as used if it's used in either direction
+      const isCorrectDirection = isBidirectional 
+        ? (conn.to === instanceId || conn.from === instanceId)
+        : isInput ? (conn.to === instanceId) : (conn.from === instanceId);
+      
+      if (!isCorrectDirection) return;
 
-      const connPort = isInput ? conn.toPort : conn.fromPort;
+      const connPort = isBidirectional 
+        ? (conn.to === instanceId ? conn.toPort : conn.fromPort)
+        : isInput ? conn.toPort : conn.fromPort;
+      
       if (!connPort) return;
       
       // Find matching port - exact match or fuzzy match (e.g., "Front-L" matches "Speaker-Front-Left")
@@ -281,11 +292,22 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
   
   // Get connected device info for a specific port
   const getConnectedDevice = (connectionType, port, isInput) => {
+    const isBidirectional = ['network_switches', 'routers'].includes(productData.category) && connectionType === 'Ethernet';
+    
     const conn = deviceConnections.find(c => {
-      const isCorrectDirection = isInput ? (c.to === instanceId) : (c.from === instanceId);
-      if (!isCorrectDirection || c.type !== connectionType) return false;
+      if (c.type !== connectionType) return false;
+      
+      // For bidirectional devices, check both directions
+      const isCorrectDirection = isBidirectional
+        ? (c.to === instanceId || c.from === instanceId)
+        : isInput ? (c.to === instanceId) : (c.from === instanceId);
+      
+      if (!isCorrectDirection) return false;
 
-      const checkPort = isInput ? c.toPort : c.fromPort;
+      const checkPort = isBidirectional
+        ? (c.to === instanceId ? c.toPort : c.fromPort)
+        : isInput ? c.toPort : c.fromPort;
+      
       if (!checkPort) return false;
       
       // Fuzzy match for port names
