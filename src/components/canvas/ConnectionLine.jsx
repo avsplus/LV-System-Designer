@@ -91,13 +91,22 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   const handleWaypointMouseDown = (e, index) => {
+    e.preventDefault();
     e.stopPropagation();
+    
     dragStateRef.current = {
       index,
       startX: e.clientX,
       startY: e.clientY,
       previewWaypoints: [...waypointsRef.current]
     };
+    
+    // Attach listeners immediately
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+    
+    // Disable text selection while dragging
+    document.body.style.userSelect = 'none';
   };
 
   const handleWaypointContextMenu = (e, index) => {
@@ -145,18 +154,12 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     }
     
     dragStateRef.current = null;
+    
+    // Clean up
+    window.removeEventListener('mousemove', handleWindowMouseMove);
+    window.removeEventListener('mouseup', handleWindowMouseUp);
+    document.body.style.userSelect = '';
   };
-
-  useEffect(() => {
-    if (dragStateRef.current) {
-      window.addEventListener('mousemove', handleWindowMouseMove);
-      window.addEventListener('mouseup', handleWindowMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleWindowMouseMove);
-        window.removeEventListener('mouseup', handleWindowMouseUp);
-      };
-    }
-  }, [zoom]);
 
   // Double-click to add waypoint at click location
   // Converts screen coordinates to world coordinates accounting for pan and zoom
