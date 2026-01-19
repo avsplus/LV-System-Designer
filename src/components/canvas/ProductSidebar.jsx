@@ -35,7 +35,11 @@ const categorySolidColors = {
   phone_jacks: "bg-cyan-500",
   intercoms: "bg-teal-500",
   nvrs: "bg-gray-600",
-  ip_cameras: "bg-gray-500"
+  ip_cameras: "bg-gray-500",
+  power_conditioner: "bg-yellow-600",
+  smart_power_conditioner: "bg-amber-500",
+  power_strip: "bg-orange-500",
+  ups_backup: "bg-red-500"
 };
 
 const categoryIcons = {
@@ -66,7 +70,11 @@ const categoryIcons = {
   phone_jacks: Plug,
   intercoms: Speaker,
   nvrs: HardDrive,
-  ip_cameras: Camera
+  ip_cameras: Camera,
+  power_conditioner: Zap,
+  smart_power_conditioner: Zap,
+  power_strip: Plug,
+  ups_backup: Zap
 };
 
 const masterCategoryMap = {
@@ -97,7 +105,11 @@ const masterCategoryMap = {
   phone_jacks: 'Communication',
   intercoms: 'Communication',
   nvrs: 'Surveillance',
-  ip_cameras: 'Surveillance'
+  ip_cameras: 'Surveillance',
+  power_conditioner: 'Power Management',
+  smart_power_conditioner: 'Power Management',
+  power_strip: 'Power Management',
+  ups_backup: 'Power Management'
 };
 
 // Define all master categories and their subcategories
@@ -108,7 +120,8 @@ const allMasterCategoryMappings = {
   'Control': ['control_processors', 'touch_panels', 'remotes'],
   'Displays': ['projector_screens', 'televisions'],
   'Network': ['network_switches', 'routers', 'access_points', 'patch_panels', 'data_jacks'],
-  'Surveillance': ['nvrs', 'ip_cameras']
+  'Surveillance': ['nvrs', 'ip_cameras'],
+  'Power Management': ['power_conditioner', 'smart_power_conditioner', 'power_strip', 'ups_backup']
 };
 
 const masterCategoryIcons = {
@@ -118,7 +131,8 @@ const masterCategoryIcons = {
   'Control': Zap,
   'Displays': Monitor,
   'Network': Network,
-  'Surveillance': Eye
+  'Surveillance': Eye,
+  'Power Management': Plug
 };
 
 export default function ProductSidebar({ products, onProductSelect }) {

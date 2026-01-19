@@ -16,7 +16,11 @@ export const CATEGORY_ABBREVIATIONS = {
   av_receivers: 'AVR',
   network_switches: 'SW',
   control_processors: 'CP',
-  hdmi_extenders: 'EXT'
+  hdmi_extenders: 'EXT',
+  power_conditioner: 'PC',
+  smart_power_conditioner: 'SPC',
+  power_strip: 'PS',
+  ups_backup: 'UPS'
 };
 
 // Connection type categories for wire ID prefixes
@@ -246,6 +250,41 @@ export const CONNECTIONS_BY_CATEGORY = {
       { type: "Ethernet", ports: ["LAN-Out", "Cat6-Out"] },
       { type: "IR", ports: ["IR-Out"] },
       { type: "RS232", ports: ["RS232-Out"] }
+    ]
+  },
+  power_conditioner: {
+    inputs: [
+      { type: "Power", ports: ["AC-In"] }
+    ],
+    outputs: [
+      { type: "Power", ports: ["Outlet-1", "Outlet-2", "Outlet-3", "Outlet-4", "Outlet-5", "Outlet-6"] }
+    ]
+  },
+  smart_power_conditioner: {
+    inputs: [
+      { type: "Power", ports: ["AC-In"] },
+      { type: "Ethernet", ports: ["LAN"] },
+      { type: "RS232", ports: ["RS232"] }
+    ],
+    outputs: [
+      { type: "Power", ports: ["Outlet-1", "Outlet-2", "Outlet-3", "Outlet-4", "Outlet-5", "Outlet-6"] }
+    ]
+  },
+  power_strip: {
+    inputs: [
+      { type: "Power", ports: ["AC-In"] }
+    ],
+    outputs: [
+      { type: "Power", ports: ["Outlet-1", "Outlet-2", "Outlet-3", "Outlet-4", "Outlet-5", "Outlet-6", "Outlet-7", "Outlet-8"] }
+    ]
+  },
+  ups_backup: {
+    inputs: [
+      { type: "Power", ports: ["AC-In"] },
+      { type: "Ethernet", ports: ["LAN"] }
+    ],
+    outputs: [
+      { type: "Power", ports: ["Battery-1", "Battery-2", "Battery-3", "Battery-4", "Surge-1", "Surge-2"] }
     ]
   }
 };
