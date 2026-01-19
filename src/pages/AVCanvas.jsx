@@ -3121,6 +3121,7 @@ function AVCanvasContent() {
                         setSelectedCanvasProduct(ensureNetworkInfo(cp));
                         setSelectedProduct(null);
                         setSelectedConnection(null);
+                        setSelectedAnnotation(null);
                         setShowFloorplanManager(false);
                         setShowRoomManager(false);
                         setSelectedFloorplanId(null);
