@@ -157,28 +157,18 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         stroke={color}
         strokeWidth={isSelected ? "6" : isHighlighted ? "6" : isHovered ? "4" : "3"}
         fill="none"
-        className="transition-all cursor-pointer"
+        className="transition-all"
         style={{ 
-          pointerEvents: 'stroke',
+          pointerEvents: 'none',
           filter: isSelected ? 'drop-shadow(0 0 12px currentColor)' : isHighlighted ? 'drop-shadow(0 0 8px currentColor)' : 'none',
           opacity: isSelected ? 1 : isHighlighted ? 1 : isHovered ? 0.9 : 0.8
-        }}
-        onClick={onClick}
-        onDoubleClick={handlePathDoubleClick}
-        onMouseEnter={() => {
-          setIsHovered(true);
-          if (onHover) onHover();
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          if (onLeave) onLeave();
         }}
       />
       {/* Invisible larger hit area - makes thin lines easier to click/hover on */}
        <path
         d={pathData}
         stroke="transparent"
-        strokeWidth="60"
+        strokeWidth="80"
         fill="none"
         className="cursor-pointer"
         style={{ pointerEvents: 'stroke' }}
