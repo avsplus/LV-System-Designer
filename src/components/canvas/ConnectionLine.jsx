@@ -30,6 +30,13 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const [draggingIndex, setDraggingIndex] = useState(null);
   const dragStateRef = useRef(null);
 
+  // Update local waypoints from props only when not dragging
+  useEffect(() => {
+    if (draggingIndex === null) {
+      setWaypoints(initialWaypoints || []);
+    }
+  }, [initialWaypoints, draggingIndex]);
+
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
   // Generates SVG path by connecting start point → waypoints → end point
