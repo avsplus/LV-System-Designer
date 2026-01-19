@@ -27,12 +27,15 @@ const connectionTypeColors = {
 export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, isSelected, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange, zoom = 1, pan = { x: 0, y: 0 } }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
+  const [draggingPreview, setDraggingPreview] = useState(null);
   
   // Imperative drag state - NO React state updates during drag
   const dragStateRef = useRef(null);
   const pathRef = useRef(null);
   const hitPathRef = useRef(null);
   const waypointsRef = useRef(initialWaypoints || []);
+  const previewPathRef = useRef(null);
+  const previewHitPathRef = useRef(null);
 
   // Keep waypoints ref in sync
   useEffect(() => {
@@ -83,16 +86,19 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const gRef = useRef(null);
 
   // Imperative path update - no React re-render
-  const updatePreviewPath = (previewWaypoints) => {
-    if (!pathRef.current || !hitPathRef.current) return;
+  const updatePreviewPath = (previewWaypoints, dragIndex, dragPos) => {
+    if (!previewPathRef.current || !previewHitPathRef.current) return;
     const d = generatePath(previewWaypoints);
-    pathRef.current.setAttribute('d', d);
-    hitPathRef.current.setAttribute('d', d);
+    previewPathRef.current.setAttribute('d', d);
+    previewHitPathRef.current.setAttribute('d', d);
+    setDraggingPreview({ index: dragIndex, x: dragPos.x, y: dragPos.y });
   };
 
   const handleWaypointMouseDown = (e, index) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    const wp = waypointsRef.current[index];
     
     dragStateRef.current = {
       index,
@@ -100,6 +106,9 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       startY: e.clientY,
       previewWaypoints: [...waypointsRef.current]
     };
+    
+    // Show initial preview
+    setDraggingPreview({ index, x: wp.x, y: wp.y });
     
     // Attach listeners immediately
     window.addEventListener('mousemove', handleWindowMouseMove);
@@ -130,13 +139,14 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     const dy = (e.clientY - startY) / zoom;
     
     // Update preview waypoints directly
-    previewWaypoints[index] = {
+    const newPos = {
       x: waypointsRef.current[index].x + dx,
       y: waypointsRef.current[index].y + dy
     };
+    previewWaypoints[index] = newPos;
     
     // Update SVG path imperatively - instant, no React
-    updatePreviewPath(previewWaypoints);
+    updatePreviewPath(previewWaypoints, index, newPos);
   };
 
   const handleWindowMouseUp = () => {
@@ -154,6 +164,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     }
     
     dragStateRef.current = null;
+    setDraggingPreview(null);
     
     // Clean up
     window.removeEventListener('mousemove', handleWindowMouseMove);
@@ -184,6 +195,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   return (
     <g>
+      {/* Main path */}
       <path
         ref={pathRef}
         d={pathData}
@@ -194,9 +206,33 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         style={{ 
           pointerEvents: 'none',
           filter: isSelected ? 'drop-shadow(0 0 12px currentColor)' : isHighlighted ? 'drop-shadow(0 0 8px currentColor)' : 'none',
-          opacity: isSelected ? 1 : isHighlighted ? 1 : isHovered ? 0.9 : 0.8
+          opacity: draggingPreview ? 0.3 : isSelected ? 1 : isHighlighted ? 1 : isHovered ? 0.9 : 0.8
         }}
       />
+      
+      {/* Preview path while dragging */}
+      {draggingPreview && (
+        <>
+          <path
+            ref={previewPathRef}
+            d={pathData}
+            stroke={color}
+            strokeWidth="3"
+            strokeDasharray="8 4"
+            fill="none"
+            style={{ pointerEvents: 'none' }}
+          />
+          <path
+            ref={previewHitPathRef}
+            d={pathData}
+            stroke="transparent"
+            strokeWidth="80"
+            fill="none"
+            style={{ pointerEvents: 'none' }}
+          />
+        </>
+      )}
+      
       {/* Invisible larger hit area - makes thin lines easier to click/hover on */}
        <path
         ref={hitPathRef}
@@ -205,7 +241,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         strokeWidth="80"
         fill="none"
         className="cursor-pointer"
-        style={{ pointerEvents: 'stroke' }}
+        style={{ pointerEvents: draggingPreview ? 'none' : 'stroke' }}
         onClick={onClick}
         onDoubleClick={handlePathDoubleClick}
         onMouseEnter={() => {
@@ -227,7 +263,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
           r="12"
           fill="transparent"
           stroke="none"
-          style={{ pointerEvents: 'all' }}
+          style={{ pointerEvents: draggingPreview ? 'none' : 'all', opacity: draggingPreview?.index === index ? 0 : 1 }}
           onMouseDown={(e) => handleWaypointMouseDown(e, index)}
           onContextMenu={(e) => handleWaypointContextMenu(e, index)}
           className="cursor-move"
@@ -244,9 +280,22 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
           fill={color}
           stroke="white"
           strokeWidth="2"
-          style={{ pointerEvents: 'none' }}
+          style={{ pointerEvents: 'none', opacity: draggingPreview?.index === index ? 0.3 : 1 }}
         />
       ))}
+      
+      {/* Dragging preview waypoint */}
+      {draggingPreview && (
+        <circle
+          cx={draggingPreview.x}
+          cy={draggingPreview.y}
+          r="6"
+          fill={color}
+          stroke="white"
+          strokeWidth="2"
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
 
       {/* Connection Label */}
       {!isHovered && wireId && (
