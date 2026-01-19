@@ -277,7 +277,11 @@ Deno.serve(async (req) => {
         }
 
         // Build template data
-        const uniqueRooms = [...new Set(canvasProducts.map(cp => cp.room).filter(Boolean))];
+        const getRoomName = (room) => {
+          if (!room) return 'Unassigned';
+          return typeof room === 'object' ? (room.name || room.id || String(room)) : String(room);
+        };
+        const uniqueRooms = [...new Set(canvasProducts.map(cp => getRoomName(cp.room)))];
         if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
 
         const exportTypeTitle = exportType === 'client' ? 'Client Proposal' : exportType === 'documentation' ? 'Full Documentation' : 'Installation Package';
@@ -582,10 +586,7 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
   <ul>${Object.entries(categoryCounts).map(([cat, count]) => `<li><strong>${count}x</strong> ${cat.charAt(0).toUpperCase() + cat.slice(1)}</li>`).join('')}</ul>
   <h2>2. Equipment Installation</h2>
   <ul>${uniqueRooms.map(room => {
-    const roomDevices = canvasProducts.filter(cp => {
-      const deviceRoom = cp.room ? String(cp.room).trim() : 'Unassigned';
-      return deviceRoom === room;
-    });
+    const roomDevices = canvasProducts.filter(cp => getRoomName(cp.room) === room);
     if (roomDevices.length === 0) return '';
     const count = Number.isInteger(roomDevices.length) ? roomDevices.length : 0;
     return `<li><strong>${room}:</strong> ${count} device(s)</li>`;
@@ -606,10 +607,7 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
         if (isClient) {
           let roomTablesHtml = '';
           uniqueRooms.forEach(room => {
-            const roomDevices = canvasProducts.filter(cp => {
-              const deviceRoom = cp.room ? String(cp.room).trim() : 'Unassigned';
-              return deviceRoom === room;
-            });
+            const roomDevices = canvasProducts.filter(cp => getRoomName(cp.room) === room);
             if (roomDevices.length === 0) return;
             roomTablesHtml += `<h2>${room}</h2><table><thead><tr><th>Equipment</th><th>Brand / Model</th><th>Category</th>${showPricing ? '<th style="text-align:right;">Price</th>' : ''}</tr></thead><tbody>`;
             roomDevices.forEach(cp => {
@@ -703,7 +701,7 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
               </div>
               
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
-                ${cp.room ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Room</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.room}</div></div>` : ''}
+                ${cp.room ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Room</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${getRoomName(cp.room)}</div></div>` : ''}
                 ${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">IP Address</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.networkInfo.ip}</div></div>` : ''}
                 ${cp.networkInfo?.sw ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Network</div><div style="font-size:12px; font-weight:500; color:#1f2937;">SW ${cp.networkInfo.sw} · Port ${cp.networkInfo.port || '-'}</div></div>` : ''}
               </div>
