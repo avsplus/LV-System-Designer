@@ -2865,7 +2865,7 @@ function AVCanvasContent() {
                           onMouseEnter={() => setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
-                            if (activeTool === 'select') {
+                            if (activeTool === 'select' && !ann.locked) {
                               e.stopPropagation();
                               setSelectedAnnotation(idx);
                               setSelectedProduct(null);
@@ -2885,7 +2885,7 @@ function AVCanvasContent() {
                                   annotationY: ann.position.y
                                 });
                               }
-                            } else if (activeTool === 'text') {
+                            } else if (activeTool === 'text' && !ann.locked) {
                               setEditingText(ann.id);
                             }
                           }}
