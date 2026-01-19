@@ -2652,12 +2652,18 @@ function AVCanvasContent() {
                 {/* Saved arrows - render AFTER connections */}
                 {arrows.map((arrow, idx) => {
                   const isHovered = hoveredArrow === idx;
+                  
+                  // Calculate dynamic start position based on device's current position
+                  const device = canvasProducts.find(cp => cp.instanceId === arrow.instanceId);
+                  const startX = device ? device.position.x + CARD_WIDTH / 2 : arrow.start.x;
+                  const startY = device ? device.position.y + CARD_HEIGHT : arrow.start.y;
+                  
                   return (
                     <g key={idx}>
                       {/* Invisible hit area for easier interaction */}
                       <line
-                        x1={arrow.start.x}
-                        y1={arrow.start.y}
+                        x1={startX}
+                        y1={startY}
                         x2={arrow.end.x}
                         y2={arrow.end.y}
                         stroke="transparent"
@@ -2685,8 +2691,8 @@ function AVCanvasContent() {
                       />
                       {/* Visible arrow line */}
                       <line
-                        x1={arrow.start.x}
-                        y1={arrow.start.y}
+                        x1={startX}
+                        y1={startY}
                         x2={arrow.end.x}
                         y2={arrow.end.y}
                         stroke={isHovered ? "#ef4444" : "#3b82f6"}
@@ -3128,12 +3134,18 @@ function AVCanvasContent() {
                 {/* Saved arrows - render AFTER connections */}
                 {arrows.map((arrow, idx) => {
                   const isHovered = hoveredArrow === idx;
+                  
+                  // Calculate dynamic start position based on device's current position
+                  const device = canvasProducts.find(cp => cp.instanceId === arrow.instanceId);
+                  const startX = device ? device.position.x + CARD_WIDTH / 2 : arrow.start.x;
+                  const startY = device ? device.position.y + CARD_HEIGHT : arrow.start.y;
+                  
                   return (
                     <g key={idx}>
                       {/* Invisible hit area for easier interaction */}
                       <line
-                        x1={arrow.start.x}
-                        y1={arrow.start.y}
+                        x1={startX}
+                        y1={startY}
                         x2={arrow.end.x}
                         y2={arrow.end.y}
                         stroke="transparent"
@@ -3161,8 +3173,8 @@ function AVCanvasContent() {
                       />
                       {/* Visible arrow line */}
                       <line
-                        x1={arrow.start.x}
-                        y1={arrow.start.y}
+                        x1={startX}
+                        y1={startY}
                         x2={arrow.end.x}
                         y2={arrow.end.y}
                         stroke={isHovered ? "#ef4444" : "#3b82f6"}
