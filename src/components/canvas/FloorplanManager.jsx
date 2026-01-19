@@ -639,6 +639,60 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                   </div>
                 )}
 
+                {/* Annotations & Symbols Controls */}
+                <div className="pt-2 border-t border-gray-700" onClick={(e) => e.stopPropagation()}>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-gray-400">Annotations & Symbols</label>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
+                            const allLocked = fpAnnotations.every(ann => ann.locked);
+                            onAnnotationsChange(annotations.map(ann => 
+                              ann.floorplanId === fp.id ? { ...ann, locked: !allLocked } : ann
+                            ));
+                            toast.success(allLocked ? 'Annotations unlocked' : 'Annotations locked');
+                          }}
+                          className="h-6 px-2 text-gray-400 hover:text-white"
+                        >
+                          {(() => {
+                            const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
+                            const allLocked = fpAnnotations.length > 0 && fpAnnotations.every(ann => ann.locked);
+                            return allLocked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />;
+                          })()}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
+                            const allHidden = fpAnnotations.every(ann => ann.hidden);
+                            onAnnotationsChange(annotations.map(ann => 
+                              ann.floorplanId === fp.id ? { ...ann, hidden: !allHidden } : ann
+                            ));
+                            toast.success(allHidden ? 'Annotations shown' : 'Annotations hidden');
+                          }}
+                          className="h-6 px-2 text-gray-400 hover:text-white"
+                        >
+                          {(() => {
+                            const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
+                            const allHidden = fpAnnotations.length > 0 && fpAnnotations.every(ann => ann.hidden);
+                            return allHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />;
+                          })()}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-500">
+                      {annotations.filter(ann => ann.floorplanId === fp.id).length} annotation(s) on this floorplan
+                    </p>
+                  </div>
+                </div>
+
                 {/* Rooms Section */}
                 <div className="pt-3 border-t border-gray-700" onClick={(e) => e.stopPropagation()}>
                   <button 
