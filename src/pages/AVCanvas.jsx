@@ -2947,6 +2947,55 @@ function AVCanvasContent() {
                   );
                 })}
 
+                {/* Saved arrows - render with connections */}
+                {arrows.map((arrow, idx) => {
+                  const isHovered = hoveredArrow === idx;
+                  return (
+                    <g key={idx}>
+                      {/* Invisible hit area for easier interaction */}
+                      <line
+                        x1={arrow.start.x}
+                        y1={arrow.start.y}
+                        x2={arrow.end.x}
+                        y2={arrow.end.y}
+                        stroke="transparent"
+                        strokeWidth="20"
+                        className="pointer-events-auto cursor-pointer"
+                        onMouseEnter={() => setHoveredArrow(idx)}
+                        onMouseLeave={() => setHoveredArrow(null)}
+                        onClick={async () => {
+                          const confirmed = window.confirm('Are you sure you want to delete this arrow?');
+                          if (confirmed) {
+                            const updated = arrows.filter((_, i) => i !== idx);
+                            setArrows(updated);
+                            if (markLocalChangeRef.current) markLocalChangeRef.current();
+                            if (currentProject?.id) {
+                              base44.entities.AVProject.update(currentProject.id, {
+                                canvas_products: canvasProducts,
+                                connections: connections,
+                                rooms: rooms,
+                                floorplans: floorplans,
+                                arrows: updated
+                              }).catch(err => console.error('Failed to save arrows:', err));
+                            }
+                          }
+                        }}
+                      />
+                      {/* Visible arrow line */}
+                      <line
+                        x1={arrow.start.x}
+                        y1={arrow.start.y}
+                        x2={arrow.end.x}
+                        y2={arrow.end.y}
+                        stroke={isHovered ? "#ef4444" : "#3b82f6"}
+                        strokeWidth={isHovered ? "4" : "3"}
+                        markerEnd={isHovered ? "url(#arrowhead-hover)" : "url(#arrowhead)"}
+                        className="pointer-events-none"
+                      />
+                    </g>
+                  );
+                })}
+
                 {/* Arrow being drawn */}
                 {drawingArrow && (
                   <g>
