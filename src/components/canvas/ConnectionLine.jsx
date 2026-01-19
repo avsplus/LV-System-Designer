@@ -226,7 +226,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
             ref={previewHitPathRef}
             d={pathData}
             stroke="transparent"
-            strokeWidth="80"
+            strokeWidth="20"
             fill="none"
             style={{ pointerEvents: 'none' }}
           />
@@ -238,7 +238,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         ref={hitPathRef}
         d={pathData}
         stroke="transparent"
-        strokeWidth="80"
+        strokeWidth="20"
         fill="none"
         className="cursor-pointer"
         style={{ pointerEvents: draggingPreview ? 'none' : 'stroke' }}
