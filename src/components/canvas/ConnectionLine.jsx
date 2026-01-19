@@ -29,8 +29,12 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const dragStateRef = useRef(null);
-  const rafRef = useRef(null);
-  const pendingUpdateRef = useRef(null);
+  const currentWaypointsRef = useRef(waypoints);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentWaypointsRef.current = waypoints;
+  }, [waypoints]);
 
   // Update local waypoints from props only when not dragging
   useEffect(() => {
@@ -81,8 +85,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     dragStateRef.current = {
       index,
       startX: e.clientX,
-      startY: e.clientY,
-      initialWaypoints: [...waypoints]
+      startY: e.clientY
     };
     setDraggingIndex(index);
   };
@@ -156,13 +159,9 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       return () => {
         window.removeEventListener('mousemove', handleWindowMouseMove);
         window.removeEventListener('mouseup', handleWindowMouseUp);
-        if (rafRef.current) {
-          cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-        }
       };
     }
-  }, [draggingIndex, zoom, waypoints]);
+  }, [draggingIndex, zoom]);
 
   // Double-click to add waypoint at click location
   // Converts screen coordinates to world coordinates accounting for pan and zoom
