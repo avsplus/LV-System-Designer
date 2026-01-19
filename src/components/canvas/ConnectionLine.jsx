@@ -27,28 +27,30 @@ const connectionTypeColors = {
 export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionType, wireId, waypoints: initialWaypoints, isHighlighted, isSelected, offset = 0, onRemove, onClick, onHover, onLeave, onWaypointsChange, zoom = 1, pan = { x: 0, y: 0 } }) {
   const [isHovered, setIsHovered] = useState(false);
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
-  const [draggingIndex, setDraggingIndex] = useState(null);
+  
+  // Imperative drag state - NO React state updates during drag
   const dragStateRef = useRef(null);
-  const currentWaypointsRef = useRef(waypoints);
+  const pathRef = useRef(null);
+  const hitPathRef = useRef(null);
+  const waypointsRef = useRef(initialWaypoints || []);
 
-  // Keep ref in sync with state
+  // Keep waypoints ref in sync
   useEffect(() => {
-    currentWaypointsRef.current = waypoints;
+    waypointsRef.current = waypoints;
   }, [waypoints]);
 
-  // Update local waypoints from props only when not dragging
+  // Update from props when not dragging
   useEffect(() => {
-    if (draggingIndex === null) {
+    if (!dragStateRef.current) {
       setWaypoints(initialWaypoints || []);
     }
-  }, [initialWaypoints, draggingIndex]);
+  }, [initialWaypoints]);
 
   const color = connectionTypeColors[connectionType] || "#3b82f6";
 
   // Generates SVG path by connecting start point → waypoints → end point
-  // Waypoints allow users to manually route connections around obstacles
-  const generatePath = () => {
-    const points = [from, ...waypoints, to];
+  const generatePath = (wps = waypoints) => {
+    const points = [from, ...wps, to];
     let path = '';
     
     points.forEach((p, i) => {
@@ -80,14 +82,22 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
 
   const gRef = useRef(null);
 
+  // Imperative path update - no React re-render
+  const updatePreviewPath = (previewWaypoints) => {
+    if (!pathRef.current || !hitPathRef.current) return;
+    const d = generatePath(previewWaypoints);
+    pathRef.current.setAttribute('d', d);
+    hitPathRef.current.setAttribute('d', d);
+  };
+
   const handleWaypointMouseDown = (e, index) => {
     e.stopPropagation();
     dragStateRef.current = {
       index,
       startX: e.clientX,
-      startY: e.clientY
+      startY: e.clientY,
+      previewWaypoints: [...waypointsRef.current]
     };
-    setDraggingIndex(index);
   };
 
   const handleWaypointContextMenu = (e, index) => {
@@ -100,60 +110,45 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     }
   };
 
-  // Handles waypoint dragging with zoom-aware calculations
-  // Updates waypoint position as user drags it across the canvas
+  // Imperative drag handler - updates SVG directly, no React state
   const handleWindowMouseMove = (e) => {
-    if (draggingIndex !== null && dragStateRef.current) {
-      const { startX, startY, index } = dragStateRef.current;
-      
-      // Calculate delta in world space (accounts for zoom level to maintain smooth dragging)
-      const dx = (e.clientX - startX) / zoom;
-      const dy = (e.clientY - startY) / zoom;
-      
-      // Store pending update
-      const newWaypoints = [...waypoints];
-      newWaypoints[index].x += dx;
-      newWaypoints[index].y += dy;
-      pendingUpdateRef.current = newWaypoints;
-      
-      // Update drag start for next iteration
-      dragStateRef.current.startX = e.clientX;
-      dragStateRef.current.startY = e.clientY;
-
-      // Throttle visual updates using requestAnimationFrame
-      if (!rafRef.current) {
-        rafRef.current = requestAnimationFrame(() => {
-          if (pendingUpdateRef.current) {
-            setWaypoints(pendingUpdateRef.current);
-          }
-          rafRef.current = null;
-        });
-      }
-    }
+    if (!dragStateRef.current) return;
+    
+    const { index, startX, startY, previewWaypoints } = dragStateRef.current;
+    
+    // Calculate delta in world space
+    const dx = (e.clientX - startX) / zoom;
+    const dy = (e.clientY - startY) / zoom;
+    
+    // Update preview waypoints directly
+    previewWaypoints[index] = {
+      x: waypointsRef.current[index].x + dx,
+      y: waypointsRef.current[index].y + dy
+    };
+    
+    // Update SVG path imperatively - instant, no React
+    updatePreviewPath(previewWaypoints);
   };
 
   const handleWindowMouseUp = () => {
-    // Cancel any pending animation frame
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
+    if (!dragStateRef.current) return;
     
-    // Apply final pending update and notify parent
-    if (pendingUpdateRef.current) {
-      setWaypoints(pendingUpdateRef.current);
-      if (onWaypointsChange) {
-        onWaypointsChange(pendingUpdateRef.current);
-      }
-      pendingUpdateRef.current = null;
+    const { index, previewWaypoints } = dragStateRef.current;
+    
+    // Commit to React state once
+    const finalWaypoints = [...waypointsRef.current];
+    finalWaypoints[index] = previewWaypoints[index];
+    
+    setWaypoints(finalWaypoints);
+    if (onWaypointsChange) {
+      onWaypointsChange(finalWaypoints);
     }
     
     dragStateRef.current = null;
-    setDraggingIndex(null);
   };
 
   useEffect(() => {
-    if (draggingIndex !== null) {
+    if (dragStateRef.current) {
       window.addEventListener('mousemove', handleWindowMouseMove);
       window.addEventListener('mouseup', handleWindowMouseUp);
       return () => {
@@ -161,7 +156,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         window.removeEventListener('mouseup', handleWindowMouseUp);
       };
     }
-  }, [draggingIndex, zoom]);
+  }, [zoom]);
 
   // Double-click to add waypoint at click location
   // Converts screen coordinates to world coordinates accounting for pan and zoom
@@ -187,6 +182,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   return (
     <g>
       <path
+        ref={pathRef}
         d={pathData}
         stroke={color}
         strokeWidth={isSelected ? "6" : isHighlighted ? "6" : isHovered ? "4" : "3"}
@@ -200,6 +196,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       />
       {/* Invisible larger hit area - makes thin lines easier to click/hover on */}
        <path
+        ref={hitPathRef}
         d={pathData}
         stroke="transparent"
         strokeWidth="80"
