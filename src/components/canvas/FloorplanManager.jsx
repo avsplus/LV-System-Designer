@@ -646,7 +646,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                       <label className="text-xs text-gray-400">Annotations & Symbols</label>
                       <div className="flex gap-1">
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -657,16 +657,25 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                             ));
                             toast.success(allLocked ? 'Annotations unlocked' : 'Annotations locked');
                           }}
-                          className="h-6 px-2 text-gray-400 hover:text-white"
+                          className={`h-7 w-7 ${(() => {
+                            const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
+                            const allLocked = fpAnnotations.length > 0 && fpAnnotations.every(ann => ann.locked);
+                            return allLocked ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300';
+                          })()}`}
+                          title={(() => {
+                            const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
+                            const allLocked = fpAnnotations.length > 0 && fpAnnotations.every(ann => ann.locked);
+                            return allLocked ? 'Unlock' : 'Lock';
+                          })()}
                         >
                           {(() => {
                             const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
                             const allLocked = fpAnnotations.length > 0 && fpAnnotations.every(ann => ann.locked);
-                            return allLocked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />;
+                            return allLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />;
                           })()}
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -677,7 +686,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                             ));
                             toast.success(allHidden ? 'Annotations shown' : 'Annotations hidden');
                           }}
-                          className="h-6 px-2 text-gray-400 hover:text-white"
+                          className="h-7 w-7 text-orange-400 hover:text-orange-300"
                         >
                           {(() => {
                             const fpAnnotations = annotations.filter(ann => ann.floorplanId === fp.id);
