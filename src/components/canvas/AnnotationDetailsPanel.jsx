@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trash2, FlipHorizontal, RotateCw } from 'lucide-react';
+import { X, Trash2, FlipHorizontal, RotateCw, Copy } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ export default function AnnotationDetailsPanel({
   onClose, 
   onUpdate, 
   onDelete,
+  onDuplicate,
   index 
 }) {
   const [showDelete, setShowDelete] = useState(false);
@@ -317,8 +318,16 @@ export default function AnnotationDetailsPanel({
         </div>
       </div>
 
-      {/* Delete Button */}
-      <div className="border-t border-gray-800 p-4">
+      {/* Action Buttons */}
+      <div className="border-t border-gray-800 p-4 space-y-2">
+        <Button
+          onClick={onDuplicate}
+          variant="outline"
+          className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+        >
+          <Copy className="w-4 h-4 mr-2" />
+          Duplicate
+        </Button>
         <Button
           onClick={() => setShowDelete(true)}
           className="w-full bg-red-600 hover:bg-red-700 text-white"

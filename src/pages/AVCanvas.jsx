@@ -1212,6 +1212,30 @@ function AVCanvasContent() {
     setSelectedAnnotation(null);
   };
 
+  const handleDuplicateAnnotation = (index) => {
+    const original = annotations[index];
+    if (!original) return;
+    
+    // Create duplicate with new ID and slightly offset position
+    const duplicate = {
+      ...original,
+      id: Date.now().toString(),
+      position: {
+        x: original.position.x + 0.05,
+        y: original.position.y + 0.05
+      },
+      endPosition: original.endPosition ? {
+        x: original.endPosition.x + 0.05,
+        y: original.endPosition.y + 0.05
+      } : undefined
+    };
+    
+    const updated = [...annotations, duplicate];
+    setAnnotations(updated);
+    setSelectedAnnotation(updated.length - 1);
+    toast.success('Annotation duplicated');
+  };
+
   const handleAnnotationMouseDown = (e) => {
     if (activeTool === 'select' || !currentProject) return;
     
@@ -3800,6 +3824,7 @@ function AVCanvasContent() {
              onClose={() => setSelectedAnnotation(null)}
              onUpdate={handleUpdateAnnotation}
              onDelete={handleDeleteAnnotation}
+             onDuplicate={() => handleDuplicateAnnotation(selectedAnnotation)}
            />
         )}
 
