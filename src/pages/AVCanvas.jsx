@@ -2725,19 +2725,19 @@ function AVCanvasContent() {
                          onMouseEnter={() => setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
-                           if (activeTool === 'select') {
-                             e.stopPropagation();
-                             setSelectedAnnotation(idx);
-                             setSelectedProduct(null);
-                             setSelectedCanvasProduct(null);
-                             setSelectedConnection(null);
-                             setShowFloorplanManager(false);
-                             setShowRoomManager(false);
-                             setSelectedFloorplanId(null);
-                             setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                             // Start dragging immediately
-                             handleSymbolAnnotationDragStart(e, idx);
-                           }
+                          if (activeTool === 'select' && !ann.locked) {
+                            e.stopPropagation();
+                            setSelectedAnnotation(idx);
+                            setSelectedProduct(null);
+                            setSelectedCanvasProduct(null);
+                            setSelectedConnection(null);
+                            setShowFloorplanManager(false);
+                            setShowRoomManager(false);
+                            setSelectedFloorplanId(null);
+                            setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                            // Start dragging immediately
+                            handleSymbolAnnotationDragStart(e, idx);
+                          }
                          }}
                          onDoubleClick={(e) => {
                            e.stopPropagation();
