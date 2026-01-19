@@ -517,9 +517,10 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                   className="bg-gray-900 border-gray-700 text-white text-sm"
                 />
               </div>
+              </div>
             </div>
-          </div>
-        )()}
+          );
+        })()}
 
         {connections.inputs.length > 0 && (
           <div>
