@@ -2437,320 +2437,7 @@ function AVCanvasContent() {
               <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {/* Connections - render FIRST so annotations appear on top */}
                 {connections.map((connection, index) => {
-                  const isHovered = hoveredAnnotation === idx;
-                  const isSelected = selectedAnnotation === idx;
-                  const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
-
-                  // Get floorplan and convert coordinates
-                  const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
-                  
-                  // Skip if floorplan-based but floorplan not found or not visible
-                  if (ann.floorplanId && (!floorplan || !floorplan.visible)) return null;
-                  
-                  // Skip if annotation is hidden
-                  if (ann.hidden) return null;
-
-                  // Use floorplan coordinates if available, otherwise use absolute canvas coordinates (backward compatibility)
-                  const canvasPos = floorplan 
-                    ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
-                    : ann.position;
-
-                  // Render symbol annotation
-                  if (ann.type === 'symbol') {
-                    const symbolColor = ann.color || '#3b82f6';
-                    return (
-                      <g key={ann.id}>
-                        {/* Symbol Group - renders exact SVG from SymbolPicker */}
-                        <g
-                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onMouseDown={(e) => {
-                            if (activeTool === 'select' && !ann.locked) {
-                              e.stopPropagation();
-                              setSelectedAnnotation(idx);
-                              setSelectedProduct(null);
-                              setSelectedCanvasProduct(null);
-                              setSelectedConnection(null);
-                              setShowFloorplanManager(false);
-                              setShowRoomManager(false);
-                              setSelectedFloorplanId(null);
-                              setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                              handleSymbolAnnotationDragStart(e, idx);
-                            }
-                          }}
-                        >
-                          <SymbolRenderer 
-                            symbolId={ann.symbolId} 
-                            position={canvasPos} 
-                            color={symbolColor}
-                            scale={ann.scale || 1}
-                            rotation={ann.rotation || 0}
-                            flipped={ann.flipped || false}
-                          />
-                        </g>
-
-
-                      </g>
-                    );
-                  }
-
-                  if (ann.type === 'text') {
-                   return (
-                     <g key={ann.id}>
-                       <text
-                         x={canvasPos.x}
-                         y={canvasPos.y}
-                         fill={ann.color}
-                         fontSize={ann.fontSize}
-                         fontWeight="500"
-                         className={`pointer-events-auto select-none ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                         onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
-                         onMouseLeave={() => setHoveredAnnotation(null)}
-                         onMouseDown={(e) => {
-                          if (activeTool === 'select' && !ann.locked) {
-                            e.stopPropagation();
-                            setSelectedAnnotation(idx);
-                            setSelectedProduct(null);
-                            setSelectedCanvasProduct(null);
-                            setSelectedConnection(null);
-                            setShowFloorplanManager(false);
-                            setShowRoomManager(false);
-                            setSelectedFloorplanId(null);
-                            setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                            // Start dragging immediately
-                            handleSymbolAnnotationDragStart(e, idx);
-                          }
-                         }}
-                         onDoubleClick={(e) => {
-                           e.stopPropagation();
-                           if (activeTool === 'select') {
-                             setEditingText(ann.id);
-                           } else if (activeTool === 'text') {
-                             setEditingText(ann.id);
-                           }
-                         }}
-                       >
-                         {ann.text}
-                       </text>
-
-                      </g>
-                    );
-                  } else if (ann.type === 'rectangle') {
-                    let canvasWidth, canvasHeight;
-                    
-                    if (floorplan) {
-                      const fpScale = floorplan.scale || 1;
-                      const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-                      let fpWidth, fpHeight;
-                      if (hasCalibration) {
-                        const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-                        fpWidth = floorplan.imageWidth * scaleFactor;
-                        fpHeight = floorplan.imageHeight * scaleFactor;
-                      } else if (floorplan.imageWidth && floorplan.imageHeight) {
-                        fpWidth = 500 * fpScale;
-                        fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
-                      } else {
-                        fpWidth = 500 * fpScale;
-                        fpHeight = 500 * fpScale;
-                      }
-                      canvasWidth = ann.width * fpWidth;
-                      canvasHeight = ann.height * fpHeight;
-                    } else {
-                      // Backward compatibility: use absolute dimensions
-                      canvasWidth = ann.width || 0;
-                      canvasHeight = ann.height || 0;
-                    }
-                    
-                    return (
-                      <g key={ann.id}>
-                        {/* Invisible larger hit area */}
-                         <rect
-                           x={canvasPos.x - 10}
-                           y={canvasPos.y - 10}
-                           width={canvasWidth + 20}
-                           height={canvasHeight + 20}
-                           fill="transparent"
-                           className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                           onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
-                           onMouseLeave={() => setHoveredAnnotation(null)}
-                           onMouseDown={(e) => {
-                             if (activeTool === 'select' && !ann.locked) {
-                               e.stopPropagation();
-                               setSelectedAnnotation(idx);
-                               setSelectedProduct(null);
-                               setSelectedCanvasProduct(null);
-                               setSelectedConnection(null);
-                               setShowFloorplanManager(false);
-                               setShowRoomManager(false);
-                               setSelectedFloorplanId(null);
-                               setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                               // Start dragging immediately on mousedown
-                               const canvasRect = canvasRef.current?.getBoundingClientRect();
-                               if (canvasRect) {
-                                 setAnnotationDragInitial({
-                                   clientX: e.clientX,
-                                   clientY: e.clientY,
-                                   annotationX: ann.position.x,
-                                   annotationY: ann.position.y
-                                 });
-                               }
-                               }
-                               }}
-                               onDoubleClick={(e) => {
-                               if (activeTool === 'select') {
-                               e.stopPropagation();
-                               }
-                               }}
-                               />
-                               <rect
-                               x={canvasPos.x}
-                               y={canvasPos.y}
-                               width={canvasWidth}
-                               height={canvasHeight}
-                               stroke={strokeColor}
-                               strokeWidth={ann.strokeWidth}
-                               fill={ann.fill ? ann.color : 'none'}
-                               fillOpacity={ann.fill ? 0.3 : 0}
-                               className="pointer-events-none"
-                               />
-
-                      </g>
-                    );
-                  } else if (ann.type === 'circle') {
-                    let canvasRadius;
-                    
-                    if (floorplan) {
-                      const fpScale = floorplan.scale || 1;
-                      const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-                      let fpWidth;
-                      if (hasCalibration) {
-                        const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-                        fpWidth = floorplan.imageWidth * scaleFactor;
-                      } else {
-                        fpWidth = 500 * fpScale;
-                      }
-                      canvasRadius = ann.radius * fpWidth;
-                    } else {
-                      // Backward compatibility: use absolute radius
-                      canvasRadius = ann.radius || 0;
-                    }
-                    
-                    return (
-                      <g key={ann.id}>
-                        {/* Invisible larger hit area */}
-                        <circle
-                          cx={canvasPos.x}
-                          cy={canvasPos.y}
-                          r={canvasRadius + 10}
-                          fill="transparent"
-                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
-                          onMouseLeave={() => setHoveredAnnotation(null)}
-                          onMouseDown={(e) => {
-                            if (activeTool === 'select' && !ann.locked) {
-                              e.stopPropagation();
-                              setSelectedAnnotation(idx);
-                              setSelectedProduct(null);
-                              setSelectedCanvasProduct(null);
-                              setSelectedConnection(null);
-                              setShowFloorplanManager(false);
-                              setShowRoomManager(false);
-                              setSelectedFloorplanId(null);
-                              setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                              // Start dragging immediately on mousedown
-                              const canvasRect = canvasRef.current?.getBoundingClientRect();
-                              if (canvasRect) {
-                                setAnnotationDragInitial({
-                                  clientX: e.clientX,
-                                  clientY: e.clientY,
-                                  annotationX: ann.position.x,
-                                  annotationY: ann.position.y
-                                });
-                              }
-                            } else if (activeTool === 'text' && !ann.locked) {
-                              setEditingText(ann.id);
-                            }
-                          }}
-                          onDoubleClick={(e) => {
-                            if (activeTool === 'select') {
-                              e.stopPropagation();
-                            }
-                          }}
-                          />
-                          <circle
-                          cx={canvasPos.x}
-                          cy={canvasPos.y}
-                          r={canvasRadius}
-                          stroke={strokeColor}
-                          strokeWidth={ann.strokeWidth}
-                          fill={ann.fill ? ann.color : 'none'}
-                          fillOpacity={ann.fill ? 0.3 : 0}
-                          className="pointer-events-none"
-                        />
-
-                      </g>
-                    );
-                  } else if (ann.type === 'line' && ann.endPosition) {
-                   const endCanvasPos = floorplan 
-                     ? floorplanToCanvasCoords(ann.endPosition.x, ann.endPosition.y, floorplan)
-                     : ann.endPosition;
-                   
-                   return (
-                     <g key={ann.id}>
-                       <line
-                         x1={canvasPos.x}
-                         y1={canvasPos.y}
-                         x2={endCanvasPos.x}
-                         y2={endCanvasPos.y}
-                         stroke={strokeColor}
-                         strokeWidth={isHovered || isSelected ? ann.strokeWidth + 1 : ann.strokeWidth}
-                         className="pointer-events-none"
-                       />
-                       <line
-                         x1={canvasPos.x}
-                         y1={canvasPos.y}
-                         x2={endCanvasPos.x}
-                         y2={endCanvasPos.y}
-                         stroke="transparent"
-                         strokeWidth="40"
-                         className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                         onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
-                         onMouseLeave={() => setHoveredAnnotation(null)}
-                         onMouseDown={(e) => {
-                           if (activeTool === 'select' && !ann.locked) {
-                             e.stopPropagation();
-                             setSelectedAnnotation(idx);
-                             setSelectedProduct(null);
-                             setSelectedCanvasProduct(null);
-                             setSelectedConnection(null);
-                             setShowFloorplanManager(false);
-                             setShowRoomManager(false);
-                             setSelectedFloorplanId(null);
-                             setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                             // Start dragging immediately
-                             handleSymbolAnnotationDragStart(e, idx);
-                           }
-                          }}
-                         />
-
-                         </g>
-                         );
-                         }
-                         return null;
-                         })}
-
-                {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
-
-                {/* Drawing annotation preview */}
-                {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
-...
-                })()}
-
-                {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
-                  const index = hoveredConnectionIndex;
-                  const connection = connections[index];
-                  if (!connection) return null;
+                  if (index === hoveredConnectionIndex) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
                   const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
                   if (!fromProduct || !toProduct) return null;
@@ -2807,8 +2494,8 @@ function AVCanvasContent() {
                   );
                 })}
 
-                {/* Saved arrows - render AFTER connections */}
-                {arrows.map((arrow, idx) => {
+                {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
+                  const index = hoveredConnectionIndex;
                   const connection = connections[index];
                   if (!connection) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
@@ -2866,6 +2553,105 @@ function AVCanvasContent() {
                       />
                   );
                 })()}
+
+                {connectingState && connectingState.mousePos && (() => {
+                  const toIsInput = connectingState.hoveredPort ? 
+                    connectingState.hoveredPort.isInput : 
+                    !connectingState.fromPort.isInput;
+
+                  const routePoints = generateOrthogonalPath(
+                    connectingState.startPos,
+                    connectingState.mousePos,
+                    connectingState.fromPort.isInput,
+                    toIsInput
+                  );
+
+                  const pathData = pointsToPathData(routePoints);
+                  const isValidTarget = !!connectingState.hoveredPort;
+
+                  return (
+                    <g>
+                      <path
+                        d={pathData}
+                        stroke={isValidTarget ? "#22c55e" : "#3b82f6"}
+                        strokeWidth="4"
+                        strokeDasharray="8,4"
+                        fill="none"
+                        className="pointer-events-none"
+                        opacity="0.8"
+                      />
+                      <circle cx={connectingState.startPos.x} cy={connectingState.startPos.y} r="6" fill={isValidTarget ? "#22c55e" : "#3b82f6"} className="pointer-events-none" />
+                      <circle cx={connectingState.mousePos.x} cy={connectingState.mousePos.y} r="6" fill={isValidTarget ? "#22c55e" : "#3b82f6"} className="pointer-events-none" opacity={isValidTarget ? "1" : "0.5"} />
+                    </g>
+                  );
+                })()}
+
+                {/* Arrow being drawn */}
+                {drawingArrow && (
+                  <g>
+                    <line
+                      x1={drawingArrow.start.x}
+                      y1={drawingArrow.start.y}
+                      x2={drawingArrow.end.x}
+                      y2={drawingArrow.end.y}
+                      stroke="#3b82f6"
+                      strokeWidth="3"
+                      strokeDasharray="8,4"
+                      markerEnd="url(#arrowhead)"
+                      className="pointer-events-none"
+                      opacity="0.8"
+                    />
+                  </g>
+                )}
+
+                {/* Saved arrows - render AFTER connections */}
+                {arrows.map((arrow, idx) => {
+                  const isHovered = hoveredArrow === idx;
+                  return (
+                    <g key={idx}>
+                      {/* Invisible hit area for easier interaction */}
+                      <line
+                        x1={arrow.start.x}
+                        y1={arrow.start.y}
+                        x2={arrow.end.x}
+                        y2={arrow.end.y}
+                        stroke="transparent"
+                        strokeWidth="20"
+                        className="pointer-events-auto cursor-pointer"
+                        onMouseEnter={() => setHoveredArrow(idx)}
+                        onMouseLeave={() => setHoveredArrow(null)}
+                        onClick={async () => {
+                          const confirmed = window.confirm('Are you sure you want to delete this arrow?');
+                          if (confirmed) {
+                            const updated = arrows.filter((_, i) => i !== idx);
+                            setArrows(updated);
+                            if (markLocalChangeRef.current) markLocalChangeRef.current();
+                            if (currentProject?.id) {
+                              base44.entities.AVProject.update(currentProject.id, {
+                                canvas_products: canvasProducts,
+                                connections: connections,
+                                rooms: rooms,
+                                floorplans: floorplans,
+                                arrows: updated
+                              }).catch(err => console.error('Failed to save arrows:', err));
+                            }
+                          }
+                        }}
+                      />
+                      {/* Visible arrow line */}
+                      <line
+                        x1={arrow.start.x}
+                        y1={arrow.start.y}
+                        x2={arrow.end.x}
+                        y2={arrow.end.y}
+                        stroke={isHovered ? "#ef4444" : "#3b82f6"}
+                        strokeWidth={isHovered ? "4" : "3"}
+                        markerEnd={isHovered ? "url(#arrowhead-hover)" : "url(#arrowhead)"}
+                        className="pointer-events-none"
+                      />
+                    </g>
+                  );
+                })}
 
                 {/* Saved annotations - render AFTER connections and arrows */}
                 {annotations.map((ann, idx) => {
