@@ -2663,6 +2663,9 @@ function AVCanvasContent() {
                   
                   // Skip if floorplan-based but floorplan not found or not visible
                   if (ann.floorplanId && (!floorplan || !floorplan.visible)) return null;
+                  
+                  // Skip if annotation is hidden
+                  if (ann.hidden) return null;
 
                   // Use floorplan coordinates if available, otherwise use absolute canvas coordinates (backward compatibility)
                   const canvasPos = floorplan 
