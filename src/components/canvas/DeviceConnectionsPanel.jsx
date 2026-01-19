@@ -463,6 +463,16 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
                   className="bg-gray-900 border-gray-700 text-white text-sm"
                 />
               </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Serial Number</label>
+                <Input
+                  value={localNetworkInfo.serialNumber || ''}
+                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, serialNumber: e.target.value })}
+                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                  placeholder="Enter serial number"
+                  className="bg-gray-900 border-gray-700 text-white text-sm"
+                />
+              </div>
             </div>
           </div>
         )}
