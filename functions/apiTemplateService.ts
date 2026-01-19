@@ -277,9 +277,15 @@ Deno.serve(async (req) => {
         }
 
         // Build template data
-        const getRoomName = (room) => {
-          if (!room) return 'Unassigned';
-          return typeof room === 'object' ? (room.name || room.id || String(room)) : String(room);
+        // Helper to get room name - cp.room is a room ID, need to look it up in the rooms array
+        const getRoomName = (roomId) => {
+          if (!roomId) return 'Unassigned';
+          const room = rooms.find(r => r.id === roomId);
+          if (room) {
+            return typeof room === 'object' ? (room.name || room.id || 'Unassigned') : String(room);
+          }
+          // Fallback: if room not found, return 'Unassigned' instead of the ID
+          return 'Unassigned';
         };
         const uniqueRooms = [...new Set(canvasProducts.map(cp => getRoomName(cp.room)))];
         if (uniqueRooms.length === 0) uniqueRooms.push('Unassigned');
