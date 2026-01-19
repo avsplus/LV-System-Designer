@@ -709,7 +709,9 @@ Use simple HTML formatting (<p>, <h3>, <ul>, <li>). Be warm and helpful.`;
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
                 ${cp.room ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Room</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${getRoomName(cp.room)}</div></div>` : ''}
                 ${cp.networkInfo?.ip && cp.networkInfo.ip !== '000.000.000.000' ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">IP Address</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.networkInfo.ip}</div></div>` : ''}
+                ${cp.networkInfo?.mac && cp.networkInfo.mac !== '00:00:00:00:00:00' ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">MAC Address</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.networkInfo.mac}</div></div>` : ''}
                 ${cp.networkInfo?.sw ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Network</div><div style="font-size:12px; font-weight:500; color:#1f2937;">SW ${cp.networkInfo.sw} · Port ${cp.networkInfo.port || '-'}</div></div>` : ''}
+                ${cp.networkInfo?.serialNumber ? `<div><div style="font-size:10px; color:#6b7280; margin-bottom:2px;">Serial Number</div><div style="font-size:12px; font-weight:500; color:#1f2937;">${cp.networkInfo.serialNumber}</div></div>` : ''}
               </div>
             </div>`;
           }
