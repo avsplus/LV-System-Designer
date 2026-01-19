@@ -2792,7 +2792,7 @@ function AVCanvasContent() {
                            onMouseEnter={() => setHoveredAnnotation(idx)}
                            onMouseLeave={() => setHoveredAnnotation(null)}
                            onMouseDown={(e) => {
-                             if (activeTool === 'select') {
+                             if (activeTool === 'select' && !ann.locked) {
                                e.stopPropagation();
                                setSelectedAnnotation(idx);
                                setSelectedProduct(null);
