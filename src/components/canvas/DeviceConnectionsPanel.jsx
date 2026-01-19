@@ -419,30 +419,74 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
           <p className="text-sm text-gray-400 mb-2">{connections.description}</p>
         </div>
 
-        {(connections.inputs.some(input => input.type === "Ethernet") || connections.outputs.some(output => output.type === "Ethernet")) && (
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <h4 className="text-sm font-semibold text-white mb-3">Network Information</h4>
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">SW#</label>
-                <Input
-                  value={localNetworkInfo.sw}
-                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, sw: e.target.value })}
-                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                  placeholder={networkInfo?.sw || "00"}
-                  className="bg-gray-900 border-gray-700 text-white text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Port</label>
-                <Input
-                  value={localNetworkInfo.port}
-                  onChange={(e) => setLocalNetworkInfo({ ...localNetworkInfo, port: e.target.value })}
-                  onBlur={() => onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
-                  placeholder={networkInfo?.port || "00"}
-                  className="bg-gray-900 border-gray-700 text-white text-sm"
-                />
-              </div>
+        {(connections.inputs.some(input => input.type === "Ethernet") || connections.outputs.some(output => output.type === "Ethernet")) && (() => {
+          // Find Ethernet connection
+          const ethernetInput = connections.inputs.find(input => input.type === "Ethernet");
+          const ethernetOutput = connections.outputs.find(output => output.type === "Ethernet");
+          
+          let ethernetConnection = null;
+          let isInput = false;
+          
+          // Check input Ethernet connections
+          if (ethernetInput && ethernetInput.ports && ethernetInput.ports.length > 0) {
+            for (const port of ethernetInput.ports) {
+              const portLabel = typeof port === 'string' ? port : port.label;
+              const conn = getConnectedDevice("Ethernet", portLabel, true);
+              if (conn) {
+                ethernetConnection = conn;
+                isInput = true;
+                break;
+              }
+            }
+          }
+          
+          // Check output Ethernet connections if not found in inputs
+          if (!ethernetConnection && ethernetOutput && ethernetOutput.ports && ethernetOutput.ports.length > 0) {
+            for (const port of ethernetOutput.ports) {
+              const portLabel = typeof port === 'string' ? port : port.label;
+              const conn = getConnectedDevice("Ethernet", portLabel, false);
+              if (conn) {
+                ethernetConnection = conn;
+                isInput = false;
+                break;
+              }
+            }
+          }
+          
+          const autoSW = ethernetConnection?.device?.label || '';
+          const autoPort = ethernetConnection?.port || '';
+          const isConnected = !!ethernetConnection;
+          
+          return (
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <h4 className="text-sm font-semibold text-white mb-3">Network Information</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">
+                    SW# {isConnected && <span className="text-green-400">(Auto)</span>}
+                  </label>
+                  <Input
+                    value={isConnected ? autoSW : localNetworkInfo.sw}
+                    onChange={(e) => !isConnected && setLocalNetworkInfo({ ...localNetworkInfo, sw: e.target.value })}
+                    onBlur={() => !isConnected && onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                    placeholder={networkInfo?.sw || "00"}
+                    readOnly={isConnected}
+                    className={`border-gray-700 text-white text-sm ${isConnected ? 'bg-gray-700 cursor-not-allowed' : 'bg-gray-900'}`}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">
+                    Port {isConnected && <span className="text-green-400">(Auto)</span>}
+                  </label>
+                  <Input
+                    value={isConnected ? autoPort : localNetworkInfo.port}
+                    onChange={(e) => !isConnected && setLocalNetworkInfo({ ...localNetworkInfo, port: e.target.value })}
+                    onBlur={() => !isConnected && onNetworkInfoChange && onNetworkInfoChange(localNetworkInfo)}
+                    placeholder={networkInfo?.port || "00"}
+                    readOnly={isConnected}
+                    className={`border-gray-700 text-white text-sm ${isConnected ? 'bg-gray-700 cursor-not-allowed' : 'bg-gray-900'}`}
+                  />
+                </div>
               <div>
                 <label className="text-xs text-gray-400 mb-1 block">IP Address</label>
                 <Input
