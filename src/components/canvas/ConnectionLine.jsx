@@ -29,6 +29,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   const [waypoints, setWaypoints] = useState(initialWaypoints || []);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const dragStateRef = useRef(null);
+  const rafRef = useRef(null);
+  const pendingUpdateRef = useRef(null);
 
   // Update local waypoints from props only when not dragging
   useEffect(() => {
@@ -105,24 +107,44 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       const dx = (e.clientX - startX) / zoom;
       const dy = (e.clientY - startY) / zoom;
       
-      // Update waypoint position locally only (no parent state update during drag)
+      // Store pending update
       const newWaypoints = [...waypoints];
       newWaypoints[index].x += dx;
       newWaypoints[index].y += dy;
-      
-      setWaypoints(newWaypoints);
+      pendingUpdateRef.current = newWaypoints;
       
       // Update drag start for next iteration
       dragStateRef.current.startX = e.clientX;
       dragStateRef.current.startY = e.clientY;
+
+      // Throttle visual updates using requestAnimationFrame
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(() => {
+          if (pendingUpdateRef.current) {
+            setWaypoints(pendingUpdateRef.current);
+          }
+          rafRef.current = null;
+        });
+      }
     }
   };
 
   const handleWindowMouseUp = () => {
-    // Only update parent state once when drag completes
-    if (dragStateRef.current !== null && onWaypointsChange) {
-      onWaypointsChange(waypoints);
+    // Cancel any pending animation frame
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
+    
+    // Apply final pending update and notify parent
+    if (pendingUpdateRef.current) {
+      setWaypoints(pendingUpdateRef.current);
+      if (onWaypointsChange) {
+        onWaypointsChange(pendingUpdateRef.current);
+      }
+      pendingUpdateRef.current = null;
+    }
+    
     dragStateRef.current = null;
     setDraggingIndex(null);
   };
@@ -134,9 +156,13 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       return () => {
         window.removeEventListener('mousemove', handleWindowMouseMove);
         window.removeEventListener('mouseup', handleWindowMouseUp);
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
       };
     }
-  }, [draggingIndex, zoom]);
+  }, [draggingIndex, zoom, waypoints]);
 
   // Double-click to add waypoint at click location
   // Converts screen coordinates to world coordinates accounting for pan and zoom
