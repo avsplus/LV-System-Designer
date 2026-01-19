@@ -181,6 +181,7 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
         strokeWidth="60"
         fill="none"
         className="cursor-pointer"
+        style={{ pointerEvents: 'stroke' }}
         onClick={onClick}
         onDoubleClick={handlePathDoubleClick}
         onMouseEnter={() => {
