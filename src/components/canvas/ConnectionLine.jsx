@@ -72,7 +72,8 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
     dragStateRef.current = {
       index,
       startX: e.clientX,
-      startY: e.clientY
+      startY: e.clientY,
+      initialWaypoints: [...waypoints]
     };
     setDraggingIndex(index);
   };
@@ -97,15 +98,12 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
       const dx = (e.clientX - startX) / zoom;
       const dy = (e.clientY - startY) / zoom;
       
-      // Update waypoint position
+      // Update waypoint position locally only (no parent state update during drag)
       const newWaypoints = [...waypoints];
       newWaypoints[index].x += dx;
       newWaypoints[index].y += dy;
       
       setWaypoints(newWaypoints);
-      if (onWaypointsChange) {
-        onWaypointsChange(newWaypoints);
-      }
       
       // Update drag start for next iteration
       dragStateRef.current.startX = e.clientX;
@@ -114,6 +112,10 @@ export default function ConnectionLine({ from, to, fromEdge, toEdge, connectionT
   };
 
   const handleWindowMouseUp = () => {
+    // Only update parent state once when drag completes
+    if (dragStateRef.current !== null && onWaypointsChange) {
+      onWaypointsChange(waypoints);
+    }
     dragStateRef.current = null;
     setDraggingIndex(null);
   };
