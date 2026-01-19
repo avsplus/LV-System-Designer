@@ -2679,8 +2679,8 @@ function AVCanvasContent() {
                       <g key={ann.id}>
                         {/* Symbol Group - renders exact SVG from SymbolPicker */}
                         <g
-                          className="pointer-events-auto cursor-move"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
                             if (activeTool === 'select' && !ann.locked) {
@@ -2721,8 +2721,8 @@ function AVCanvasContent() {
                          fill={ann.color}
                          fontSize={ann.fontSize}
                          fontWeight="500"
-                         className="pointer-events-auto cursor-move select-none"
-                         onMouseEnter={() => setHoveredAnnotation(idx)}
+                         className={`pointer-events-auto select-none ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                         onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
                           if (activeTool === 'select' && !ann.locked) {
@@ -2788,8 +2788,8 @@ function AVCanvasContent() {
                            width={canvasWidth + 20}
                            height={canvasHeight + 20}
                            fill="transparent"
-                           className="pointer-events-auto cursor-move"
-                           onMouseEnter={() => setHoveredAnnotation(idx)}
+                           className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                           onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                            onMouseLeave={() => setHoveredAnnotation(null)}
                            onMouseDown={(e) => {
                              if (activeTool === 'select' && !ann.locked) {
@@ -2861,8 +2861,8 @@ function AVCanvasContent() {
                           cy={canvasPos.y}
                           r={canvasRadius + 10}
                           fill="transparent"
-                          className="pointer-events-auto cursor-move"
-                          onMouseEnter={() => setHoveredAnnotation(idx)}
+                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
                             if (activeTool === 'select' && !ann.locked) {
@@ -2931,8 +2931,8 @@ function AVCanvasContent() {
                          y2={endCanvasPos.y}
                          stroke="transparent"
                          strokeWidth="40"
-                         className="pointer-events-auto cursor-move"
-                         onMouseEnter={() => setHoveredAnnotation(idx)}
+                         className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                         onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
                            if (activeTool === 'select' && !ann.locked) {
