@@ -40,6 +40,18 @@ const CATEGORIES = [
   { value: 'touch_panels', label: 'Touch Panels' },
   { value: 'remotes', label: 'Remotes' },
   { value: 'hdmi_extenders', label: 'HDMI Extenders' },
+  { value: 'access_points', label: 'Access Points' },
+  { value: 'patch_panels', label: 'Patch Panels' },
+  { value: 'data_jacks', label: 'Data Jacks' },
+  { value: 'telephones', label: 'Telephones' },
+  { value: 'phone_jacks', label: 'Phone Jacks' },
+  { value: 'intercoms', label: 'Intercoms' },
+  { value: 'nvrs', label: 'NVRs' },
+  { value: 'ip_cameras', label: 'IP Cameras' },
+  { value: 'power_conditioner', label: 'Power Conditioner' },
+  { value: 'smart_power_conditioner', label: 'Smart Power Conditioner' },
+  { value: 'power_strip', label: 'Power Strip' },
+  { value: 'ups_backup', label: 'UPS Backup' },
 ];
 
 export default function EnrichConnectionsDialog({ open, onClose, onEnrich, isEnriching, products = [] }) {

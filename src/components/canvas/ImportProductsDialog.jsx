@@ -46,6 +46,10 @@ const CATEGORIES = [
   { value: 'intercoms', label: 'Intercoms' },
   { value: 'nvrs', label: 'NVRs' },
   { value: 'ip_cameras', label: 'IP Cameras' },
+  { value: 'power_conditioner', label: 'Power Conditioner' },
+  { value: 'smart_power_conditioner', label: 'Smart Power Conditioner' },
+  { value: 'power_strip', label: 'Power Strip' },
+  { value: 'ups_backup', label: 'UPS Backup' },
 ];
 
 export default function ImportProductsDialog({ open, onClose, onImport, isImporting }) {
