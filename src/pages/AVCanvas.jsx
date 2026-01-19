@@ -2435,57 +2435,8 @@ function AVCanvasContent() {
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                {/* Saved annotations and arrows - render FIRST so connections appear on top */}
-                {arrows.map((arrow, idx) => {
-                  const isHovered = hoveredArrow === idx;
-                  return (
-                    <g key={idx}>
-                      {/* Invisible hit area for easier interaction */}
-                      <line
-                        x1={arrow.start.x}
-                        y1={arrow.start.y}
-                        x2={arrow.end.x}
-                        y2={arrow.end.y}
-                        stroke="transparent"
-                        strokeWidth="20"
-                        className="pointer-events-auto cursor-pointer"
-                        onMouseEnter={() => setHoveredArrow(idx)}
-                        onMouseLeave={() => setHoveredArrow(null)}
-                        onClick={async () => {
-                          const confirmed = window.confirm('Are you sure you want to delete this arrow?');
-                          if (confirmed) {
-                            const updated = arrows.filter((_, i) => i !== idx);
-                            setArrows(updated);
-                            if (markLocalChangeRef.current) markLocalChangeRef.current();
-                            if (currentProject?.id) {
-                              base44.entities.AVProject.update(currentProject.id, {
-                                canvas_products: canvasProducts,
-                                connections: connections,
-                                rooms: rooms,
-                                floorplans: floorplans,
-                                arrows: updated
-                              }).catch(err => console.error('Failed to save arrows:', err));
-                            }
-                          }
-                        }}
-                      />
-                      {/* Visible arrow line */}
-                      <line
-                        x1={arrow.start.x}
-                        y1={arrow.start.y}
-                        x2={arrow.end.x}
-                        y2={arrow.end.y}
-                        stroke={isHovered ? "#ef4444" : "#3b82f6"}
-                        strokeWidth={isHovered ? "4" : "3"}
-                        markerEnd={isHovered ? "url(#arrowhead-hover)" : "url(#arrowhead)"}
-                        className="pointer-events-none"
-                      />
-                    </g>
-                  );
-                })}
-                
-                {/* Saved annotations - render FIRST so connections appear on top */}
-                {annotations.map((ann, idx) => {
+                {/* Connections - render FIRST so annotations appear on top */}
+                {connections.map((connection, index) => {
                   const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
@@ -2793,77 +2744,13 @@ function AVCanvasContent() {
 
                 {/* Drawing annotation preview */}
                 {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
-                  const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
-                  if (!floorplan) return null;
-
-                  const startCanvasPos = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan);
-                  
-                  const fpScale = floorplan.scale || 1;
-                  const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-                  let fpWidth, fpHeight;
-                  if (hasCalibration) {
-                    const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-                    fpWidth = floorplan.imageWidth * scaleFactor;
-                    fpHeight = floorplan.imageHeight * scaleFactor;
-                  } else if (floorplan.imageWidth && floorplan.imageHeight) {
-                    fpWidth = 500 * fpScale;
-                    fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
-                  } else {
-                    fpWidth = 500 * fpScale;
-                    fpHeight = 500 * fpScale;
-                  }
-
-                  return (
-                    <g>
-                      {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && (
-                        <rect
-                          x={startCanvasPos.x}
-                          y={startCanvasPos.y}
-                          width={drawingAnnotation.width * fpWidth}
-                          height={drawingAnnotation.height * fpHeight}
-                          stroke={drawingAnnotation.color}
-                          strokeWidth={drawingAnnotation.strokeWidth}
-                          fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
-                          fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
-                          strokeDasharray="8,4"
-                          className="pointer-events-none"
-                          opacity="0.8"
-                        />
-                      )}
-                      {drawingAnnotation.type === 'circle' && drawingAnnotation.radius && (
-                        <circle
-                          cx={startCanvasPos.x}
-                          cy={startCanvasPos.y}
-                          r={drawingAnnotation.radius * fpWidth}
-                          stroke={drawingAnnotation.color}
-                          strokeWidth={drawingAnnotation.strokeWidth}
-                          fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
-                          fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
-                          strokeDasharray="8,4"
-                          className="pointer-events-none"
-                          opacity="0.8"
-                        />
-                      )}
-                      {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (
-                        <line
-                          x1={startCanvasPos.x}
-                          y1={startCanvasPos.y}
-                          x2={floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, floorplan).x}
-                          y2={floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, floorplan).y}
-                          stroke={drawingAnnotation.color}
-                          strokeWidth={drawingAnnotation.strokeWidth}
-                          strokeDasharray="8,4"
-                          className="pointer-events-none"
-                          opacity="0.8"
-                        />
-                      )}
-                    </g>
-                  );
+...
                 })()}
 
-                {/* Connections - render AFTER annotations so they appear on top */}
-                {connections.map((connection, index) => {
-                  if (index === hoveredConnectionIndex) return null;
+                {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
+                  const index = hoveredConnectionIndex;
+                  const connection = connections[index];
+                  if (!connection) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
                   const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
                   if (!fromProduct || !toProduct) return null;
@@ -2920,8 +2807,8 @@ function AVCanvasContent() {
                   );
                 })}
 
-                {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
-                  const index = hoveredConnectionIndex;
+                {/* Saved arrows - render AFTER connections */}
+                {arrows.map((arrow, idx) => {
                   const connection = connections[index];
                   if (!connection) return null;
                   const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
@@ -2978,6 +2865,18 @@ function AVCanvasContent() {
                         }}
                       />
                   );
+                })()}
+
+                {/* Saved annotations - render AFTER connections and arrows */}
+                {annotations.map((ann, idx) => {
+...
+                          })}
+
+                {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
+
+                {/* Drawing annotation preview */}
+                {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
+...
                 })()}
 
                 {connectingState && connectingState.mousePos && (() => {
