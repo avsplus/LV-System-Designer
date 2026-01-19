@@ -17,19 +17,19 @@ export default function AnnotationDetailsPanel({
   if (!annotation) return null;
 
   const handleColorChange = (e) => {
-    onUpdate(index, { ...annotation, color: e.target.value });
+    onUpdate(index, { ...annotation, color: e.target.value }, true);
   };
 
   const handleStrokeWidthChange = (value) => {
-    onUpdate(index, { ...annotation, strokeWidth: value[0] });
+    onUpdate(index, { ...annotation, strokeWidth: value[0] }, true);
   };
 
   const handleFillChange = () => {
-    onUpdate(index, { ...annotation, fill: !annotation.fill });
+    onUpdate(index, { ...annotation, fill: !annotation.fill }, true);
   };
 
   const handleFontSizeChange = (value) => {
-    onUpdate(index, { ...annotation, fontSize: value[0] });
+    onUpdate(index, { ...annotation, fontSize: value[0] }, true);
   };
 
   const handleTextChange = (e) => {

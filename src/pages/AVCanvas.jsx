@@ -1200,10 +1200,31 @@ function AVCanvasContent() {
     handlePinchEnd();
   };
 
-  const handleUpdateAnnotation = (index, updatedAnnotation) => {
-    const updated = [...annotations];
-    updated[index] = updatedAnnotation;
-    setAnnotations(updated);
+  const handleUpdateAnnotation = (index, updatedAnnotation, applyToAll = false) => {
+    if (applyToAll) {
+      const originalType = annotations[index].type;
+      const originalSymbolId = annotations[index].symbolId;
+      
+      // Apply style changes to all annotations of the same type (and same symbolId for symbols)
+      const updated = annotations.map((ann, idx) => {
+        if (ann.type !== originalType) return ann;
+        if (ann.type === 'symbol' && ann.symbolId !== originalSymbolId) return ann;
+        
+        // Apply only style properties, not position/size/text
+        return {
+          ...ann,
+          color: updatedAnnotation.color,
+          strokeWidth: updatedAnnotation.strokeWidth,
+          fill: updatedAnnotation.fill,
+          fontSize: updatedAnnotation.fontSize
+        };
+      });
+      setAnnotations(updated);
+    } else {
+      const updated = [...annotations];
+      updated[index] = updatedAnnotation;
+      setAnnotations(updated);
+    }
   };
 
   const handleDeleteAnnotation = (index) => {
