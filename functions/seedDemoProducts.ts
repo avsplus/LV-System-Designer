@@ -7,7 +7,8 @@ const categories = [
   'surround_processors', 'av_receivers', 'network_switches', 'control_processors',
   'touch_panels', 'remotes', 'hdmi_extenders', 'routers', 'access_points', 
   'patch_panels', 'data_jacks', 'telephones', 'phone_jacks', 'intercoms', 
-  'nvrs', 'ip_cameras'
+  'nvrs', 'ip_cameras', 'power_conditioner', 'smart_power_conditioner',
+  'power_strip', 'ups_backup'
 ];
 
 Deno.serve(async (req) => {
