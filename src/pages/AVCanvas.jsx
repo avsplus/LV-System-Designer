@@ -2793,7 +2793,72 @@ function AVCanvasContent() {
 
                 {/* Drawing annotation preview */}
                 {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
-...
+                  const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
+                  if (!floorplan) return null;
+
+                  const startCanvasPos = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan);
+                  
+                  const fpScale = floorplan.scale || 1;
+                  const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                  let fpWidth, fpHeight;
+                  if (hasCalibration) {
+                    const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                    fpWidth = floorplan.imageWidth * scaleFactor;
+                    fpHeight = floorplan.imageHeight * scaleFactor;
+                  } else if (floorplan.imageWidth && floorplan.imageHeight) {
+                    fpWidth = 500 * fpScale;
+                    fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+                  } else {
+                    fpWidth = 500 * fpScale;
+                    fpHeight = 500 * fpScale;
+                  }
+
+                  return (
+                    <g>
+                      {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && (
+                        <rect
+                          x={startCanvasPos.x}
+                          y={startCanvasPos.y}
+                          width={drawingAnnotation.width * fpWidth}
+                          height={drawingAnnotation.height * fpHeight}
+                          stroke={drawingAnnotation.color}
+                          strokeWidth={drawingAnnotation.strokeWidth}
+                          fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
+                          fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                      )}
+                      {drawingAnnotation.type === 'circle' && drawingAnnotation.radius && (
+                        <circle
+                          cx={startCanvasPos.x}
+                          cy={startCanvasPos.y}
+                          r={drawingAnnotation.radius * fpWidth}
+                          stroke={drawingAnnotation.color}
+                          strokeWidth={drawingAnnotation.strokeWidth}
+                          fill={drawingAnnotation.fill ? drawingAnnotation.color : 'none'}
+                          fillOpacity={drawingAnnotation.fill ? 0.3 : 0}
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                      )}
+                      {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (
+                        <line
+                          x1={startCanvasPos.x}
+                          y1={startCanvasPos.y}
+                          x2={floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, floorplan).x}
+                          y2={floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, floorplan).y}
+                          stroke={drawingAnnotation.color}
+                          strokeWidth={drawingAnnotation.strokeWidth}
+                          strokeDasharray="8,4"
+                          className="pointer-events-none"
+                          opacity="0.8"
+                        />
+                      )}
+                    </g>
+                  );
                 })()}
 
                 {/* Connections - render AFTER annotations so they appear on top */}
