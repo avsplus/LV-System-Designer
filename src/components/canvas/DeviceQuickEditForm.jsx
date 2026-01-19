@@ -85,9 +85,18 @@ export default function DeviceQuickEditForm({ product, onSave, onClose }) {
   const [portQuantities, setPortQuantities] = useState({});
 
   const handleGeneratePorts = (direction, index, quantity) => {
+    const key = direction === 'input' ? 'input_connections' : 'output_connections';
+    const connectionType = formData[key][index].type;
+    
+    // Get current input value
+    const currentInput = portInputValues[`${direction}_${index}`] || '';
+    
+    // Use current input as base name if provided, otherwise use "Port"
+    const baseName = currentInput.trim() || 'Port';
+    
     const ports = [];
     for (let i = 1; i <= quantity; i++) {
-      ports.push(`Port-${String(i).padStart(2, '0')}`);
+      ports.push(`${baseName}-${String(i).padStart(2, '0')}`);
     }
     handlePortsChange(direction, index, ports.join(', '));
     setPortQuantities(prev => ({ ...prev, [`${direction}_${index}`]: quantity }));
