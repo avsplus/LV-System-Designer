@@ -2051,7 +2051,20 @@ function AVCanvasContent() {
           />
         )}
 
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          {/* Sidebar toggle button */}
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setShowSidebar(!showSidebar)}
+            className={`absolute top-1/2 -translate-y-1/2 z-[60] bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 transition-all ${
+              showSidebar ? 'left-0 rounded-l-none' : 'left-0'
+            }`}
+            title={showSidebar ? "Hide sidebar" : "Show sidebar"}
+          >
+            {showSidebar ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+          </Button>
+
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">AV System Design</h1>
