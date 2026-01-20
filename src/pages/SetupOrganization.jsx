@@ -22,9 +22,8 @@ export default function SetupOrganization({ onComplete }) {
         name: orgName.trim()
       });
 
-      // Get current user and assign them as owner
-      const user = await base44.auth.me();
-      await base44.entities.User.update(user.id, {
+      // Assign current user as organization owner
+      await base44.auth.updateMe({
         organization_id: org.id,
         organization_role: 'owner'
       });
