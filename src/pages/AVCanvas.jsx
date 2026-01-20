@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X, Crop, Layers, Wrench } from "lucide-react";
+import { Trash2, Download, Plus, ZoomIn, ZoomOut, Maximize2, Link2, Settings, FolderOpen, Save, ChevronDown, FileText, User, Home, Users, X, Crop, Layers, Wrench, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import FloorplanManager from "../components/canvas/FloorplanManager";
 import { toast } from "sonner";
 import {
@@ -127,6 +127,7 @@ function AVCanvasContent() {
   const [draggingAnnotation, setDraggingAnnotation] = useState(null);
   const [annotationDragStart, setAnnotationDragStart] = useState(null);
   const [annotationDragInitial, setAnnotationDragInitial] = useState(null);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -2032,21 +2033,23 @@ function AVCanvasContent() {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex h-[100dvh] w-full bg-gray-950 overflow-hidden">
-        <ProductSidebar 
-          products={products} 
-          onProductSelect={(product) => {
-            setSelectedProduct(product);
-            setSelectedCanvasProduct(null);
-            setSelectedConnection(null);
-            setShowFloorplanManager(false);
-            setShowRoomManager(false);
-            setSelectedFloorplanId(null);
-            setPanelHistory(prev => {
-              const filtered = prev.filter(p => p !== 'productDetails');
-              return [...filtered.slice(-1), 'productDetails'];
-            });
-          }}
-        />
+        {showSidebar && (
+          <ProductSidebar 
+            products={products} 
+            onProductSelect={(product) => {
+              setSelectedProduct(product);
+              setSelectedCanvasProduct(null);
+              setSelectedConnection(null);
+              setShowFloorplanManager(false);
+              setShowRoomManager(false);
+              setSelectedFloorplanId(null);
+              setPanelHistory(prev => {
+                const filtered = prev.filter(p => p !== 'productDetails');
+                return [...filtered.slice(-1), 'productDetails'];
+              });
+            }}
+          />
+        )}
 
         <div className="flex-1 flex flex-col min-w-0">
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
@@ -2067,6 +2070,15 @@ function AVCanvasContent() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
+                title={showSidebar ? "Hide sidebar" : "Show sidebar"}
+              >
+                {showSidebar ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
