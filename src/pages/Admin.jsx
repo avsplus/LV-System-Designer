@@ -342,12 +342,24 @@ export default function Admin() {
                                                                                       Approve User
                                                                                     </DropdownMenuItem>
                                                                                   )}
-                                                                <DropdownMenuItem className="text-gray-300 hover:bg-gray-700">
-                                                                  <Mail className="w-4 h-4 mr-2" />
-                                                                  Send Email
-                                                                </DropdownMenuItem>
                                                                 {canEditThisUser && (
-                                                                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                                                                  <DropdownMenuItem 
+                                                                    className="text-red-400 hover:bg-red-500/10"
+                                                                    onClick={async () => {
+                                                                      if (confirm(`Remove ${u.full_name || u.email} from the organization?`)) {
+                                                                        try {
+                                                                          await base44.entities.User.update(u.id, { 
+                                                                            organization_id: null,
+                                                                            organization_role: null 
+                                                                          });
+                                                                          queryClient.invalidateQueries({ queryKey: ['organizationUsers', organizationId] });
+                                                                          toast.success(`${u.full_name || u.email} removed from organization`);
+                                                                        } catch (error) {
+                                                                          toast.error('Failed to remove user');
+                                                                        }
+                                                                      }
+                                                                    }}
+                                                                  >
                                                                     <Trash2 className="w-4 h-4 mr-2" />
                                                                     Remove User
                                                                   </DropdownMenuItem>
