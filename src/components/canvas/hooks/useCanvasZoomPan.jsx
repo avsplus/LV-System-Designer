@@ -6,6 +6,8 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [spacePressed, setSpacePressed] = useState(false);
+  const [lastTouchDistance, setLastTouchDistance] = useState(null);
+  const [lastTouchCenter, setLastTouchCenter] = useState(null);
 
   const handleZoomIn = useCallback(() => {
     setZoom(prev => Math.min(prev + 0.1, 2.0));
@@ -117,6 +119,91 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
     }
   }, [isPanning, handlePanMove, handlePanEnd]);
 
+  // Touch gesture handlers for pinch-to-zoom and two-finger pan
+  const getTouchDistance = (touch1, touch2) => {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getTouchCenter = (touch1, touch2) => {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2
+    };
+  };
+
+  const handleTouchStart = useCallback((e, canvasElement) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const distance = getTouchDistance(e.touches[0], e.touches[1]);
+      const center = getTouchCenter(e.touches[0], e.touches[1]);
+      setLastTouchDistance(distance);
+      setLastTouchCenter(center);
+      setIsPanning(false);
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const isOnDevice = e.target.closest('[data-instance-id]');
+      const isOnButton = e.target.closest('button');
+      const isOnPort = e.target.hasAttribute('data-port-type') || e.target.hasAttribute('data-port-id');
+      const isOnFloorplan = e.target.tagName === 'IMG' || e.target.closest('[data-floorplan]');
+      
+      if (!isOnDevice && !isOnButton && !isOnPort && !isOnFloorplan) {
+        setIsPanning(true);
+        setPanStart({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
+      }
+    }
+  }, [pan]);
+
+  const handleTouchMove = useCallback((e, canvasElement) => {
+    if (e.touches.length === 2 && lastTouchDistance && lastTouchCenter) {
+      e.preventDefault();
+      const distance = getTouchDistance(e.touches[0], e.touches[1]);
+      const center = getTouchCenter(e.touches[0], e.touches[1]);
+      
+      // Calculate zoom change
+      const zoomDelta = distance / lastTouchDistance;
+      const newZoom = Math.max(0.08, Math.min(2.0, zoom * zoomDelta));
+      
+      if (canvasElement) {
+        const rect = canvasElement.getBoundingClientRect();
+        const touchX = center.x - rect.left;
+        const touchY = center.y - rect.top;
+        
+        // Calculate world position under touch before zoom
+        const worldX = (touchX - pan.x) / zoom;
+        const worldY = (touchY - pan.y) / zoom;
+        
+        // Calculate new pan to keep touch position fixed
+        const newPanX = touchX - worldX * newZoom;
+        const newPanY = touchY - worldY * newZoom;
+        
+        // Also account for finger movement during pinch
+        const panDeltaX = center.x - lastTouchCenter.x;
+        const panDeltaY = center.y - lastTouchCenter.y;
+        
+        setPan({ x: newPanX + panDeltaX, y: newPanY + panDeltaY });
+        setZoom(newZoom);
+      }
+      
+      setLastTouchDistance(distance);
+      setLastTouchCenter(center);
+    } else if (e.touches.length === 1 && isPanning) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      setPan({
+        x: touch.clientX - panStart.x,
+        y: touch.clientY - panStart.y
+      });
+    }
+  }, [isPanning, panStart, lastTouchDistance, lastTouchCenter, zoom, pan]);
+
+  const handleTouchEnd = useCallback(() => {
+    setLastTouchDistance(null);
+    setLastTouchCenter(null);
+    setIsPanning(false);
+  }, []);
+
   return {
     zoom,
     setZoom,
@@ -130,6 +217,9 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
     handleWheel,
     handlePanStart,
     handlePanMove,
-    handlePanEnd
+    handlePanEnd,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd
   };
 }
