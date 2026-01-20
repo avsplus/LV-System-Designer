@@ -2034,21 +2034,23 @@ function AVCanvasContent() {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex h-[100dvh] w-full bg-gray-950 overflow-hidden">
         <div className={`transition-all duration-300 ease-in-out ${showSidebar ? 'w-auto' : 'w-0'} overflow-hidden`}>
-          <ProductSidebar 
-            products={products} 
-            onProductSelect={(product) => {
-              setSelectedProduct(product);
-              setSelectedCanvasProduct(null);
-              setSelectedConnection(null);
-              setShowFloorplanManager(false);
-              setShowRoomManager(false);
-              setSelectedFloorplanId(null);
-              setPanelHistory(prev => {
-                const filtered = prev.filter(p => p !== 'productDetails');
-                return [...filtered.slice(-1), 'productDetails'];
-              });
-            }}
-          />
+          {showSidebar && (
+            <ProductSidebar 
+              products={products} 
+              onProductSelect={(product) => {
+                setSelectedProduct(product);
+                setSelectedCanvasProduct(null);
+                setSelectedConnection(null);
+                setShowFloorplanManager(false);
+                setShowRoomManager(false);
+                setSelectedFloorplanId(null);
+                setPanelHistory(prev => {
+                  const filtered = prev.filter(p => p !== 'productDetails');
+                  return [...filtered.slice(-1), 'productDetails'];
+                });
+              }}
+            />
+          )}
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 relative">
