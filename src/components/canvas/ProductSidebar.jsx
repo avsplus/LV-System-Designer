@@ -547,6 +547,9 @@ export default function ProductSidebar({ products, onProductSelect }) {
                 sum + (productsByMasterCategory[masterCat][cat]?.length || 0), 0
               );
 
+              // Hide master category if no products match the filter
+              if (totalProductsInMaster === 0) return null;
+
               return (
                 <div key={masterCat} className="space-y-2">
                   {/* Master Category Header */}
