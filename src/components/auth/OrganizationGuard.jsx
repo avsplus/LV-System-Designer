@@ -68,6 +68,12 @@ export default function OrganizationGuard({ children }) {
 
   // User exists but has no organization - BLOCK access
   if (!hasOrganization) {
+    // Check if user explicitly wants to create organization (check early, before loading)
+    const isCreatingOrg = localStorage.getItem('creatingOrganization') === 'true';
+    if (isCreatingOrg) {
+      return <SetupOrganization />;
+    }
+
     // Still loading org/invite data
     if (orgsLoading || invitesLoading) {
       return (
@@ -75,13 +81,6 @@ export default function OrganizationGuard({ children }) {
           <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
         </div>
       );
-    }
-
-    // Check if user explicitly wants to create organization
-    const isCreatingOrg = localStorage.getItem('creatingOrganization') === 'true';
-    if (isCreatingOrg) {
-      localStorage.removeItem('creatingOrganization');
-      return <SetupOrganization />;
     }
 
     // Check URL for invitation params first
