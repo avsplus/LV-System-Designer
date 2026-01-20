@@ -147,8 +147,8 @@ export default function NoOrganization({ pendingInvite }) {
             </button>
 
             {/* New Organization */}
-            <Link to={createPageUrl("SetupOrganization")} className="block">
-              <div className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group h-full">
+            <Link to={createPageUrl("SetupOrganization")}>
+              <button className="w-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group">
                 <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
                   <Plus className="w-6 h-6 text-green-400" />
                 </div>
@@ -165,7 +165,7 @@ export default function NoOrganization({ pendingInvite }) {
                   <Building2 className="w-4 h-4" />
                   Create organization now
                 </div>
-              </div>
+              </button>
             </Link>
           </div>
 
