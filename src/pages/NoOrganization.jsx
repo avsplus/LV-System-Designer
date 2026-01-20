@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Mail, Loader2, CheckCircle } from "lucide-react";
+import { Building2, Mail, Loader2, CheckCircle, Users, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../utils";
 
 export default function NoOrganization({ pendingInvite }) {
   const [isAccepting, setIsAccepting] = useState(false);
   const [inviteParams, setInviteParams] = useState(null);
+  const [showChoice, setShowChoice] = useState(false);
 
   useEffect(() => {
     // Check URL for invitation params
@@ -100,6 +103,86 @@ export default function NoOrganization({ pendingInvite }) {
     );
   }
 
+  // Show choice screen if not showing choice yet
+  if (!showChoice) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-6">
+              <Building2 className="w-8 h-8 text-blue-400" />
+            </div>
+            
+            <h1 className="text-3xl font-bold text-white mb-3">
+              Welcome to AV System Design
+            </h1>
+            
+            <p className="text-gray-400">
+              Let's get you set up. Which best describes you?
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Existing User/Employee */}
+            <button
+              onClick={() => setShowChoice(true)}
+              className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-blue-500 transition-all group"
+            >
+              <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center mb-4 group-hover:bg-purple-500/30 transition-colors">
+                <Users className="w-6 h-6 text-purple-400" />
+              </div>
+              
+              <h3 className="text-lg font-semibold text-white mb-2">
+                I'm joining an existing organization
+              </h3>
+              
+              <p className="text-sm text-gray-400 mb-4">
+                My company already uses AV System Design and I need to be added to their organization.
+              </p>
+
+              <div className="flex items-center gap-2 text-xs text-purple-400">
+                <Mail className="w-4 h-4" />
+                Wait for invitation from admin
+              </div>
+            </button>
+
+            {/* New Organization */}
+            <Link to={createPageUrl("SetupOrganization")} className="block">
+              <div className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group h-full">
+                <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
+                  <Plus className="w-6 h-6 text-green-400" />
+                </div>
+                
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  I'm creating a new organization
+                </h3>
+                
+                <p className="text-sm text-gray-400 mb-4">
+                  I'm setting up AV System Design for my company or team for the first time.
+                </p>
+
+                <div className="flex items-center gap-2 text-xs text-green-400">
+                  <Building2 className="w-4 h-4" />
+                  Create organization now
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="text-center mt-6">
+            <Button 
+              variant="ghost" 
+              onClick={handleLogout}
+              className="text-gray-500 hover:text-gray-300"
+            >
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
       <div className="max-w-md w-full text-center">
@@ -127,14 +210,24 @@ export default function NoOrganization({ pendingInvite }) {
             </div>
           </div>
         </div>
-        
-        <Button 
-          variant="outline" 
-          onClick={handleLogout}
-          className="border-gray-700 text-gray-300 hover:bg-gray-800"
-        >
-          Sign Out
-        </Button>
+
+        <div className="space-y-3">
+          <Button 
+            onClick={() => setShowChoice(false)}
+            variant="outline"
+            className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
+          >
+            Back
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            onClick={handleLogout}
+            className="w-full text-gray-500 hover:text-gray-300"
+          >
+            Sign Out
+          </Button>
+        </div>
       </div>
     </div>
   );
