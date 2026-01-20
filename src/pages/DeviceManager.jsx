@@ -170,18 +170,7 @@ export default function DeviceManager() {
     }
   };
 
-  // All available categories from the system
-  const allCategories = [
-    'televisions', 'projectors', 'projector_screens', 'video_distribution', 
-    'matrix_switchers', 'audio_streamers', 'media_streamers', 'speakers', 
-    'soundbars', 'subwoofers', 'stereo_amps', 'multizone_amps', 
-    'surround_processors', 'av_receivers', 'network_switches', 'routers',
-    'access_points', 'patch_panels', 'data_jacks', 'control_processors',
-    'hdmi_extenders', 'telephones', 'phone_jacks', 'intercoms', 'nvrs',
-    'ip_cameras', 'power_conditioner', 'smart_power_conditioner', 
-    'power_strip', 'ups_backup'
-  ].sort();
-  const categories = allCategories;
+  const categories = [...new Set(products.map(p => p.category))].sort();
 
   // Count devices per category
   const categoryCounts = products.reduce((acc, p) => {
