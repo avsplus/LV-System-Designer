@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import { createPageUrl } from "../utils";
 
 export default function SetupOrganization({ onComplete }) {
   const [orgName, setOrgName] = useState('');
@@ -30,9 +31,9 @@ export default function SetupOrganization({ onComplete }) {
 
       toast.success('Organization created successfully!');
       
-      // Clear flag and reload to get fresh user data with org assignment
+      // Clear flag and redirect to billing page to select subscription
       localStorage.removeItem('creatingOrganization');
-      window.location.reload();
+      window.location.href = createPageUrl('Billing');
     } catch (error) {
       toast.error(error.message || 'Failed to create organization');
     } finally {
