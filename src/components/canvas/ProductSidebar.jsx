@@ -588,6 +588,9 @@ export default function ProductSidebar({ products, onProductSelect }) {
                         const categoryProducts = productsByMasterCategory[masterCat][category] || [];
                         const isExpanded = expandedCategories[category] === true;
 
+                        // Hide subcategory if no products match the filter
+                        if (categoryProducts.length === 0) return null;
+
                         return (
                           <div key={category} className="space-y-2" onClick={(e) => e.stopPropagation()}>
                             <button
