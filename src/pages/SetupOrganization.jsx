@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Building2, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,6 @@ import { toast } from "sonner";
 export default function SetupOrganization({ onComplete }) {
   const [orgName, setOrgName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-
-  // Clear the flag when component mounts
-  useEffect(() => {
-    localStorage.removeItem('creatingOrganization');
-  }, []);
 
   const handleCreate = async () => {
     if (!orgName.trim()) {
@@ -36,7 +31,8 @@ export default function SetupOrganization({ onComplete }) {
 
       toast.success('Organization created successfully!');
       
-      // Reload to get fresh user data with org assignment
+      // Clear flag and reload to get fresh user data with org assignment
+      localStorage.removeItem('creatingOrganization');
       window.location.reload();
     } catch (error) {
       toast.error(error.message || 'Failed to create organization');
