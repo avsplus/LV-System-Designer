@@ -2053,16 +2053,15 @@ function AVCanvasContent() {
 
         <div className="flex-1 flex flex-col min-w-0 relative">
           {/* Sidebar toggle button */}
-          <Button 
-            variant="outline" 
+          <button 
             onClick={() => setShowSidebar(!showSidebar)}
-            className={`absolute top-1/2 -translate-y-1/2 z-[60] h-[72px] w-[22px] bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 transition-all ${
-              showSidebar ? 'left-0 rounded-l-none' : 'left-0'
+            className={`absolute top-1/2 -translate-y-1/2 z-[60] h-[72px] w-[22px] bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white transition-all flex items-center justify-center ${
+              showSidebar ? 'left-0 rounded-l-none border-l-0 rounded-r-md' : 'left-0 rounded-r-md'
             }`}
             title={showSidebar ? "Hide sidebar" : "Show sidebar"}
           >
-            {showSidebar ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-          </Button>
+            {showSidebar ? <PanelLeftClose className="w-3 h-3" /> : <PanelLeftOpen className="w-3 h-3" />}
+          </button>
 
           <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
             <div>
