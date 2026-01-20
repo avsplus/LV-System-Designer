@@ -77,6 +77,12 @@ export default function OrganizationGuard({ children }) {
       );
     }
 
+    // Allow access to SetupOrganization page
+    const currentPath = window.location.pathname.toLowerCase();
+    if (currentPath.includes('setuporganization')) {
+      return <SetupOrganization />;
+    }
+
     // Check URL for invitation params first
     const urlParams = new URLSearchParams(window.location.search);
     const hasInviteUrl = urlParams.get('org');
