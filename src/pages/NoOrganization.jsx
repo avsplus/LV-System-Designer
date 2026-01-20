@@ -126,7 +126,7 @@ export default function NoOrganization({ pendingInvite }) {
             {/* Existing User/Employee */}
             <button
               onClick={() => setShowChoice(true)}
-              className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-blue-500 transition-all group"
+              className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-purple-500 transition-all group h-full flex flex-col"
             >
               <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center mb-4 group-hover:bg-purple-500/30 transition-colors">
                 <Users className="w-6 h-6 text-purple-400" />
@@ -136,7 +136,7 @@ export default function NoOrganization({ pendingInvite }) {
                 I'm joining an existing organization
               </h3>
               
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-gray-400 mb-4 flex-grow">
                 My company already uses AV System Design and I need to be added to their organization.
               </p>
 
@@ -147,8 +147,8 @@ export default function NoOrganization({ pendingInvite }) {
             </button>
 
             {/* New Organization */}
-            <Link to={createPageUrl("SetupOrganization")}>
-              <button className="w-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group">
+            <Link to={createPageUrl("SetupOrganization")} className="h-full">
+              <button className="w-full h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group flex flex-col">
                 <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
                   <Plus className="w-6 h-6 text-green-400" />
                 </div>
@@ -157,7 +157,7 @@ export default function NoOrganization({ pendingInvite }) {
                   I'm creating a new organization
                 </h3>
                 
-                <p className="text-sm text-gray-400 mb-4">
+                <p className="text-sm text-gray-400 mb-4 flex-grow">
                   I'm setting up AV System Design for my company or team for the first time.
                 </p>
 
