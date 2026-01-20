@@ -2056,7 +2056,7 @@ function AVCanvasContent() {
           <Button 
             variant="outline" 
             onClick={() => setShowSidebar(!showSidebar)}
-            className={`absolute top-1/2 -translate-y-1/2 z-[60] h-18 w-6 bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 transition-all ${
+            className={`absolute top-1/2 -translate-y-1/2 z-[60] h-[72px] w-[22px] bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 transition-all ${
               showSidebar ? 'left-0 rounded-l-none' : 'left-0'
             }`}
             title={showSidebar ? "Hide sidebar" : "Show sidebar"}
