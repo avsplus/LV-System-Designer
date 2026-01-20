@@ -365,7 +365,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
   const masterCategories = Object.keys(allMasterCategoryMappings).sort();
 
   return (
-    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-200">
+    <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-in-out">
       {/* Logo */}
       <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center gap-4">
         <img 
@@ -580,7 +580,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                   </button>
 
                   {masterCatExpanded && (
-                    <div className="space-y-2 pl-2">
+                    <div className="space-y-2 pl-2 animate-in fade-in slide-in-from-left-2 duration-200">
                       {categoriesInMaster.map((category) => {
                         const categoryProducts = productsByMasterCategory[masterCat][category] || [];
                         const isExpanded = expandedCategories[category] === true;
@@ -622,7 +622,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
                             </button>
 
                             {isExpanded && (
-                              <div className="space-y-2 pl-1">
+                              <div className="space-y-2 pl-1 animate-in fade-in slide-in-from-left-1 duration-150">
                                 {/* Regular Products (includes demo products from database) */}
                                 {categoryProducts.map((product, prodIndex) => {
                                   const isDemoProduct = product.id?.startsWith('demo-');
