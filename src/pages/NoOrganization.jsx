@@ -147,25 +147,26 @@ export default function NoOrganization({ pendingInvite }) {
             </button>
 
             {/* New Organization */}
-            <Link to={createPageUrl("SetupOrganization")} className="h-full">
-              <button className="w-full h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group flex flex-col">
-                <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
-                  <Plus className="w-6 h-6 text-green-400" />
-                </div>
-                
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  I'm creating a new organization
-                </h3>
-                
-                <p className="text-sm text-gray-400 mb-4 flex-grow">
-                  I'm setting up AV System Design for my company or team for the first time.
-                </p>
+            <Link 
+              to={createPageUrl("SetupOrganization")} 
+              className="block h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group flex flex-col"
+            >
+              <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
+                <Plus className="w-6 h-6 text-green-400" />
+              </div>
+              
+              <h3 className="text-lg font-semibold text-white mb-2">
+                I'm creating a new organization
+              </h3>
+              
+              <p className="text-sm text-gray-400 mb-4 flex-grow">
+                I'm setting up AV System Design for my company or team for the first time.
+              </p>
 
-                <div className="flex items-center gap-2 text-xs text-green-400">
-                  <Building2 className="w-4 h-4" />
-                  Create organization now
-                </div>
-              </button>
+              <div className="flex items-center gap-2 text-xs text-green-400">
+                <Building2 className="w-4 h-4" />
+                Create organization now
+              </div>
             </Link>
           </div>
 
