@@ -149,8 +149,11 @@ export default function NoOrganization({ pendingInvite }) {
 
             {/* New Organization */}
             <button
-              onClick={() => navigate(createPageUrl("SetupOrganization"))}
-              className="flex flex-col h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group"
+              onClick={() => {
+                console.log('Create org clicked');
+                navigate(createPageUrl("SetupOrganization"));
+              }}
+              className="flex flex-col h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
                 <Plus className="w-6 h-6 text-green-400" />
