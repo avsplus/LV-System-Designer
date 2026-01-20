@@ -62,7 +62,10 @@ function AVCanvasContent() {
     // Zoom and pan state from hook
     const {
       zoom, setZoom, pan, setPan, isPanning, spacePressed,
-      handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart
+      handleZoomIn, handleZoomOut, handleZoomReset, handleWheel, handlePanStart,
+      handleTouchStart: handleCanvasTouchStartPan,
+      handleTouchMove: handleCanvasTouchMovePan,
+      handleTouchEnd: handleCanvasTouchEndPan
     } = useCanvasZoomPan(orgSettings?.default_zoom || 1);
 
   // Project and current user state
@@ -1183,21 +1186,17 @@ function AVCanvasContent() {
     }
   };
 
-  // Touch handlers for pinch-to-zoom
+  // Touch handlers for pinch-to-zoom and pan
   const handleCanvasTouchStart = (e) => {
-    if (e.touches.length === 2) {
-      handlePinchStart(e, zoom);
-    }
+    handleCanvasTouchStartPan(e, canvasRef.current);
   };
 
   const handleCanvasTouchMove = (e) => {
-    if (e.touches.length === 2) {
-      handlePinchMove(e, setZoom);
-    }
+    handleCanvasTouchMovePan(e, canvasRef.current);
   };
 
   const handleCanvasTouchEnd = () => {
-    handlePinchEnd();
+    handleCanvasTouchEndPan();
   };
 
   const handleUpdateAnnotation = (index, updatedAnnotation, applyToAll = false) => {

@@ -206,6 +206,10 @@ export default function CanvasProduct({
   
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   
+  // Larger tap targets on touch devices
+  const portSize = isTouchDevice ? 44 : 20;
+  const portHitSize = isTouchDevice ? 44 : 20;
+  
   // Helper to set tooltip info at page level
   const setTooltipInfo = (info) => {
     if (onTooltipChange) {
@@ -542,12 +546,18 @@ Only return URLs that:
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', true)}
-                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
                   isConnectingPort ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125 active:scale-150'
                 }`}
-                style={{ backgroundColor: connType.color }}
+                style={{ 
+                  backgroundColor: connType.color,
+                  width: `${portSize}px`,
+                  height: `${portSize}px`,
+                  minWidth: `${portHitSize}px`,
+                  minHeight: `${portHitSize}px`
+                }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="input"
@@ -571,17 +581,19 @@ Only return URLs that:
                   }
                 }}
                 onMouseEnter={(e) => {
-                  const isBidirectional = outputTypes.some(out => out.type === connType.type);
-                  setTooltipInfo({
-                    type: connType.type,
-                    portCount: connType.ports.length,
-                    color: connType.color,
-                    isInput: true,
-                    isBidirectional,
-                    element: e.currentTarget
-                  });
+                  if (!isTouchDevice) {
+                    const isBidirectional = outputTypes.some(out => out.type === connType.type);
+                    setTooltipInfo({
+                      type: connType.type,
+                      portCount: connType.ports.length,
+                      color: connType.color,
+                      isInput: true,
+                      isBidirectional,
+                      element: e.currentTarget
+                    });
+                  }
                 }}
-                onMouseLeave={() => setTooltipInfo(null)}
+                onMouseLeave={() => !isTouchDevice && setTooltipInfo(null)}
               >
                 <ChevronRight className="w-3 h-3 text-black/70" />
               </div>
@@ -601,12 +613,18 @@ Only return URLs that:
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', false)}
-                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
                   isConnectingPort ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125 active:scale-150'
                 }`}
-                style={{ backgroundColor: connType.color }}
+                style={{ 
+                  backgroundColor: connType.color,
+                  width: `${portSize}px`,
+                  height: `${portSize}px`,
+                  minWidth: `${portHitSize}px`,
+                  minHeight: `${portHitSize}px`
+                }}
                 data-port-id={portId}
                 data-port-index={i}
                 data-port-type="output"
@@ -630,17 +648,19 @@ Only return URLs that:
                   }
                 }}
                 onMouseEnter={(e) => {
-                  const isBidirectional = inputTypes.some(inp => inp.type === connType.type);
-                  setTooltipInfo({
-                    type: connType.type,
-                    portCount: connType.ports.length,
-                    color: connType.color,
-                    isInput: false,
-                    isBidirectional,
-                    element: e.currentTarget
-                  });
+                  if (!isTouchDevice) {
+                    const isBidirectional = inputTypes.some(inp => inp.type === connType.type);
+                    setTooltipInfo({
+                      type: connType.type,
+                      portCount: connType.ports.length,
+                      color: connType.color,
+                      isInput: false,
+                      isBidirectional,
+                      element: e.currentTarget
+                    });
+                  }
                 }}
-                onMouseLeave={() => setTooltipInfo(null)}
+                onMouseLeave={() => !isTouchDevice && setTooltipInfo(null)}
               >
                 <ChevronRight className="w-3 h-3 text-black/70" />
               </div>
@@ -685,12 +705,18 @@ Only return URLs that:
               <div 
                 key={i}
                 ref={(el) => registerPort(portId, el, instanceId, connType.type, 'type', connType.isInput)}
-                className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
+                className={`rounded-full border-2 cursor-pointer transition-all flex items-center justify-center ${
                   isConnecting ? 'scale-150 border-blue-400' :
                   isHovered ? 'scale-150 border-green-400 shadow-lg shadow-green-400/50' : 
                   'border-gray-800 hover:scale-125'
                 }`}
-                style={{ backgroundColor: connType.color }}
+                style={{ 
+                  backgroundColor: connType.color,
+                  width: `${portSize}px`,
+                  height: `${portSize}px`,
+                  minWidth: `${portHitSize}px`,
+                  minHeight: `${portHitSize}px`
+                }}
                 data-port-id={portId}
                 data-port-index={i + 6}
                 data-port-type={connType.isInput ? "input" : "output"}
@@ -707,20 +733,28 @@ Only return URLs that:
                     onPortMouseDown(instanceId, connType.type, 'type', connType.isInput, e.currentTarget);
                   }
                 }}
-                onMouseEnter={(e) => {
-                  const isBidirectional = connType.isInput 
-                    ? outputTypes.some(out => out.type === connType.type)
-                    : inputTypes.some(inp => inp.type === connType.type);
-                  setTooltipInfo({
-                    type: connType.type,
-                    portCount: connType.ports.length,
-                    color: connType.color,
-                    isInput: connType.isInput,
-                    isBidirectional,
-                    element: e.currentTarget
-                  });
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  if (onPortMouseDown) {
+                    onPortMouseDown(instanceId, connType.type, 'type', connType.isInput, e.currentTarget);
+                  }
                 }}
-                onMouseLeave={() => setTooltipInfo(null)}
+                onMouseEnter={(e) => {
+                  if (!isTouchDevice) {
+                    const isBidirectional = connType.isInput 
+                      ? outputTypes.some(out => out.type === connType.type)
+                      : inputTypes.some(inp => inp.type === connType.type);
+                    setTooltipInfo({
+                      type: connType.type,
+                      portCount: connType.ports.length,
+                      color: connType.color,
+                      isInput: connType.isInput,
+                      isBidirectional,
+                      element: e.currentTarget
+                    });
+                  }
+                }}
+                onMouseLeave={() => !isTouchDevice && setTooltipInfo(null)}
               >
                 {connType.isInput ? (
                   <ChevronDown className="w-3 h-3 text-black/70" />
