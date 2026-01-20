@@ -3,13 +3,14 @@ import { Building2, Mail, Loader2, CheckCircle, Users, Plus } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils";
 
 export default function NoOrganization({ pendingInvite }) {
   const [isAccepting, setIsAccepting] = useState(false);
   const [inviteParams, setInviteParams] = useState(null);
   const [showChoice, setShowChoice] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check URL for invitation params
@@ -147,8 +148,8 @@ export default function NoOrganization({ pendingInvite }) {
             </button>
 
             {/* New Organization */}
-            <Link 
-              to={createPageUrl("SetupOrganization")} 
+            <button
+              onClick={() => navigate(createPageUrl("SetupOrganization"))}
               className="flex flex-col h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group"
             >
               <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/30 transition-colors">
@@ -167,7 +168,7 @@ export default function NoOrganization({ pendingInvite }) {
                 <Building2 className="w-4 h-4" />
                 Create organization now
               </div>
-            </Link>
+            </button>
           </div>
 
           <div className="text-center mt-6">
