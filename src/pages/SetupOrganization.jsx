@@ -18,10 +18,27 @@ export default function SetupOrganization({ onComplete }) {
 
     setIsCreating(true);
     try {
-      // Create the organization
-      const org = await base44.entities.Organization.create({
+      // Check if organization name already exists
+      const existing = await base44.entities.Organization.filter({
         name: orgName.trim()
       });
+      
+      if (existing && existing.length > 0) {
+        toast.error('An organization with this name already exists. Please choose a different name.');
+        setIsCreating(false);
+        return;
+      }
+
+      // Create the organization with signing keys
+      const response = await base44.functions.invoke('createOrganization', {
+        name: orgName.trim()
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to create organization');
+      }
+
+      const org = response.data.organization;
 
       // Assign current user as organization owner
       await base44.auth.updateMe({
