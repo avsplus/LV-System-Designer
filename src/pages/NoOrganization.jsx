@@ -150,7 +150,8 @@ export default function NoOrganization({ pendingInvite }) {
             {/* New Organization */}
             <button
               onClick={() => {
-                window.location.href = createPageUrl("SetupOrganization");
+                localStorage.setItem('creatingOrganization', 'true');
+                window.location.reload();
               }}
               className="flex flex-col h-full bg-gray-900 border-2 border-gray-800 rounded-xl p-6 text-left hover:border-green-500 transition-all group cursor-pointer"
             >

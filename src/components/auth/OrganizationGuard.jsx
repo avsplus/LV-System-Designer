@@ -77,9 +77,10 @@ export default function OrganizationGuard({ children }) {
       );
     }
 
-    // Allow access to SetupOrganization page
-    const currentPath = window.location.pathname.toLowerCase();
-    if (currentPath.includes('setuporganization')) {
+    // Check if user explicitly wants to create organization
+    const isCreatingOrg = localStorage.getItem('creatingOrganization') === 'true';
+    if (isCreatingOrg) {
+      localStorage.removeItem('creatingOrganization');
       return <SetupOrganization />;
     }
 
