@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,11 @@ import { toast } from "sonner";
 export default function SetupOrganization({ onComplete }) {
   const [orgName, setOrgName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  // Clear the flag when component mounts
+  useEffect(() => {
+    localStorage.removeItem('creatingOrganization');
+  }, []);
 
   const handleCreate = async () => {
     if (!orgName.trim()) {
