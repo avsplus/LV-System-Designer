@@ -16,6 +16,12 @@ export default function OrganizationGuard({ children }) {
     base44.auth.isAuthenticated().then(setIsAuthenticated).catch(() => setIsAuthenticated(false));
   }, []);
 
+  // Allow Home page (landing) to bypass the guard
+  const isHomePage = window.location.pathname === '/' || window.location.pathname === '/Home';
+  if (isHomePage) {
+    return children;
+  }
+
   const { isLoading, hasOrganization, user } = useOrganization();
 
   // Check if any organizations exist (for first-time setup)
