@@ -187,11 +187,11 @@ export default function Landing() {
               </p>
               <ul className="space-y-4">
                 {[
-                  'Pre-built device library with real AV equipment',
-                  'Automatic wire scheduling and cable calculations',
-                  'One-click professional PDF exports',
-                  'Room-based organization for complex projects',
-                  'Real-time collaboration with your team'
+                  '1000+ pre-configured AV devices from top brands',
+                  'Automatic wire scheduling and pricing calculations',
+                  'Export professional PDFs in seconds',
+                  'Room-based organization for multi-zone projects',
+                  'Network mapping and real-time agent monitoring'
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
