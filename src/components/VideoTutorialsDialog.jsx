@@ -6,25 +6,25 @@ const TUTORIALS = [
   {
     title: "Getting Started",
     description: "Learn the basics of creating your first AV system design",
-    videoUrl: "", // User will provide
+    youtubeId: "", // Add YouTube video ID here
     duration: "5:30"
   },
   {
     title: "Device Library",
     description: "Browse and add devices from the comprehensive product library",
-    videoUrl: "",
+    youtubeId: "",
     duration: "4:15"
   },
   {
     title: "Making Connections",
     description: "Connect devices and manage wire routing",
-    videoUrl: "",
+    youtubeId: "",
     duration: "6:45"
   },
   {
     title: "Exporting PDFs",
     description: "Generate professional proposals and installer documentation",
-    videoUrl: "",
+    youtubeId: "",
     duration: "3:20"
   }
 ];
@@ -48,14 +48,19 @@ export default function VideoTutorialsDialog({ open, onOpenChange }) {
               ← Back to all tutorials
             </button>
             <div className="aspect-video bg-gray-950 rounded-lg overflow-hidden">
-              <video 
-                controls 
-                className="w-full h-full"
-                src={selectedVideo.videoUrl}
-                autoPlay
-              >
-                Your browser does not support the video tag.
-              </video>
+              {selectedVideo.youtubeId ? (
+                <iframe
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}?autoplay=1`}
+                  title={selectedVideo.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                  Video not available
+                </div>
+              )}
             </div>
             <div>
               <h3 className="text-xl font-semibold text-white mb-2">{selectedVideo.title}</h3>
@@ -68,10 +73,24 @@ export default function VideoTutorialsDialog({ open, onOpenChange }) {
               <button
                 key={i}
                 onClick={() => setSelectedVideo(tutorial)}
-                className="flex items-start gap-4 p-4 bg-gray-800 hover:bg-gray-750 rounded-lg transition-colors text-left border border-gray-700 hover:border-gray-600"
+                disabled={!tutorial.youtubeId}
+                className="flex items-start gap-4 p-4 bg-gray-800 hover:bg-gray-750 rounded-lg transition-colors text-left border border-gray-700 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="w-40 h-24 bg-gray-950 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Play className="w-8 h-8 text-blue-400" />
+                <div className="w-40 h-24 bg-gray-950 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                  {tutorial.youtubeId ? (
+                    <>
+                      <img 
+                        src={`https://img.youtube.com/vi/${tutorial.youtubeId}/mqdefault.jpg`}
+                        alt={tutorial.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <Play className="w-8 h-8 text-white" />
+                      </div>
+                    </>
+                  ) : (
+                    <Play className="w-8 h-8 text-blue-400" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-white mb-1">{tutorial.title}</h3>
