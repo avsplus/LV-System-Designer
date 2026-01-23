@@ -12,23 +12,23 @@ import { createPageUrl } from "../utils";
 const FEATURES = [
   {
     icon: Monitor,
-    title: "Visual System Design",
-    description: "Drag-and-drop AV equipment onto an infinite canvas. See your entire system at a glance."
+    title: "Interactive Canvas Design",
+    description: "Drag-and-drop AV equipment onto an infinite canvas with drag-and-drop. See your entire system at a glance."
   },
   {
     icon: Cable,
-    title: "Smart Connections",
-    description: "Connect devices with intelligent routing. Automatic wire IDs and cable scheduling."
+    title: "Comprehensive Product Library",
+    description: "Access 1000+ devices from top AV brands. Pre-configured with real specifications and connections."
   },
   {
     icon: FileText,
-    title: "Professional Exports",
-    description: "Generate installer packages, client proposals, and full documentation PDFs instantly."
+    title: "Automated Wire Management & Pricing",
+    description: "Intelligent routing with automatic wire IDs, cable scheduling, and real-time cost calculations."
   },
   {
     icon: Users,
-    title: "Team Collaboration",
-    description: "Share projects with your team. Real-time presence indicators and activity tracking."
+    title: "Professional PDF Proposals",
+    description: "Export client proposals, installer documentation, and system diagrams in a few clicks."
   }
 ];
 
