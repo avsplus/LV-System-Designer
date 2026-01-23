@@ -93,12 +93,12 @@ export default function Landing() {
           </Badge>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
-            Design AV Systems<br />Like Never Before
+            Professional AV<br />System Design Software
           </h1>
           
           <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-            The professional tool for audio-visual integrators. Design, document, and deliver 
-            stunning AV systems with our intuitive visual canvas.
+            Built for AV integrators, system designers, and low voltage installation professionals. 
+            Design, document, and deliver stunning AV systems with drag-and-drop simplicity.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
