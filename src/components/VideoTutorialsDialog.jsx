@@ -6,26 +6,32 @@ const TUTORIALS = [
   {
     title: "Getting Started",
     description: "Learn the basics of creating your first AV system design",
-    youtubeId: "", // Add YouTube video ID here
-    duration: "5:30"
+    youtubeId: "hkoYtxR151M"
   },
   {
     title: "Device Library",
     description: "Browse and add devices from the comprehensive product library",
-    youtubeId: "",
-    duration: "4:15"
+    youtubeId: "rGNszZU4Iww"
   },
   {
     title: "Making Connections",
     description: "Connect devices and manage wire routing",
-    youtubeId: "",
-    duration: "6:45"
+    youtubeId: "WBr7rsXEStg"
   },
   {
     title: "Exporting PDFs",
     description: "Generate professional proposals and installer documentation",
-    youtubeId: "",
-    duration: "3:20"
+    youtubeId: "jxR_MBO6WKI"
+  },
+  {
+    title: "Advanced Features",
+    description: "Explore advanced features and tips for power users",
+    youtubeId: "_1lc22IbIB8"
+  },
+  {
+    title: "Best Practices",
+    description: "Learn best practices for efficient AV system design",
+    youtubeId: "CLWK_pDYk9U"
   }
 ];
 
@@ -94,8 +100,7 @@ export default function VideoTutorialsDialog({ open, onOpenChange }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-white mb-1">{tutorial.title}</h3>
-                  <p className="text-sm text-gray-400 mb-2">{tutorial.description}</p>
-                  <span className="text-xs text-gray-500">{tutorial.duration}</span>
+                  <p className="text-sm text-gray-400">{tutorial.description}</p>
                 </div>
               </button>
             ))}
