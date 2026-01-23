@@ -9,18 +9,18 @@ import PendingApproval from "../../pages/PendingApproval";
 import Landing from "../../pages/Landing";
 
 export default function OrganizationGuard({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-
-  // Check authentication status first
-  useEffect(() => {
-    base44.auth.isAuthenticated().then(setIsAuthenticated).catch(() => setIsAuthenticated(false));
-  }, []);
-
-  // Allow Home page (landing) to bypass the guard
+  // Allow Home page (landing) to bypass the guard completely
   const isHomePage = window.location.pathname === '/' || window.location.pathname === '/Home';
   if (isHomePage) {
     return children;
   }
+
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+  // Check authentication status
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(setIsAuthenticated).catch(() => setIsAuthenticated(false));
+  }, []);
 
   const { isLoading, hasOrganization, user } = useOrganization();
 
