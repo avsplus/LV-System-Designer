@@ -58,9 +58,26 @@ const PLANS = [
 ];
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.isAuthenticated().then(async (authenticated) => {
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        // Redirect authenticated users to the canvas
+        window.location.href = '/AVCanvas';
+      }
+    });
+  }, []);
+
   const handleGetStarted = () => {
     base44.auth.redirectToLogin('/AVCanvas');
   };
+
+  // Show nothing while checking auth to avoid flash
+  if (isAuthenticated === null) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
