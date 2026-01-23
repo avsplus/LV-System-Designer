@@ -1,42 +1,31 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Play } from "lucide-react";
-
-const TUTORIALS = [
-  {
-    title: "Getting Started",
-    description: "Learn the basics of creating your first AV system design",
-    youtubeId: "hkoYtxR151M"
-  },
-  {
-    title: "Device Library",
-    description: "Browse and add devices from the comprehensive product library",
-    youtubeId: "rGNszZU4Iww"
-  },
-  {
-    title: "Making Connections",
-    description: "Connect devices and manage wire routing",
-    youtubeId: "WBr7rsXEStg"
-  },
-  {
-    title: "Exporting PDFs",
-    description: "Generate professional proposals and installer documentation",
-    youtubeId: "jxR_MBO6WKI"
-  },
-  {
-    title: "Advanced Features",
-    description: "Explore advanced features and tips for power users",
-    youtubeId: "_1lc22IbIB8"
-  },
-  {
-    title: "Best Practices",
-    description: "Learn best practices for efficient AV system design",
-    youtubeId: "CLWK_pDYk9U"
-  }
-];
+import { Play, Loader2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 export default function VideoTutorialsDialog({ open, onOpenChange }) {
   const [selectedVideo, setSelectedVideo] = React.useState(null);
+  const [videos, setVideos] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (open) {
+      loadVideos();
+    }
+  }, [open]);
+
+  const loadVideos = async () => {
+    try {
+      setLoading(true);
+      const { data } = await base44.functions.invoke('getYouTubeVideos');
+      setVideos(data.videos || []);
+    } catch (error) {
+      console.error('Failed to load videos:', error);
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,9 +62,17 @@ export default function VideoTutorialsDialog({ open, onOpenChange }) {
               <p className="text-gray-400">{selectedVideo.description}</p>
             </div>
           </div>
+        ) : loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+          </div>
+        ) : videos.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No tutorial videos found
+          </div>
         ) : (
           <div className="grid gap-4 mt-4">
-            {TUTORIALS.map((tutorial, i) => (
+            {videos.map((tutorial, i) => (
               <button
                 key={i}
                 onClick={() => setSelectedVideo(tutorial)}
@@ -107,7 +104,7 @@ export default function VideoTutorialsDialog({ open, onOpenChange }) {
           </div>
         )}
         
-        {!selectedVideo && (
+        {!selectedVideo && !loading && videos.length > 0 && (
           <p className="text-sm text-gray-500 text-center mt-4">
             Click on any tutorial to start watching
           </p>
