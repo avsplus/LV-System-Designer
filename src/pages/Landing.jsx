@@ -76,8 +76,11 @@ export default function Landing() {
           <div className="flex items-center gap-4">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
             <a href="#pricing" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Pricing</a>
+            <Button onClick={handleGetStarted} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800">
+              Sign In
+            </Button>
             <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
-              Get Started
+              Start Free Trial
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
