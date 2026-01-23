@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
+import VideoTutorialsDialog from "../components/VideoTutorialsDialog";
 
 const FEATURES = [
   {
@@ -59,6 +60,7 @@ const PLANS = [
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(null);
+  const [showTutorials, setShowTutorials] = React.useState(false);
 
   React.useEffect(() => {
     base44.auth.isAuthenticated().then(async (authenticated) => {
@@ -90,6 +92,7 @@ export default function Home() {
               alt="AV System Design Logo" 
               className="h-10 w-auto"
             />
+            <span className="text-xl font-bold">AV System Design</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
@@ -135,7 +138,7 @@ export default function Home() {
               size="lg" 
               variant="outline"
               className="border-gray-700 text-gray-300 hover:bg-gray-800 text-lg px-8 py-6"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => setShowTutorials(true)}
             >
               <Play className="w-5 h-5 mr-2" />
               See How It Works
@@ -323,6 +326,7 @@ export default function Home() {
               alt="AV System Design Logo" 
               className="h-8 w-auto"
             />
+            <span className="font-semibold">AV System Design</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <a href="mailto:support@avsystemdesign.com" className="hover:text-white transition-colors">Support</a>
@@ -330,6 +334,8 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <VideoTutorialsDialog open={showTutorials} onOpenChange={setShowTutorials} />
     </div>
   );
 }
