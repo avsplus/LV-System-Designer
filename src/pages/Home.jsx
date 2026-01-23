@@ -85,10 +85,11 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold">AV System Design</span>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
+              alt="AV System Design Logo" 
+              className="h-10 w-auto"
+            />
           </div>
           <div className="flex items-center gap-4">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
@@ -151,14 +152,12 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-green-500" />
                 <span className="ml-4 text-sm text-gray-400">AV System Design - Living Room Project</span>
               </div>
-              <div className="aspect-video bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
-                <div className="grid grid-cols-3 gap-8 p-12 opacity-60">
-                  {[1,2,3,4,5,6].map(i => (
-                    <div key={i} className="w-32 h-24 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center">
-                      <Monitor className="w-8 h-8 text-gray-600" />
-                    </div>
-                  ))}
-                </div>
+              <div className="aspect-video bg-gray-900 overflow-hidden">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/ce61dce7e_image.png"
+                  alt="Sample AV System Design Project"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -319,10 +318,11 @@ export default function Home() {
       <footer className="border-t border-gray-800 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold">AV System Design</span>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
+              alt="AV System Design Logo" 
+              className="h-8 w-auto"
+            />
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <a href="mailto:support@avsystemdesign.com" className="hover:text-white transition-colors">Support</a>
