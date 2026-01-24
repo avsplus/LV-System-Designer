@@ -88,11 +88,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/3117493e3_LogoOfficialSponsor.png" 
               alt="AV System Design Logo" 
               className="h-10 w-auto"
             />
-            <span className="text-xl font-bold">AV System Design</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
@@ -322,11 +321,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/3117493e3_LogoOfficialSponsor.png" 
               alt="AV System Design Logo" 
               className="h-8 w-auto"
             />
-            <span className="font-semibold">AV System Design</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <a href="mailto:support@avsystemdesign.com" className="hover:text-white transition-colors">Support</a>
