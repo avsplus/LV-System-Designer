@@ -157,7 +157,7 @@ export default function Home() {
               </div>
               <div className="aspect-video bg-gray-900 overflow-hidden">
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/ce61dce7e_image.png"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/ea3705890_image.png"
                   alt="Sample AV System Design Project"
                   className="w-full h-full object-cover"
                 />
