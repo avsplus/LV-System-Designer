@@ -367,23 +367,12 @@ export default function ProductSidebar({ products, onProductSelect }) {
   return (
     <div className="w-56 sm:w-64 md:w-72 lg:w-80 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-in-out">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center gap-4">
+      <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center">
         <img 
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/e2917c59e_AVSystemDesignOfficialLogo.png" 
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/3117493e3_LogoOfficialSponsor.png" 
           alt="AV System Design Logo" 
-          className="h-14 w-auto object-contain flex-shrink-0"
+          className="h-14 w-auto object-contain"
         />
-        
-        {(settings?.logo_url || organization?.logo_url) && (
-          <>
-            <div className="h-8 w-px bg-gray-700"></div>
-            <img 
-              src={settings?.logo_url || organization?.logo_url} 
-              alt={settings?.name || organization?.name || 'Organization Logo'} 
-              className="h-12 w-auto object-contain flex-shrink-0"
-            />
-          </>
-        )}
       </div>
 
       <div className="p-4 border-b border-gray-800">
