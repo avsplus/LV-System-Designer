@@ -369,7 +369,7 @@ export default function ProductSidebar({ products, onProductSelect }) {
       {/* Logo */}
       <div className="px-4 py-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center">
         <img 
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/17c6aa44a_LogoOfficialSponsor_1.png" 
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/5c0da9ba6_AVSystemDesignLogoSponsor.png" 
           alt="AV System Design Logo" 
           className="h-14 w-auto object-contain"
         />
