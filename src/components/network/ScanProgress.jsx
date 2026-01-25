@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 export default function ScanProgress({ progress, devicesFound, isScanning, onStop }) {
   if (!isScanning) return null;
 
+  // Safe fallbacks for flexible result handling
+  const safeProgress = progress ?? 0;
+  const safeDevicesFound = devicesFound ?? 0;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -34,12 +38,12 @@ export default function ScanProgress({ progress, devicesFound, isScanning, onSto
           <div>
             <div className="flex justify-between text-sm text-gray-400 mb-2">
               <span>Progress</span>
-              <span>{progress}%</span>
+              <span>{safeProgress}%</span>
             </div>
             <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
+                animate={{ width: `${safeProgress}%` }}
                 className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
                 transition={{ duration: 0.3 }}
               />
@@ -47,7 +51,7 @@ export default function ScanProgress({ progress, devicesFound, isScanning, onSto
           </div>
           
           <div className="text-center">
-            <span className="text-3xl font-bold text-cyan-400">{devicesFound}</span>
+            <span className="text-3xl font-bold text-cyan-400">{safeDevicesFound}</span>
             <span className="text-gray-400 ml-2">devices found</span>
           </div>
           

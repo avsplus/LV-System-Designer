@@ -74,27 +74,35 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           return;
         }
         
-        // Process events in order
+        // Process events in order - flexible handling
         events.reverse().forEach(event => {
           console.log('🎯 Processing event:', event.event_type, event.data);
+          
+          // Best-effort data extraction - don't assume structure
+          const eventData = event.data || {};
+          
           switch (event.event_type) {
             case 'scan_progress':
-              onScanProgress?.(event.data);
+              onScanProgress?.(eventData);
               break;
             case 'device_found':
-              onDeviceDiscovered?.(event.data);
+              onDeviceDiscovered?.(eventData);
               break;
             case 'scan_complete':
-              console.log('✅ Scan complete');
+              console.log('✅ Scan complete', eventData);
               clearInterval(pollInterval);
               setIsScanning(false);
-              onScanProgress?.({ percent: 100, status: 'complete' });
+              // Show completion with any available stats
+              const completionMsg = eventData.discovered_hosts 
+                ? `Found ${eventData.discovered_hosts} hosts` 
+                : 'Scan complete';
+              onScanProgress?.({ percent: 100, status: 'complete', ...eventData });
               break;
             case 'error':
-              console.error('❌ Scan error:', event.data);
+              console.error('❌ Scan error:', eventData);
               clearInterval(pollInterval);
               setIsScanning(false);
-              onError?.(event.data.message || 'Scan failed');
+              onError?.(eventData?.message || eventData?.error || 'Scan failed');
               break;
           }
         });

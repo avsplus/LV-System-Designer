@@ -133,6 +133,9 @@ export default function NetworkMapping() {
 
   // Network scanner hooks
   const handleDeviceDiscovered = useCallback(async (deviceData) => {
+    // Flexible data extraction - don't assume structure
+    if (!deviceData) return;
+    
     // Normalize MAC address for consistent matching
     const normalizedMac = deviceData.mac_address?.toLowerCase().replace(/[:-]/g, '');
     if (!normalizedMac) return;
