@@ -116,7 +116,8 @@ Deno.serve(async (req) => {
       success: true,
       command_id: commandId,
       agent_id,
-      delivery: 'realtime'
+      delivery: 'realtime',
+      status: 'sent'
     });
     
   } catch (error) {

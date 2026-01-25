@@ -32,6 +32,13 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       
       console.log('📡 Command sent:', data);
       
+      if (!data.command_id) {
+        console.error('❌ No command_id returned');
+        onError?.('Failed to start scan - no command ID returned');
+        setIsScanning(false);
+        return;
+      }
+      
       if (data.status === 'queued') {
         onError?.('Agent offline, scan queued for when it reconnects');
         setIsScanning(false);
