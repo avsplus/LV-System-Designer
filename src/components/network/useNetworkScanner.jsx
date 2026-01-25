@@ -21,8 +21,13 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       console.log('🚀 Starting scan:', { agent_id: selectedAgent.agent_id, cidr, networkId });
       const { data } = await base44.functions.invoke('sendAgentCommand', {
         agent_id: selectedAgent.agent_id,
-        command: 'start_scan',
-        data: { cidr, network_id: networkId }
+        command_type: 'scan_network',
+        parameters: { 
+          cidr, 
+          network_id: networkId,
+          scope: 'local'
+        },
+        timeout_seconds: 300
       });
       
       console.log('📡 Command sent:', data);
@@ -121,8 +126,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     try {
       await base44.functions.invoke('sendAgentCommand', {
         agent_id: selectedAgent.agent_id,
-        command: 'stop_scan',
-        data: {}
+        command_type: 'stop_scan',
+        parameters: {},
+        timeout_seconds: 10
       });
       setIsScanning(false);
     } catch (error) {

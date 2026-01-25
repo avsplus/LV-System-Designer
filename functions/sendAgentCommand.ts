@@ -11,10 +11,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { agent_id, command, data } = await req.json();
+    const { agent_id, command_type, parameters, timeout_seconds } = await req.json();
     
-    if (!agent_id || !command) {
-      return Response.json({ error: 'agent_id and command required' }, { status: 400 });
+    if (!agent_id || !command_type) {
+      return Response.json({ error: 'agent_id and command_type required' }, { status: 400 });
     }
     
     // Verify agent belongs to user's organization via Supabase
@@ -47,11 +47,12 @@ Deno.serve(async (req) => {
     const commandMessage = {
       type: 'command',
       command_id: commandId,
-      command,
-      data: data || {},
+      command_type,
+      parameters: parameters || {},
       org_id: user.organization_id,
       timestamp,
-      nonce
+      nonce,
+      timeout_seconds: timeout_seconds || 60
     };
     
     // Sign command if org has private key
@@ -60,7 +61,7 @@ Deno.serve(async (req) => {
         const sigInputJson = JSON.stringify({
           type: commandMessage.type,
           command_id: commandMessage.command_id,
-          command: commandMessage.command,
+          command_type: commandMessage.command_type,
           org_id: commandMessage.org_id,
           timestamp: commandMessage.timestamp,
           nonce: commandMessage.nonce
