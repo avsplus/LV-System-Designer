@@ -203,8 +203,10 @@ export default function NetworkMapping() {
   }, [organizationId, nameMappings, createDeviceMutation, updateDeviceMutation]);
 
   const handleScanProgress = useCallback((progressData) => {
+    // Flexible handling - extract what exists
+    const percent = progressData?.percent ?? progressData?.progress ?? 0;
     setScanProgress(prev => ({
-      percent: progressData.percent || 0,
+      percent,
       devicesFound: prev.devicesFound
     }));
   }, []);
