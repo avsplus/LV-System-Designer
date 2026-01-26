@@ -109,7 +109,8 @@ Deno.serve(async (req) => {
         agent_id,
         organization_id: organizationId,
         command_type,
-        status: 'issued'
+        status: 'issued',
+        nonce: crypto.randomUUID()
       })
       .select()
       .single();
