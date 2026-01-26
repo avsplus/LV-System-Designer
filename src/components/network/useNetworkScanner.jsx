@@ -74,9 +74,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         console.log('📦 Events received:', events);
         
         if (!events || events.length === 0) {
-          // After 30 seconds with no events, warn the user
-          if (pollCount === 15) {
-            console.warn('⚠️ No events received after 30 seconds');
+          // After 2 minutes with no events, warn the user
+          if (pollCount === 60) {
+            console.warn('⚠️ No events received after 2 minutes');
             onError?.('Agent not responding. It may be offline or not connected.');
             clearInterval(pollInterval);
             setIsScanning(false);
@@ -136,7 +136,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       }
     }, 2000);
     
-    // Timeout after 5 minutes
+    // Timeout after 10 minutes (deep scans can take a while)
     const timeout = setTimeout(() => {
       console.warn('⏱️ Scan timeout reached');
       clearInterval(pollInterval);
@@ -144,7 +144,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         setIsScanning(false);
         onError?.('Scan timeout - agent did not respond');
       }
-    }, 300000);
+    }, 600000);
     
     // Store interval ID for cleanup
     return () => {
