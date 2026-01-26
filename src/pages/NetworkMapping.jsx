@@ -166,7 +166,9 @@ export default function NetworkMapping() {
         const updateData = { 
           status: 'online', 
           vendor: deviceData.vendor,
-          ip_address: deviceData.ip_address
+          ip_address: deviceData.ip_address,
+          device_type: deviceData.device_type,
+          open_ports: deviceData.open_ports || []
         };
         
         // Always restore custom name if mapping exists
@@ -186,12 +188,14 @@ export default function NetworkMapping() {
         await createDeviceMutation.mutateAsync({
           name: deviceName,
           type: 'other',
+          device_type: deviceData.device_type,
           ip_address: deviceData.ip_address,
           mac_address: deviceData.mac_address,
           vendor: deviceData.vendor,
           status: 'online',
           network_id: deviceData.network_id,
-          connected_to: []
+          connected_to: [],
+          open_ports: deviceData.open_ports || []
         });
         setScanProgress(prev => ({ percent: prev.percent, devicesFound: prev.devicesFound + 1 }));
       }
