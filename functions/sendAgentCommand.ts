@@ -11,6 +11,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Get user's organization
+    const userOrgs = await base44.entities.Organization.filter({ 
+      id: user.organization_id 
+    });
+    
+    if (!userOrgs || userOrgs.length === 0) {
+      return Response.json({ error: 'No organization found' }, { status: 403 });
+    }
+    
+    const organizationId = userOrgs[0].id;
+    
     const { agent_id, command_type, parameters, timeout_seconds } = await req.json();
     
     if (!agent_id || !command_type) {
@@ -27,7 +38,7 @@ Deno.serve(async (req) => {
       .from('agents')
       .select('*')
       .eq('agent_id', agent_id)
-      .eq('organization_id', user.organization_id);
+      .eq('organization_id', organizationId);
     
     if (agentError || !agents || agents.length === 0) {
       return Response.json({ error: 'Agent not found or access denied' }, { status: 404 });
@@ -35,9 +46,7 @@ Deno.serve(async (req) => {
     
     const agent = agents[0];
     
-    // Get organization for signing
-    const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
-    const org = orgs[0];
+    const org = userOrgs[0];
     
     // Build command message
     const commandId = crypto.randomUUID();
@@ -49,7 +58,7 @@ Deno.serve(async (req) => {
       command_id: commandId,
       command_type,
       parameters: parameters || {},
-      org_id: user.organization_id,
+      org_id: organizationId,
       timestamp,
       nonce,
       timeout_seconds: timeout_seconds || 60
