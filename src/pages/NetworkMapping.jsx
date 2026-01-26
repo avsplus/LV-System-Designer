@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ChevronLeft, Plus, Wifi, RefreshCw, Trash2, 
   Network as NetworkIcon, Router, Server, Shield, 
-  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity, AlertTriangle
+  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity, AlertTriangle, Link2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -747,11 +747,8 @@ export default function NetworkMapping() {
                         <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </th>
-                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('location')}>
-                      <div className="flex items-center gap-2">
-                        Location
-                        <ArrowUpDown className="w-3 h-3" />
-                      </div>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-gray-400">
+                      Ports
                     </th>
                     <th className="text-right px-4 py-3 text-sm font-medium text-gray-400">Actions</th>
                   </tr>
@@ -853,7 +850,7 @@ export default function NetworkMapping() {
                         </td>
                         <td className="px-4 py-3">
                           <Badge className="bg-gray-700 text-gray-300 border-gray-600">
-                            {device.type.replace('_', ' ')}
+                            {device.device_type || device.type?.replace('_', ' ') || 'other'}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-gray-300 font-mono text-sm">
@@ -873,21 +870,33 @@ export default function NetworkMapping() {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
-                          {device.location || '-'}
+                          {device.open_ports ? (
+                            <div className="flex flex-wrap gap-1">
+                              {device.open_ports.slice(0, 3).map((port, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs border-gray-700 text-gray-400">
+                                  {port}
+                                </Badge>
+                              ))}
+                              {device.open_ports.length > 3 && (
+                                <Badge variant="outline" className="text-xs border-gray-700 text-gray-500">
+                                  +{device.open_ports.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : '-'}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Button
-                            size="icon"
-                            variant="ghost"
+                            size="sm"
+                            variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm('Delete this device?')) {
-                                deleteDeviceMutation.mutate(device.id);
-                              }
+                              toast.info('Link device to floorplan - coming soon');
                             }}
-                            className="text-gray-400 hover:text-red-400"
+                            className="border-cyan-500 text-cyan-400 hover:bg-cyan-500/10"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Link2 className="w-4 h-4 mr-2" />
+                            Link
                           </Button>
                         </td>
                       </tr>
