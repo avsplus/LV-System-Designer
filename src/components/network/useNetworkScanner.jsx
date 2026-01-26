@@ -152,21 +152,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     };
   }, [selectedAgent, onScanProgress, onDeviceDiscovered, onError, isScanning, currentNetworkId]);
 
-  const stopScan = useCallback(async () => {
-    if (!selectedAgent) return;
-    
-    try {
-      await base44.functions.invoke('sendAgentCommand', {
-        agent_id: selectedAgent.agent_id,
-        command_type: 'stop_scan',
-        parameters: {},
-        timeout_seconds: 10
-      });
-      setIsScanning(false);
-    } catch (error) {
-      console.error('Failed to stop scan:', error);
-    }
-  }, [selectedAgent]);
+  const stopScan = useCallback(() => {
+    setIsScanning(false);
+  }, []);
 
   return {
     isScanning,
