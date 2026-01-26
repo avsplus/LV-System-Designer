@@ -73,9 +73,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         console.log('📦 Events received:', events);
         
         if (!events || events.length === 0) {
-          // After 2 minutes with no events, warn the user
-          if (pollCount === 60) {
-            console.warn('⚠️ No events received after 2 minutes');
+          // After 8 minutes with no events, warn the user
+          if (pollCount === 240) {
+            console.warn('⚠️ No events received after 8 minutes');
             onError?.('Agent not responding. It may be offline or not connected.');
             clearInterval(pollInterval);
             setIsScanning(false);
