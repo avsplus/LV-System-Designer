@@ -116,7 +116,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
                     mac_address: host.mac,
                     vendor: host.vendor,
                     hostname: host.hostname,
-                    network_id: currentNetworkId
+                    network_id: currentNetworkId,
+                    device_type: host.device_type,
+                    open_ports: host.open_ports || []
                   });
                 }
               });
