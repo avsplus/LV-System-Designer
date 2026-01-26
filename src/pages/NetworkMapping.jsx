@@ -634,10 +634,10 @@ export default function NetworkMapping() {
                         <p className="text-xs text-gray-500 font-mono">{agent.agent_id}</p>
                       </div>
                       <div className={`w-3 h-3 rounded-full ${
-                        agent.status === 'online' ? 'bg-green-400 animate-pulse' : 
+                        agent.status === 'online' || agent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
                         agent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
                         agent.status === 'error' ? 'bg-red-400 animate-pulse' :
-                        'bg-gray-600'
+                        'bg-red-400'
                       }`} />
                     </div>
                     
