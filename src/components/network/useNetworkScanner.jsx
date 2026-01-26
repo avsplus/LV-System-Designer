@@ -29,8 +29,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           cidr, 
           network_id: networkId,
           scope: 'local'
-        },
-        timeout_seconds: 300
+        }
       });
       
       console.log('📡 Command sent:', data);
