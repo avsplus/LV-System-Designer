@@ -108,9 +108,8 @@ Deno.serve(async (req) => {
       .insert({
         agent_id,
         organization_id: organizationId,
-        command_type,
-        status: 'issued',
-        nonce: crypto.randomUUID()
+        command_type: 'scan_network',
+        status: 'issued'
       })
       .select()
       .single();
