@@ -102,15 +102,14 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Insert command into agent_commands table - simple schema matching agent expectations
+    // Insert command into agent_commands table - exact SQL match
     const { data: insertedCommand, error: insertError } = await supabase
       .from('agent_commands')
       .insert({
         agent_id,
         organization_id: organizationId,
         command_type,
-        status: 'issued',
-        nonce
+        status: 'issued'
       })
       .select()
       .single();
