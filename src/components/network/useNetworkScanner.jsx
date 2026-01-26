@@ -96,14 +96,28 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
               onDeviceDiscovered?.(eventData);
               break;
             case 'scan_complete':
+            case 'command_completed':
               console.log('✅ Scan complete', eventData);
               clearInterval(pollInterval);
               setIsScanning(false);
-              // Show completion with any available stats
-              const completionMsg = eventData.discovered_hosts 
-                ? `Found ${eventData.discovered_hosts} hosts` 
-                : 'Scan complete';
-              onScanProgress?.({ percent: 100, status: 'complete', ...eventData });
+              
+              // Process all discovered hosts from the result
+              const hosts = eventData.result?.hosts || eventData.hosts || [];
+              console.log(`📦 Processing ${hosts.length} discovered hosts`);
+              
+              hosts.forEach(host => {
+                if (host.mac) {
+                  onDeviceDiscovered?.({
+                    ip_address: host.ip,
+                    mac_address: host.mac,
+                    vendor: host.vendor,
+                    hostname: host.hostname
+                  });
+                }
+              });
+              
+              // Show completion
+              onScanProgress?.({ percent: 100, status: 'complete', devicesFound: hosts.length });
               break;
             case 'error':
               console.error('❌ Scan error:', eventData);
