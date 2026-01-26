@@ -102,24 +102,29 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Publish to Supabase Realtime channel
-    const channel = supabase.channel(`agent:${agent_id}`);
+    // Insert command into agent_commands table
+    const { data: insertedCommand, error: insertError } = await supabase
+      .from('agent_commands')
+      .insert({
+        agent_id,
+        organization_id: organizationId,
+        command_id: commandId,
+        command_type,
+        parameters: parameters || {},
+        status: 'issued',
+        nonce,
+        timeout_seconds: timeout_seconds || 60,
+        signed_message: org?.org_signing_private_key ? commandMessage : null
+      })
+      .select()
+      .single();
     
-    await channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await channel.send({
-          type: 'broadcast',
-          event: 'command',
-          payload: commandMessage
-        });
-      }
-    });
+    if (insertError) {
+      console.error('Failed to insert command:', insertError);
+      return Response.json({ error: 'Failed to send command: ' + insertError.message }, { status: 500 });
+    }
     
-    // Wait a bit for message to be sent
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await channel.unsubscribe();
-    
-    console.log(`Command sent to agent ${agent_id} via Supabase Realtime`);
+    console.log(`Command inserted into database for agent ${agent_id}`);
     
     return Response.json({ 
       success: true,
