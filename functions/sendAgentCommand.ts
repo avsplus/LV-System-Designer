@@ -120,11 +120,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to send command: ' + insertError.message }, { status: 500 });
     }
     
-    console.log(`Command inserted into database for agent ${agent_id}`);
+    console.log(`Command inserted into database for agent ${agent_id}, DB ID: ${insertedCommand.id}`);
     
     return Response.json({ 
       success: true,
-      command_id: commandId,
+      command_id: insertedCommand.id,
       agent_id,
       delivery: 'realtime',
       status: 'sent'
