@@ -98,7 +98,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
               onDeviceDiscovered?.(eventData);
               break;
             case 'scan_complete':
+            case 'scan_completed':
             case 'command_completed':
+            case 'command_complete':
               console.log('✅ Scan complete', eventData);
               clearInterval(pollInterval);
               setIsScanning(false);
