@@ -4,6 +4,8 @@ import { base44 } from "@/api/base44Client";
 export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError, organizationId, selectedAgent) {
   const [isScanning, setIsScanning] = useState(false);
 
+  const [currentNetworkId, setCurrentNetworkId] = useState(null);
+
   const startScan = useCallback(async (cidr, networkId) => {
     if (!selectedAgent) {
       onError?.('No agent selected');
@@ -15,6 +17,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       return;
     }
     
+    setCurrentNetworkId(networkId);
     setIsScanning(true);
     
     try {
@@ -111,7 +114,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
                     ip_address: host.ip,
                     mac_address: host.mac,
                     vendor: host.vendor,
-                    hostname: host.hostname
+                    hostname: host.hostname,
+                    network_id: currentNetworkId
                   });
                 }
               });
@@ -147,7 +151,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       clearInterval(pollInterval);
       clearTimeout(timeout);
     };
-  }, [selectedAgent, onScanProgress, onDeviceDiscovered, onError, isScanning]);
+  }, [selectedAgent, onScanProgress, onDeviceDiscovered, onError, isScanning, currentNetworkId]);
 
   const stopScan = useCallback(async () => {
     if (!selectedAgent) return;
