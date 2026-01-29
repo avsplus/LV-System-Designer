@@ -606,7 +606,6 @@ export default function NetworkMapping() {
                     setScanProgress({ percent: 0, devicesFound: 0 });
                     startScan('', '');
                   }} 
-                  disabled={selectedAgent.status !== 'online' && selectedAgent.status !== 'registered'}
                   variant="outline"
                   className="border-green-500 text-green-400 hover:bg-green-500/10"
                 >
