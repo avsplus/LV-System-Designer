@@ -564,48 +564,34 @@ export default function NetworkMapping() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          {/* Agent Health Status */}
-          {selectedAgent && (
-            <button
-              onClick={() => setShowHealthPanel(!showHealthPanel)}
-              className="hover:opacity-80 transition-opacity"
-            >
-              <AgentHealthMonitor agent={selectedAgent} compact />
-            </button>
-          )}
-
-          <NetworkStats devices={devices} />
-
-          <div className="flex gap-2">
-            <Link to={createPageUrl("AgentManager")}>
-              <Button variant="outline" className="border-gray-700">
-                <Activity className="w-4 h-4 mr-2" />
-                Manage Agents
-              </Button>
-            </Link>
-            
-            <Button 
-              variant="outline" 
-              className="border-gray-700"
-              onClick={async () => {
-                try {
-                  const user = await base44.auth.me();
-                  const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
-                  if (orgs.length > 0 && orgs[0].agent_installer_url) {
-                    window.open(orgs[0].agent_installer_url, '_blank');
-                  } else {
-                    toast.error('No installer available. Please upload one in Agent Manager.');
-                  }
-                } catch (error) {
-                  toast.error('Failed to download installer');
-                }
-              }}
-            >
-              <Wifi className="w-4 h-4 mr-2" />
-              Download Agent
+        <div className="flex items-center gap-2">
+          <Link to={createPageUrl("AgentManager")}>
+            <Button variant="outline" className="border-gray-700">
+              <Activity className="w-4 h-4 mr-2" />
+              Manage Agents
             </Button>
-          </div>
+          </Link>
+          
+          <Button 
+            variant="outline" 
+            className="border-gray-700"
+            onClick={async () => {
+              try {
+                const user = await base44.auth.me();
+                const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
+                if (orgs.length > 0 && orgs[0].agent_installer_url) {
+                  window.open(orgs[0].agent_installer_url, '_blank');
+                } else {
+                  toast.error('No installer available. Please upload one in Agent Manager.');
+                }
+              } catch (error) {
+                toast.error('Failed to download installer');
+              }
+            }}
+          >
+            <Wifi className="w-4 h-4 mr-2" />
+            Download Agent
+          </Button>
         </div>
       </div>
 
