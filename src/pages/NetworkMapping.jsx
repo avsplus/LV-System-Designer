@@ -852,19 +852,18 @@ export default function NetworkMapping() {
                               checked={agent.monitoring_enabled || false}
                               onChange={async (e) => {
                                 e.stopPropagation();
-                                if (!supabaseClient) {
-                                  toast.error('Database not ready');
-                                  return;
-                                }
+                                const isEnabled = e.target.checked;
                                 try {
-                                  const { error } = await supabaseClient
-                                    .from('agents')
-                                    .update({ monitoring_enabled: e.target.checked })
-                                    .eq('agent_id', agent.agent_id);
+                                  const { data } = await base44.functions.invoke('toggleAgentMonitoring', {
+                                    agent_id: agent.agent_id,
+                                    enabled: isEnabled
+                                  });
 
-                                  if (error) throw error;
-
-                                  toast.success(e.target.checked ? 'Monitoring enabled - devices will be pinged every 5 minutes' : 'Monitoring disabled');
+                                  if (data.success) {
+                                    toast.success(isEnabled ? 'Monitoring enabled - devices will be pinged every 5 minutes' : 'Monitoring disabled');
+                                  } else {
+                                    throw new Error('Failed to toggle monitoring');
+                                  }
                                 } catch (error) {
                                   console.error('Failed to toggle monitoring:', error);
                                   toast.error('Failed to toggle monitoring');
