@@ -27,9 +27,10 @@ export default function AgentInstallerUpload({ open, onOpenChange }) {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Get the function URL from base44 SDK
-      const functionUrl = `https://api.base44.com/v1/apps/${base44.appId}/functions/uploadAgentInstaller`;
-      const token = await base44.auth.getToken();
+      const token = localStorage.getItem('base44_token');
+      const apiUrl = import.meta.env.VITE_BASE44_API_URL || 'https://api.base44.com';
+      const appId = import.meta.env.VITE_BASE44_APP_ID;
+      const functionUrl = `${apiUrl}/v1/apps/${appId}/functions/uploadAgentInstaller`;
 
       const response = await fetch(functionUrl, {
         method: 'POST',
