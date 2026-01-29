@@ -52,6 +52,9 @@ export default function NetworkMapping() {
   const [editingDevice, setEditingDevice] = useState(null);
   const [editName, setEditName] = useState('');
   const discoveredInCurrentScan = useRef(new Set());
+  const [selectedDevices, setSelectedDevices] = useState(new Set());
+  const [isPinging, setIsPinging] = useState(false);
+  const [pingResults, setPingResults] = useState([]);
   const [deviceForm, setDeviceForm] = useState({
     name: '',
     type: 'other',
@@ -358,6 +361,109 @@ export default function NetworkMapping() {
     }
   };
 
+  const handlePingDevices = async () => {
+    if (selectedDevices.size === 0) {
+      toast.error('No devices selected for ping');
+      return;
+    }
+
+    if (!selectedAgent) {
+      toast.error('No agent selected');
+      return;
+    }
+
+    setIsPinging(true);
+    setPingResults([]);
+
+    try {
+      const targets = Array.from(selectedDevices)
+        .map(deviceId => devices.find(d => d.id === deviceId))
+        .filter(d => d?.ip_address)
+        .map(d => d.ip_address);
+
+      if (targets.length === 0) {
+        toast.error('Selected devices have no IP addresses');
+        setIsPinging(false);
+        return;
+      }
+
+      const { data } = await base44.functions.invoke('sendAgentCommand', {
+        agent_id: selectedAgent.agent_id,
+        command_type: 'ping_devices',
+        parameters: {
+          targets,
+          timeoutMs: 1000,
+          count: 2,
+          maxConcurrency: 16
+        }
+      });
+
+      if (data.command_id) {
+        toast.success(`Pinging ${targets.length} devices...`);
+        pollPingResults(data.command_id);
+      } else {
+        throw new Error('Failed to send ping command');
+      }
+    } catch (error) {
+      toast.error('Failed to ping devices: ' + error.message);
+      setIsPinging(false);
+    }
+  };
+
+  const pollPingResults = async (commandId) => {
+    let attempts = 0;
+    const maxAttempts = 30;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        attempts++;
+        const { data: events } = await base44.functions.invoke('getAgentEvents', {
+          agent_id: selectedAgent.agent_id,
+          command_id: commandId,
+          limit: 50
+        });
+
+        if (events && events.length > 0) {
+          const completeEvent = events.find(e => 
+            e.event_type === 'command_complete' || 
+            e.event_type === 'command_completed' ||
+            e.event_type === 'ping_complete'
+          );
+
+          if (completeEvent) {
+            clearInterval(pollInterval);
+            setIsPinging(false);
+            
+            const results = completeEvent.data?.result?.results || completeEvent.data?.results || [];
+            setPingResults(results);
+            
+            const online = results.filter(r => r.success).length;
+            toast.success(`Ping complete: ${online}/${results.length} devices online`);
+            
+            // Update device statuses
+            results.forEach(result => {
+              const device = devices.find(d => d.ip_address === result.ip);
+              if (device) {
+                updateDeviceMutation.mutate({
+                  id: device.id,
+                  data: { status: result.success ? 'online' : 'offline' }
+                });
+              }
+            });
+          }
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setIsPinging(false);
+          toast.error('Ping timeout - no response from agent');
+        }
+      } catch (error) {
+        console.error('Failed to poll ping results:', error);
+      }
+    }, 1000);
+  };
+
   const handleRemoveDuplicates = async () => {
     // Group devices by normalized MAC address
     const macGroups = {};
@@ -564,6 +670,18 @@ export default function NetworkMapping() {
                 </Button>
               )}
               
+              {selectedDevices.size > 0 && (
+                <Button 
+                  onClick={handlePingDevices}
+                  disabled={isPinging}
+                  variant="outline"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  {isPinging ? 'Pinging...' : `Ping Selected (${selectedDevices.size})`}
+                </Button>
+              )}
+              
               {devices.length > 0 && (
                 <Button 
                   onClick={handleClearAllDevices}
@@ -721,6 +839,20 @@ export default function NetworkMapping() {
               <table className="w-full">
                 <thead className="bg-gray-800/50 border-b border-gray-800">
                   <tr>
+                    <th className="w-12 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedDevices.size === devices.length && devices.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDevices(new Set(devices.map(d => d.id)));
+                          } else {
+                            setSelectedDevices(new Set());
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-cyan-600"
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('name')}>
                       <div className="flex items-center gap-2">
                         Device
@@ -778,6 +910,22 @@ export default function NetworkMapping() {
                         className="hover:bg-gray-800/30 transition-colors cursor-pointer"
                         onClick={() => setSelectedDevice(device)}
                       >
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedDevices.has(device.id)}
+                            onChange={(e) => {
+                              const newSelected = new Set(selectedDevices);
+                              if (e.target.checked) {
+                                newSelected.add(device.id);
+                              } else {
+                                newSelected.delete(device.id);
+                              }
+                              setSelectedDevices(newSelected);
+                            }}
+                            className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-cyan-600"
+                          />
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
