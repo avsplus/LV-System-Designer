@@ -222,7 +222,7 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { agents, supabase: supabaseClient } = useSupabaseAgents(organizationId);
+  const { agents, supabase: supabaseClient, refresh: refreshAgents } = useSupabaseAgents(organizationId);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const { isScanning, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent);
@@ -861,6 +861,7 @@ export default function NetworkMapping() {
 
                                   if (data.success) {
                                     toast.success(isEnabled ? 'Monitoring enabled - devices will be pinged every 5 minutes' : 'Monitoring disabled');
+                                    refreshAgents();
                                   } else {
                                     throw new Error('Failed to toggle monitoring');
                                   }
