@@ -837,15 +837,20 @@ export default function NetworkMapping() {
                           }`}>
                             {agent.health.memory_percent.toFixed(0)}%
                           </span>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : devices.length === 0 ? (
+                          </div>
+                          )}
+                          </div>
+
+                          {/* Network Stats under agent card */}
+                          <div className="mt-4 pt-4 border-t border-gray-800">
+                          <NetworkStats devices={devices} />
+                          </div>
+                          </button>
+                          ))}
+                          </div>
+                          )}
+                          </div>
+                          ) : devices.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <NetworkIcon className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-lg font-medium">No devices yet</p>
