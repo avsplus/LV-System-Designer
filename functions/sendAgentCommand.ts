@@ -5,22 +5,31 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Authenticate user
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Get organization ID from request body or authenticated user
+    let organizationId;
+    const body = await req.json();
+    const { agent_id, command_type, parameters, timeout_seconds, organization_id } = body;
+    
+    if (organization_id) {
+      // Called from scheduled automation with organization_id
+      organizationId = organization_id;
+    } else {
+      // Called from UI - require authenticated user
+      const user = await base44.auth.me();
+      if (!user) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      
+      const userOrgs = await base44.entities.Organization.filter({ 
+        id: user.organization_id 
+      });
+      
+      if (!userOrgs || userOrgs.length === 0) {
+        return Response.json({ error: 'No organization found' }, { status: 403 });
+      }
+      
+      organizationId = userOrgs[0].id;
     }
-    
-    // Get user's organization
-    const userOrgs = await base44.entities.Organization.filter({ 
-      id: user.organization_id 
-    });
-    
-    if (!userOrgs || userOrgs.length === 0) {
-      return Response.json({ error: 'No organization found' }, { status: 403 });
-    }
-    
-    const organizationId = userOrgs[0].id;
     
     const { agent_id, command_type, parameters, timeout_seconds } = await req.json();
     
