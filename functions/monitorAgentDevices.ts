@@ -71,11 +71,50 @@ Deno.serve(async (req) => {
           }
         });
         
+        if (!commandResult?.command_id) {
+          throw new Error('No command_id returned');
+        }
+        
+        // Wait for ping results and update device statuses
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds for pings to complete
+        
+        const { data: events } = await base44.asServiceRole.functions.invoke('getAgentEvents', {
+          agent_id: agent.agent_id,
+          command_id: commandResult.command_id,
+          limit: 50
+        });
+        
+        const completeEvent = events?.find(e => 
+          e.event_type === 'command_complete' || 
+          e.event_type === 'command_completed' ||
+          e.event_type === 'ping_complete'
+        );
+        
+        let updatedDevices = 0;
+        if (completeEvent) {
+          const eventData = completeEvent.data || {};
+          const pingResults = eventData.results || eventData.result?.results || eventData.result || [];
+          
+          if (Array.isArray(pingResults)) {
+            for (const result of pingResults) {
+              const device = devices.find(d => d.ip_address === result.ip);
+              if (device) {
+                const newStatus = result.reachable ? 'online' : 'offline';
+                if (device.status !== newStatus) {
+                  await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+                  updatedDevices++;
+                }
+              }
+            }
+          }
+        }
+        
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
           devices_pinged: targets.length,
-          command_id: commandResult?.command_id,
+          devices_updated: updatedDevices,
+          command_id: commandResult.command_id,
           success: true
         });
         
