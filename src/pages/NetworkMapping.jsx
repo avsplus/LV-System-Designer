@@ -766,16 +766,7 @@ export default function NetworkMapping() {
                       }`} />
                     </div>
                     
-                    {/* Warning Banner - below agent card */}
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2 mb-3">
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 flex-shrink-0 text-yellow-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs font-medium text-yellow-400">Under Active Development</p>
-                          <p className="text-xs text-yellow-400/70 mt-0.5">This tool may not work as intended. Features may be incomplete or unstable.</p>
-                        </div>
-                      </div>
-                    </div>
+
 
                     <div className="space-y-2">
                      <div className="flex items-center justify-between">
