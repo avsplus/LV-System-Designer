@@ -780,18 +780,29 @@ export default function NetworkMapping() {
                       }`} />
                     </div>
                     
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Status</span>
-                        <Badge className={
-                          agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                          agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                          agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                          'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                        }>
-                          {agent.status}
-                        </Badge>
+                    {/* Warning Banner - below agent card */}
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2 mb-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0 text-yellow-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-yellow-400">Under Active Development</p>
+                          <p className="text-xs text-yellow-400/70 mt-0.5">This tool may not work as intended. Features may be incomplete or unstable.</p>
+                        </div>
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                     <div className="flex items-center justify-between">
+                       <span className="text-sm text-gray-400">Status</span>
+                       <Badge className={
+                         agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                         agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                         agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                         'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                       }>
+                         {agent.status}
+                       </Badge>
+                     </div>
                       
                       {agent.version && (
                         <div className="flex items-center justify-between">
