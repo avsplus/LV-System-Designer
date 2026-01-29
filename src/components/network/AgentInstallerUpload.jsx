@@ -24,33 +24,25 @@ export default function AgentInstallerUpload({ open, onOpenChange }) {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const token = localStorage.getItem('base44_token');
-      const apiUrl = import.meta.env.VITE_BASE44_API_URL || 'https://api.base44.com';
-      const appId = import.meta.env.VITE_BASE44_APP_ID;
-      const functionUrl = `${apiUrl}/v1/apps/${appId}/functions/uploadAgentInstaller`;
-
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
-      }
-
-      const data = await response.json();
+      // Upload file using Base44's built-in integration
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      toast.success('Agent installer uploaded successfully');
-      onOpenChange(false);
-      setFile(null);
-      window.location.reload();
+      // Update organization with the installer URL
+      const user = await base44.auth.me();
+      const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
+      
+      if (orgs.length > 0) {
+        await base44.entities.Organization.update(orgs[0].id, {
+          agent_installer_url: file_url
+        });
+        
+        toast.success('Agent installer uploaded successfully');
+        onOpenChange(false);
+        setFile(null);
+        window.location.reload();
+      } else {
+        throw new Error('Organization not found');
+      }
     } catch (error) {
       toast.error('Upload failed: ' + error.message);
     } finally {
