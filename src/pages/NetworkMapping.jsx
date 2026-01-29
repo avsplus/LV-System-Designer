@@ -564,47 +564,41 @@ export default function NetworkMapping() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {/* Agent Health Status */}
+          {selectedAgent && (
+            <button
+              onClick={() => setShowHealthPanel(!showHealthPanel)}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <AgentHealthMonitor agent={selectedAgent} compact />
+            </button>
+          )}
+
+          <NetworkStats devices={devices} />
+        </div>
+      </div>
+
+      {/* Warning Banner */}
+      <div className="bg-yellow-500/10 border-y border-yellow-500/30 px-6 py-3">
+        <div className="flex items-center gap-3 text-yellow-400">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Tool Under Active Development</p>
+            <p className="text-xs text-yellow-400/80">This feature is currently being developed and may not work as intended. Some features may be incomplete or unstable.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
+        <div className="flex gap-2">
           <Link to={createPageUrl("AgentManager")}>
             <Button variant="outline" className="border-gray-700">
               <Activity className="w-4 h-4 mr-2" />
               Manage Agents
             </Button>
           </Link>
-          
-          <Button 
-            variant="outline" 
-            className="border-gray-700"
-            onClick={async () => {
-              try {
-                const user = await base44.auth.me();
-                const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
-                if (orgs.length > 0 && orgs[0].agent_installer_url) {
-                  window.open(orgs[0].agent_installer_url, '_blank');
-                } else {
-                  toast.error('No installer available. Please upload one in Agent Manager.');
-                }
-              } catch (error) {
-                toast.error('Failed to download installer');
-              }
-            }}
-          >
-            <Wifi className="w-4 h-4 mr-2" />
-            Download Agent
-          </Button>
-        </div>
-      </div>
-
-      {/* Network Stats Bar */}
-      {selectedAgent && (
-        <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3">
-          <NetworkStats devices={devices} />
-        </div>
-      )}
-
-      {/* Toolbar */}
-      <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex gap-2">
 
           {selectedAgent && (
             <>
@@ -773,20 +767,18 @@ export default function NetworkMapping() {
                       }`} />
                     </div>
                     
-
-
                     <div className="space-y-2">
-                     <div className="flex items-center justify-between">
-                       <span className="text-sm text-gray-400">Status</span>
-                       <Badge className={
-                         agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                         agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                         agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                         'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                       }>
-                         {agent.status}
-                       </Badge>
-                     </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Status</span>
+                        <Badge className={
+                          agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                          agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                          agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                          'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                        }>
+                          {agent.status}
+                        </Badge>
+                      </div>
                       
                       {agent.version && (
                         <div className="flex items-center justify-between">
@@ -835,17 +827,15 @@ export default function NetworkMapping() {
                           }`}>
                             {agent.health.memory_percent.toFixed(0)}%
                           </span>
-                          </div>
-                          )}
-                          </div>
-
-
-                          </button>
-                          ))}
-                          </div>
-                          )}
-                          </div>
-                          ) : devices.length === 0 ? (
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : devices.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <NetworkIcon className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-lg font-medium">No devices yet</p>
