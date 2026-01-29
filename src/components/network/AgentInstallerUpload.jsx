@@ -27,14 +27,24 @@ export default function AgentInstallerUpload({ open, onOpenChange }) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const { data } = await base44.functions.invoke('uploadAgentInstaller', formData);
+      // Use fetch directly for file uploads (FormData not supported by base44.functions.invoke)
+      const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || 'https://api.base44.com'}/v1/apps/${import.meta.env.VITE_BASE44_APP_ID}/functions/uploadAgentInstaller`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('base44_token')}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
       
       if (data.success) {
         toast.success('Agent installer uploaded successfully');
         onOpenChange(false);
         setFile(null);
+        window.location.reload();
       } else {
-        toast.error('Upload failed');
+        toast.error(data.error || 'Upload failed');
       }
     } catch (error) {
       toast.error('Upload failed: ' + error.message);
