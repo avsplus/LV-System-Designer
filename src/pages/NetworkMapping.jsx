@@ -541,7 +541,7 @@ export default function NetworkMapping() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <NetworkIcon className="w-6 h-6 text-cyan-400" />
-              Network Agent
+              OrionTrace Network Agent
               <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Coming Soon</Badge>
             </h1>
             <p className="text-sm text-gray-400">Visualize and manage your network topology</p>
