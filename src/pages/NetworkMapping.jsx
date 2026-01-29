@@ -589,18 +589,27 @@ export default function NetworkMapping() {
       <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {selectedAgent && (
-            <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700">
-              <div className={`w-2 h-2 rounded-full ${
-                selectedAgent.status === 'online' || selectedAgent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
-                selectedAgent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
-                selectedAgent.status === 'error' ? 'bg-red-400 animate-pulse' :
-                'bg-red-400'
-              }`} />
-              <div>
-                <p className="text-sm font-medium text-white">{selectedAgent.name}</p>
-                <p className="text-xs text-gray-400">{selectedAgent.status}</p>
+            <>
+              <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className={`w-2 h-2 rounded-full ${
+                  selectedAgent.status === 'online' || selectedAgent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
+                  selectedAgent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
+                  selectedAgent.status === 'error' ? 'bg-red-400 animate-pulse' :
+                  'bg-red-400'
+                }`} />
+                <div>
+                  <p className="text-sm font-medium text-white">{selectedAgent.name}</p>
+                  <p className="text-xs text-gray-400">{selectedAgent.status}</p>
+                </div>
               </div>
-            </div>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedAgent(null)}
+                className="border-gray-700"
+              >
+                Change Agent
+              </Button>
+            </>
           )}
           <div className="flex gap-2">
             {selectedAgent && (
