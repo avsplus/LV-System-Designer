@@ -587,10 +587,25 @@ export default function NetworkMapping() {
 
       {/* Toolbar */}
       <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex gap-2">
+        <div className="flex items-center gap-4">
           {selectedAgent && (
-            <>
-              {isScanning ? (
+            <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className={`w-2 h-2 rounded-full ${
+                selectedAgent.status === 'online' || selectedAgent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
+                selectedAgent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
+                selectedAgent.status === 'error' ? 'bg-red-400 animate-pulse' :
+                'bg-red-400'
+              }`} />
+              <div>
+                <p className="text-sm font-medium text-white">{selectedAgent.name}</p>
+                <p className="text-xs text-gray-400">{selectedAgent.status}</p>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            {selectedAgent && (
+              <>
+                {isScanning ? (
                 <Button 
                   onClick={stopScan} 
                   variant="outline"
@@ -646,11 +661,12 @@ export default function NetworkMapping() {
                   <Eraser className="w-4 h-4 mr-2" />
                   Clear All
                 </Button>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+                )}
+                </>
+                )}
+                </div>
+                </div>
+                </div>
 
       {/* Health Alerts */}
       <AgentHealthAlerts agents={agents} />
