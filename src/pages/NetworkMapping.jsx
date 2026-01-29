@@ -441,6 +441,7 @@ export default function NetworkMapping() {
             const eventData = completeEvent.data || {};
             const results = eventData.results || eventData.result?.results || eventData.result || [];
             console.log('Extracted ping results:', results);
+            console.log('Full event data:', JSON.stringify(eventData, null, 2));
             
             setPingResults(results);
             
