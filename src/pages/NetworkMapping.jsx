@@ -595,6 +595,13 @@ export default function NetworkMapping() {
         </div>
       </div>
 
+      {/* Network Stats Bar */}
+      {selectedAgent && (
+        <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3">
+          <NetworkStats devices={devices} />
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex gap-2">
