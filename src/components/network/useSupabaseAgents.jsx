@@ -93,6 +93,11 @@ export function useSupabaseAgents(organizationId) {
     const handleRefresh = () => fetchAgents();
     window.addEventListener('agent-registered', handleRefresh);
 
+    // Refresh every minute for status updates
+    const refreshInterval = setInterval(() => {
+      fetchAgents();
+    }, 60000); // 60 seconds
+
     // Subscribe to realtime updates on both tables
     const channel = supabaseClient
       .channel('agents-changes')
@@ -124,6 +129,7 @@ export function useSupabaseAgents(organizationId) {
 
     return () => {
       window.removeEventListener('agent-registered', handleRefresh);
+      clearInterval(refreshInterval);
       if (channel) supabaseClient.removeChannel(channel);
     };
   }, [organizationId, supabaseClient]);
