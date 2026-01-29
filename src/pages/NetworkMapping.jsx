@@ -832,10 +832,7 @@ export default function NetworkMapping() {
                           )}
                           </div>
 
-                          {/* Network Stats under agent card */}
-                          <div className="mt-4 pt-4 border-t border-gray-800">
-                          <NetworkStats devices={devices} />
-                          </div>
+
                           </button>
                           ))}
                           </div>
