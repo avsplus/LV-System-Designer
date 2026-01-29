@@ -200,14 +200,15 @@ export default function AgentManager() {
             <span className="text-sm text-gray-400">Total Agents:</span>
             <span className="text-lg font-bold text-cyan-400">{agents.length}</span>
           </div>
-          {installerData?.url ? (
+          {installerData?.url && (
             <a href={installerData.url} download>
               <Button variant="outline" className="border-gray-700">
                 <Download className="w-4 h-4 mr-2" />
                 Download Agent
               </Button>
             </a>
-          ) : (
+          )}
+          {currentUser?.role === 'admin' && !installerData?.url && (
             <Button 
               variant="outline" 
               className="border-gray-700"
