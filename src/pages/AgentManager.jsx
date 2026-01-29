@@ -54,6 +54,12 @@ export default function AgentManager() {
     assigned_network_id: ''
   });
 
+  // Get current user
+  const [currentUser, setCurrentUser] = React.useState(null);
+  React.useEffect(() => {
+    base44.auth.me().then(user => setCurrentUser(user)).catch(() => setCurrentUser(null));
+  }, []);
+
   // Fetch agents from Supabase with realtime updates
   const { agents, loading: isLoading, supabase, refresh } = useSupabaseAgents(organizationId);
   
