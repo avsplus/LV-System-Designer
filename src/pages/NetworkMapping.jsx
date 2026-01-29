@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 import { useOrganization } from "../components/auth/useOrganization";
+import { createClient } from '@supabase/supabase-js';
 import { Badge } from "@/components/ui/badge";
 import NetworkStats from "../components/network/NetworkStats";
 import ScanProgress from "../components/network/ScanProgress";
@@ -817,26 +818,60 @@ export default function NetworkMapping() {
                       
                       {/* Device Stats at bottom */}
                       <div className="mt-4 pt-4 border-t border-gray-800">
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <Activity className="w-3 h-3 text-cyan-400" />
-                            <span className="text-gray-400">Total:</span>
-                            <span className="text-cyan-400 font-bold">{agentStats.total}</span>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="grid grid-cols-2 gap-2 text-xs flex-1">
+                            <div className="flex items-center gap-1">
+                              <Activity className="w-3 h-3 text-cyan-400" />
+                              <span className="text-gray-400">Total:</span>
+                              <span className="text-cyan-400 font-bold">{agentStats.total}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3 text-green-400" />
+                              <span className="text-gray-400">Online:</span>
+                              <span className="text-green-400 font-bold">{agentStats.online}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <XCircle className="w-3 h-3 text-red-400" />
+                              <span className="text-gray-400">Offline:</span>
+                              <span className="text-red-400 font-bold">{agentStats.offline}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 text-yellow-400" />
+                              <span className="text-gray-400">Warning:</span>
+                              <span className="text-yellow-400 font-bold">{agentStats.warning}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3 text-green-400" />
-                            <span className="text-gray-400">Online:</span>
-                            <span className="text-green-400 font-bold">{agentStats.online}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <XCircle className="w-3 h-3 text-gray-400" />
-                            <span className="text-gray-400">Offline:</span>
-                            <span className="text-gray-400 font-bold">{agentStats.offline}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 text-yellow-400" />
-                            <span className="text-gray-400">Warning:</span>
-                            <span className="text-yellow-400 font-bold">{agentStats.warning}</span>
+
+                          {/* Monitor Checkbox */}
+                          <div 
+                            className="flex flex-col items-center gap-1 ml-3 pl-3 border-l border-gray-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span className="text-[10px] text-gray-400 font-medium">Monitor</span>
+                            <input
+                              type="checkbox"
+                              checked={agent.monitoring_enabled || false}
+                              onChange={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const { data: supabaseConfig } = await base44.functions.invoke('getSupabaseConfig', {});
+                                  const supabaseClient = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+                                  const { error } = await supabaseClient
+                                    .from('agents')
+                                    .update({ monitoring_enabled: e.target.checked })
+                                    .eq('agent_id', agent.agent_id);
+
+                                  if (error) throw error;
+
+                                  toast.success(e.target.checked ? 'Monitoring enabled' : 'Monitoring disabled');
+                                } catch (error) {
+                                  console.error('Failed to toggle monitoring:', error);
+                                  toast.error('Failed to toggle monitoring');
+                                }
+                              }}
+                              className="w-4 h-4 rounded border-2 border-gray-600 bg-gray-800 checked:bg-cyan-600 checked:border-cyan-600 cursor-pointer"
+                            />
                           </div>
                         </div>
                       </div>
