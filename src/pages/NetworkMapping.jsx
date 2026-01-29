@@ -559,12 +559,16 @@ export default function NetworkMapping() {
             variant="outline"
             className="border-gray-700"
             onClick={async () => {
-              const { data: org } = await base44.entities.Organization.filter({ id: organizationId });
-              const installerUrl = org[0]?.agent_installer_url;
-              if (installerUrl) {
-                window.open(installerUrl, '_blank');
-              } else {
-                toast.error('No agent installer available. Please upload one in Agent Manager.');
+              try {
+                const org = await base44.entities.Organization.filter({ id: organizationId });
+                const installerUrl = org?.[0]?.agent_installer_url;
+                if (installerUrl) {
+                  window.open(installerUrl, '_blank');
+                } else {
+                  toast.error('No agent installer available. Please upload one in Agent Manager.');
+                }
+              } catch (error) {
+                toast.error('Failed to get installer URL');
               }
             }}
           >
