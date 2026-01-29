@@ -31,13 +31,11 @@ Deno.serve(async (req) => {
       organizationId = userOrgs[0].id;
     }
     
-    const { agent_id, command_type, parameters, timeout_seconds } = await req.json();
-    
     if (!agent_id || !command_type) {
       return Response.json({ error: 'agent_id and command_type required' }, { status: 400 });
     }
     
-    // Verify agent belongs to user's organization via Supabase
+    // Verify agent belongs to organization via Supabase
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL'),
       Deno.env.get('SUPABASE_SERVICE_KEY')
