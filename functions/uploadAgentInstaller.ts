@@ -22,13 +22,14 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_KEY')
     );
 
-    const fileName = `agent-installer/netmap-agent-setup.exe`;
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `agent-installer/netmap-agent-setup.${fileExtension}`;
     const fileBuffer = await file.arrayBuffer();
 
     const { data, error } = await supabase.storage
       .from(Deno.env.get('SUPABASE_BUCKET'))
       .upload(fileName, fileBuffer, {
-        contentType: 'application/octet-stream',
+        contentType: fileExtension === 'zip' ? 'application/zip' : 'application/octet-stream',
         upsert: true
       });
 
