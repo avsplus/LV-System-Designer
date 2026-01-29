@@ -5,12 +5,6 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // This is a scheduled automation - we need service role access
-    if (!Deno.env.get('BASE44_SERVICE_TOKEN')) {
-      console.error('No service token available for scheduled automation');
-      return Response.json({ error: 'Service token required' }, { status: 500 });
-    }
-    
     // Initialize Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_KEY');
