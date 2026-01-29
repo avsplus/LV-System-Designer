@@ -538,13 +538,20 @@ export default function NetworkMapping() {
               <ChevronLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <NetworkIcon className="w-6 h-6 text-cyan-400" />
-              OrionTrace Network Agent
-              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Coming Soon</Badge>
-            </h1>
-            <p className="text-sm text-gray-400">Visualize and manage your network topology</p>
+          <div className="flex items-center gap-3">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/654057aa4_AVSystemDesign-NetAgentIcon.png" 
+              alt="OrionTrace" 
+              className="w-12 h-12"
+            />
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                OrionTrace
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Coming Soon</Badge>
+              </h1>
+              <p className="text-sm text-gray-400">Network Agent</p>
+              <p className="text-xs text-gray-500">Visualize and manage your network topology</p>
+            </div>
           </div>
         </div>
         
