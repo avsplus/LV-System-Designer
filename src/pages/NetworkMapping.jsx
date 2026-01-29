@@ -440,12 +440,10 @@ export default function NetworkMapping() {
             // Try multiple paths to find results
             const eventData = completeEvent.data || {};
             const results = eventData.results || eventData.result?.results || eventData.result || [];
-            console.log('Extracted ping results:', results);
-            console.log('Full event data:', JSON.stringify(eventData, null, 2));
             
             setPingResults(results);
             
-            const online = Array.isArray(results) ? results.filter(r => r.success).length : 0;
+            const online = Array.isArray(results) ? results.filter(r => r.reachable).length : 0;
             toast.success(`Ping complete: ${online}/${Array.isArray(results) ? results.length : 0} devices online`);
             
             // Update device statuses
@@ -455,7 +453,7 @@ export default function NetworkMapping() {
                 if (device) {
                   updateDeviceMutation.mutate({
                     id: device.id,
-                    data: { status: result.success ? 'online' : 'offline' }
+                    data: { status: result.reachable ? 'online' : 'offline' }
                   });
                 }
               });
