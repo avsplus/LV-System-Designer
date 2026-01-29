@@ -951,13 +951,13 @@ export default function NetworkMapping() {
                               device.status === 'online' ? 'bg-green-500/20' :
                               device.status === 'warning' ? 'bg-yellow-500/20' :
                               device.status === 'maintenance' ? 'bg-blue-500/20' :
-                              'bg-gray-700'
+                              'bg-red-900/30'
                             }`}>
                               <Icon className={`w-5 h-5 ${
                                 device.status === 'online' ? 'text-green-400' :
                                 device.status === 'warning' ? 'text-yellow-400' :
                                 device.status === 'maintenance' ? 'text-blue-400' :
-                                'text-gray-500'
+                                'text-red-400'
                               }`} />
                             </div>
                             <div className="flex-1">
@@ -1035,7 +1035,7 @@ export default function NetworkMapping() {
                             device.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
                             device.status === 'warning' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
                             device.status === 'maintenance' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                            'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                            'bg-red-900/30 text-red-400 border-red-900/50'
                           }>
                             {device.status}
                           </Badge>
