@@ -34,14 +34,49 @@ export function useSupabaseAgents(organizationId) {
     }
     try {
       setLoading(true);
-      const { data, error } = await supabaseClient
+      
+      // Fetch agents
+      const { data: agentsData, error: agentsError } = await supabaseClient
         .from('agents')
         .select('*')
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setAgents(data || []);
+      if (agentsError) throw agentsError;
+      
+      // Fetch heartbeats
+      const { data: heartbeats, error: heartbeatsError } = await supabaseClient
+        .from('agent_heartbeats')
+        .select('*')
+        .eq('org_id', organizationId);
+      
+      if (heartbeatsError) throw heartbeatsError;
+      
+      // Merge agents with heartbeat data and calculate status
+      const now = Date.now();
+      const mergedAgents = (agentsData || []).map(agent => {
+        const heartbeat = heartbeats?.find(h => h.agent_id === agent.agent_id);
+        
+        if (!heartbeat) {
+          return { ...agent, status: 'offline' };
+        }
+        
+        const lastSeenTime = new Date(heartbeat.last_seen).getTime();
+        const secondsSinceHeartbeat = (now - lastSeenTime) / 1000;
+        
+        // Consider online if heartbeat within last 60 seconds
+        const isOnline = secondsSinceHeartbeat < 60;
+        
+        return {
+          ...agent,
+          status: isOnline ? (heartbeat.status || 'online') : 'offline',
+          last_seen: heartbeat.last_seen,
+          version: heartbeat.agent_version || agent.version,
+          health: agent.health
+        };
+      });
+      
+      setAgents(mergedAgents);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -58,7 +93,7 @@ export function useSupabaseAgents(organizationId) {
     const handleRefresh = () => fetchAgents();
     window.addEventListener('agent-registered', handleRefresh);
 
-    // Subscribe to realtime updates
+    // Subscribe to realtime updates on both tables
     const channel = supabaseClient
       .channel('agents-changes')
       .on(
@@ -69,16 +104,20 @@ export function useSupabaseAgents(organizationId) {
           table: 'agents',
           filter: `organization_id=eq.${organizationId}`
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setAgents(prev => [payload.new, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setAgents(prev => prev.map(agent => 
-              agent.id === payload.new.id ? payload.new : agent
-            ));
-          } else if (payload.eventType === 'DELETE') {
-            setAgents(prev => prev.filter(agent => agent.id !== payload.old.id));
-          }
+        () => {
+          fetchAgents();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_heartbeats',
+          filter: `org_id=eq.${organizationId}`
+        },
+        () => {
+          fetchAgents();
         }
       )
       .subscribe();
