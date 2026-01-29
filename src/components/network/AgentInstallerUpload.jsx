@@ -49,7 +49,7 @@ export default function AgentInstallerUpload({ open, onOpenChange }) {
         <DialogHeader>
           <DialogTitle className="text-white">Upload Agent Installer</DialogTitle>
           <DialogDescription className="text-gray-400">
-            Upload the Windows agent installer (.exe) for your organization
+            Upload the Windows agent installer (.zip containing MSI and CAB1 files)
           </DialogDescription>
         </DialogHeader>
 
@@ -57,7 +57,7 @@ export default function AgentInstallerUpload({ open, onOpenChange }) {
           <div>
             <Input
               type="file"
-              accept=".exe,.msi"
+              accept=".zip,.exe,.msi"
               onChange={(e) => setFile(e.target.files[0])}
               className="bg-gray-800 border-gray-700 text-white"
             />
