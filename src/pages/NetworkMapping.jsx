@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ChevronLeft, Plus, Wifi, RefreshCw, Trash2, 
   Network as NetworkIcon, Router, Server, Shield, 
-  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity, AlertTriangle, Link2
+  Monitor, Printer, HardDrive, Cpu, Box, ArrowUpDown, Check, X, Edit2, Eraser, Activity, AlertTriangle, Link2, CheckCircle, XCircle, AlertCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -230,23 +230,7 @@ export default function NetworkMapping() {
   // Health monitoring
   const [showHealthPanel, setShowHealthPanel] = useState(false);
 
-  const handleStartScan = useCallback(() => {
-    if (!selectedNetwork) {
-      toast.error('Please select a network first');
-      return;
-    }
-    
-    const network = networks.find(n => n.id === selectedNetwork);
-    if (!network?.subnet) {
-      toast.error('Selected network has no subnet defined');
-      return;
-    }
-    
-    // Reset scan session tracking
-    discoveredInCurrentScan.current.clear();
-    setScanProgress({ percent: 0, devicesFound: 0 });
-    startScan(network.subnet, network.id);
-  }, [selectedNetwork, networks, startScan]);
+
 
 
 
@@ -564,18 +548,29 @@ export default function NetworkMapping() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          {/* Agent Health Status */}
-          {selectedAgent && (
-            <button
-              onClick={() => setShowHealthPanel(!showHealthPanel)}
-              className="hover:opacity-80 transition-opacity"
-            >
-              <AgentHealthMonitor agent={selectedAgent} compact />
-            </button>
-          )}
-
-          <NetworkStats devices={devices} />
+        <div className="flex items-center gap-3">
+          <Link to={createPageUrl("AgentManager")}>
+            <Button variant="outline" className="border-gray-700">
+              <Activity className="w-4 h-4 mr-2" />
+              Manage Agents
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            className="border-gray-700"
+            onClick={async () => {
+              const { data: org } = await base44.entities.Organization.filter({ id: organizationId });
+              const installerUrl = org[0]?.agent_installer_url;
+              if (installerUrl) {
+                window.open(installerUrl, '_blank');
+              } else {
+                toast.error('No agent installer available. Please upload one in Agent Manager.');
+              }
+            }}
+          >
+            <Activity className="w-4 h-4 mr-2" />
+            Download Agent
+          </Button>
         </div>
       </div>
 
@@ -593,59 +588,8 @@ export default function NetworkMapping() {
       {/* Toolbar */}
       <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex gap-2">
-          <Link to={createPageUrl("AgentManager")}>
-            <Button variant="outline" className="border-gray-700">
-              <Activity className="w-4 h-4 mr-2" />
-              Manage Agents
-            </Button>
-          </Link>
-
           {selectedAgent && (
             <>
-              {agents.length > 0 && (
-                <Select value={selectedAgent?.id || ''} onValueChange={(id) => {
-                  const agent = agents.find(a => a.id === id);
-                  setSelectedAgent(agent);
-                }}>
-                  <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
-                    <SelectValue placeholder="Select agent..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    {agents.map(agent => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name} ({agent.status})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              <Button 
-                onClick={() => setShowNetworkDialog(true)}
-                variant="outline"
-                className="border-gray-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Network
-              </Button>
-
-              <Select value={selectedNetwork || ''} onValueChange={setSelectedNetwork}>
-                <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder={networks.length === 0 ? "No networks" : "Select network..."} />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  {networks.length === 0 ? (
-                    <div className="p-2 text-sm text-gray-500">No networks available</div>
-                  ) : (
-                    networks.map(network => (
-                      <SelectItem key={network.id} value={network.id}>
-                        {network.name} ({network.subnet || 'No subnet'})
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-
               {isScanning ? (
                 <Button 
                   onClick={stopScan} 
@@ -657,8 +601,12 @@ export default function NetworkMapping() {
                 </Button>
               ) : (
                 <Button 
-                  onClick={handleStartScan} 
-                  disabled={!selectedNetwork || (selectedAgent.status !== 'online' && selectedAgent.status !== 'registered')}
+                  onClick={() => {
+                    discoveredInCurrentScan.current.clear();
+                    setScanProgress({ percent: 0, devicesFound: 0 });
+                    startScan('', '');
+                  }} 
+                  disabled={selectedAgent.status !== 'online' && selectedAgent.status !== 'registered'}
                   variant="outline"
                   className="border-green-500 text-green-400 hover:bg-green-500/10"
                 >
@@ -748,90 +696,126 @@ export default function NetworkMapping() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
-                {agents.map(agent => (
-                  <button
-                    key={agent.id}
-                    onClick={() => setSelectedAgent(agent)}
-                    className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 hover:bg-gray-800/50 transition-all text-left"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-white mb-1">{agent.name}</h3>
-                        <p className="text-xs text-gray-500 font-mono">{agent.agent_id}</p>
-                      </div>
-                      <div className={`w-3 h-3 rounded-full ${
-                        agent.status === 'online' || agent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
-                        agent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
-                        agent.status === 'error' ? 'bg-red-400 animate-pulse' :
-                        'bg-red-400'
-                      }`} />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Status</span>
-                        <Badge className={
-                          agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                          agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                          agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                          'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                        }>
-                          {agent.status}
-                        </Badge>
+                {agents.map(agent => {
+                  const agentDevices = devices.filter(d => d.network_id === agent.assigned_network_id || !agent.assigned_network_id);
+                  const agentStats = {
+                    total: agentDevices.length,
+                    online: agentDevices.filter(d => d.status === 'online').length,
+                    offline: agentDevices.filter(d => d.status === 'offline').length,
+                    warning: agentDevices.filter(d => d.status === 'warning').length
+                  };
+                  
+                  return (
+                    <button
+                      key={agent.id}
+                      onClick={() => setSelectedAgent(agent)}
+                      className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 hover:bg-gray-800/50 transition-all text-left"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-white mb-1">{agent.name}</h3>
+                          <p className="text-xs text-gray-500 font-mono">{agent.agent_id}</p>
+                        </div>
+                        <div className={`w-3 h-3 rounded-full ${
+                          agent.status === 'online' || agent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
+                          agent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
+                          agent.status === 'error' ? 'bg-red-400 animate-pulse' :
+                          'bg-red-400'
+                        }`} />
                       </div>
                       
-                      {agent.version && (
+                      <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-400">Version</span>
-                          <span className="text-sm text-white">{agent.version}</span>
+                          <span className="text-sm text-gray-400">Status</span>
+                          <Badge className={
+                            agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                            agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                            agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                            'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                          }>
+                            {agent.status}
+                          </Badge>
                         </div>
-                      )}
+                        
+                        {agent.version && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">Version</span>
+                            <span className="text-sm text-white">{agent.version}</span>
+                          </div>
+                        )}
+                        
+                        {agent.location && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">Location</span>
+                            <span className="text-sm text-white">{agent.location}</span>
+                          </div>
+                        )}
+                        
+                        {agent.last_seen && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">Last Seen</span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(agent.last_seen).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Health indicators */}
+                        {agent.health?.cpu_percent !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">CPU</span>
+                            <span className={`text-sm font-medium ${
+                              agent.health.cpu_percent > 90 ? 'text-red-400' :
+                              agent.health.cpu_percent > 70 ? 'text-yellow-400' :
+                              'text-green-400'
+                            }`}>
+                              {agent.health.cpu_percent.toFixed(0)}%
+                            </span>
+                          </div>
+                        )}
+                        
+                        {agent.health?.memory_percent !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">Memory</span>
+                            <span className={`text-sm font-medium ${
+                              agent.health.memory_percent > 90 ? 'text-red-400' :
+                              agent.health.memory_percent > 70 ? 'text-yellow-400' :
+                              'text-green-400'
+                            }`}>
+                              {agent.health.memory_percent.toFixed(0)}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       
-                      {agent.location && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-400">Location</span>
-                          <span className="text-sm text-white">{agent.location}</span>
+                      {/* Device Stats at bottom */}
+                      <div className="mt-4 pt-4 border-t border-gray-800">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center gap-1">
+                            <Activity className="w-3 h-3 text-cyan-400" />
+                            <span className="text-gray-400">Total:</span>
+                            <span className="text-cyan-400 font-bold">{agentStats.total}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3 text-green-400" />
+                            <span className="text-gray-400">Online:</span>
+                            <span className="text-green-400 font-bold">{agentStats.online}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <XCircle className="w-3 h-3 text-gray-400" />
+                            <span className="text-gray-400">Offline:</span>
+                            <span className="text-gray-400 font-bold">{agentStats.offline}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 text-yellow-400" />
+                            <span className="text-gray-400">Warning:</span>
+                            <span className="text-yellow-400 font-bold">{agentStats.warning}</span>
+                          </div>
                         </div>
-                      )}
-                      
-                      {agent.last_seen && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-400">Last Seen</span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(agent.last_seen).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* Health indicators */}
-                      {agent.health?.cpu_percent !== undefined && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-400">CPU</span>
-                          <span className={`text-sm font-medium ${
-                            agent.health.cpu_percent > 90 ? 'text-red-400' :
-                            agent.health.cpu_percent > 70 ? 'text-yellow-400' :
-                            'text-green-400'
-                          }`}>
-                            {agent.health.cpu_percent.toFixed(0)}%
-                          </span>
-                        </div>
-                      )}
-                      
-                      {agent.health?.memory_percent !== undefined && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-400">Memory</span>
-                          <span className={`text-sm font-medium ${
-                            agent.health.memory_percent > 90 ? 'text-red-400' :
-                            agent.health.memory_percent > 70 ? 'text-yellow-400' :
-                            'text-green-400'
-                          }`}>
-                            {agent.health.memory_percent.toFixed(0)}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
