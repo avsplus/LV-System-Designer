@@ -423,6 +423,8 @@ export default function NetworkMapping() {
           limit: 50
         });
 
+        console.log('Ping poll attempt', attempts, 'events:', events);
+
         if (events && events.length > 0) {
           const completeEvent = events.find(e => 
             e.event_type === 'command_complete' || 
@@ -431,25 +433,32 @@ export default function NetworkMapping() {
           );
 
           if (completeEvent) {
+            console.log('Ping complete event:', completeEvent);
             clearInterval(pollInterval);
             setIsPinging(false);
             
-            const results = completeEvent.data?.result?.results || completeEvent.data?.results || [];
+            // Try multiple paths to find results
+            const eventData = completeEvent.data || {};
+            const results = eventData.results || eventData.result?.results || eventData.result || [];
+            console.log('Extracted ping results:', results);
+            
             setPingResults(results);
             
-            const online = results.filter(r => r.success).length;
-            toast.success(`Ping complete: ${online}/${results.length} devices online`);
+            const online = Array.isArray(results) ? results.filter(r => r.success).length : 0;
+            toast.success(`Ping complete: ${online}/${Array.isArray(results) ? results.length : 0} devices online`);
             
             // Update device statuses
-            results.forEach(result => {
-              const device = devices.find(d => d.ip_address === result.ip);
-              if (device) {
-                updateDeviceMutation.mutate({
-                  id: device.id,
-                  data: { status: result.success ? 'online' : 'offline' }
-                });
-              }
-            });
+            if (Array.isArray(results)) {
+              results.forEach(result => {
+                const device = devices.find(d => d.ip_address === result.ip);
+                if (device) {
+                  updateDeviceMutation.mutate({
+                    id: device.id,
+                    data: { status: result.success ? 'online' : 'offline' }
+                  });
+                }
+              });
+            }
           }
         }
 
