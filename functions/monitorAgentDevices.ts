@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
         
         // Send ping command to agent
         const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
+          organization_id: agent.organization_id,
           agent_id: agent.agent_id,
           command_type: 'ping_devices',
           parameters: {
