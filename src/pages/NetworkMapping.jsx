@@ -12,7 +12,6 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 import { useOrganization } from "../components/auth/useOrganization";
-import { createClient } from '@supabase/supabase-js';
 import { Badge } from "@/components/ui/badge";
 import NetworkStats from "../components/network/NetworkStats";
 import ScanProgress from "../components/network/ScanProgress";
@@ -223,7 +222,7 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { agents } = useSupabaseAgents(organizationId);
+  const { agents, supabase: supabaseClient } = useSupabaseAgents(organizationId);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const { isScanning, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent);
@@ -853,10 +852,11 @@ export default function NetworkMapping() {
                               checked={agent.monitoring_enabled || false}
                               onChange={async (e) => {
                                 e.stopPropagation();
+                                if (!supabaseClient) {
+                                  toast.error('Database not ready');
+                                  return;
+                                }
                                 try {
-                                  const { data: supabaseConfig } = await base44.functions.invoke('getSupabaseConfig', {});
-                                  const supabaseClient = createClient(supabaseConfig.url, supabaseConfig.anonKey);
-
                                   const { error } = await supabaseClient
                                     .from('agents')
                                     .update({ monitoring_enabled: e.target.checked })
@@ -864,7 +864,7 @@ export default function NetworkMapping() {
 
                                   if (error) throw error;
 
-                                  toast.success(e.target.checked ? 'Monitoring enabled' : 'Monitoring disabled');
+                                  toast.success(e.target.checked ? 'Monitoring enabled - devices will be pinged every 5 minutes' : 'Monitoring disabled');
                                 } catch (error) {
                                   console.error('Failed to toggle monitoring:', error);
                                   toast.error('Failed to toggle monitoring');
