@@ -53,7 +53,9 @@ Deno.serve(async (req) => {
     
     const agent = agents[0];
     
-    const org = userOrgs[0];
+    // Fetch organization for signing
+    const orgs = await base44.asServiceRole.entities.Organization.filter({ id: organizationId });
+    const org = orgs?.[0];
     
     // Build command message
     const commandId = crypto.randomUUID();
