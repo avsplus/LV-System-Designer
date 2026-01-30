@@ -10,8 +10,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    // Allow app admins OR organization administrators/owners
+    const hasPermission = user.role === 'admin' || 
+                         user.organization_role === 'administrator' || 
+                         user.organization_role === 'owner';
+    
+    if (!hasPermission) {
+      return Response.json({ error: 'Administrator access required' }, { status: 403 });
     }
 
     const orgs = await base44.entities.Organization.filter({ id: user.organization_id });
