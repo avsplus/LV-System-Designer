@@ -208,14 +208,14 @@ export default function AgentManager() {
               </Button>
             </a>
           )}
-          {currentUser?.role === 'admin' && !installerData?.url && (
+          {currentUser?.role === 'admin' && (
             <Button 
               variant="outline" 
               className="border-gray-700"
               onClick={() => setShowInstallerUpload(true)}
             >
               <Upload className="w-4 h-4 mr-2" />
-              Upload Installer
+              {installerData?.url ? 'Replace Installer' : 'Upload Installer'}
             </Button>
           )}
           <Button onClick={() => setShowRegistration(true)} className="bg-cyan-600 hover:bg-cyan-700">
