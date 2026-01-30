@@ -28,7 +28,13 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         parameters: { 
           cidr, 
           network_id: networkId,
-          scope: 'local'
+          scope: 'local',
+          scan_profile: 'deep',
+          options: {
+            enable_icmp: true,
+            enable_tcp_probe: true,
+            resolve_dns: false
+          }
         }
       });
       
