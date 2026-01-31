@@ -26,13 +26,13 @@ Deno.serve(async (req) => {
         .eq('agent_id', agent_id);
     }
     
-    // Clean up old events for this agent - keep only last 50
+    // Clean up old events for this agent - keep only the most recent one
     const { data: oldEvents } = await supabase
       .from('agent_events')
       .select('id')
       .eq('agent_id', agent_id)
       .order('created_date', { ascending: false })
-      .range(50, 1000);
+      .range(1, 1000);
     
     if (oldEvents && oldEvents.length > 0) {
       const idsToDelete = oldEvents.map(e => e.id);
