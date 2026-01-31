@@ -25,12 +25,21 @@ export default function useProjectSync({
 
   // Update known timestamp directly (used after save to prevent race condition)
   const updateKnownTimestamp = useCallback((timestamp) => {
-    // Normalize timestamp to match database precision (3 decimal places for milliseconds)
-    // Database returns: 2026-01-10T04:08:56.946000 (truncated)
-    // Save returns:     2026-01-10T04:08:56.946947 (full microseconds)
-    const normalizedTimestamp = timestamp ? timestamp.substring(0, 23) + '000' : timestamp;
-    lastKnownUpdate.current = normalizedTimestamp;
-    console.log('⏰ Updated known timestamp to:', normalizedTimestamp, '(normalized from:', timestamp + ')');
+    if (!timestamp) return;
+    
+    // Database precision handling - timestamps can have varying precision
+    // Remove timezone and normalize to just date+time for comparison
+    const normalizeTimestamp = (ts) => {
+      if (!ts) return null;
+      // Remove timezone info and microseconds, keep only up to milliseconds
+      const dateTimePart = ts.split('+')[0].split('Z')[0].split('.')[0];
+      const millisPart = ts.split('.')[1]?.substring(0, 3) || '000';
+      return `${dateTimePart}.${millisPart}`;
+    };
+    
+    const normalized = normalizeTimestamp(timestamp);
+    lastKnownUpdate.current = normalized;
+    console.log('⏰ Updated known timestamp to:', normalized);
   }, []);
 
 
@@ -38,14 +47,18 @@ export default function useProjectSync({
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
 
+    // Normalize timestamp function
+    const normalizeTimestamp = (ts) => {
+      if (!ts) return null;
+      const dateTimePart = ts.split('+')[0].split('Z')[0].split('.')[0];
+      const millisPart = ts.split('.')[1]?.substring(0, 3) || '000';
+      return `${dateTimePart}.${millisPart}`;
+    };
+    
     // Update last known timestamp when project changes (initial load or project switch)
-    // This prevents treating the initial load as a "collaborator update"
-    // Normalize to match database precision (truncate microseconds)
-    const normalizedTimestamp = currentProject.updated_date ? 
-      currentProject.updated_date.substring(0, 23) + '000' : 
-      currentProject.updated_date;
-    lastKnownUpdate.current = normalizedTimestamp;
-    console.log('🔄 Sync initialized for project, timestamp:', normalizedTimestamp);
+    const normalized = normalizeTimestamp(currentProject.updated_date);
+    lastKnownUpdate.current = normalized;
+    console.log('🔄 Sync initialized for project, timestamp:', normalized);
 
     const checkForUpdates = async () => {
       // Skip sync if we're saving or within local change window (extended to 8 seconds)
@@ -72,25 +85,41 @@ export default function useProjectSync({
           return;
         }
 
-        // Only sync if timestamp actually changed from what we know
-        // This prevents re-syncing the same data after project load
-        // Normalize both timestamps to same precision for comparison
-        const normalizedLatest = latestProject.updated_date ? 
-          latestProject.updated_date.substring(0, 23) + '000' : 
-          latestProject.updated_date;
+        // Normalize both timestamps for comparison
+        const normalizeTimestamp = (ts) => {
+          if (!ts) return null;
+          const dateTimePart = ts.split('+')[0].split('Z')[0].split('.')[0];
+          const millisPart = ts.split('.')[1]?.substring(0, 3) || '000';
+          return `${dateTimePart}.${millisPart}`;
+        };
+        
+        const normalizedLatest = normalizeTimestamp(latestProject.updated_date);
         const normalizedKnown = lastKnownUpdate.current;
 
+        // Only apply sync if timestamp changed AND updated_by is different user
+        const wasUpdatedByCollaborator = latestProject.updated_by && 
+                                         currentUserEmail && 
+                                         latestProject.updated_by !== currentUserEmail;
+
         if (normalizedLatest !== normalizedKnown) {
-          console.log('📥 Remote update detected:', {
+          console.log('📥 Update detected:', {
             known: normalizedKnown,
-            latest: normalizedLatest
+            latest: normalizedLatest,
+            updated_by: latestProject.updated_by,
+            current_user: currentUserEmail,
+            is_collaborator: wasUpdatedByCollaborator
           });
           lastKnownUpdate.current = normalizedLatest;
 
-          toast.info('Project updated by collaborator', {
-            description: 'Canvas has been synced with latest changes'
-          });
-          onProjectUpdated(latestProject);
+          // Only show collaborator message if actually updated by someone else
+          if (wasUpdatedByCollaborator) {
+            toast.info('Project updated by collaborator', {
+              description: 'Canvas has been synced with latest changes'
+            });
+            onProjectUpdated(latestProject);
+          } else {
+            console.log('ℹ️ Update was by current user - skipping sync toast');
+          }
         }
       } catch (error) {
         console.error('Sync check error:', error);
