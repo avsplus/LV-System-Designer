@@ -26,21 +26,13 @@ Deno.serve(async (req) => {
         .eq('agent_id', agent_id);
     }
     
-    // Clean up old events for this agent - keep only the most recent one
-    const { data: oldEvents } = await supabase
+    // Delete events older than 1 hour for this agent
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    await supabase
       .from('agent_events')
-      .select('id')
+      .delete()
       .eq('agent_id', agent_id)
-      .order('created_date', { ascending: false })
-      .range(1, 1000);
-    
-    if (oldEvents && oldEvents.length > 0) {
-      const idsToDelete = oldEvents.map(e => e.id);
-      await supabase
-        .from('agent_events')
-        .delete()
-        .in('id', idsToDelete);
-    }
+      .lt('created_date', oneHourAgo);
     
     // Store event
     const { error: insertError } = await supabase
