@@ -26,6 +26,14 @@ Deno.serve(async (req) => {
         .eq('agent_id', agent_id);
     }
     
+    // Delete events older than 24 hours for this agent
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    await supabase
+      .from('agent_events')
+      .delete()
+      .eq('agent_id', agent_id)
+      .lt('created_date', twentyFourHoursAgo);
+    
     // Store event
     const { error: insertError } = await supabase
       .from('agent_events')
