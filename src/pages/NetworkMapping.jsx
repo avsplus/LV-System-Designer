@@ -932,12 +932,9 @@ export default function NetworkMapping() {
                           </div>
 
                           {/* Monitor Toggle */}
-                          <button 
-                            className="flex flex-col items-center gap-2 ml-3 pl-3 border-l border-gray-700 hover:bg-gray-700/30 rounded px-2 py-1 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                            }}
+                          <div 
+                            className="flex flex-col items-center gap-2 ml-3 pl-3 border-l border-gray-700 py-1"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <span className="text-[10px] text-gray-400 font-medium">Monitor</span>
                             <Switch
@@ -967,7 +964,7 @@ export default function NetworkMapping() {
                               }}
                               className={agent.monitoring_enabled ? '[&_span]:bg-blue-500' : '[&_span]:bg-gray-600'}
                             />
-                          </button>
+                          </div>
                         </div>
                       </div>
                     </button>
