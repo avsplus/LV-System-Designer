@@ -212,9 +212,13 @@ export default function NetworkMapping() {
   const handleScanProgress = useCallback((progressData) => {
     // Flexible handling - extract what exists
     const percent = progressData?.percent ?? progressData?.progress ?? 0;
+    const status = progressData?.status || 'scanning';
+    const devicesFound = progressData?.devicesFound ?? progressData?.devices_found;
+    
     setScanProgress(prev => ({
       percent,
-      devicesFound: prev.devicesFound
+      status,
+      devicesFound: devicesFound !== undefined ? devicesFound : prev.devicesFound
     }));
   }, []);
 
