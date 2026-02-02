@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Monitor } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export default function MonitoringToggle({ agent, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -37,20 +36,12 @@ export default function MonitoringToggle({ agent, onSuccess }) {
     }
   };
 
-  const isEnabled = agent.monitoring_enabled || false;
-
   return (
-    <Button
-      onClick={() => handleToggle(!isEnabled)}
+    <Switch
+      checked={agent.monitoring_enabled || false}
+      onCheckedChange={handleToggle}
       disabled={isLoading}
-      className={`flex items-center gap-2 px-3 py-2 h-auto rounded-lg transition-all ${
-        isEnabled
-          ? 'bg-blue-500 hover:bg-blue-600 text-white'
-          : 'bg-gray-600 hover:bg-gray-700 text-white'
-      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-    >
-      <Monitor className="w-4 h-4" />
-      <span className="text-sm font-medium">{isLoading ? 'Updating...' : isEnabled ? 'Monitoring' : 'Monitor'}</span>
-    </Button>
+      className={agent.monitoring_enabled ? '[&_span]:bg-blue-500' : '[&_span]:bg-gray-600'}
+    />
   );
 }
