@@ -85,19 +85,30 @@ Deno.serve(async (req) => {
         });
         
         let updatedDevices = 0;
-        if (pingResult?.result?.targets) {
-          const targets = pingResult.result.targets;
-          
+        
+        // Parse result if it's a string
+        let resultData = pingResult?.result;
+        if (typeof resultData === 'string') {
+          try {
+            resultData = JSON.parse(resultData);
+          } catch (e) {
+            console.error('Failed to parse ping result:', e);
+          }
+        }
+        
+        const targets = resultData?.targets || resultData;
+        
+        if (targets && Array.isArray(targets)) {
           for (const target of targets) {
             const device = devices.find(d => d.ip_address === target.ip);
             if (device) {
               const newStatus = target.reachable ? 'online' : 'offline';
-              if (device.status !== newStatus) {
-                await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
-                updatedDevices++;
-              }
+              await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+              updatedDevices++;
             }
           }
+        } else {
+          console.warn('No valid targets in ping result');
         }
         
         results.push({
