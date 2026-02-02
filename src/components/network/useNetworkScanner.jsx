@@ -62,7 +62,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
   }, [selectedAgent, onError]);
 
   const pollScanProgress = useCallback(async (commandId) => {
-    console.log('🔄 Starting command status polling:', commandId);
+    console.log('🔄 Starting scan result polling:', commandId);
     let pollCount = 0;
     
     const pollInterval = setInterval(async () => {
@@ -70,12 +70,10 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         pollCount++;
         console.log(`📊 Poll #${pollCount} for command ${commandId}`);
         
-        // Poll command status from database (source of truth)
+        // Poll command status from agent_commands table
         const { data: command } = await base44.functions.invoke('getAgentCommand', {
           command_id: commandId
         });
-        
-        console.log('📦 Command response:', command);
         
         if (!command) {
           console.warn('⚠️ Command not found, will retry...');
@@ -88,26 +86,29 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           return;
         }
         
-        console.log('📊 Command status:', command.status, 'Result:', command.result);
+        console.log('📊 Command status:', command.status);
         
         // Check terminal states
         if (command.status === 'completed') {
-          console.log('✅ Scan complete, processing results...');
+          console.log('✅ Scan complete, fetching results from agent_scan_results...');
           clearInterval(pollInterval);
           
-          // Read result from command (source of truth)
-          const result = command.result;
-          console.log('📦 Full result object:', result);
+          // Read result from agent_scan_results table (source of truth)
+          const { data: scanResult } = await base44.functions.invoke('getScanResults', {
+            command_id: commandId
+          });
           
-          if (!result || !result.hosts) {
-            console.warn('⚠️ No result.hosts data in completed command');
+          console.log('📦 Scan result from agent_scan_results:', scanResult);
+          
+          if (!scanResult?.results?.hosts) {
+            console.warn('⚠️ No hosts in scan results');
             setIsScanning(false);
             onScanProgress?.({ percent: 100, status: 'complete', devicesFound: 0 });
             return;
           }
           
-          const hosts = result.hosts || [];
-          console.log(`📦 Processing ${hosts.length} discovered hosts from result.hosts`);
+          const hosts = scanResult.results.hosts || [];
+          console.log(`📦 Processing ${hosts.length} discovered hosts`);
           
           hosts.forEach(host => {
             console.log('🔍 Processing host:', host);
@@ -130,15 +131,15 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           onScanProgress?.({ percent: 100, status: 'complete', devicesFound: hosts.length });
           console.log('✅ Scan processing complete');
         } else if (command.status === 'failed') {
-          console.error('❌ Scan failed:', command.result);
+          console.error('❌ Scan failed');
           clearInterval(pollInterval);
           setIsScanning(false);
-          onError?.(command.result?.error || 'Scan failed');
+          onError?.('Scan failed');
         } else {
           console.log('⏳ Command still pending/issued, continuing to poll...');
         }
       } catch (error) {
-        console.error('❌ Failed to poll command:', error);
+        console.error('❌ Failed to poll:', error);
       }
     }, 2000);
     
