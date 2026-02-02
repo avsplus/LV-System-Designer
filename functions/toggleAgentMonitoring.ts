@@ -113,42 +113,40 @@ Deno.serve(async (req) => {
                     }
                     
                     // Read results from agent_ping_results
-                    const { data: pingResults, error: resultsError } = await supabase
-                      .from('agent_ping_results')
-                      .select('*')
-                      .eq('command_id', commandResult.command_id)
-                      .eq('agent_id', agent_id)
-                      .eq('organization_id', user.organization_id);
-                    
-                    if (resultsError) {
-                      console.error('❌ Error querying ping results:', resultsError);
-                      break;
-                    }
-                    
-                    console.log('📦 Ping results from DB:', pingResults);
-                    
-                    if (!pingResults || pingResults.length === 0) {
-                      console.error('❌ No ping results found');
-                      break;
-                    }
-                    
-                    // Process first result (should be only one)
-                    const pingResult = pingResults[0];
-                    console.log('📦 Processing result:', pingResult.result);
-                    
-                    let resultData = pingResult.result;
-                    if (typeof resultData === 'string') {
-                      try {
-                        resultData = JSON.parse(resultData);
-                        console.log('📦 Parsed result data:', resultData);
-                      } catch (e) {
-                        console.error('❌ Failed to parse result:', e);
-                        break;
-                      }
-                    }
-                    
-                    const pingTargets = resultData?.targets || resultData;
-                    console.log('📦 Final targets array:', pingTargets);
+                     const { data: pingResults, error: resultsError } = await supabase
+                       .from('agent_ping_results')
+                       .select('result')
+                       .eq('command_id', commandResult.command_id);
+
+                     if (resultsError) {
+                       console.error('❌ Error querying ping results:', resultsError);
+                       break;
+                     }
+
+                     console.log('📦 Ping results from DB:', pingResults);
+
+                     if (!pingResults || pingResults.length === 0) {
+                       console.error('❌ No ping results found');
+                       break;
+                     }
+
+                     // Process first result (should be only one)
+                     const pingResult = pingResults[0];
+                     console.log('📦 Raw result column:', pingResult.result);
+
+                     let resultData = pingResult.result;
+                     if (typeof resultData === 'string') {
+                       try {
+                         resultData = JSON.parse(resultData);
+                         console.log('📦 Parsed result data:', resultData);
+                       } catch (e) {
+                         console.error('❌ Failed to parse result:', e);
+                         break;
+                       }
+                     }
+
+                     const pingTargets = resultData?.targets || resultData;
+                     console.log('📦 Final targets array:', pingTargets);
                     
                     if (!Array.isArray(pingTargets)) {
                       console.error('❌ Targets is not an array');
