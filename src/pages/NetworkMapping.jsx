@@ -46,7 +46,7 @@ export default function NetworkMapping() {
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
   const [showNetworkDialog, setShowNetworkDialog] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
-  const [scanProgress, setScanProgress] = useState({ percent: 0, devicesFound: 0 });
+  const [scanProgress, setScanProgress] = useState({ percent: 0, devicesFound: 0, status: 'sent' });
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [editingDevice, setEditingDevice] = useState(null);
