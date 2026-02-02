@@ -19,6 +19,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     
     setCurrentNetworkId(networkId);
     setIsScanning(true);
+    onScanProgress?.({ percent: 0, status: 'sent' });
     
     try {
       console.log('🚀 Starting scan:', { agent_id: selectedAgent.agent_id, cidr, networkId });
@@ -51,6 +52,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         onError?.('Agent offline, scan queued for when it reconnects');
         setIsScanning(false);
       } else {
+        onScanProgress?.({ percent: 1, status: 'scanning' });
         // Poll for results
         pollScanProgress(data.command_id);
       }
@@ -59,7 +61,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       onError?.(error.response?.data?.error || error.message || 'Failed to start scan');
       setIsScanning(false);
     }
-  }, [selectedAgent, onError]);
+  }, [selectedAgent, onError, onScanProgress]);
 
   const pollScanProgress = useCallback(async (commandId) => {
     console.log('🔄 Starting scan result polling:', commandId);
