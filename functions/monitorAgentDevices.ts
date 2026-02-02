@@ -79,32 +79,22 @@ Deno.serve(async (req) => {
         // Wait for ping results and update device statuses
         await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds for pings to complete
         
-        const { data: events } = await base44.asServiceRole.functions.invoke('getAgentEvents', {
-          agent_id: agent.agent_id,
-          command_id: commandResult.command_id,
-          limit: 50
+        // Fetch ping results from agent_ping_results table
+        const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
+          command_id: commandResult.command_id
         });
         
-        const completeEvent = events?.find(e => 
-          e.event_type === 'command_complete' || 
-          e.event_type === 'command_completed' ||
-          e.event_type === 'ping_complete'
-        );
-        
         let updatedDevices = 0;
-        if (completeEvent) {
-          const eventData = completeEvent.data || {};
-          const pingResults = eventData.results || eventData.result?.results || eventData.result || [];
+        if (pingResult?.result?.targets) {
+          const targets = pingResult.result.targets;
           
-          if (Array.isArray(pingResults)) {
-            for (const result of pingResults) {
-              const device = devices.find(d => d.ip_address === result.ip);
-              if (device) {
-                const newStatus = result.reachable ? 'online' : 'offline';
-                if (device.status !== newStatus) {
-                  await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
-                  updatedDevices++;
-                }
+          for (const target of targets) {
+            const device = devices.find(d => d.ip_address === target.ip);
+            if (device) {
+              const newStatus = target.reachable ? 'online' : 'offline';
+              if (device.status !== newStatus) {
+                await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+                updatedDevices++;
               }
             }
           }
