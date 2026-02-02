@@ -813,7 +813,7 @@ export default function NetworkMapping() {
                                             `${seconds}s`;
 
                             return (
-                              <span className={`text-[10px] font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
+                              <span className={`text-[10px] font-medium w-16 text-right ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
                                 {isOnline ? `Up ${timeText}` : `Down ${timeText}`}
                               </span>
                             );
