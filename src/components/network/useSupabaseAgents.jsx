@@ -11,7 +11,22 @@ export function useSupabaseAgents(organizationId) {
   const [error, setError] = useState(null);
   
   // Track agent status and when it changed to prevent timer resets
-  const previousStatusRef = React.useRef({});
+  const getStatusCache = () => {
+    try {
+      const cache = localStorage.getItem(`agent-status-cache-${organizationId}`);
+      return cache ? JSON.parse(cache) : {};
+    } catch {
+      return {};
+    }
+  };
+  
+  const saveStatusCache = (cache) => {
+    try {
+      localStorage.setItem(`agent-status-cache-${organizationId}`, JSON.stringify(cache));
+    } catch (e) {
+      console.warn('Failed to save status cache:', e);
+    }
+  };
 
   // Fetch Supabase config from backend and initialize client
   useEffect(() => {
