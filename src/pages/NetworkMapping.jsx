@@ -377,7 +377,7 @@ export default function NetworkMapping() {
         parameters: {
           targets,
           timeoutMs: 1000,
-          count: 2,
+          count: 3,
           maxConcurrency: 16
         }
       });
