@@ -402,7 +402,7 @@ export default function NetworkMapping() {
       try {
         attempts++;
         
-        // Poll command status (source of truth)
+        // Poll command status from agent_commands table
         const { data: command } = await base44.functions.invoke('getAgentCommand', {
           command_id: commandId
         });
@@ -415,18 +415,21 @@ export default function NetworkMapping() {
           setIsPinging(false);
           
           if (command.status === 'failed') {
-            toast.error('Ping failed: ' + (command.result?.error || 'Unknown error'));
+            toast.error('Ping failed');
             return;
           }
           
-          // Read result from command (source of truth)
-          const result = command.result;
-          if (!result || !result.targets) {
+          // Read results from agent_ping_results table (source of truth)
+          const { data: pingResult } = await base44.functions.invoke('getPingResults', {
+            command_id: commandId
+          });
+          
+          if (!pingResult?.results?.targets) {
             toast.error('No ping results returned');
             return;
           }
           
-          const targets = result.targets;
+          const targets = pingResult.results.targets;
           setPingResults(targets);
           
           const online = targets.filter(r => r.reachable).length;
