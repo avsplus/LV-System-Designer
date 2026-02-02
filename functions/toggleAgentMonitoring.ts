@@ -140,7 +140,8 @@ Deno.serve(async (req) => {
     
     return Response.json({ 
       success: true, 
-      monitoring_enabled: enabled 
+      monitoring_enabled: enabled,
+      devices_updated: enabled ? (devices?.length || 0) : 0
     });
     
   } catch (error) {
