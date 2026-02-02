@@ -812,7 +812,12 @@ export default function NetworkMapping() {
                             );
                           })()}
                         </div>
-                        
+                        </div>
+
+                        {/* Divider between Status and Location */}
+                        <div className="my-4 border-t border-gray-800" />
+
+                        <div className="space-y-2">
                         {agent.version && (
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-400">Version</span>
