@@ -54,10 +54,10 @@ Deno.serve(async (req) => {
     if (enabled) {
       try {
         // Get devices for this agent's organization
-        const devices = await base44.asServiceRole.entities.Device.filter({
-          organization_id: user.organization_id,
-          status: { $in: ['online', 'offline', 'warning'] }
+        const allDevices = await base44.asServiceRole.entities.Device.filter({
+          organization_id: user.organization_id
         });
+        const devices = allDevices.filter(d => ['online', 'offline', 'warning', 'maintenance'].includes(d.status));
         
         if (devices && devices.length > 0) {
           const targets = devices
