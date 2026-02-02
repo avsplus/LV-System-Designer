@@ -424,12 +424,12 @@ export default function NetworkMapping() {
             command_id: commandId
           });
           
-          if (!pingResult?.results?.targets) {
+          if (!pingResult?.result?.targets) {
             toast.error('No ping results returned');
             return;
           }
           
-          const targets = pingResult.results.targets;
+          const targets = pingResult.result.targets;
           setPingResults(targets);
           
           const online = targets.filter(r => r.reachable).length;
