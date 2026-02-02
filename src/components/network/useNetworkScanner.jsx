@@ -75,9 +75,12 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           command_id: commandId
         });
         
+        console.log('📦 Command response:', command);
+        
         if (!command) {
+          console.warn('⚠️ Command not found, will retry...');
           if (pollCount >= 240) {
-            console.warn('⚠️ Command not found after 8 minutes');
+            console.error('⚠️ Command not found after 8 minutes');
             onError?.('Agent not responding. It may be offline or not connected.');
             clearInterval(pollInterval);
             setIsScanning(false);
@@ -85,26 +88,29 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           return;
         }
         
-        console.log('📦 Command status:', command.status);
+        console.log('📊 Command status:', command.status, 'Result:', command.result);
         
         // Check terminal states
         if (command.status === 'completed') {
-          console.log('✅ Scan complete');
+          console.log('✅ Scan complete, processing results...');
           clearInterval(pollInterval);
-          setIsScanning(false);
           
           // Read result from command (source of truth)
           const result = command.result;
+          console.log('📦 Full result object:', result);
+          
           if (!result || !result.hosts) {
-            console.warn('⚠️ No result data in completed command');
+            console.warn('⚠️ No result.hosts data in completed command');
+            setIsScanning(false);
             onScanProgress?.({ percent: 100, status: 'complete', devicesFound: 0 });
             return;
           }
           
           const hosts = result.hosts || [];
-          console.log(`📦 Processing ${hosts.length} discovered hosts from result`);
+          console.log(`📦 Processing ${hosts.length} discovered hosts from result.hosts`);
           
           hosts.forEach(host => {
+            console.log('🔍 Processing host:', host);
             if (host.mac) {
               onDeviceDiscovered?.({
                 ip_address: host.ip,
@@ -115,17 +121,22 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
                 device_type: host.device_type,
                 open_ports: host.open_ports || []
               });
+            } else {
+              console.warn('⚠️ Host missing MAC address, skipping:', host);
             }
           });
           
+          setIsScanning(false);
           onScanProgress?.({ percent: 100, status: 'complete', devicesFound: hosts.length });
+          console.log('✅ Scan processing complete');
         } else if (command.status === 'failed') {
-          console.error('❌ Scan failed');
+          console.error('❌ Scan failed:', command.result);
           clearInterval(pollInterval);
           setIsScanning(false);
           onError?.(command.result?.error || 'Scan failed');
+        } else {
+          console.log('⏳ Command still pending/issued, continuing to poll...');
         }
-        // For pending/issued - continue polling
       } catch (error) {
         console.error('❌ Failed to poll command:', error);
       }
