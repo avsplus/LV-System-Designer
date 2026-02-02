@@ -78,15 +78,26 @@ Deno.serve(async (req) => {
             });
             
             if (commandResult?.command_id) {
-              // Wait for ping to complete
-              await new Promise(resolve => setTimeout(resolve, 5000));
+              // Poll for results with timeout
+              const maxAttempts = 30; // 30 seconds max
+              let attempts = 0;
+              let pingResult = null;
               
-              // Fetch and update results
-              const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
-                command_id: commandResult.command_id
-              });
+              while (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                attempts++;
+                
+                const { data } = await base44.asServiceRole.functions.invoke('getPingResults', {
+                  command_id: commandResult.command_id
+                });
+                
+                if (data?.result) {
+                  pingResult = data;
+                  break;
+                }
+              }
               
-              console.log('Ping result:', pingResult);
+              console.log('Ping result after', attempts, 'attempts:', pingResult);
               
               if (pingResult?.result) {
                 let resultData = pingResult.result;
@@ -106,10 +117,13 @@ Deno.serve(async (req) => {
                     const device = devices.find(d => d.ip_address === target.ip);
                     if (device) {
                       const newStatus = target.reachable ? 'online' : 'offline';
+                      console.log(`Updating device ${device.name} to ${newStatus}`);
                       await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
                     }
                   }
                 }
+              } else {
+                console.error('No ping results found after', attempts, 'attempts');
               }
             }
           }
