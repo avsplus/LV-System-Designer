@@ -424,15 +424,29 @@ export default function NetworkMapping() {
             command_id: commandId
           });
           
-          console.log('📦 Ping result from agent_ping_results:', pingResult);
+          console.log('📦 Raw ping result:', pingResult);
+          console.log('📦 pingResult.result:', pingResult?.result);
+          console.log('📦 Type of result:', typeof pingResult?.result);
           
-          if (!pingResult?.result?.targets) {
-            console.warn('⚠️ No targets in ping result. Full result:', pingResult);
+          // Parse result if it's a string
+          let resultData = pingResult?.result;
+          if (typeof resultData === 'string') {
+            try {
+              resultData = JSON.parse(resultData);
+              console.log('📦 Parsed result:', resultData);
+            } catch (e) {
+              console.error('Failed to parse result:', e);
+            }
+          }
+          
+          const targets = resultData?.targets || resultData;
+          console.log('📦 Final targets:', targets);
+          
+          if (!targets || !Array.isArray(targets)) {
+            console.warn('⚠️ No targets array found');
             toast.error('No ping results returned');
             return;
           }
-          
-          const targets = pingResult.result.targets;
           setPingResults(targets);
           
           const online = targets.filter(r => r.reachable).length;
