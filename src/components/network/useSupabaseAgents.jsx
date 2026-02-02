@@ -9,6 +9,9 @@ export function useSupabaseAgents(organizationId) {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Track agent status and when it changed to prevent timer resets
+  const previousStatusRef = React.useRef({});
 
   // Fetch Supabase config from backend and initialize client
   useEffect(() => {
