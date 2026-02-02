@@ -931,20 +931,15 @@ export default function NetworkMapping() {
                             </div>
                           </div>
 
-                          {/* Monitor Checkbox */}
+                          {/* Monitor Toggle */}
                           <div 
-                            className="flex flex-col items-center gap-1 ml-3 pl-3 border-l border-gray-700"
+                            className="flex flex-col items-center gap-2 ml-3 pl-3 border-l border-gray-700"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <span className="text-[10px] text-gray-400 font-medium">Monitor</span>
-                            <input
-                              type="checkbox"
+                            <Switch
                               checked={agent.monitoring_enabled || false}
-                              onChange={() => {}}
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                const isEnabled = !agent.monitoring_enabled;
+                              onCheckedChange={async (isEnabled) => {
                                 try {
                                   const { data } = await base44.functions.invoke('toggleAgentMonitoring', {
                                     agent_id: agent.agent_id,
@@ -967,7 +962,6 @@ export default function NetworkMapping() {
                                   toast.error('Failed to toggle monitoring');
                                 }
                               }}
-                              className="w-4 h-4 rounded border-2 border-gray-600 bg-gray-800 checked:bg-cyan-600 checked:border-cyan-600 cursor-pointer"
                             />
                           </div>
                         </div>
