@@ -932,7 +932,10 @@ export default function NetworkMapping() {
                                     toast.success(isEnabled ? 'Monitoring enabled - devices pinged and will be checked every 5 minutes' : 'Monitoring disabled');
                                     refreshAgents();
                                     if (isEnabled) {
-                                      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+                                      // Wait for ping results to be processed before refreshing devices
+                                      setTimeout(() => {
+                                        queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+                                      }, 3000);
                                     }
                                   } else {
                                     throw new Error('Failed to toggle monitoring');
