@@ -784,7 +784,7 @@ export default function NetworkMapping() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-400">Status</span>
-                          <div className="flex flex-col items-end gap-1">
+                          <div className="flex flex-col items-center gap-1">
                             {agent.last_seen && (() => {
                               const timeDiff = Date.now() - new Date(agent.last_seen).getTime();
                               const seconds = Math.floor(timeDiff / 1000);
