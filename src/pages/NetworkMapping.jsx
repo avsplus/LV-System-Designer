@@ -792,6 +792,18 @@ export default function NetworkMapping() {
                       <div>
                         <h3 className="text-lg font-bold text-white mb-1">{agent.name}</h3>
                         <p className="text-xs text-gray-500 font-mono">{agent.agent_id}</p>
+                        {agent.last_seen && (() => {
+                          const timeDiff = currentTime - new Date(agent.last_seen).getTime();
+                          const seconds = Math.floor(timeDiff / 1000);
+                          const minutes = Math.floor(seconds / 60);
+                          const hours = Math.floor(minutes / 60);
+                          const days = Math.floor(hours / 24);
+                          const timeText = days > 0 ? `${days}d ${hours % 24}h ago` :
+                                          hours > 0 ? `${hours}h ${minutes % 60}m ago` :
+                                          minutes > 0 ? `${minutes}m ${seconds % 60}s ago` :
+                                          `${seconds}s ago`;
+                          return <p className="text-[10px] text-gray-600">{timeText}</p>;
+                        })()}
                       </div>
                       <div className={`w-3 h-3 rounded-full ${
                         agent.status === 'online' || agent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
