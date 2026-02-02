@@ -929,23 +929,12 @@ export default function NetworkMapping() {
 
                                   if (data.success) {
                                     toast.dismiss();
-                                    if (isEnabled) {
-                                      toast.success('Monitoring enabled - pinging devices...');
-                                      // Poll for device status updates
-                                      let pollCount = 0;
-                                      const pollInterval = setInterval(() => {
-                                        pollCount++;
-                                        queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
-
-                                        if (pollCount >= 30) { // Stop after 60 seconds
-                                          clearInterval(pollInterval);
-                                          toast.success('Monitoring enabled');
-                                        }
-                                      }, 2000);
-                                    } else {
-                                      toast.success('Monitoring disabled');
-                                    }
+                                    toast.success(isEnabled ? `Monitoring enabled - ${data.devices_updated || 0} devices pinged` : 'Monitoring disabled');
                                     refreshAgents();
+                                    // Refresh device list after backend completes
+                                    setTimeout(() => {
+                                      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+                                    }, 1000);
                                   } else {
                                     throw new Error('Failed to toggle monitoring');
                                   }
