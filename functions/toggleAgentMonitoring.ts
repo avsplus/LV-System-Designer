@@ -112,31 +112,46 @@ Deno.serve(async (req) => {
                       break;
                     }
                     
-                    // Read results using the same function as manual ping
-                     const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
-                       command_id: commandResult.command_id
-                     });
+                    // Query Supabase directly for ping results
+                    const { data: pingResults, error: resultsError } = await supabase
+                      .from('agent_ping_results')
+                      .select('result')
+                      .eq('command_id', commandResult.command_id);
 
-                     console.log('📦 Ping result:', pingResult);
+                    if (resultsError) {
+                      console.error('❌ Error querying ping results:', resultsError);
+                      break;
+                    }
 
-                     if (!pingResult) {
-                       console.error('❌ No ping results found');
-                       break;
-                     }
+                    console.log('📦 Raw ping results array:', pingResults);
+                    console.log('📦 Array length:', pingResults?.length);
 
-                     let resultData = pingResult.result;
-                     if (typeof resultData === 'string') {
-                       try {
-                         resultData = JSON.parse(resultData);
-                         console.log('📦 Parsed result data:', resultData);
-                       } catch (e) {
-                         console.error('❌ Failed to parse result:', e);
-                         break;
-                       }
-                     }
+                    if (!pingResults || pingResults.length === 0) {
+                      console.error('❌ No ping results found in table');
+                      console.log('⏳ Retrying next poll...');
+                      continue;
+                    }
 
-                     const pingTargets = resultData?.targets || resultData;
-                     console.log('📦 Final targets array:', pingTargets);
+                    const resultEntry = pingResults[0];
+                    console.log('📦 Result entry:', resultEntry);
+
+                    let resultData = resultEntry.result;
+                    console.log('📦 Raw result data:', resultData);
+
+                    if (typeof resultData === 'string') {
+                      try {
+                        resultData = JSON.parse(resultData);
+                        console.log('📦 Parsed result data:', resultData);
+                      } catch (e) {
+                        console.error('❌ Failed to parse result:', e);
+                        break;
+                      }
+                    }
+
+                    const pingTargets = resultData?.targets || resultData;
+                    console.log('📦 Final targets array:', pingTargets);
+                    console.log('📦 Targets type:', typeof pingTargets);
+                    console.log('📦 Is array?:', Array.isArray(pingTargets));
                     
                     if (!Array.isArray(pingTargets)) {
                       console.error('❌ Targets is not an array');
