@@ -59,26 +59,43 @@ export function useSupabaseAgents(organizationId) {
       const now = Date.now();
       const mergedAgents = (agentsData || []).map(agent => {
         const heartbeat = heartbeats?.find(h => h.agent_id === agent.agent_id);
-        
+
         if (!heartbeat) {
-          return { ...agent, status: 'offline' };
+          return { ...agent, status: 'offline', last_seen: agent.last_seen };
         }
-        
+
         const lastSeenTime = new Date(heartbeat.last_seen).getTime();
         const secondsSinceHeartbeat = (now - lastSeenTime) / 1000;
-        
+
         // Consider online if heartbeat within last 90 seconds
         const isOnline = secondsSinceHeartbeat < 90;
-        
+        const newStatus = isOnline ? (heartbeat.status || 'online') : 'offline';
+        const previousStatus = previousStatusRef.current[agent.agent_id];
+
+        // Only update last_seen if status changed AND new status has been stable for 90+ seconds
+        let lastSeen = agent.last_seen;
+        if (previousStatus && previousStatus.status === newStatus && previousStatus.changedAt) {
+          // Status is stable, keep using the previous last_seen time
+          lastSeen = previousStatus.lastSeen;
+        } else if (!previousStatus || previousStatus.status !== newStatus) {
+          // Status just changed, record the change time
+          previousStatusRef.current[agent.agent_id] = {
+            status: newStatus,
+            changedAt: now,
+            lastSeen: heartbeat.last_seen
+          };
+          lastSeen = heartbeat.last_seen;
+        }
+
         return {
           ...agent,
-          status: isOnline ? (heartbeat.status || 'online') : 'offline',
-          last_seen: heartbeat.last_seen,
+          status: newStatus,
+          last_seen: lastSeen,
           version: heartbeat.agent_version || agent.version,
           health: agent.health
         };
       });
-      
+
       setAgents(mergedAgents);
     } catch (err) {
       setError(err.message);
