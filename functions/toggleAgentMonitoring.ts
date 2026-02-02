@@ -112,15 +112,21 @@ Deno.serve(async (req) => {
                       break;
                     }
 
-                    // Use getPingResults function (same as manual ping frontend)
-                    const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
-                      command_id: commandResult.command_id
-                    });
+                    // Query Supabase directly (getPingResults requires user auth)
+                    const { data: pingResult, error: pingError } = await supabase
+                      .from('agent_ping_results')
+                      .select('result')
+                      .eq('command_id', commandResult.command_id)
+                      .eq('organization_id', user.organization_id)
+                      .single();
 
-                    console.log('📦 getPingResults response:', pingResult);
+                    if (pingError) {
+                      console.error('❌ Ping results query error:', pingError);
+                      break;
+                    }
 
                     if (!pingResult) {
-                      console.error('❌ No ping result returned');
+                      console.error('❌ No ping result found');
                       break;
                     }
 
