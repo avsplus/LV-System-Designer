@@ -113,7 +113,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           const hosts = scanResult.result.hosts || [];
           console.log(`📦 Processing ${hosts.length} discovered hosts`);
 
-          onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
+          onScanProgress?.({ percent: 100, status: 'finished' });
 
           // Process hosts and wait for all to be added
           const processPromises = hosts.map(host => {
