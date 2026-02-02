@@ -117,6 +117,7 @@ Deno.serve(async (req) => {
                       .from('agent_ping_results')
                       .select('*')
                       .eq('command_id', commandResult.command_id)
+                      .eq('agent_id', agent_id)
                       .eq('organization_id', user.organization_id);
                     
                     if (resultsError) {
