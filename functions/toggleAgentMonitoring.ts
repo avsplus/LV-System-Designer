@@ -89,104 +89,85 @@ Deno.serve(async (req) => {
               console.log('📡 Sent ping command, ID:', commandResult.command_id);
               console.log('📡 Pinging', targets.length, 'devices:', targets);
               
-              // Wait for command to complete by querying Supabase directly
+              // Wait for ping results by checking if they exist in Supabase
               let pollAttempts = 0;
               const maxPollAttempts = 60; // 60 seconds
-              
-              while (pollAttempts < maxPollAttempts) {
+              let resultsFound = false;
+
+              while (pollAttempts < maxPollAttempts && !resultsFound) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 pollAttempts++;
-                
+
                 try {
-                  // Query Supabase directly for command status
-                  const { data: command, error: cmdError } = await supabase
-                    .from('agent_commands')
-                    .select('*')
+                  // Query for ping results directly - if they exist, command completed
+                  const { data: pingResult, error: pingError } = await supabase
+                    .from('agent_ping_results')
+                    .select('result')
                     .eq('command_id', commandResult.command_id)
+                    .eq('organization_id', user.organization_id)
                     .single();
-                  
-                  if (cmdError && cmdError.code !== 'PGRST116') {
-                    console.error('❌ Error querying command:', cmdError);
+
+                  if (pingError && pingError.code !== 'PGRST116') {
+                    console.log(`📊 Poll #${pollAttempts} - No results yet`);
+                    continue;
                   }
-                  
-                  console.log(`📊 Poll #${pollAttempts} - Command status:`, command?.status);
-                  
-                  if (command && (command.status === 'completed' || command.status === 'failed')) {
-                    console.log('✅ Command terminal state:', command.status);
 
-                    if (command.status === 'failed') {
-                      console.error('❌ Ping command failed');
+                  if (!pingResult) {
+                    console.log(`📊 Poll #${pollAttempts} - Waiting for results...`);
+                    continue;
+                  }
+
+                  console.log('✅ Ping results found!');
+                  resultsFound = true;
+
+                  let resultData = pingResult.result;
+                  if (typeof resultData === 'string') {
+                    try {
+                      resultData = JSON.parse(resultData);
+                    } catch (e) {
+                      console.error('❌ Failed to parse result:', e);
                       break;
                     }
+                  }
 
-                    // Query Supabase directly (getPingResults requires user auth)
-                    const { data: pingResult, error: pingError } = await supabase
-                      .from('agent_ping_results')
-                      .select('result')
-                      .eq('command_id', commandResult.command_id)
-                      .eq('organization_id', user.organization_id)
-                      .single();
+                  const pingTargets = resultData?.targets || resultData;
+                  console.log('📦 Ping targets:', pingTargets);
 
-                    if (pingError) {
-                      console.error('❌ Ping results query error:', pingError);
-                      break;
-                    }
-
-                    if (!pingResult) {
-                      console.error('❌ No ping result found');
-                      break;
-                    }
-
-                    let resultData = pingResult.result;
-                    if (typeof resultData === 'string') {
-                      try {
-                        resultData = JSON.parse(resultData);
-                      } catch (e) {
-                        console.error('❌ Failed to parse result:', e);
-                        break;
-                      }
-                    }
-
-                    const pingTargets = resultData?.targets || resultData;
-                    console.log('📦 Ping targets:', pingTargets);
-                    
-                    if (!Array.isArray(pingTargets)) {
-                      console.error('❌ Targets is not an array');
-                      break;
-                    }
-                    
-                    console.log('🔄 Processing', pingTargets.length, 'ping results');
-                    
-                    // Update device statuses
-                    for (const target of pingTargets) {
-                      console.log('🔍 Looking for device with IP:', target.ip);
-                      const device = devices.find(d => d.ip_address === target.ip);
-                      
-                      if (device) {
-                        const newStatus = target.reachable ? 'online' : 'offline';
-                        console.log(`✏️ Updating device ${device.name} (${device.ip_address}) to ${newStatus}`);
-                        
-                        await base44.asServiceRole.entities.Device.update(device.id, { 
-                          status: newStatus 
-                        });
-                        
-                        devicesUpdated++;
-                        console.log('✅ Updated! Total devices updated:', devicesUpdated);
-                      } else {
-                        console.log('⚠️ No device found with IP:', target.ip);
-                      }
-                    }
-                    
-                    console.log('🎉 Finished updating devices. Total updated:', devicesUpdated);
+                  if (!Array.isArray(pingTargets)) {
+                    console.error('❌ Targets is not an array');
                     break;
                   }
+
+                  console.log('🔄 Processing', pingTargets.length, 'ping results');
+
+                  // Update device statuses
+                  for (const target of pingTargets) {
+                    console.log('🔍 Looking for device with IP:', target.ip);
+                    const device = devices.find(d => d.ip_address === target.ip);
+
+                    if (device) {
+                      const newStatus = target.reachable ? 'online' : 'offline';
+                      console.log(`✏️ Updating device ${device.name} (${device.ip_address}) to ${newStatus}`);
+
+                      await base44.asServiceRole.entities.Device.update(device.id, { 
+                        status: newStatus 
+                      });
+
+                      devicesUpdated++;
+                      console.log('✅ Updated! Total devices updated:', devicesUpdated);
+                    } else {
+                      console.log('⚠️ No device found with IP:', target.ip);
+                    }
+                  }
+
+                  console.log('🎉 Finished updating devices. Total updated:', devicesUpdated);
                 } catch (pollError) {
                   console.error('❌ Poll error:', pollError);
                 }
               }
-              
-              if (pollAttempts >= maxPollAttempts) {
-                console.error('⏱️ Ping timeout - no response after', pollAttempts, 'attempts');
+
+              if (pollAttempts >= maxPollAttempts && !resultsFound) {
+                console.error('⏱️ Ping timeout - no results after', pollAttempts, 'attempts');
               }
             } else {
               console.error('❌ No command_id returned from sendAgentCommand');
