@@ -41,6 +41,7 @@ export default function NetworkMapping() {
   const queryClient = useQueryClient();
   const canvasRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [lastSeenCache, setLastSeenCache] = useState({});
 
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
