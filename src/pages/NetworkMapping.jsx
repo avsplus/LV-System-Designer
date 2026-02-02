@@ -884,19 +884,28 @@ export default function NetworkMapping() {
                                 e.stopPropagation();
                                 const isEnabled = e.target.checked;
                                 try {
+                                  if (isEnabled) {
+                                    toast.loading('Enabling monitoring and pinging devices...');
+                                  }
+
                                   const { data } = await base44.functions.invoke('toggleAgentMonitoring', {
                                     agent_id: agent.agent_id,
                                     enabled: isEnabled
                                   });
 
                                   if (data.success) {
-                                    toast.success(isEnabled ? 'Monitoring enabled - devices will be pinged every 5 minutes' : 'Monitoring disabled');
+                                    toast.dismiss();
+                                    toast.success(isEnabled ? 'Monitoring enabled - devices pinged and will be checked every 5 minutes' : 'Monitoring disabled');
                                     refreshAgents();
+                                    if (isEnabled) {
+                                      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+                                    }
                                   } else {
                                     throw new Error('Failed to toggle monitoring');
                                   }
                                 } catch (error) {
                                   console.error('Failed to toggle monitoring:', error);
+                                  toast.dismiss();
                                   toast.error('Failed to toggle monitoring');
                                 }
                               }}
