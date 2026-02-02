@@ -816,7 +816,7 @@ export default function NetworkMapping() {
                               <div className="flex flex-col items-end">
                                 <span className="text-[9px] text-gray-500 mb-0.5">Last Seen</span>
                                 <span className={`text-[10px] font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
-                                  {timeText} ago
+                                  {timeText}
                                 </span>
                               </div>
                             );
