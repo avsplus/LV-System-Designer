@@ -26,6 +26,25 @@ Deno.serve(async (req) => {
         .eq('agent_id', agent_id);
     }
     
+    // Update command status and result when agent reports completion/failure
+    if (command_id && (event_type === 'command_completed' || event_type === 'command_failed')) {
+      const updateData = {
+        status: event_type === 'command_completed' ? 'completed' : 'failed',
+        result: data || {}
+      };
+      
+      console.log(`Updating command ${command_id} with status=${updateData.status}`);
+      
+      const { error: updateError } = await supabase
+        .from('agent_commands')
+        .update(updateData)
+        .eq('id', command_id);
+      
+      if (updateError) {
+        console.error('Failed to update command:', updateError);
+      }
+    }
+    
     // Delete events older than 1 hour for this agent
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     await supabase
