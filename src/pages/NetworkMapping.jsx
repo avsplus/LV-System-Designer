@@ -917,20 +917,18 @@ export default function NetworkMapping() {
                                 e.stopPropagation();
                                 const isEnabled = e.target.checked;
                                 try {
-                                  if (isEnabled) {
-                                    toast.loading('Enabling monitoring and pinging devices...');
-                                  }
-
                                   const { data } = await base44.functions.invoke('toggleAgentMonitoring', {
                                     agent_id: agent.agent_id,
                                     enabled: isEnabled
                                   });
 
                                   if (data.success) {
-                                    toast.dismiss();
-                                    toast.success(isEnabled ? `Monitoring enabled - ${data.devices_updated || 0} devices pinged` : 'Monitoring disabled');
+                                    if (isEnabled) {
+                                      toast.success(`Monitoring enabled - ${data.devices_updated || 0} devices pinged`);
+                                    } else {
+                                      toast.success('Monitoring disabled');
+                                    }
                                     refreshAgents();
-                                    // Refresh device list after backend completes
                                     setTimeout(() => {
                                       queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
                                     }, 1000);
@@ -939,7 +937,6 @@ export default function NetworkMapping() {
                                   }
                                 } catch (error) {
                                   console.error('Failed to toggle monitoring:', error);
-                                  toast.dismiss();
                                   toast.error('Failed to toggle monitoring');
                                 }
                               }}
