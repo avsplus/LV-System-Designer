@@ -806,15 +806,14 @@ export default function NetworkMapping() {
                             const hours = Math.floor(minutes / 60);
                             const days = Math.floor(hours / 24);
 
-                            const isOnline = agent.status === 'online' || agent.status === 'registered';
                             const timeText = days > 0 ? `${days}d ${hours % 24}h` :
                                             hours > 0 ? `${hours}h ${minutes % 60}m` :
                                             minutes > 0 ? `${minutes}m ${seconds % 60}s` :
                                             `${seconds}s`;
 
                             return (
-                              <span className={`text-[10px] font-medium w-16 text-right ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
-                                {isOnline ? `Up ${timeText}` : `Down ${timeText}`}
+                              <span className="text-[10px] font-medium w-20 text-right text-gray-400">
+                                {timeText} ago
                               </span>
                             );
                           })()}
