@@ -933,36 +933,15 @@ export default function NetworkMapping() {
 
                           {/* Monitor Toggle */}
                           <div 
-                            className="flex flex-col items-center gap-2 ml-3 pl-3 border-l border-gray-700 py-1"
+                            className="ml-3 pl-3 border-l border-gray-700"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <span className="text-[10px] text-gray-400 font-medium">Monitor</span>
-                            <Switch
-                              checked={agent.monitoring_enabled || false}
-                              onCheckedChange={async (isEnabled) => {
-                                try {
-                                  const { data } = await base44.functions.invoke('toggleAgentMonitoring', {
-                                    agent_id: agent.agent_id,
-                                    enabled: isEnabled
-                                  });
-
-                                  if (data.success) {
-                                    if (isEnabled) {
-                                      toast.success(`Monitoring enabled - ${data.devices_updated || 0} devices pinged`);
-                                    } else {
-                                      toast.success('Monitoring disabled');
-                                    }
-                                    await refreshAgents();
-                                    await queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
-                                  } else {
-                                    throw new Error('Failed to toggle monitoring');
-                                  }
-                                } catch (error) {
-                                  console.error('Failed to toggle monitoring:', error);
-                                  toast.error('Failed to toggle monitoring');
-                                }
+                            <MonitoringToggle 
+                              agent={agent}
+                              onSuccess={() => {
+                                refreshAgents();
+                                queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
                               }}
-                              className={agent.monitoring_enabled ? '[&_span]:bg-blue-500' : '[&_span]:bg-gray-600'}
                             />
                           </div>
                         </div>
