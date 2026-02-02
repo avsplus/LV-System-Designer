@@ -116,7 +116,8 @@ Deno.serve(async (req) => {
                     const { data: pingResults, error: resultsError } = await supabase
                       .from('agent_ping_results')
                       .select('*')
-                      .eq('command_id', commandResult.command_id);
+                      .eq('command_id', commandResult.command_id)
+                      .eq('organization_id', user.organization_id);
                     
                     if (resultsError) {
                       console.error('❌ Error querying ping results:', resultsError);
