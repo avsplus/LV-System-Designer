@@ -64,8 +64,8 @@ export function useSupabaseAgents(organizationId) {
         const lastSeenTime = new Date(heartbeat.last_seen).getTime();
         const secondsSinceHeartbeat = (now - lastSeenTime) / 1000;
         
-        // Consider online if heartbeat within last 5 minutes (300 seconds)
-        const isOnline = secondsSinceHeartbeat < 300;
+        // Consider online if heartbeat within last 90 seconds
+        const isOnline = secondsSinceHeartbeat < 90;
         
         return {
           ...agent,
