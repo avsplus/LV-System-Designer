@@ -956,10 +956,8 @@ export default function NetworkMapping() {
                                     } else {
                                       toast.success('Monitoring disabled');
                                     }
-                                    refreshAgents();
-                                    setTimeout(() => {
-                                      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
-                                    }, 1000);
+                                    await refreshAgents();
+                                    await queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
                                   } else {
                                     throw new Error('Failed to toggle monitoring');
                                   }
