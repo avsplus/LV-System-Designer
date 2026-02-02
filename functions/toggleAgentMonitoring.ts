@@ -112,27 +112,17 @@ Deno.serve(async (req) => {
                       break;
                     }
                     
-                    // Read results from agent_ping_results
-                     const { data: pingResults, error: resultsError } = await supabase
-                       .from('agent_ping_results')
-                       .select('result')
-                       .eq('command_id', commandResult.command_id);
+                    // Read results using the same function as manual ping
+                     const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
+                       command_id: commandResult.command_id
+                     });
 
-                     if (resultsError) {
-                       console.error('❌ Error querying ping results:', resultsError);
-                       break;
-                     }
+                     console.log('📦 Ping result:', pingResult);
 
-                     console.log('📦 Ping results from DB:', pingResults);
-
-                     if (!pingResults || pingResults.length === 0) {
+                     if (!pingResult) {
                        console.error('❌ No ping results found');
                        break;
                      }
-
-                     // Process first result (should be only one)
-                     const pingResult = pingResults[0];
-                     console.log('📦 Raw result column:', pingResult.result);
 
                      let resultData = pingResult.result;
                      if (typeof resultData === 'string') {
