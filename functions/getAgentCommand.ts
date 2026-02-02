@@ -22,17 +22,18 @@ Deno.serve(async (req) => {
     );
     
     // Fetch command from agent_commands table (source of truth)
-    const { data: command, error } = await supabase
+    const { data: commands, error } = await supabase
       .from('agent_commands')
       .select('*')
       .eq('id', command_id)
-      .eq('organization_id', user.organization_id)
-      .single();
+      .eq('organization_id', user.organization_id);
     
     if (error) {
       console.error('Supabase command error:', error);
       return Response.json({ error: error.message }, { status: 500 });
     }
+    
+    const command = commands?.[0];
     
     if (!command) {
       return Response.json({ error: 'Command not found' }, { status: 404 });
