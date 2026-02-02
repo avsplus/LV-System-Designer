@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import MonitoringToggle from "../components/network/MonitoringToggle";
 
 export default function NetworkMapping() {
   const { organizationId } = useOrganization();
