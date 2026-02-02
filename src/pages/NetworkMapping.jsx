@@ -784,35 +784,33 @@ export default function NetworkMapping() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-400">Status</span>
-                          <div className="flex flex-col items-center gap-1">
-                            {agent.last_seen && (() => {
-                              const timeDiff = Date.now() - new Date(agent.last_seen).getTime();
-                              const seconds = Math.floor(timeDiff / 1000);
-                              const minutes = Math.floor(seconds / 60);
-                              const hours = Math.floor(minutes / 60);
-                              const days = Math.floor(hours / 24);
+                          <Badge className={
+                            agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                            agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                            agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                            'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                          }>
+                            {agent.status}
+                          </Badge>
+                          {agent.last_seen && (() => {
+                            const timeDiff = Date.now() - new Date(agent.last_seen).getTime();
+                            const seconds = Math.floor(timeDiff / 1000);
+                            const minutes = Math.floor(seconds / 60);
+                            const hours = Math.floor(minutes / 60);
+                            const days = Math.floor(hours / 24);
 
-                              const isOnline = agent.status === 'online' || agent.status === 'registered';
-                              const timeText = days > 0 ? `${days}d ${hours % 24}h` :
-                                              hours > 0 ? `${hours}h ${minutes % 60}m` :
-                                              minutes > 0 ? `${minutes}m ${seconds % 60}s` :
-                                              `${seconds}s`;
+                            const isOnline = agent.status === 'online' || agent.status === 'registered';
+                            const timeText = days > 0 ? `${days}d ${hours % 24}h` :
+                                            hours > 0 ? `${hours}h ${minutes % 60}m` :
+                                            minutes > 0 ? `${minutes}m ${seconds % 60}s` :
+                                            `${seconds}s`;
 
-                              return (
-                                <span className={`text-[10px] font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
-                                  {isOnline ? `Up ${timeText}` : `Down ${timeText}`}
-                                </span>
-                              );
-                            })()}
-                            <Badge className={
-                              agent.status === 'online' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                              agent.status === 'scanning' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                              agent.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                              'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                            }>
-                              {agent.status}
-                            </Badge>
-                          </div>
+                            return (
+                              <span className={`text-[10px] font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
+                                {isOnline ? `Up ${timeText}` : `Down ${timeText}`}
+                              </span>
+                            );
+                          })()}
                         </div>
                         
                         {agent.version && (
