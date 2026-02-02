@@ -62,7 +62,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
   }, [selectedAgent, onError]);
 
   const pollScanProgress = useCallback(async (commandId) => {
-    console.log('🔄 Starting event polling for command:', commandId);
+    console.log('🔄 Starting command status polling:', commandId);
     let pollCount = 0;
     
     const pollInterval = setInterval(async () => {
@@ -70,18 +70,14 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         pollCount++;
         console.log(`📊 Poll #${pollCount} for command ${commandId}`);
         
-        const { data: events } = await base44.functions.invoke('getAgentEvents', {
-          agent_id: selectedAgent.agent_id,
-          command_id: commandId,
-          limit: 10
+        // Poll command status from database (source of truth)
+        const { data: command } = await base44.functions.invoke('getAgentCommand', {
+          command_id: commandId
         });
         
-        console.log('📦 Events received:', events);
-        
-        if (!events || events.length === 0) {
-          // After 8 minutes with no events, warn the user
-          if (pollCount === 240) {
-            console.warn('⚠️ No events received after 8 minutes');
+        if (!command) {
+          if (pollCount >= 240) {
+            console.warn('⚠️ Command not found after 8 minutes');
             onError?.('Agent not responding. It may be offline or not connected.');
             clearInterval(pollInterval);
             setIsScanning(false);
@@ -89,63 +85,53 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           return;
         }
         
-        // Process events in order - flexible handling
-        events.reverse().forEach(event => {
-          console.log('🎯 Processing event:', event.event_type, event.data);
+        console.log('📦 Command status:', command.status);
+        
+        // Check terminal states
+        if (command.status === 'completed') {
+          console.log('✅ Scan complete');
+          clearInterval(pollInterval);
+          setIsScanning(false);
           
-          // Best-effort data extraction - don't assume structure
-          const eventData = event.data || {};
-          
-          switch (event.event_type) {
-            case 'scan_progress':
-              onScanProgress?.(eventData);
-              break;
-            case 'device_found':
-              onDeviceDiscovered?.(eventData);
-              break;
-            case 'scan_complete':
-            case 'scan_completed':
-            case 'command_completed':
-            case 'command_complete':
-              console.log('✅ Scan complete', eventData);
-              clearInterval(pollInterval);
-              setIsScanning(false);
-              
-              // Process all discovered hosts from the result
-              const hosts = eventData.result?.hosts || eventData.hosts || [];
-              console.log(`📦 Processing ${hosts.length} discovered hosts`);
-              
-              hosts.forEach(host => {
-                if (host.mac) {
-                  onDeviceDiscovered?.({
-                    ip_address: host.ip,
-                    mac_address: host.mac,
-                    vendor: host.vendor,
-                    hostname: host.hostname,
-                    network_id: currentNetworkId,
-                    device_type: host.device_type,
-                    open_ports: host.open_ports || []
-                  });
-                }
-              });
-              
-              // Show completion
-              onScanProgress?.({ percent: 100, status: 'complete', devicesFound: hosts.length });
-              break;
-            case 'error':
-              console.error('❌ Scan error:', eventData);
-              clearInterval(pollInterval);
-              setIsScanning(false);
-              onError?.(eventData?.message || eventData?.error || 'Scan failed');
-              break;
+          // Read result from command (source of truth)
+          const result = command.result;
+          if (!result || !result.hosts) {
+            console.warn('⚠️ No result data in completed command');
+            onScanProgress?.({ percent: 100, status: 'complete', devicesFound: 0 });
+            return;
           }
-        });
+          
+          const hosts = result.hosts || [];
+          console.log(`📦 Processing ${hosts.length} discovered hosts from result`);
+          
+          hosts.forEach(host => {
+            if (host.mac) {
+              onDeviceDiscovered?.({
+                ip_address: host.ip,
+                mac_address: host.mac,
+                vendor: host.vendor,
+                hostname: host.hostname,
+                network_id: currentNetworkId,
+                device_type: host.device_type,
+                open_ports: host.open_ports || []
+              });
+            }
+          });
+          
+          onScanProgress?.({ percent: 100, status: 'complete', devicesFound: hosts.length });
+        } else if (command.status === 'failed') {
+          console.error('❌ Scan failed');
+          clearInterval(pollInterval);
+          setIsScanning(false);
+          onError?.(command.result?.error || 'Scan failed');
+        }
+        // For pending/issued - continue polling
       } catch (error) {
-        console.error('❌ Failed to poll events:', error);
+        console.error('❌ Failed to poll command:', error);
       }
     }, 2000);
     
-    // Timeout after 10 minutes (deep scans can take a while)
+    // Timeout after 10 minutes
     const timeout = setTimeout(() => {
       console.warn('⏱️ Scan timeout reached');
       clearInterval(pollInterval);
@@ -155,7 +141,6 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       }
     }, 600000);
     
-    // Store interval ID for cleanup
     return () => {
       clearInterval(pollInterval);
       clearTimeout(timeout);

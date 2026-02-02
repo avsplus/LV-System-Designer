@@ -401,48 +401,47 @@ export default function NetworkMapping() {
     const pollInterval = setInterval(async () => {
       try {
         attempts++;
-        const { data: events } = await base44.functions.invoke('getAgentEvents', {
-          agent_id: selectedAgent.agent_id,
-          command_id: commandId,
-          limit: 50
+        
+        // Poll command status (source of truth)
+        const { data: command } = await base44.functions.invoke('getAgentCommand', {
+          command_id: commandId
         });
 
-        console.log('Ping poll attempt', attempts, 'events:', events);
+        console.log('Ping poll attempt', attempts, 'status:', command?.status);
 
-        if (events && events.length > 0) {
-          const completeEvent = events.find(e => 
-            e.event_type === 'command_complete' || 
-            e.event_type === 'command_completed' ||
-            e.event_type === 'ping_complete'
-          );
-
-          if (completeEvent) {
-            console.log('Ping complete event:', completeEvent);
-            clearInterval(pollInterval);
-            setIsPinging(false);
-            
-            // Try multiple paths to find results
-            const eventData = completeEvent.data || {};
-            const results = eventData.results || eventData.result?.results || eventData.result || [];
-            
-            setPingResults(results);
-            
-            const online = Array.isArray(results) ? results.filter(r => r.reachable).length : 0;
-            toast.success(`Ping complete: ${online}/${Array.isArray(results) ? results.length : 0} devices online`);
-            
-            // Update device statuses
-            if (Array.isArray(results)) {
-              results.forEach(result => {
-                const device = devices.find(d => d.ip_address === result.ip);
-                if (device) {
-                  updateDeviceMutation.mutate({
-                    id: device.id,
-                    data: { status: result.reachable ? 'online' : 'offline' }
-                  });
-                }
+        if (command && (command.status === 'completed' || command.status === 'failed')) {
+          console.log('Ping command terminal:', command.status);
+          clearInterval(pollInterval);
+          setIsPinging(false);
+          
+          if (command.status === 'failed') {
+            toast.error('Ping failed: ' + (command.result?.error || 'Unknown error'));
+            return;
+          }
+          
+          // Read result from command (source of truth)
+          const result = command.result;
+          if (!result || !result.targets) {
+            toast.error('No ping results returned');
+            return;
+          }
+          
+          const targets = result.targets;
+          setPingResults(targets);
+          
+          const online = targets.filter(r => r.reachable).length;
+          toast.success(`Ping complete: ${online}/${targets.length} devices online`);
+          
+          // Update device statuses
+          targets.forEach(target => {
+            const device = devices.find(d => d.ip_address === target.ip);
+            if (device) {
+              updateDeviceMutation.mutate({
+                id: device.id,
+                data: { status: target.reachable ? 'online' : 'offline' }
               });
             }
-          }
+          });
         }
 
         if (attempts >= maxAttempts) {
