@@ -72,6 +72,8 @@ export function useSupabaseAgents(organizationId) {
       
       // Merge agents with heartbeat data and calculate status
       const now = Date.now();
+      const statusCache = getStatusCache();
+
       const mergedAgents = (agentsData || []).map(agent => {
         const heartbeat = heartbeats?.find(h => h.agent_id === agent.agent_id);
 
@@ -85,18 +87,17 @@ export function useSupabaseAgents(organizationId) {
         // Consider online if heartbeat within last 90 seconds
         const isOnline = secondsSinceHeartbeat < 90;
         const newStatus = isOnline ? (heartbeat.status || 'online') : 'offline';
-        const previousStatus = previousStatusRef.current[agent.agent_id];
+        const cached = statusCache[agent.agent_id];
 
-        // Only update last_seen if status changed AND new status has been stable for 90+ seconds
-        let lastSeen = agent.last_seen;
-        if (previousStatus && previousStatus.status === newStatus && previousStatus.changedAt) {
-          // Status is stable, keep using the previous last_seen time
-          lastSeen = previousStatus.lastSeen;
-        } else if (!previousStatus || previousStatus.status !== newStatus) {
-          // Status just changed, record the change time
-          previousStatusRef.current[agent.agent_id] = {
+        // Only update last_seen if status changed
+        let lastSeen = heartbeat.last_seen;
+        if (cached && cached.status === newStatus && cached.lastSeen) {
+          // Status hasn't changed, keep using the cached last_seen time
+          lastSeen = cached.lastSeen;
+        } else if (!cached || cached.status !== newStatus) {
+          // Status changed, update cache with new status and timestamp
+          statusCache[agent.agent_id] = {
             status: newStatus,
-            changedAt: now,
             lastSeen: heartbeat.last_seen
           };
           lastSeen = heartbeat.last_seen;
@@ -111,6 +112,7 @@ export function useSupabaseAgents(organizationId) {
         };
       });
 
+      saveStatusCache(statusCache);
       setAgents(mergedAgents);
     } catch (err) {
       setError(err.message);
