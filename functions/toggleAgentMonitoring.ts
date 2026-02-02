@@ -49,6 +49,61 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to update monitoring status' }, { status: 500 });
     }
     
+    // If enabling monitoring, immediately ping devices
+    if (enabled) {
+      try {
+        // Get devices for this agent's organization
+        const devices = await base44.asServiceRole.entities.Device.filter({
+          organization_id: user.organization_id,
+          status: { $in: ['online', 'offline', 'warning'] }
+        });
+        
+        if (devices && devices.length > 0) {
+          const targets = devices
+            .filter(d => d.ip_address)
+            .map(d => d.ip_address);
+          
+          if (targets.length > 0) {
+            // Send ping command
+            const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
+              organization_id: user.organization_id,
+              agent_id: agent_id,
+              command_type: 'ping_devices',
+              parameters: {
+                targets,
+                timeoutMs: 1000,
+                count: 3,
+                maxConcurrency: 16
+              }
+            });
+            
+            if (commandResult?.command_id) {
+              // Wait for ping to complete
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              
+              // Fetch and update results
+              const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
+                command_id: commandResult.command_id
+              });
+              
+              if (pingResult?.result?.targets) {
+                for (const target of pingResult.result.targets) {
+                  const device = devices.find(d => d.ip_address === target.ip);
+                  if (device) {
+                    const newStatus = target.reachable ? 'online' : 'offline';
+                    await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (pingError) {
+        console.error('Initial ping failed:', pingError);
+        // Don't fail the toggle operation if ping fails
+      }
+    }
+    
     return Response.json({ 
       success: true, 
       monitoring_enabled: enabled 
