@@ -133,7 +133,10 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           });
 
           await Promise.all(processPromises);
-          console.log('✅ All devices processed, waiting before closing...');
+          console.log('✅ All devices processed');
+
+          // Set final count from actual agent results
+          onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
 
           // Wait 2 seconds after all devices are added before closing
           setTimeout(() => setIsScanning(false), 2000);
