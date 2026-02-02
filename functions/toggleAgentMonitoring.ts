@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
     }
     
     // If enabling monitoring, immediately ping devices
+    let devicesUpdated = 0;
     if (enabled) {
       try {
         // Get devices for this agent's organization
@@ -123,6 +124,7 @@ Deno.serve(async (req) => {
                       const newStatus = target.reachable ? 'online' : 'offline';
                       console.log(`Updating device ${device.name} to ${newStatus}`);
                       await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+                      devicesUpdated++;
                     }
                   }
                 }
@@ -141,7 +143,7 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true, 
       monitoring_enabled: enabled,
-      devices_updated: enabled ? (devices?.length || 0) : 0
+      devices_updated: devicesUpdated
     });
     
   } catch (error) {
