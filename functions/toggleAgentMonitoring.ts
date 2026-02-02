@@ -86,12 +86,28 @@ Deno.serve(async (req) => {
                 command_id: commandResult.command_id
               });
               
-              if (pingResult?.result?.targets) {
-                for (const target of pingResult.result.targets) {
-                  const device = devices.find(d => d.ip_address === target.ip);
-                  if (device) {
-                    const newStatus = target.reachable ? 'online' : 'offline';
-                    await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+              console.log('Ping result:', pingResult);
+              
+              if (pingResult?.result) {
+                let resultData = pingResult.result;
+                if (typeof resultData === 'string') {
+                  try {
+                    resultData = JSON.parse(resultData);
+                  } catch (e) {
+                    console.error('Failed to parse ping result:', e);
+                  }
+                }
+                
+                const targets = resultData?.targets || resultData;
+                console.log('Parsed targets:', targets);
+                
+                if (Array.isArray(targets)) {
+                  for (const target of targets) {
+                    const device = devices.find(d => d.ip_address === target.ip);
+                    if (device) {
+                      const newStatus = target.reachable ? 'online' : 'offline';
+                      await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+                    }
                   }
                 }
               }
