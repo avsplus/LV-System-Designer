@@ -79,71 +79,104 @@ Deno.serve(async (req) => {
             });
             
             if (commandResult?.command_id) {
-              console.log('Sent ping command, ID:', commandResult.command_id);
+              console.log('📡 Sent ping command, ID:', commandResult.command_id);
+              console.log('📡 Pinging', targets.length, 'devices:', targets);
               
-              // First wait for command to complete (same as manual ping)
-              const maxAttempts = 30;
-              let attempts = 0;
-              let commandComplete = false;
+              // Wait for command to complete using interval (exact same as manual ping)
+              let pollAttempts = 0;
+              const maxPollAttempts = 60; // 60 seconds
               
-              while (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                attempts++;
-                
-                const { data: command } = await base44.asServiceRole.functions.invoke('getAgentCommand', {
-                  command_id: commandResult.command_id
-                });
-                
-                console.log(`Poll attempt ${attempts}, status:`, command?.status);
-                
-                if (command && (command.status === 'completed' || command.status === 'failed')) {
-                  commandComplete = true;
-                  console.log('Command terminal state:', command.status);
+              const pollForResults = async () => {
+                while (pollAttempts < maxPollAttempts) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  pollAttempts++;
                   
-                  if (command.status === 'failed') {
-                    console.error('Ping command failed');
-                    break;
-                  }
-                  
-                  // Now read results from agent_ping_results
-                  const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
-                    command_id: commandResult.command_id
-                  });
-                  
-                  console.log('Ping result:', pingResult);
-                  
-                  if (pingResult?.result) {
-                    let resultData = pingResult.result;
-                    if (typeof resultData === 'string') {
-                      try {
-                        resultData = JSON.parse(resultData);
-                      } catch (e) {
-                        console.error('Failed to parse result:', e);
+                  try {
+                    const { data: command } = await base44.asServiceRole.functions.invoke('getAgentCommand', {
+                      command_id: commandResult.command_id
+                    });
+                    
+                    console.log(`📊 Poll #${pollAttempts} - Command status:`, command?.status);
+                    
+                    if (command && (command.status === 'completed' || command.status === 'failed')) {
+                      console.log('✅ Command terminal state:', command.status);
+                      
+                      if (command.status === 'failed') {
+                        console.error('❌ Ping command failed');
+                        return;
                       }
-                    }
-                    
-                    const targets = resultData?.targets || resultData;
-                    console.log('Parsed targets:', targets);
-                    
-                    if (Array.isArray(targets)) {
-                      for (const target of targets) {
-                        const device = devices.find(d => d.ip_address === target.ip);
-                        if (device) {
-                          const newStatus = target.reachable ? 'online' : 'offline';
-                          console.log(`Updating device ${device.name} to ${newStatus}`);
-                          await base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
-                          devicesUpdated++;
+                      
+                      // Read results from agent_ping_results (source of truth)
+                      const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
+                        command_id: commandResult.command_id
+                      });
+                      
+                      console.log('📦 Raw ping result:', pingResult);
+                      console.log('📦 Result field:', pingResult?.result);
+                      console.log('📦 Result type:', typeof pingResult?.result);
+                      
+                      if (!pingResult?.result) {
+                        console.error('❌ No result field in ping result');
+                        return;
+                      }
+                      
+                      // Parse result if it's a string
+                      let resultData = pingResult.result;
+                      if (typeof resultData === 'string') {
+                        try {
+                          resultData = JSON.parse(resultData);
+                          console.log('📦 Parsed result data:', resultData);
+                        } catch (e) {
+                          console.error('❌ Failed to parse result:', e);
+                          return;
                         }
                       }
+                      
+                      const pingTargets = resultData?.targets || resultData;
+                      console.log('📦 Final targets array:', pingTargets);
+                      console.log('📦 Is array?', Array.isArray(pingTargets));
+                      
+                      if (!Array.isArray(pingTargets)) {
+                        console.error('❌ Targets is not an array');
+                        return;
+                      }
+                      
+                      console.log('🔄 Processing', pingTargets.length, 'ping results');
+                      
+                      // Update device statuses
+                      for (const target of pingTargets) {
+                        console.log('🔍 Looking for device with IP:', target.ip);
+                        const device = devices.find(d => d.ip_address === target.ip);
+                        
+                        if (device) {
+                          const newStatus = target.reachable ? 'online' : 'offline';
+                          console.log(`✏️ Updating device ${device.name} (${device.ip_address}) to ${newStatus}`);
+                          
+                          await base44.asServiceRole.entities.Device.update(device.id, { 
+                            status: newStatus 
+                          });
+                          
+                          devicesUpdated++;
+                          console.log('✅ Updated! Total devices updated:', devicesUpdated);
+                        } else {
+                          console.log('⚠️ No device found with IP:', target.ip);
+                        }
+                      }
+                      
+                      console.log('🎉 Finished updating devices. Total updated:', devicesUpdated);
+                      return;
                     }
+                  } catch (pollError) {
+                    console.error('❌ Poll error:', pollError);
                   }
-                  break;
                 }
-              }
+                
+                console.error('⏱️ Ping timeout - no response after', pollAttempts, 'attempts');
+              };
               
-              if (!commandComplete) {
-                console.error('Ping timeout - no response from agent');
-              }
+              await pollForResults();
+            } else {
+              console.error('❌ No command_id returned from sendAgentCommand');
             }
           }
         }
