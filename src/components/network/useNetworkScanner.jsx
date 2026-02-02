@@ -94,28 +94,32 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         if (command.status === 'completed') {
           console.log('✅ Scan complete, fetching results from agent_scan_results...');
           clearInterval(pollInterval);
-          
+
           // Read result from agent_scan_results table (source of truth)
           const { data: scanResult } = await base44.functions.invoke('getScanResults', {
             command_id: commandId
           });
-          
+
           console.log('📦 Scan result from agent_scan_results:', scanResult);
-          
+
           if (!scanResult?.result?.hosts) {
             console.warn('⚠️ No hosts in scan results');
-            setIsScanning(false);
-            onScanProgress?.({ percent: 100, status: 'complete', devicesFound: 0 });
+            onScanProgress?.({ percent: 100, status: 'finished', devicesFound: 0 });
+            // Wait 2 seconds before closing
+            setTimeout(() => setIsScanning(false), 2000);
             return;
           }
-          
+
           const hosts = scanResult.result.hosts || [];
           console.log(`📦 Processing ${hosts.length} discovered hosts`);
-          
-          hosts.forEach(host => {
+
+          onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
+
+          // Process hosts and wait for all to be added
+          const processPromises = hosts.map(host => {
             console.log('🔍 Processing host:', host);
             if (host.mac) {
-              onDeviceDiscovered?.({
+              return onDeviceDiscovered?.({
                 ip_address: host.ip,
                 mac_address: host.mac,
                 vendor: host.vendor,
@@ -126,12 +130,15 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
               });
             } else {
               console.warn('⚠️ Host missing MAC address, skipping:', host);
+              return Promise.resolve();
             }
           });
-          
-          setIsScanning(false);
-          onScanProgress?.({ percent: 100, status: 'complete', devicesFound: hosts.length });
-          console.log('✅ Scan processing complete');
+
+          await Promise.all(processPromises);
+          console.log('✅ All devices processed, waiting before closing...');
+
+          // Wait 2 seconds after all devices are added before closing
+          setTimeout(() => setIsScanning(false), 2000);
         } else if (command.status === 'failed') {
           console.error('❌ Scan failed');
           clearInterval(pollInterval);
