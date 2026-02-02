@@ -57,12 +57,19 @@ Deno.serve(async (req) => {
         const allDevices = await base44.asServiceRole.entities.Device.filter({
           organization_id: user.organization_id
         });
+        
+        console.log('🔍 All devices fetched:', allDevices.length);
+        
         const devices = allDevices.filter(d => ['online', 'offline', 'warning', 'maintenance'].includes(d.status));
+        console.log('🔍 Devices with valid status:', devices.length);
+        console.log('🔍 Device list:', devices.map(d => ({ name: d.name, ip: d.ip_address, status: d.status })));
         
         if (devices && devices.length > 0) {
           const targets = devices
             .filter(d => d.ip_address)
             .map(d => d.ip_address);
+          
+          console.log('🔍 Devices with IP addresses:', targets.length);
           
           if (targets.length > 0) {
             // Send ping command
