@@ -773,7 +773,7 @@ export default function NetworkMapping() {
                     <button
                       key={agent.id}
                       onClick={() => setSelectedAgent(agent)}
-                      className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 hover:bg-gray-800/50 transition-all text-left"
+                      className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 hover:bg-gray-800/50 transition-all text-left shadow-lg shadow-black/50 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-1"
                     >
                       <div className="flex items-start justify-between mb-4">
                       <div>
