@@ -78,21 +78,25 @@ Deno.serve(async (req) => {
             });
             
             if (commandResult?.command_id) {
+              console.log('Sent ping command, ID:', commandResult.command_id);
               // Poll for results with timeout
-              const maxAttempts = 30; // 30 seconds max
+              const maxAttempts = 60; // 60 seconds max
               let attempts = 0;
               let pingResult = null;
               
               while (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 attempts++;
                 
                 const { data } = await base44.asServiceRole.functions.invoke('getPingResults', {
                   command_id: commandResult.command_id
                 });
                 
+                console.log(`Poll attempt ${attempts}:`, data);
+                
                 if (data?.result) {
                   pingResult = data;
+                  console.log('Found ping result!');
                   break;
                 }
               }
