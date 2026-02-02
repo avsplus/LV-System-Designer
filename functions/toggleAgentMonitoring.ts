@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
             if (commandResult?.command_id) {
               console.log('Sent ping command, ID:', commandResult.command_id);
               // Poll for results with timeout
-              const maxAttempts = 60; // 60 seconds max
+              const maxAttempts = 90; // 3 minutes max
               let attempts = 0;
               let pingResult = null;
               
@@ -98,6 +98,16 @@ Deno.serve(async (req) => {
                 if (data?.result) {
                   pingResult = data;
                   console.log('Found ping result!');
+                  break;
+                }
+                
+                // Also check if command failed
+                const { data: cmd } = await base44.asServiceRole.functions.invoke('getAgentCommand', {
+                  command_id: commandResult.command_id
+                });
+                
+                if (cmd?.status === 'failed') {
+                  console.error('Ping command failed');
                   break;
                 }
               }
