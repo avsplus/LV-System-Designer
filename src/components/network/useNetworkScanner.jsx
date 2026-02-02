@@ -99,9 +99,13 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           });
           
           console.log('📦 Scan result from agent_scan_results:', scanResult);
+          console.log('📦 Results field:', scanResult?.results);
+          console.log('📦 Results type:', typeof scanResult?.results);
+          console.log('📦 Results keys:', scanResult?.results ? Object.keys(scanResult.results) : 'null');
           
           if (!scanResult?.results?.hosts) {
             console.warn('⚠️ No hosts in scan results');
+            console.warn('⚠️ Full scanResult structure:', JSON.stringify(scanResult, null, 2));
             setIsScanning(false);
             onScanProgress?.({ percent: 100, status: 'complete', devicesFound: 0 });
             return;
