@@ -106,12 +106,15 @@ Deno.serve(async (req) => {
                   
                   if (command && (command.status === 'completed' || command.status === 'failed')) {
                     console.log('✅ Command terminal state:', command.status);
-                    
+
                     if (command.status === 'failed') {
                       console.error('❌ Ping command failed');
                       break;
                     }
-                    
+
+                    // Wait 1-2 seconds for results to be written to table (race condition)
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
                     // Query Supabase directly for ping results
                     const { data: pingResults, error: resultsError } = await supabase
                       .from('agent_ping_results')
@@ -127,9 +130,8 @@ Deno.serve(async (req) => {
                     console.log('📦 Array length:', pingResults?.length);
 
                     if (!pingResults || pingResults.length === 0) {
-                      console.error('❌ No ping results found in table');
-                      console.log('⏳ Retrying next poll...');
-                      continue;
+                      console.error('❌ No ping results found in table after 2s wait');
+                      break;
                     }
 
                     const resultEntry = pingResults[0];
