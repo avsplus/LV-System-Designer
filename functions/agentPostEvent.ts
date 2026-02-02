@@ -34,6 +34,23 @@ Deno.serve(async (req) => {
       .eq('agent_id', agent_id)
       .lt('created_date', oneHourAgo);
     
+    // Check if this exact event already exists (deduplication)
+    if (command_id) {
+      const { data: existingEvent } = await supabase
+        .from('agent_events')
+        .select('id')
+        .eq('agent_id', agent_id)
+        .eq('command_id', command_id)
+        .eq('event_type', event_type)
+        .limit(1)
+        .single();
+      
+      if (existingEvent) {
+        console.log(`Duplicate event ignored: ${event_type} for command ${command_id}`);
+        return Response.json({ success: true, deduplicated: true });
+      }
+    }
+    
     // Store event
     const { error: insertError } = await supabase
       .from('agent_events')
