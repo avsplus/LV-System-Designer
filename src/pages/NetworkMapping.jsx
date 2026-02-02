@@ -424,7 +424,10 @@ export default function NetworkMapping() {
             command_id: commandId
           });
           
+          console.log('📦 Ping result from agent_ping_results:', pingResult);
+          
           if (!pingResult?.result?.targets) {
+            console.warn('⚠️ No targets in ping result. Full result:', pingResult);
             toast.error('No ping results returned');
             return;
           }
