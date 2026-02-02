@@ -913,9 +913,11 @@ export default function NetworkMapping() {
                             <input
                               type="checkbox"
                               checked={agent.monitoring_enabled || false}
-                              onChange={async (e) => {
+                              onChange={() => {}}
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                const isEnabled = e.target.checked;
+                                e.preventDefault();
+                                const isEnabled = !agent.monitoring_enabled;
                                 try {
                                   const { data } = await base44.functions.invoke('toggleAgentMonitoring', {
                                     agent_id: agent.agent_id,
