@@ -200,8 +200,7 @@ export default function NetworkMapping() {
           connected_to: [],
           open_ports: deviceData.open_ports || []
         });
-        setScanProgress(prev => ({ percent: prev.percent, devicesFound: prev.devicesFound + 1 }));
-      }
+        }
     } catch (error) {
       console.error('Error processing device:', error);
       // Remove from discovered set on error so it can be retried
@@ -213,11 +212,12 @@ export default function NetworkMapping() {
     // Flexible handling - extract what exists
     const percent = progressData?.percent ?? progressData?.progress ?? 0;
     const status = progressData?.status || 'scanning';
+    const devicesFound = progressData?.devicesFound;
 
     setScanProgress(prev => ({
       percent,
       status,
-      devicesFound: prev.devicesFound
+      devicesFound: devicesFound !== undefined ? devicesFound : prev.devicesFound
     }));
   }, []);
 
