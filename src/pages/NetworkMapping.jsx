@@ -529,6 +529,19 @@ export default function NetworkMapping() {
   };
 
   useEffect(() => {
+    // Track when agents change status to reset their timer
+    agents.forEach(agent => {
+      const isOnline = agent.status === 'online' || agent.status === 'registered';
+      if (lastSeenCache[agent.id] !== isOnline) {
+        setLastSeenCache(prev => ({
+          ...prev,
+          [agent.id]: isOnline
+        }));
+      }
+    });
+  }, [agents]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
