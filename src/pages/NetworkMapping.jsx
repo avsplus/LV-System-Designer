@@ -40,7 +40,7 @@ export default function NetworkMapping() {
   const { organizationId } = useOrganization();
   const queryClient = useQueryClient();
   const canvasRef = useRef(null);
-  
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
@@ -528,6 +528,13 @@ export default function NetworkMapping() {
     }
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const sortedDevices = [...devices].sort((a, b) => {
     let aVal = a[sortField] || '';
     let bVal = b[sortField] || '';
@@ -793,7 +800,7 @@ export default function NetworkMapping() {
                             {agent.status}
                           </Badge>
                           {agent.last_seen && (() => {
-                            const timeDiff = Date.now() - new Date(agent.last_seen).getTime();
+                            const timeDiff = currentTime - new Date(agent.last_seen).getTime();
                             const seconds = Math.floor(timeDiff / 1000);
                             const minutes = Math.floor(seconds / 60);
                             const hours = Math.floor(minutes / 60);
