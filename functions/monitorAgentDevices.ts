@@ -37,10 +37,9 @@ Deno.serve(async (req) => {
     // For each monitored agent, get their devices and ping them
     for (const agent of agents) {
       try {
-        // Get devices for this agent's organization
+        // Get devices for this agent's organization (all devices with IP, regardless of status)
         const devices = await base44.asServiceRole.entities.Device.filter({
-          organization_id: agent.organization_id,
-          status: { $in: ['online', 'offline', 'warning'] }
+          organization_id: agent.organization_id
         });
         
         if (!devices || devices.length === 0) {
