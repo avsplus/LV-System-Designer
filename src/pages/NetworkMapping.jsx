@@ -735,37 +735,6 @@ export default function NetworkMapping() {
       {/* Health Alerts */}
       <AgentHealthAlerts agents={agents} />
 
-      {/* Organization Device Stats */}
-      {devices.length > 0 && (
-        <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
-            <span className="text-sm text-gray-400">Network Devices</span>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm text-gray-400">Total:</span>
-                <span className="text-sm font-bold text-cyan-400">{devices.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm text-gray-400">Online:</span>
-                <span className="text-sm font-bold text-green-400">{devices.filter(d => d.status === 'online').length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-red-400" />
-                <span className="text-sm text-gray-400">Offline:</span>
-                <span className="text-sm font-bold text-red-400">{devices.filter(d => d.status === 'offline').length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm text-gray-400">Warning:</span>
-                <span className="text-sm font-bold text-yellow-400">{devices.filter(d => d.status === 'warning').length}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="flex-1 overflow-auto p-6 relative">
         {/* Health Panel Sidebar */}
@@ -807,6 +776,13 @@ export default function NetworkMapping() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
                 {agents.map(agent => {
+                  const agentStats = {
+                    total: devices.length,
+                    online: devices.filter(d => d.status === 'online').length,
+                    offline: devices.filter(d => d.status === 'offline').length,
+                    warning: devices.filter(d => d.status === 'warning').length
+                  };
+                  
                   return (
                     <button
                       key={agent.id}
@@ -917,15 +893,37 @@ export default function NetworkMapping() {
                         )}
                       </div>
                       
-                      {/* Monitoring Toggle at bottom */}
+                      {/* Device Stats at bottom */}
                       <div className="mt-4 pt-4 border-t border-gray-800">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Activity className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-400">Monitoring</span>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="grid grid-cols-2 gap-2 text-xs flex-1">
+                            <div className="flex items-center gap-1">
+                              <Activity className="w-3 h-3 text-cyan-400" />
+                              <span className="text-gray-400">Total:</span>
+                              <span className="text-cyan-400 font-bold">{agentStats.total}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3 text-green-400" />
+                              <span className="text-gray-400">Online:</span>
+                              <span className="text-green-400 font-bold">{agentStats.online}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <XCircle className="w-3 h-3 text-red-400" />
+                              <span className="text-gray-400">Offline:</span>
+                              <span className="text-red-400 font-bold">{agentStats.offline}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 text-yellow-400" />
+                              <span className="text-gray-400">Warning:</span>
+                              <span className="text-yellow-400 font-bold">{agentStats.warning}</span>
+                            </div>
                           </div>
 
-                          <div onClick={(e) => e.stopPropagation()}>
+                          {/* Monitor Toggle */}
+                          <div 
+                            className="ml-3 pl-3 border-l border-gray-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MonitoringToggle 
                               agent={agent}
                               onSuccess={() => {
