@@ -74,17 +74,37 @@ Deno.serve(async (req) => {
           }
         });
         
+        console.log('📤 Sent ping command:', commandResult);
+        
         if (!commandResult?.command_id) {
           throw new Error('No command_id returned');
         }
         
-        // Wait for ping results and update device statuses
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds for pings to complete
+        // Poll for results with retry logic
+        let pingResult = null;
+        let attempts = 0;
+        const maxAttempts = 10;
         
-        // Fetch ping results from agent_ping_results table
-        const { data: pingResult } = await base44.asServiceRole.functions.invoke('getPingResults', {
-          command_id: commandResult.command_id
-        });
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          attempts++;
+          
+          const { data: result } = await base44.asServiceRole.functions.invoke('getPingResults', {
+            command_id: commandResult.command_id
+          });
+          
+          console.log(`📊 Poll attempt ${attempts}:`, result);
+          
+          if (result?.result) {
+            pingResult = result;
+            break;
+          }
+        }
+        
+        if (!pingResult) {
+          console.error('❌ No ping results after', maxAttempts, 'attempts');
+          throw new Error('Timeout waiting for ping results');
+        }
         
         let updatedDevices = 0;
         
@@ -94,14 +114,14 @@ Deno.serve(async (req) => {
           try {
             resultData = JSON.parse(resultData);
           } catch (e) {
-            console.error('Failed to parse ping result:', e);
+            console.error('❌ Failed to parse ping result:', e);
           }
         }
         
         const pingTargets = resultData?.targets || resultData;
         
         if (pingTargets && Array.isArray(pingTargets)) {
-          console.log(`Processing ${pingTargets.length} ping results for agent ${agent.agent_id}`);
+          console.log(`✅ Processing ${pingTargets.length} ping results for agent ${agent.agent_id}`);
           
           // Update all device statuses based on ping results
           const updatePromises = pingTargets.map(target => {
@@ -111,19 +131,19 @@ Deno.serve(async (req) => {
               const oldStatus = device.status;
               updatedDevices++;
               
-              console.log(`Updating device ${device.name} (${target.ip}): ${oldStatus} -> ${newStatus} (reachable: ${target.reachable})`);
+              console.log(`🔄 Updating device ${device.name} (${target.ip}): ${oldStatus} -> ${newStatus}`);
               
               return base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
             } else {
-              console.warn(`No device found for IP ${target.ip}`);
+              console.warn(`⚠️ No device found for IP ${target.ip}`);
             }
             return Promise.resolve();
           });
           
           await Promise.all(updatePromises);
-          console.log(`✅ Updated ${updatedDevices} device statuses for agent ${agent.agent_id}`);
+          console.log(`✅ Updated ${updatedDevices}/${devices.length} device statuses for agent ${agent.agent_id}`);
         } else {
-          console.warn('No valid targets in ping result');
+          console.error('❌ No valid targets in ping result, got:', pingResult);
         }
         
         results.push({
