@@ -76,7 +76,8 @@ export default function NetworkMapping() {
   const { data: devices = [], isLoading } = useQuery({
     queryKey: ['networkDevices', organizationId],
     queryFn: () => base44.entities.Device.filter({ organization_id: organizationId }),
-    enabled: !!organizationId
+    enabled: !!organizationId,
+    refetchInterval: 5000
   });
 
   const { data: networks = [] } = useQuery({
