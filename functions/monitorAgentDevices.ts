@@ -37,22 +37,18 @@ Deno.serve(async (req) => {
     // For each monitored agent, get their devices and ping them
     for (const agent of agents) {
       try {
-        // Get all devices for this agent's organization
-        const allDevices = await base44.asServiceRole.entities.Device.filter({
-          organization_id: agent.organization_id
+        // Get devices for this agent (by agent_id and organization_id)
+        const devices = await base44.asServiceRole.entities.Device.filter({
+          organization_id: agent.organization_id,
+          agent_id: agent.agent_id
         });
         
-        if (!allDevices || allDevices.length === 0) {
+        if (!devices || devices.length === 0) {
           console.log(`No devices found for agent ${agent.agent_id}`);
           continue;
         }
         
-        // Filter devices for this agent's network
-        const devices = agent.assigned_network_id 
-          ? allDevices.filter(d => d.network_id === agent.assigned_network_id)
-          : allDevices;
-        
-        console.log(`Agent ${agent.agent_id} - Network: ${agent.assigned_network_id}, Devices: ${devices.length}`);
+        console.log(`Agent ${agent.agent_id} - Devices: ${devices.length}`);
         
         const targets = devices
           .filter(d => d.ip_address)
