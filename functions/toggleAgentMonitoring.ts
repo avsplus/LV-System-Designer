@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to update monitoring status' }, { status: 500 });
     }
     
-    // If enabling monitoring, trigger initial ping (don't wait for results)
+    // If enabling monitoring, trigger initial ping and wait for results via realtime subscription
+    let devicesUpdated = 0;
     if (enabled) {
       try {
         const allDevices = await base44.asServiceRole.entities.Device.filter({
@@ -64,8 +65,8 @@ Deno.serve(async (req) => {
             .map(d => d.ip_address);
           
           if (targets.length > 0) {
-            // Fire and forget - let the scheduled automation handle updates
-            base44.asServiceRole.functions.invoke('sendAgentCommand', {
+            // Send ping command
+            const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
               organization_id: user.organization_id,
               agent_id: agent_id,
               command_type: 'ping_devices',
@@ -75,19 +76,76 @@ Deno.serve(async (req) => {
                 count: 3,
                 maxConcurrency: 16
               }
-            }).catch(err => console.error('Ping trigger failed:', err));
+            });
             
-            console.log('📡 Triggered initial ping for', targets.length, 'devices');
+            if (commandResult?.command_id) {
+              console.log('📡 Sent ping command, waiting for results via subscription...');
+              
+              // Set up realtime subscription for ping results
+              const channel = supabase
+                .channel(`ping-results-${commandResult.command_id}`)
+                .on(
+                  'postgres_changes',
+                  {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'agent_ping_results',
+                    filter: `command_id=eq.${commandResult.command_id}`
+                  },
+                  async (payload) => {
+                    console.log('✅ Ping results received via subscription!');
+                    
+                    let resultData = payload.new.result;
+                    if (typeof resultData === 'string') {
+                      try {
+                        resultData = JSON.parse(resultData);
+                      } catch (e) {
+                        console.error('❌ Failed to parse result:', e);
+                        return;
+                      }
+                    }
+                    
+                    const pingTargets = resultData?.targets || resultData;
+                    if (!Array.isArray(pingTargets)) {
+                      console.error('❌ Targets is not an array');
+                      return;
+                    }
+                    
+                    console.log('🔄 Processing', pingTargets.length, 'ping results');
+                    
+                    // Update device statuses
+                    for (const target of pingTargets) {
+                      const device = devices.find(d => d.ip_address === target.ip);
+                      if (device) {
+                        const newStatus = target.reachable ? 'online' : 'offline';
+                        await base44.asServiceRole.entities.Device.update(device.id, { 
+                          status: newStatus 
+                        });
+                        devicesUpdated++;
+                      }
+                    }
+                    
+                    console.log('🎉 Updated', devicesUpdated, 'devices');
+                    await supabase.removeChannel(channel);
+                  }
+                )
+                .subscribe();
+              
+              // Wait up to 30 seconds for results, then unsubscribe
+              await new Promise(resolve => setTimeout(resolve, 30000));
+              await supabase.removeChannel(channel);
+            }
           }
         }
       } catch (error) {
-        console.error('Error triggering ping:', error);
+        console.error('Error during ping:', error);
       }
     }
     
     return Response.json({ 
       success: true, 
-      monitoring_enabled: enabled
+      monitoring_enabled: enabled,
+      devices_updated: devicesUpdated
     });
     
   } catch (error) {
