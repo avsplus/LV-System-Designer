@@ -462,15 +462,18 @@ export default function NetworkMapping() {
           toast.success(`Ping complete: ${online}/${targets.length} devices online`);
           
           // Update device statuses
-          targets.forEach(target => {
+          const updatePromises = targets.map(target => {
             const device = devices.find(d => d.ip_address === target.ip);
             if (device) {
-              updateDeviceMutation.mutate({
-                id: device.id,
-                data: { status: target.reachable ? 'online' : 'offline' }
+              return base44.entities.Device.update(device.id, { 
+                status: target.reachable ? 'online' : 'offline' 
               });
             }
+            return Promise.resolve();
           });
+          
+          await Promise.all(updatePromises);
+          queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
         }
 
         if (attempts >= maxAttempts) {
