@@ -49,8 +49,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to update monitoring status' }, { status: 500 });
     }
     
-    // If enabling monitoring, trigger initial ping and wait for results via realtime subscription
-    let devicesUpdated = 0;
+    // If enabling monitoring, trigger initial ping (scheduled automation will handle updates)
     if (enabled) {
       try {
         const allDevices = await base44.asServiceRole.entities.Device.filter({
@@ -65,8 +64,8 @@ Deno.serve(async (req) => {
             .map(d => d.ip_address);
           
           if (targets.length > 0) {
-            // Send ping command
-            const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
+            // Fire and forget - scheduled automation handles updates
+            base44.asServiceRole.functions.invoke('sendAgentCommand', {
               organization_id: user.organization_id,
               agent_id: agent_id,
               command_type: 'ping_devices',
@@ -76,76 +75,20 @@ Deno.serve(async (req) => {
                 count: 3,
                 maxConcurrency: 16
               }
-            });
+            }).catch(err => console.error('Ping failed:', err));
             
-            if (commandResult?.command_id) {
-              console.log('📡 Sent ping command, waiting for results via subscription...');
-              
-              // Set up realtime subscription for ping results
-              const channel = supabase
-                .channel(`ping-results-${commandResult.command_id}`)
-                .on(
-                  'postgres_changes',
-                  {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'agent_ping_results',
-                    filter: `command_id=eq.${commandResult.command_id}`
-                  },
-                  async (payload) => {
-                    console.log('✅ Ping results received via subscription!');
-                    
-                    let resultData = payload.new.result;
-                    if (typeof resultData === 'string') {
-                      try {
-                        resultData = JSON.parse(resultData);
-                      } catch (e) {
-                        console.error('❌ Failed to parse result:', e);
-                        return;
-                      }
-                    }
-                    
-                    const pingTargets = resultData?.targets || resultData;
-                    if (!Array.isArray(pingTargets)) {
-                      console.error('❌ Targets is not an array');
-                      return;
-                    }
-                    
-                    console.log('🔄 Processing', pingTargets.length, 'ping results');
-                    
-                    // Update device statuses
-                    for (const target of pingTargets) {
-                      const device = devices.find(d => d.ip_address === target.ip);
-                      if (device) {
-                        const newStatus = target.reachable ? 'online' : 'offline';
-                        await base44.asServiceRole.entities.Device.update(device.id, { 
-                          status: newStatus 
-                        });
-                        devicesUpdated++;
-                      }
-                    }
-                    
-                    console.log('🎉 Updated', devicesUpdated, 'devices');
-                    await supabase.removeChannel(channel);
-                  }
-                )
-                .subscribe();
-              
-              // Wait up to 30 seconds for results, then unsubscribe
-              await new Promise(resolve => setTimeout(resolve, 30000));
-              await supabase.removeChannel(channel);
-            }
+            console.log('📡 Triggered ping for', targets.length, 'devices (updates handled by scheduled automation)');
           }
         }
       } catch (error) {
-        console.error('Error during ping:', error);
+        console.error('Error triggering ping:', error);
       }
     }
     
     return Response.json({ 
       success: true, 
       monitoring_enabled: enabled,
-      devices_updated: devicesUpdated
+      message: enabled ? 'Monitoring enabled - devices will be pinged by scheduled automation' : 'Monitoring disabled'
     });
     
   } catch (error) {
