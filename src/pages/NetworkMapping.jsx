@@ -735,6 +735,37 @@ export default function NetworkMapping() {
       {/* Health Alerts */}
       <AgentHealthAlerts agents={agents} />
 
+      {/* Organization Device Stats */}
+      {devices.length > 0 && (
+        <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <span className="text-sm text-gray-400">Network Devices</span>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm text-gray-400">Total:</span>
+                <span className="text-sm font-bold text-cyan-400">{devices.length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span className="text-sm text-gray-400">Online:</span>
+                <span className="text-sm font-bold text-green-400">{devices.filter(d => d.status === 'online').length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-red-400" />
+                <span className="text-sm text-gray-400">Offline:</span>
+                <span className="text-sm font-bold text-red-400">{devices.filter(d => d.status === 'offline').length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-yellow-400" />
+                <span className="text-sm text-gray-400">Warning:</span>
+                <span className="text-sm font-bold text-yellow-400">{devices.filter(d => d.status === 'warning').length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 overflow-auto p-6 relative">
         {/* Health Panel Sidebar */}
