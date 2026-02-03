@@ -96,7 +96,6 @@ export default function NetworkMapping() {
     mutationFn: (data) => base44.entities.Device.create({ ...data, organization_id: organizationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
-      toast.success('Device added');
       setShowDeviceDialog(false);
       resetForm();
     }
@@ -199,6 +198,7 @@ export default function NetworkMapping() {
           vendor: deviceData.vendor,
           status: 'online',
           network_id: deviceData.network_id,
+          agent_id: selectedAgent?.agent_id,
           connected_to: [],
           open_ports: deviceData.open_ports || []
         });
@@ -269,6 +269,8 @@ export default function NetworkMapping() {
       status: 'offline',
       connected_to: []
     });
+    
+    toast.success('Device added');
   };
 
   const handleAddNetwork = () => {
