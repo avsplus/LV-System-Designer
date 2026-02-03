@@ -80,31 +80,34 @@ Deno.serve(async (req) => {
           throw new Error('No command_id returned');
         }
         
-        // Poll for results with retry logic
-        let pingResult = null;
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          attempts++;
+        // Subscribe to ping results using Supabase Realtime
+        const pingResult = await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            channel.unsubscribe();
+            reject(new Error('Timeout waiting for ping results'));
+          }, 30000); // 30 second timeout
           
-          const { data: result } = await base44.asServiceRole.functions.invoke('getPingResults', {
-            command_id: commandResult.command_id
-          });
+          const channel = supabase
+            .channel(`ping_results_${commandResult.command_id}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'agent_ping_results',
+                filter: `command_id=eq.${commandResult.command_id}`
+              },
+              (payload) => {
+                console.log('📡 Received ping result via Realtime:', payload.new);
+                clearTimeout(timeout);
+                channel.unsubscribe();
+                resolve(payload.new);
+              }
+            )
+            .subscribe();
           
-          console.log(`📊 Poll attempt ${attempts}:`, result);
-          
-          if (result?.result) {
-            pingResult = result;
-            break;
-          }
-        }
-        
-        if (!pingResult) {
-          console.error('❌ No ping results after', maxAttempts, 'attempts');
-          throw new Error('Timeout waiting for ping results');
-        }
+          console.log('📡 Subscribed to ping results for command:', commandResult.command_id);
+        });
         
         let updatedDevices = 0;
         
