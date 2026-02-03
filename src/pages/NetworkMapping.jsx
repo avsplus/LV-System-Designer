@@ -886,30 +886,12 @@ export default function NetworkMapping() {
                         )}
                       </div>
                       
-                      {/* Device Stats at bottom */}
+                      {/* Monitoring Toggle at bottom */}
                       <div className="mt-4 pt-4 border-t border-gray-800">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="grid grid-cols-2 gap-2 text-xs flex-1">
-                            <div className="flex items-center gap-1">
-                              <Activity className="w-3 h-3 text-cyan-400" />
-                              <span className="text-gray-400">Total:</span>
-                              <span className="text-cyan-400 font-bold">{agentStats.total}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3 text-green-400" />
-                              <span className="text-gray-400">Online:</span>
-                              <span className="text-green-400 font-bold">{agentStats.online}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <XCircle className="w-3 h-3 text-red-400" />
-                              <span className="text-gray-400">Offline:</span>
-                              <span className="text-red-400 font-bold">{agentStats.offline}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3 text-yellow-400" />
-                              <span className="text-gray-400">Warning:</span>
-                              <span className="text-yellow-400 font-bold">{agentStats.warning}</span>
-                            </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Activity className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-400">Monitoring</span>
                           </div>
 
                           {/* Monitor Toggle */}
