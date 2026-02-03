@@ -98,19 +98,27 @@ Deno.serve(async (req) => {
         const pingTargets = resultData?.targets || resultData;
         
         if (pingTargets && Array.isArray(pingTargets)) {
+          console.log(`Processing ${pingTargets.length} ping results for agent ${agent.agent_id}`);
+          
           // Update all device statuses based on ping results
           const updatePromises = pingTargets.map(target => {
             const device = devices.find(d => d.ip_address === target.ip);
             if (device) {
               const newStatus = target.reachable ? 'online' : 'offline';
+              const oldStatus = device.status;
               updatedDevices++;
+              
+              console.log(`Updating device ${device.name} (${target.ip}): ${oldStatus} -> ${newStatus} (reachable: ${target.reachable})`);
+              
               return base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
+            } else {
+              console.warn(`No device found for IP ${target.ip}`);
             }
             return Promise.resolve();
           });
           
           await Promise.all(updatePromises);
-          console.log(`Updated ${updatedDevices} device statuses`);
+          console.log(`✅ Updated ${updatedDevices} device statuses for agent ${agent.agent_id}`);
         } else {
           console.warn('No valid targets in ping result');
         }
