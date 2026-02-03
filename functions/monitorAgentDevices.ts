@@ -96,11 +96,11 @@ Deno.serve(async (req) => {
           }
         }
         
-        const targets = resultData?.targets || resultData;
+        const pingTargets = resultData?.targets || resultData;
         
-        if (targets && Array.isArray(targets)) {
+        if (pingTargets && Array.isArray(pingTargets)) {
           // Update all device statuses based on ping results
-          const updatePromises = targets.map(target => {
+          const updatePromises = pingTargets.map(target => {
             const device = devices.find(d => d.ip_address === target.ip);
             if (device) {
               const newStatus = target.reachable ? 'online' : 'offline';
