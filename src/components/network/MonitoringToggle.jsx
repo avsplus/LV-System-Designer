@@ -20,7 +20,7 @@ export default function MonitoringToggle({ agent, onSuccess }) {
 
       if (data.success) {
         if (newState) {
-          toast.success(`Monitoring enabled - ${data.devices_updated || 0} devices pinged`);
+          toast.success(`Monitoring enabled - ${data.devices_pinged || 0} devices pinged`);
         } else {
           toast.success('Monitoring disabled');
         }
