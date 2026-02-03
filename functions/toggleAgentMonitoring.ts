@@ -49,31 +49,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to update monitoring status' }, { status: 500 });
     }
     
-    // If enabling monitoring, immediately ping devices
-    let devicesUpdated = 0;
+    // If enabling monitoring, trigger initial ping (don't wait for results)
     if (enabled) {
       try {
-        // Get devices for this agent's organization
         const allDevices = await base44.asServiceRole.entities.Device.filter({
           organization_id: user.organization_id
         });
         
-        console.log('🔍 All devices fetched:', allDevices.length);
-        
         const devices = allDevices.filter(d => ['online', 'offline', 'warning', 'maintenance'].includes(d.status));
-        console.log('🔍 Devices with valid status:', devices.length);
-        console.log('🔍 Device list:', devices.map(d => ({ name: d.name, ip: d.ip_address, status: d.status })));
         
         if (devices && devices.length > 0) {
           const targets = devices
             .filter(d => d.ip_address)
             .map(d => d.ip_address);
           
-          console.log('🔍 Devices with IP addresses:', targets.length);
-          
           if (targets.length > 0) {
-            // Send ping command
-            const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
+            // Fire and forget - let the scheduled automation handle updates
+            base44.asServiceRole.functions.invoke('sendAgentCommand', {
               organization_id: user.organization_id,
               agent_id: agent_id,
               command_type: 'ping_devices',
@@ -83,107 +75,19 @@ Deno.serve(async (req) => {
                 count: 3,
                 maxConcurrency: 16
               }
-            });
+            }).catch(err => console.error('Ping trigger failed:', err));
             
-            if (commandResult?.command_id) {
-              console.log('📡 Sent ping command, ID:', commandResult.command_id);
-              console.log('📡 Pinging', targets.length, 'devices:', targets);
-              
-              // Wait for ping results by checking if they exist in Supabase
-              let pollAttempts = 0;
-              const maxPollAttempts = 60; // 60 seconds
-              let resultsFound = false;
-
-              while (pollAttempts < maxPollAttempts && !resultsFound) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                pollAttempts++;
-
-                try {
-                  // Query for ping results directly - if they exist, command completed
-                  const { data: pingResult, error: pingError } = await supabase
-                    .from('agent_ping_results')
-                    .select('result')
-                    .eq('command_id', commandResult.command_id)
-                    .eq('organization_id', user.organization_id)
-                    .single();
-
-                  if (pingError && pingError.code !== 'PGRST116') {
-                    console.log(`📊 Poll #${pollAttempts} - No results yet`);
-                    continue;
-                  }
-
-                  if (!pingResult) {
-                    console.log(`📊 Poll #${pollAttempts} - Waiting for results...`);
-                    continue;
-                  }
-
-                  console.log('✅ Ping results found!');
-                  resultsFound = true;
-
-                  let resultData = pingResult.result;
-                  if (typeof resultData === 'string') {
-                    try {
-                      resultData = JSON.parse(resultData);
-                    } catch (e) {
-                      console.error('❌ Failed to parse result:', e);
-                      break;
-                    }
-                  }
-
-                  const pingTargets = resultData?.targets || resultData;
-                  console.log('📦 Ping targets:', pingTargets);
-
-                  if (!Array.isArray(pingTargets)) {
-                    console.error('❌ Targets is not an array');
-                    break;
-                  }
-
-                  console.log('🔄 Processing', pingTargets.length, 'ping results');
-
-                  // Update device statuses
-                  for (const target of pingTargets) {
-                    console.log('🔍 Looking for device with IP:', target.ip);
-                    const device = devices.find(d => d.ip_address === target.ip);
-
-                    if (device) {
-                      const newStatus = target.reachable ? 'online' : 'offline';
-                      console.log(`✏️ Updating device ${device.name} (${device.ip_address}) to ${newStatus}`);
-
-                      await base44.asServiceRole.entities.Device.update(device.id, { 
-                        status: newStatus 
-                      });
-
-                      devicesUpdated++;
-                      console.log('✅ Updated! Total devices updated:', devicesUpdated);
-                    } else {
-                      console.log('⚠️ No device found with IP:', target.ip);
-                    }
-                  }
-
-                  console.log('🎉 Finished updating devices. Total updated:', devicesUpdated);
-                } catch (pollError) {
-                  console.error('❌ Poll error:', pollError);
-                }
-              }
-
-              if (pollAttempts >= maxPollAttempts && !resultsFound) {
-                console.error('⏱️ Ping timeout - no results after', pollAttempts, 'attempts');
-              }
-            } else {
-              console.error('❌ No command_id returned from sendAgentCommand');
-            }
+            console.log('📡 Triggered initial ping for', targets.length, 'devices');
           }
         }
-      } catch (pingError) {
-        console.error('Initial ping failed:', pingError);
-        // Don't fail the toggle operation if ping fails
+      } catch (error) {
+        console.error('Error triggering ping:', error);
       }
     }
     
     return Response.json({ 
       success: true, 
-      monitoring_enabled: enabled,
-      devices_updated: devicesUpdated
+      monitoring_enabled: enabled
     });
     
   } catch (error) {
