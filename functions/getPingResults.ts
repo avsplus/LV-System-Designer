@@ -30,15 +30,16 @@ Deno.serve(async (req) => {
       query = query.eq('organization_id', user.organization_id);
     }
     
-    const { data: results, error } = await query.single();
+    const { data: results, error } = await query.maybeSingle();
     
+    // Handle "not found" gracefully (common during polling)
     if (error) {
       console.error('Supabase ping results error:', error);
       return Response.json({ error: error.message }, { status: 500 });
     }
     
     if (!results) {
-      return Response.json({ error: 'Ping results not found' }, { status: 404 });
+      return Response.json({ error: 'Ping results not found yet' }, { status: 404 });
     }
     
     return Response.json(results);
