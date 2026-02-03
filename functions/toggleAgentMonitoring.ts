@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
     }
     
     // If enabling monitoring, trigger initial ping (scheduled automation will handle updates)
+    let devicesTargeted = 0;
     if (enabled) {
       try {
         const allDevices = await base44.asServiceRole.entities.Device.filter({
@@ -62,6 +63,8 @@ Deno.serve(async (req) => {
           const targets = devices
             .filter(d => d.ip_address)
             .map(d => d.ip_address);
+          
+          devicesTargeted = targets.length;
           
           if (targets.length > 0) {
             // Fire and forget - scheduled automation handles updates
@@ -88,7 +91,8 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true, 
       monitoring_enabled: enabled,
-      message: enabled ? 'Monitoring enabled - devices will be pinged by scheduled automation' : 'Monitoring disabled'
+      devices_pinged: devicesTargeted,
+      message: enabled ? `Monitoring enabled - ${devicesTargeted} devices will be pinged` : 'Monitoring disabled'
     });
     
   } catch (error) {
