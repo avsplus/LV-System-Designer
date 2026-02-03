@@ -5,10 +5,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Allow service role calls (for scheduled automation)
+    const user = await base44.auth.me().catch(() => null);
     
     const { command_id } = await req.json();
     
@@ -22,12 +20,17 @@ Deno.serve(async (req) => {
     );
     
     // Fetch ping results from agent_ping_results table
-    const { data: results, error } = await supabase
+    let query = supabase
       .from('agent_ping_results')
       .select('*')
-      .eq('command_id', command_id)
-      .eq('organization_id', user.organization_id)
-      .single();
+      .eq('command_id', command_id);
+    
+    // Only filter by org if user context exists
+    if (user?.organization_id) {
+      query = query.eq('organization_id', user.organization_id);
+    }
+    
+    const { data: results, error } = await query.single();
     
     if (error) {
       console.error('Supabase ping results error:', error);
