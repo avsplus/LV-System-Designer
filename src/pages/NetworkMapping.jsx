@@ -894,11 +894,7 @@ export default function NetworkMapping() {
                             <span className="text-sm text-gray-400">Monitoring</span>
                           </div>
 
-                          {/* Monitor Toggle */}
-                          <div 
-                            className="ml-3 pl-3 border-l border-gray-700"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <div onClick={(e) => e.stopPropagation()}>
                             <MonitoringToggle 
                               agent={agent}
                               onSuccess={() => {
