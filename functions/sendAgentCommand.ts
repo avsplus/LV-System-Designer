@@ -11,24 +11,20 @@ Deno.serve(async (req) => {
     const { agent_id, command_type, parameters, timeout_seconds, organization_id } = body;
     
     if (organization_id) {
-      // Called from scheduled automation with organization_id
+      // Called from scheduled automation or service - use provided organization_id
       organizationId = organization_id;
     } else {
       // Called from UI - require authenticated user
-      const user = await base44.auth.me();
-      if (!user) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      try {
+        const user = await base44.auth.me();
+        if (!user) {
+          return Response.json({ error: 'Unauthorized - no user or organization_id provided' }, { status: 401 });
+        }
+        
+        organizationId = user.organization_id;
+      } catch (error) {
+        return Response.json({ error: 'Authentication failed - no user or organization_id provided' }, { status: 401 });
       }
-      
-      const userOrgs = await base44.entities.Organization.filter({ 
-        id: user.organization_id 
-      });
-      
-      if (!userOrgs || userOrgs.length === 0) {
-        return Response.json({ error: 'No organization found' }, { status: 403 });
-      }
-      
-      organizationId = userOrgs[0].id;
     }
     
     if (!agent_id || !command_type) {
