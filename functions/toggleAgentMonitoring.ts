@@ -57,12 +57,18 @@ Deno.serve(async (req) => {
           organization_id: user.organization_id
         });
         
+        console.log('📊 Total devices found:', allDevices?.length || 0);
+        console.log('📊 Sample device:', allDevices?.[0]);
+        
         // Get all devices with IP addresses (don't filter by status)
         const targets = allDevices
           .filter(d => d.ip_address)
           .map(d => d.ip_address);
         
         devicesTargeted = targets.length;
+        
+        console.log('🎯 Devices with IP addresses:', devicesTargeted);
+        console.log('🎯 Target IPs:', targets);
         
         if (targets.length > 0) {
           // Fire and forget - scheduled automation handles updates
@@ -79,6 +85,8 @@ Deno.serve(async (req) => {
           }).catch(err => console.error('Ping failed:', err));
           
           console.log('📡 Triggered ping for', targets.length, 'devices (updates handled by scheduled automation)');
+        } else {
+          console.log('⚠️ No devices with IP addresses found to ping');
         }
       } catch (error) {
         console.error('Error triggering ping:', error);
