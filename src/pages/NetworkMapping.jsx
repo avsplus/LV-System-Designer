@@ -776,11 +776,18 @@ export default function NetworkMapping() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
                 {agents.map(agent => {
+                  // Filter devices for this specific agent
+                  const agentDevices = devices.filter(d => 
+                    agent.assigned_network_id 
+                      ? d.network_id === agent.assigned_network_id 
+                      : d.organization_id === agent.organization_id
+                  );
+                  
                   const agentStats = {
-                    total: devices.length,
-                    online: devices.filter(d => d.status === 'online').length,
-                    offline: devices.filter(d => d.status === 'offline').length,
-                    warning: devices.filter(d => d.status === 'warning').length
+                    total: agentDevices.length,
+                    online: agentDevices.filter(d => d.status === 'online').length,
+                    offline: agentDevices.filter(d => d.status === 'offline').length,
+                    warning: agentDevices.filter(d => d.status === 'warning').length
                   };
                   
                   return (
