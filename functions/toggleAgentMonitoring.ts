@@ -57,31 +57,28 @@ Deno.serve(async (req) => {
           organization_id: user.organization_id
         });
         
-        const devices = allDevices.filter(d => ['online', 'offline', 'warning', 'maintenance'].includes(d.status));
+        // Get all devices with IP addresses (don't filter by status)
+        const targets = allDevices
+          .filter(d => d.ip_address)
+          .map(d => d.ip_address);
         
-        if (devices && devices.length > 0) {
-          const targets = devices
-            .filter(d => d.ip_address)
-            .map(d => d.ip_address);
+        devicesTargeted = targets.length;
+        
+        if (targets.length > 0) {
+          // Fire and forget - scheduled automation handles updates
+          base44.asServiceRole.functions.invoke('sendAgentCommand', {
+            organization_id: user.organization_id,
+            agent_id: agent_id,
+            command_type: 'ping_devices',
+            parameters: {
+              targets,
+              timeoutMs: 1000,
+              count: 3,
+              maxConcurrency: 16
+            }
+          }).catch(err => console.error('Ping failed:', err));
           
-          devicesTargeted = targets.length;
-          
-          if (targets.length > 0) {
-            // Fire and forget - scheduled automation handles updates
-            base44.asServiceRole.functions.invoke('sendAgentCommand', {
-              organization_id: user.organization_id,
-              agent_id: agent_id,
-              command_type: 'ping_devices',
-              parameters: {
-                targets,
-                timeoutMs: 1000,
-                count: 3,
-                maxConcurrency: 16
-              }
-            }).catch(err => console.error('Ping failed:', err));
-            
-            console.log('📡 Triggered ping for', targets.length, 'devices (updates handled by scheduled automation)');
-          }
+          console.log('📡 Triggered ping for', targets.length, 'devices (updates handled by scheduled automation)');
         }
       } catch (error) {
         console.error('Error triggering ping:', error);
