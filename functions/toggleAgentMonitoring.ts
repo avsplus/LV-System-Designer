@@ -53,15 +53,21 @@ Deno.serve(async (req) => {
     let devicesTargeted = 0;
     if (enabled) {
       try {
+        // Get all devices for organization
         const allDevices = await base44.asServiceRole.entities.Device.filter({
           organization_id: user.organization_id
         });
         
-        console.log('📊 Total devices found:', allDevices?.length || 0);
-        console.log('📊 Sample device:', allDevices?.[0]);
+        // Filter devices for this agent's network
+        const agentDevices = agent.assigned_network_id 
+          ? allDevices.filter(d => d.network_id === agent.assigned_network_id)
+          : allDevices;
         
-        // Get all devices with IP addresses (don't filter by status)
-        const targets = allDevices
+        console.log('📊 Total devices found:', agentDevices?.length || 0);
+        console.log('📊 Agent network:', agent.assigned_network_id);
+        
+        // Get devices with IP addresses (don't filter by status)
+        const targets = agentDevices
           .filter(d => d.ip_address)
           .map(d => d.ip_address);
         
