@@ -172,7 +172,8 @@ export default function NetworkMapping() {
           vendor: deviceData.vendor,
           ip_address: deviceData.ip_address,
           device_type: deviceData.device_type,
-          open_ports: deviceData.open_ports || []
+          open_ports: deviceData.open_ports || [],
+          agent_id: selectedAgent?.agent_id
         };
         
         // Always restore custom name if mapping exists
