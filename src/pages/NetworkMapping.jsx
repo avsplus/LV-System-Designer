@@ -431,92 +431,88 @@ export default function NetworkMapping() {
     }
   };
 
-  const pollPingResults = async (commandId) => {
-    let attempts = 0;
-    const maxAttempts = 30;
+  const subscribePingResults = async (commandId) => {
+    try {
+      console.log('🔔 Subscribing to ping results:', commandId);
 
-    const pollInterval = setInterval(async () => {
-      try {
-        attempts++;
-        
-        // Poll command status from agent_commands table
-        const { data: command } = await base44.functions.invoke('getAgentCommand', {
-          command_id: commandId
+      const channel = supabaseClient
+        .channel(`ping-results-${commandId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'agent_ping_results',
+            filter: `command_id=eq.${commandId}`,
+          },
+          async (payload) => {
+            console.log('📥 Ping result received:', payload.new);
+            
+            try {
+              let result = payload.new.result;
+              if (typeof result === 'string') {
+                result = JSON.parse(result);
+              }
+
+              const targets = result?.targets || [];
+              console.log('📦 Processing ping results for', targets.length, 'targets');
+              
+              if (!Array.isArray(targets) || targets.length === 0) {
+                toast.error('No ping results returned');
+                setIsPinging(false);
+                supabaseClient.removeChannel(channel);
+                return;
+              }
+
+              setPingResults(targets);
+              
+              const online = targets.filter(r => r.reachable).length;
+              toast.success(`Ping complete: ${online}/${targets.length} devices online`);
+              
+              // Update device statuses in Supabase
+              const updatePromises = targets.map(target => {
+                const device = devices.find(d => d.ip_address === target.ip);
+                if (device) {
+                  return supabaseClient
+                    .from('devices')
+                    .update({ 
+                      status: target.reachable ? 'online' : 'offline',
+                      updated_date: new Date().toISOString()
+                    })
+                    .eq('id', device.id);
+                }
+                return Promise.resolve();
+              });
+
+              await Promise.all(updatePromises);
+              
+              setIsPinging(false);
+              supabaseClient.removeChannel(channel);
+            } catch (error) {
+              console.error('Failed to process ping result:', error);
+              toast.error('Failed to process ping results');
+              setIsPinging(false);
+              supabaseClient.removeChannel(channel);
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Ping subscription status:', status);
         });
 
-        console.log('Ping poll attempt', attempts, 'status:', command?.status);
-
-        if (command && (command.status === 'completed' || command.status === 'failed')) {
-          console.log('Ping command terminal:', command.status);
-          clearInterval(pollInterval);
-          setIsPinging(false);
-          
-          if (command.status === 'failed') {
-            toast.error('Ping failed');
-            return;
-          }
-          
-          // Read results from agent_ping_results table (source of truth)
-          const { data: pingResult } = await base44.functions.invoke('getPingResults', {
-            command_id: commandId
-          });
-          
-          console.log('📦 Raw ping result:', pingResult);
-          console.log('📦 pingResult.result:', pingResult?.result);
-          console.log('📦 Type of result:', typeof pingResult?.result);
-          
-          // Parse result if it's a string
-          let resultData = pingResult?.result;
-          if (typeof resultData === 'string') {
-            try {
-              resultData = JSON.parse(resultData);
-              console.log('📦 Parsed result:', resultData);
-            } catch (e) {
-              console.error('Failed to parse result:', e);
-            }
-          }
-          
-          const targets = resultData?.targets || resultData;
-          console.log('📦 Final targets:', targets);
-          
-          if (!targets || !Array.isArray(targets)) {
-            console.warn('⚠️ No targets array found');
-            toast.error('No ping results returned');
-            return;
-          }
-          setPingResults(targets);
-          
-          const online = targets.filter(r => r.reachable).length;
-          toast.success(`Ping complete: ${online}/${targets.length} devices online`);
-          
-          // Update device statuses
-          // Update device statuses in Supabase
-          const updatePromises = targets.map(target => {
-            const device = devices.find(d => d.ip_address === target.ip);
-            if (device) {
-              return supabaseClient
-                .from('devices')
-                .update({ 
-                  status: target.reachable ? 'online' : 'offline',
-                  updated_date: new Date().toISOString()
-                })
-                .eq('id', device.id);
-            }
-            return Promise.resolve();
-          });
-
-          await Promise.all(updatePromises);
-        }
-
-        if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
+      // Timeout after 30 seconds
+      setTimeout(() => {
+        if (isPinging) {
+          supabaseClient.removeChannel(channel);
           setIsPinging(false);
           toast.error('Ping timeout - no response from agent');
         }
-      } catch (error) {
-        console.error('Failed to poll ping results:', error);
-      }
-    }, 1000);
+      }, 30000);
+    } catch (error) {
+      console.error('Failed to subscribe to ping results:', error);
+      toast.error('Failed to start ping monitoring');
+      setIsPinging(false);
+    }
   };
 
   const handleRemoveDuplicates = async () => {
