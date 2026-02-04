@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { base44 } from "@/api/base44Client";
 
-export function useSupabaseDevices(organizationId, supabaseClient) {
+export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
   const [devices, setDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,10 +19,16 @@ export function useSupabaseDevices(organizationId, supabaseClient) {
     // 1. Initial fetch
     async function loadInitial() {
       try {
-        const { data, error: fetchError } = await supabaseClient
+        let query = supabaseClient
           .from('devices')
           .select('*')
-          .eq('organization_id', organizationId)
+          .eq('organization_id', organizationId);
+        
+        if (agentId) {
+          query = query.eq('agent_id', agentId);
+        }
+        
+        const { data, error: fetchError } = await query
           .order('created_date', { ascending: false });
 
         if (fetchError) throw fetchError;
@@ -43,6 +49,10 @@ export function useSupabaseDevices(organizationId, supabaseClient) {
     loadInitial();
 
     // 2. Subscribe to realtime changes
+    const filterString = agentId 
+      ? `organization_id=eq.${organizationId},agent_id=eq.${agentId}`
+      : `organization_id=eq.${organizationId}`;
+    
     channel = supabaseClient
       .channel('devices-changes')
       .on(
@@ -51,7 +61,7 @@ export function useSupabaseDevices(organizationId, supabaseClient) {
           event: '*',
           schema: 'public',
           table: 'devices',
-          filter: `organization_id=eq.${organizationId}`,
+          filter: filterString,
         },
         (payload) => {
           if (!mounted) return;
@@ -83,9 +93,9 @@ export function useSupabaseDevices(organizationId, supabaseClient) {
       mounted = false;
       if (channel) {
         supabaseClient.removeChannel(channel);
-      }
-    };
-  }, [organizationId, supabaseClient]);
+        }
+        };
+        }, [organizationId, agentId, supabaseClient]);
 
   return { devices, isLoading, error };
 }

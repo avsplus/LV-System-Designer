@@ -75,7 +75,7 @@ export default function NetworkMapping() {
 
   // Fetch devices and networks
   // Use Supabase Realtime for auto-updates instead of polling
-  const { devices = [], isLoading } = useSupabaseDevices(organizationId, supabaseClient);
+  const { devices = [], isLoading } = useSupabaseDevices(organizationId, selectedAgent?.agent_id, supabaseClient);
 
   const { data: networks = [] } = useQuery({
     queryKey: ['networks', organizationId],
