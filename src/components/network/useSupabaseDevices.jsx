@@ -29,7 +29,7 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
         }
         
         const { data, error: fetchError } = await query
-          .order('created_date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (fetchError) throw fetchError;
 
