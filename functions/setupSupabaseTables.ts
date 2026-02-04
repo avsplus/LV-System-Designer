@@ -13,41 +13,19 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
 
     const sqlStatements = `
--- Recreate devices table with all required columns
-DROP TABLE IF EXISTS devices CASCADE;
+-- Add missing columns to existing devices table
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS organization_id TEXT;
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS agent_id TEXT;
 
-CREATE TABLE devices (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id TEXT NOT NULL,
-  agent_id TEXT,
-  network_id TEXT,
-  name TEXT NOT NULL,
-  type TEXT DEFAULT 'other',
-  device_type TEXT,
-  ip_address TEXT,
-  mac_address TEXT,
-  vendor TEXT,
-  status TEXT DEFAULT 'offline',
-  location TEXT,
-  notes TEXT,
-  position_x NUMERIC DEFAULT 0,
-  position_y NUMERIC DEFAULT 0,
-  connected_to JSONB DEFAULT '[]'::jsonb,
-  open_ports JSONB DEFAULT '[]'::jsonb,
-  created_by TEXT,
-  created_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Create indexes if they don't exist
+CREATE INDEX IF NOT EXISTS idx_devices_org ON devices(organization_id);
+CREATE INDEX IF NOT EXISTS idx_devices_agent ON devices(agent_id);
 
--- Indexes for devices
-CREATE INDEX idx_devices_org ON devices(organization_id);
-CREATE INDEX idx_devices_agent ON devices(agent_id);
-CREATE INDEX idx_devices_mac ON devices(mac_address);
-
--- Enable RLS on devices
+-- Enable RLS if not already enabled
 ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
 
--- RLS Policy for devices (allow service role full access)
+-- Drop existing policy if it exists and recreate
+DROP POLICY IF EXISTS "Service role full access" ON devices;
 CREATE POLICY "Service role full access" ON devices FOR ALL USING (true);
 
 -- Enable Realtime for devices
