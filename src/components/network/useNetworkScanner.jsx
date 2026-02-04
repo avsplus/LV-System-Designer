@@ -73,6 +73,59 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     }
     
     try {
+      // Check if results already exist (race condition)
+      const { data: existingResults } = await supabaseClient
+        .from('agent_scan_results')
+        .select('*')
+        .eq('command_id', commandId)
+        .limit(1);
+
+      if (existingResults && existingResults.length > 0) {
+        console.log('📥 Found existing scan result:', existingResults[0]);
+        await processResult(existingResults[0]);
+        return;
+      }
+
+      const processResult = async (resultRow) => {
+        try {
+          let result = resultRow.result;
+          if (typeof result === 'string') {
+            result = JSON.parse(result);
+          }
+
+          const hosts = result?.hosts || [];
+          console.log(`📦 Processing ${hosts.length} discovered hosts`);
+
+          const processPromises = hosts.map(host => {
+            console.log('🔍 Processing host:', host);
+            if (host.mac) {
+              return onDeviceDiscovered?.({
+                ip_address: host.ip,
+                mac_address: host.mac,
+                vendor: host.vendor,
+                hostname: host.hostname,
+                network_id: currentNetworkId,
+                device_type: host.device_type,
+                open_ports: host.open_ports || []
+              });
+            }
+            return Promise.resolve();
+          });
+
+          await Promise.all(processPromises);
+          console.log('✅ All devices processed');
+
+          onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
+          
+          setTimeout(() => {
+            setIsScanning(false);
+          }, 2000);
+        } catch (error) {
+          console.error('❌ Failed to process scan result:', error);
+          onError?.('Failed to process scan results');
+          setIsScanning(false);
+        }
+      };
 
       const channel = supabaseClient
         .channel(`scan-results-${commandId}`)
@@ -86,49 +139,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           },
           async (payload) => {
             console.log('📥 Scan result received:', payload.new);
-            
-            try {
-              let result = payload.new.result;
-              if (typeof result === 'string') {
-                result = JSON.parse(result);
-              }
-
-              const hosts = result?.hosts || [];
-              console.log(`📦 Processing ${hosts.length} discovered hosts`);
-
-              // Process hosts
-              const processPromises = hosts.map(host => {
-                console.log('🔍 Processing host:', host);
-                if (host.mac) {
-                  return onDeviceDiscovered?.({
-                    ip_address: host.ip,
-                    mac_address: host.mac,
-                    vendor: host.vendor,
-                    hostname: host.hostname,
-                    network_id: currentNetworkId,
-                    device_type: host.device_type,
-                    open_ports: host.open_ports || []
-                  });
-                }
-                return Promise.resolve();
-              });
-
-              await Promise.all(processPromises);
-              console.log('✅ All devices processed');
-
-              onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
-              
-              // Wait 2 seconds before closing
-              setTimeout(() => {
-                setIsScanning(false);
-                supabaseClient.removeChannel(channel);
-              }, 2000);
-            } catch (error) {
-              console.error('❌ Failed to process scan result:', error);
-              onError?.('Failed to process scan results');
-              setIsScanning(false);
-              supabaseClient.removeChannel(channel);
-            }
+            await processResult(payload.new);
+            supabaseClient.removeChannel(channel);
           }
         )
         .subscribe((status) => {
