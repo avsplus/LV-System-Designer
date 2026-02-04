@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // For each monitored agent, get their devices and ping them
     for (const agent of agents) {
       try {
-        // Get devices for this agent (by agent_id and organization_id)
+        // Get devices for this agent
         const devices = await base44.asServiceRole.entities.Device.filter({
           organization_id: agent.organization_id,
           agent_id: agent.agent_id
@@ -48,8 +48,6 @@ Deno.serve(async (req) => {
           continue;
         }
         
-        console.log(`Agent ${agent.agent_id} - Devices: ${devices.length}`);
-        
         const targets = devices
           .filter(d => d.ip_address)
           .map(d => d.ip_address);
@@ -59,9 +57,9 @@ Deno.serve(async (req) => {
           continue;
         }
         
-        console.log(`Pinging ${targets.length} devices for agent ${agent.agent_id}`);
+        console.log(`Sending ping command for ${targets.length} devices (agent ${agent.agent_id})`);
         
-        // Send ping command to agent
+        // Send ping command - don't wait for results
         const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
           organization_id: agent.organization_id,
           agent_id: agent.agent_id,
@@ -74,92 +72,22 @@ Deno.serve(async (req) => {
           }
         });
         
-        console.log('📤 Sent ping command:', commandResult);
-        
         if (!commandResult?.command_id) {
           throw new Error('No command_id returned');
         }
         
-        // Subscribe to ping results using Supabase Realtime
-        const pingResult = await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            channel.unsubscribe();
-            reject(new Error('Timeout waiting for ping results'));
-          }, 30000); // 30 second timeout
-          
-          const channel = supabase
-            .channel(`ping_results_${commandResult.command_id}`)
-            .on(
-              'postgres_changes',
-              {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'agent_ping_results',
-                filter: `command_id=eq.${commandResult.command_id}`
-              },
-              (payload) => {
-                console.log('📡 Received ping result via Realtime:', payload.new);
-                clearTimeout(timeout);
-                channel.unsubscribe();
-                resolve(payload.new);
-              }
-            )
-            .subscribe();
-          
-          console.log('📡 Subscribed to ping results for command:', commandResult.command_id);
-        });
-        
-        let updatedDevices = 0;
-        
-        // Parse result if it's a string
-        let resultData = pingResult?.result;
-        if (typeof resultData === 'string') {
-          try {
-            resultData = JSON.parse(resultData);
-          } catch (e) {
-            console.error('❌ Failed to parse ping result:', e);
-          }
-        }
-        
-        const pingTargets = resultData?.targets || resultData;
-        
-        if (pingTargets && Array.isArray(pingTargets)) {
-          console.log(`✅ Processing ${pingTargets.length} ping results for agent ${agent.agent_id}`);
-          
-          // Update all device statuses based on ping results
-          const updatePromises = pingTargets.map(target => {
-            const device = devices.find(d => d.ip_address === target.ip);
-            if (device) {
-              const newStatus = target.reachable ? 'online' : 'offline';
-              const oldStatus = device.status;
-              updatedDevices++;
-              
-              console.log(`🔄 Updating device ${device.name} (${target.ip}): ${oldStatus} -> ${newStatus}`);
-              
-              return base44.asServiceRole.entities.Device.update(device.id, { status: newStatus });
-            } else {
-              console.warn(`⚠️ No device found for IP ${target.ip}`);
-            }
-            return Promise.resolve();
-          });
-          
-          await Promise.all(updatePromises);
-          console.log(`✅ Updated ${updatedDevices}/${devices.length} device statuses for agent ${agent.agent_id}`);
-        } else {
-          console.error('❌ No valid targets in ping result, got:', pingResult);
-        }
+        console.log('✅ Ping command sent:', commandResult.command_id);
         
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
-          devices_pinged: targets.length,
-          devices_updated: updatedDevices,
+          devices_targeted: targets.length,
           command_id: commandResult.command_id,
           success: true
         });
         
       } catch (error) {
-        console.error(`Failed to ping devices for agent ${agent.agent_id}:`, error);
+        console.error(`Failed to send ping for agent ${agent.agent_id}:`, error);
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
