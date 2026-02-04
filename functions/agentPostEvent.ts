@@ -51,11 +51,11 @@ Deno.serve(async (req) => {
         .eq('id', command_id)
         .single();
       
-      // If this is a ping result, store it and trigger processing
+      // If this is a ping result, store it (entity automation will trigger processing)
       if (command?.command_type === 'ping_devices' && event_type === 'command_completed') {
         console.log('📡 Storing ping result for command:', command_id);
         
-        // Store in agent_ping_results table
+        // Store in agent_ping_results table - entity automation handles the rest
         await supabase
           .from('agent_ping_results')
           .insert({
@@ -64,14 +64,6 @@ Deno.serve(async (req) => {
             organization_id,
             result: data
           });
-        
-        // Trigger async processing via HTTP request
-        const processorUrl = `${req.url.replace('/agentPostEvent', '/processPingResults')}`;
-        fetch(processorUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ command_id })
-        }).catch(err => console.error('Failed to trigger processor:', err));
       }
     }
     
