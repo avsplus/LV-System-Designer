@@ -43,6 +43,36 @@ Deno.serve(async (req) => {
       if (updateError) {
         console.error('Failed to update command:', updateError);
       }
+      
+      // Get command type to determine if this is a ping result
+      const { data: command } = await supabase
+        .from('agent_commands')
+        .select('command_type')
+        .eq('id', command_id)
+        .single();
+      
+      // If this is a ping result, store it and trigger processing
+      if (command?.command_type === 'ping_devices' && event_type === 'command_completed') {
+        console.log('📡 Storing ping result for command:', command_id);
+        
+        // Store in agent_ping_results table
+        await supabase
+          .from('agent_ping_results')
+          .insert({
+            command_id,
+            agent_id,
+            organization_id,
+            result: data
+          });
+        
+        // Trigger async processing via HTTP request
+        const processorUrl = `${req.url.replace('/agentPostEvent', '/processPingResults')}`;
+        fetch(processorUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command_id })
+        }).catch(err => console.error('Failed to trigger processor:', err));
+      }
     }
     
     // Delete events older than 1 hour for this agent
