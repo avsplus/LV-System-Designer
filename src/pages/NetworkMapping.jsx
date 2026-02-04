@@ -73,6 +73,10 @@ export default function NetworkMapping() {
     location: ''
   });
 
+  // Get Supabase client and agents first
+  const { agents, supabase: supabaseClient, refresh: refreshAgents } = useSupabaseAgents(organizationId);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+
   // Fetch devices and networks
   // Use Supabase Realtime for auto-updates instead of polling
   const { devices = [], isLoading } = useSupabaseDevices(organizationId, selectedAgent?.agent_id, supabaseClient);
@@ -253,8 +257,6 @@ export default function NetworkMapping() {
     toast.error(errorMessage);
   }, []);
 
-  const { agents, supabase: supabaseClient, refresh: refreshAgents } = useSupabaseAgents(organizationId);
-  const [selectedAgent, setSelectedAgent] = useState(null);
   const { isScanning, startScan, stopScan } = 
     useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent);
   
