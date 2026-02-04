@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { base44 } from "@/api/base44Client";
 
-export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError, organizationId, selectedAgent) {
+export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, onError, organizationId, selectedAgent, supabaseClient) {
   const [isScanning, setIsScanning] = useState(false);
 
   const [currentNetworkId, setCurrentNetworkId] = useState(null);
@@ -66,11 +66,13 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
   const subscribeScanResults = useCallback(async (commandId) => {
     console.log('🔔 Subscribing to scan results:', commandId);
     
+    if (!supabaseClient) {
+      onError?.('Supabase client not available');
+      setIsScanning(false);
+      return;
+    }
+    
     try {
-      // Get Supabase client
-      const { data: config } = await base44.functions.invoke('getSupabaseConfig');
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.0');
-      const supabaseClient = createClient(config.url, config.anon_key);
 
       const channel = supabaseClient
         .channel(`scan-results-${commandId}`)
@@ -148,7 +150,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       onError?.('Failed to subscribe to scan results');
       setIsScanning(false);
     }
-  }, [onScanProgress, onDeviceDiscovered, onError, isScanning, currentNetworkId]);
+  }, [onScanProgress, onDeviceDiscovered, onError, isScanning, currentNetworkId, supabaseClient]);
 
   const stopScan = useCallback(() => {
     setIsScanning(false);

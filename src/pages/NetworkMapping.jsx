@@ -258,7 +258,7 @@ export default function NetworkMapping() {
   }, []);
 
   const { isScanning, startScan, stopScan } = 
-    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent);
+    useNetworkScanner(handleDeviceDiscovered, handleScanProgress, handleScanError, organizationId, selectedAgent, supabaseClient);
   
   // Health monitoring
   const [showHealthPanel, setShowHealthPanel] = useState(false);
