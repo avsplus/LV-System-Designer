@@ -89,37 +89,59 @@ export default function NetworkMapping() {
     enabled: !!organizationId
   });
 
-  // Mutations
+  // Mutations using Supabase
   const createDeviceMutation = useMutation({
-    mutationFn: (data) => base44.entities.Device.create({ ...data, organization_id: organizationId }),
+    mutationFn: async (data) => {
+      const { data: result, error } = await supabaseClient
+        .from('devices')
+        .insert({ 
+          ...data, 
+          organization_id: organizationId,
+          created_date: new Date().toISOString(),
+          updated_date: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return result;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
       setShowDeviceDialog(false);
       resetForm();
+      toast.success('Device added');
     }
   });
 
   const updateDeviceMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Device.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+    mutationFn: async ({ id, data }) => {
+      const { data: result, error } = await supabaseClient
+        .from('devices')
+        .update({ ...data, updated_date: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return result;
     }
   });
 
   const deleteDeviceMutation = useMutation({
-    mutationFn: (id) => base44.entities.Device.delete(id),
+    mutationFn: async (id) => {
+      const { error } = await supabaseClient
+        .from('devices')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
       toast.success('Device removed');
       setSelectedDevice(null);
     },
-    onError: (error) => {
-      if (error.message?.includes('not found')) {
-        queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
-        setSelectedDevice(null);
-      } else {
-        toast.error('Failed to delete device');
-      }
+    onError: () => {
+      toast.error('Failed to delete device');
     }
   });
 
@@ -151,9 +173,13 @@ export default function NetworkMapping() {
     discoveredInCurrentScan.current.add(normalizedMac);
     
     try {
-      // Query database directly for most up-to-date data
-      const allDevices = await base44.entities.Device.filter({ organization_id: organizationId });
-      const existingDevice = allDevices.find(d => {
+      // Query Supabase directly for most up-to-date data
+      const { data: allDevices } = await supabaseClient
+        .from('devices')
+        .select('*')
+        .eq('organization_id', organizationId);
+
+      const existingDevice = allDevices?.find(d => {
         const deviceMac = d.mac_address?.toLowerCase().replace(/[:-]/g, '');
         return deviceMac === normalizedMac;
       });
@@ -199,7 +225,8 @@ export default function NetworkMapping() {
           network_id: deviceData.network_id,
           agent_id: selectedAgent?.agent_id,
           connected_to: [],
-          open_ports: deviceData.open_ports || []
+          open_ports: deviceData.open_ports || [],
+          created_by: (await base44.auth.me())?.email
         });
         }
     } catch (error) {
@@ -308,16 +335,19 @@ export default function NetworkMapping() {
         
         if (existingMapping) {
           await base44.entities.DeviceNameMapping.update(existingMapping.id, { custom_name: editName });
-        } else {
+          } else {
           await base44.entities.DeviceNameMapping.create({
             organization_id: organizationId,
             mac_address: device.mac_address,
             custom_name: editName
           });
-        }
-        
-        // Then update device
-        await base44.entities.Device.update(device.id, { name: editName });
+          }
+
+          // Then update device in Supabase
+          await updateDeviceMutation.mutateAsync({
+          id: device.id,
+          data: { name: editName }
+          });
         
         // Refresh both queries
         await Promise.all([
@@ -338,15 +368,16 @@ export default function NetworkMapping() {
   const handleClearAllDevices = async () => {
     if (confirm('Clear all scanned devices? This cannot be undone.')) {
       try {
-        const deletePromises = devices.map(device => 
-          base44.entities.Device.delete(device.id).catch(() => null)
-        );
-        await Promise.all(deletePromises);
-        queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+        const { error } = await supabaseClient
+          .from('devices')
+          .delete()
+          .eq('organization_id', organizationId);
+
+        if (error) throw error;
         toast.success('All devices cleared');
         setSelectedDevice(null);
       } catch (error) {
-        toast.error('Some devices could not be deleted');
+        toast.error('Failed to clear devices');
       }
     }
   };
@@ -459,18 +490,22 @@ export default function NetworkMapping() {
           toast.success(`Ping complete: ${online}/${targets.length} devices online`);
           
           // Update device statuses
+          // Update device statuses in Supabase
           const updatePromises = targets.map(target => {
             const device = devices.find(d => d.ip_address === target.ip);
             if (device) {
-              return base44.entities.Device.update(device.id, { 
-                status: target.reachable ? 'online' : 'offline' 
-              });
+              return supabaseClient
+                .from('devices')
+                .update({ 
+                  status: target.reachable ? 'online' : 'offline',
+                  updated_date: new Date().toISOString()
+                })
+                .eq('id', device.id);
             }
             return Promise.resolve();
           });
-          
+
           await Promise.all(updatePromises);
-          queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
         }
 
         if (attempts >= maxAttempts) {
@@ -517,15 +552,21 @@ export default function NetworkMapping() {
       duplicates.forEach(group => {
         // Sort by updated_date descending
         group.sort((a, b) => new Date(b.updated_date || 0) - new Date(a.updated_date || 0));
-        
+
         // Delete all except the first (most recent)
         for (let i = 1; i < group.length; i++) {
-          deletePromises.push(base44.entities.Device.delete(group[i].id).catch(() => null));
+          deletePromises.push(
+            supabaseClient
+              .from('devices')
+              .delete()
+              .eq('id', group[i].id)
+              .then(() => null)
+              .catch(() => null)
+          );
         }
       });
 
       await Promise.all(deletePromises);
-      queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
       toast.success(`Removed ${totalDuplicates} duplicate devices`);
       setSelectedDevice(null);
     } catch (error) {

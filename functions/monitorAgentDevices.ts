@@ -37,11 +37,12 @@ Deno.serve(async (req) => {
     // For each monitored agent, get their devices and ping them
     for (const agent of agents) {
       try {
-        // Get devices for this agent
-        const devices = await base44.asServiceRole.entities.Device.filter({
-          organization_id: agent.organization_id,
-          agent_id: agent.agent_id
-        });
+        // Get devices for this agent from Supabase
+        const { data: devices } = await supabase
+          .from('devices')
+          .select('*')
+          .eq('organization_id', agent.organization_id)
+          .eq('agent_id', agent.agent_id);
         
         if (!devices || devices.length === 0) {
           console.log(`No devices found for agent ${agent.agent_id}`);
