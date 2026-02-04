@@ -421,7 +421,7 @@ export default function NetworkMapping() {
 
       if (data.command_id) {
         toast.success(`Pinging ${targets.length} devices...`);
-        pollPingResults(data.command_id);
+        subscribePingResults(data.command_id);
       } else {
         throw new Error('Failed to send ping command');
       }
