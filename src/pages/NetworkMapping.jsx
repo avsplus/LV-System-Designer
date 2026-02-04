@@ -228,8 +228,7 @@ export default function NetworkMapping() {
           status: 'online',
           network_id: deviceData.network_id,
           agent_id: selectedAgent?.agent_id,
-          open_ports: deviceData.open_ports || [],
-          created_by: (await base44.auth.me())?.email
+          open_ports: deviceData.open_ports || []
         });
         }
     } catch (error) {
