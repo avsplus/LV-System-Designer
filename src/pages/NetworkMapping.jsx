@@ -17,6 +17,7 @@ import NetworkStats from "../components/network/NetworkStats";
 import ScanProgress from "../components/network/ScanProgress";
 import useNetworkScanner from "../components/network/useNetworkScanner";
 import { useSupabaseAgents } from "../components/network/useSupabaseAgents";
+import { useSupabaseDevices } from "../components/network/useSupabaseDevices";
 import AgentHealthMonitor from "../components/network/AgentHealthMonitor";
 import AgentHealthAlerts from "../components/network/AgentHealthAlerts";
 import {
@@ -73,12 +74,8 @@ export default function NetworkMapping() {
   });
 
   // Fetch devices and networks
-  const { data: devices = [], isLoading } = useQuery({
-    queryKey: ['networkDevices', organizationId],
-    queryFn: () => base44.entities.Device.filter({ organization_id: organizationId }),
-    enabled: !!organizationId,
-    refetchInterval: 5000
-  });
+  // Use Supabase Realtime for auto-updates instead of polling
+  const { devices = [], isLoading } = useSupabaseDevices(organizationId, supabaseClient);
 
   const { data: networks = [] } = useQuery({
     queryKey: ['networks', organizationId],
