@@ -710,7 +710,7 @@ export default function NetworkMapping() {
             </>
           )}
           <div className="flex gap-2">
-            {selectedAgent && (
+            {selectedAgent && supabaseClient && (
               <>
                 {isScanning ? (
                 <Button 
