@@ -53,8 +53,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         setIsScanning(false);
       } else {
         onScanProgress?.({ percent: 1, status: 'scanning' });
-        // Poll for results
-        pollScanProgress(data.command_id);
+        // Subscribe to results
+        subscribeScanResults(data.command_id);
       }
     } catch (error) {
       console.error('❌ Failed to start scan:', error);
@@ -63,111 +63,92 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     }
   }, [selectedAgent, onError, onScanProgress]);
 
-  const pollScanProgress = useCallback(async (commandId) => {
-    console.log('🔄 Starting scan result polling:', commandId);
-    let pollCount = 0;
+  const subscribeScanResults = useCallback(async (commandId) => {
+    console.log('🔔 Subscribing to scan results:', commandId);
     
-    const pollInterval = setInterval(async () => {
-      try {
-        pollCount++;
-        console.log(`📊 Poll #${pollCount} for command ${commandId}`);
-        
-        // Poll command status from agent_commands table
-        const { data: command } = await base44.functions.invoke('getAgentCommand', {
-          command_id: commandId
-        });
-        
-        if (!command) {
-          console.warn('⚠️ Command not found, will retry...');
-          if (pollCount >= 240) {
-            console.error('⚠️ Command not found after 8 minutes');
-            onError?.('Agent not responding. It may be offline or not connected.');
-            clearInterval(pollInterval);
-            setIsScanning(false);
-          }
-          return;
-        }
-        
-        console.log('📊 Command status:', command.status);
-        
-        // Check terminal states
-        if (command.status === 'completed') {
-          console.log('✅ Scan complete, fetching results from agent_scan_results...');
-          clearInterval(pollInterval);
+    try {
+      // Get Supabase client
+      const { data: config } = await base44.functions.invoke('getSupabaseConfig');
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.0');
+      const supabaseClient = createClient(config.url, config.anon_key);
 
-          // Read result from agent_scan_results table (source of truth)
-          const { data: scanResult } = await base44.functions.invoke('getScanResults', {
-            command_id: commandId
-          });
+      const channel = supabaseClient
+        .channel(`scan-results-${commandId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'agent_scan_results',
+            filter: `command_id=eq.${commandId}`,
+          },
+          async (payload) => {
+            console.log('📥 Scan result received:', payload.new);
+            
+            try {
+              let result = payload.new.result;
+              if (typeof result === 'string') {
+                result = JSON.parse(result);
+              }
 
-          console.log('📦 Scan result from agent_scan_results:', scanResult);
+              const hosts = result?.hosts || [];
+              console.log(`📦 Processing ${hosts.length} discovered hosts`);
 
-          if (!scanResult?.result?.hosts) {
-            console.warn('⚠️ No hosts in scan results');
-            onScanProgress?.({ percent: 100, status: 'finished', devicesFound: 0 });
-            // Wait 2 seconds before closing
-            setTimeout(() => setIsScanning(false), 2000);
-            return;
-          }
-
-          const hosts = scanResult.result.hosts || [];
-          console.log(`📦 Processing ${hosts.length} discovered hosts`);
-
-          // Process hosts and wait for all to be added
-          const processPromises = hosts.map(host => {
-            console.log('🔍 Processing host:', host);
-            if (host.mac) {
-              return onDeviceDiscovered?.({
-                ip_address: host.ip,
-                mac_address: host.mac,
-                vendor: host.vendor,
-                hostname: host.hostname,
-                network_id: currentNetworkId,
-                device_type: host.device_type,
-                open_ports: host.open_ports || []
+              // Process hosts
+              const processPromises = hosts.map(host => {
+                console.log('🔍 Processing host:', host);
+                if (host.mac) {
+                  return onDeviceDiscovered?.({
+                    ip_address: host.ip,
+                    mac_address: host.mac,
+                    vendor: host.vendor,
+                    hostname: host.hostname,
+                    network_id: currentNetworkId,
+                    device_type: host.device_type,
+                    open_ports: host.open_ports || []
+                  });
+                }
+                return Promise.resolve();
               });
-            } else {
-              console.warn('⚠️ Host missing MAC address, skipping:', host);
-              return Promise.resolve();
+
+              await Promise.all(processPromises);
+              console.log('✅ All devices processed');
+
+              onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
+              
+              // Wait 2 seconds before closing
+              setTimeout(() => {
+                setIsScanning(false);
+                supabaseClient.removeChannel(channel);
+              }, 2000);
+            } catch (error) {
+              console.error('❌ Failed to process scan result:', error);
+              onError?.('Failed to process scan results');
+              setIsScanning(false);
+              supabaseClient.removeChannel(channel);
             }
-          });
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Subscription status:', status);
+        });
 
-          await Promise.all(processPromises);
-          console.log('✅ All devices processed');
-
-          // Set final count from actual agent results
-          onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
-
-          // Wait 2 seconds after all devices are added before closing
-          setTimeout(() => setIsScanning(false), 2000);
-        } else if (command.status === 'failed') {
-          console.error('❌ Scan failed');
-          clearInterval(pollInterval);
+      // Timeout after 10 minutes
+      const timeout = setTimeout(() => {
+        console.warn('⏱️ Scan timeout reached');
+        supabaseClient.removeChannel(channel);
+        if (isScanning) {
           setIsScanning(false);
-          onError?.('Scan failed');
-        } else {
-          console.log('⏳ Command still pending/issued, continuing to poll...');
+          onError?.('Scan timeout - agent did not respond');
         }
-      } catch (error) {
-        console.error('❌ Failed to poll:', error);
-      }
-    }, 2000);
-    
-    // Timeout after 10 minutes
-    const timeout = setTimeout(() => {
-      console.warn('⏱️ Scan timeout reached');
-      clearInterval(pollInterval);
-      if (isScanning) {
-        setIsScanning(false);
-        onError?.('Scan timeout - agent did not respond');
-      }
-    }, 600000);
-    
-    return () => {
-      clearInterval(pollInterval);
-      clearTimeout(timeout);
-    };
-  }, [selectedAgent, onScanProgress, onDeviceDiscovered, onError, isScanning, currentNetworkId]);
+      }, 600000);
+      
+    } catch (error) {
+      console.error('❌ Failed to subscribe:', error);
+      onError?.('Failed to subscribe to scan results');
+      setIsScanning(false);
+    }
+  }, [onScanProgress, onDeviceDiscovered, onError, isScanning, currentNetworkId]);
 
   const stopScan = useCallback(() => {
     setIsScanning(false);
