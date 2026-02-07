@@ -19,37 +19,34 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check column type
-    const { data: columnInfo, error: columnError } = await supabase
-      .rpc('exec', {
-        sql: `
-          SELECT column_name, data_type, udt_name
-          FROM information_schema.columns
-          WHERE table_name = 'devices' 
-          AND column_name = 'open_ports';
-        `
-      });
+    // Get sample devices with open_ports
+    const { data: devices, error: devicesError } = await supabase
+      .from('devices')
+      .select('id, name, open_ports')
+      .not('open_ports', 'is', null)
+      .limit(5);
 
-    if (columnError) {
+    if (devicesError) {
       return Response.json({ 
-        error: 'Could not check column',
-        details: columnError.message
+        error: 'Could not fetch devices',
+        details: devicesError.message
       }, { status: 500 });
     }
 
-    // Sample a device to see what the data looks like
-    const { data: sampleDevice, error: sampleError } = await supabase
-      .from('devices')
-      .select('id, open_ports')
-      .limit(1)
-      .single();
+    const analysis = devices?.map(d => ({
+      id: d.id,
+      name: d.name,
+      open_ports_raw: d.open_ports,
+      type: typeof d.open_ports,
+      isArray: Array.isArray(d.open_ports),
+      length: d.open_ports?.length
+    }));
 
     return Response.json({ 
-      columnInfo,
-      sampleDevice,
-      sampleType: typeof sampleDevice?.open_ports,
-      isArray: Array.isArray(sampleDevice?.open_ports),
-      sampleValue: sampleDevice?.open_ports
+      devices: analysis,
+      instructions: devices?.length === 0 ? 
+        'No devices with open_ports found. Column exists but no data.' :
+        'Check the type and format of open_ports data'
     });
   } catch (error) {
     return Response.json({ 
