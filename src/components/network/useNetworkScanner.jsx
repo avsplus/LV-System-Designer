@@ -159,33 +159,6 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           }
           if (status === 'SUBSCRIBED') {
             console.log('✅ Successfully subscribed to scan results channel');
-            
-            // WORKAROUND: Poll database since Realtime events aren't firing
-            let processed = false;
-            const pollInterval = setInterval(async () => {
-              if (processed) {
-                clearInterval(pollInterval);
-                return;
-              }
-              
-              const { data: results } = await supabaseClient
-                .from('agent_scan_results')
-                .select('*')
-                .eq('command_id', commandId)
-                .limit(1);
-              
-              if (results && results.length > 0) {
-                console.log('✅ Found scan results via polling (Realtime workaround):', results[0]);
-                processed = true;
-                clearInterval(pollInterval);
-                clearTimeout(timeout);
-                await processResult(results[0]);
-                supabaseClient.removeChannel(channel);
-              }
-            }, 2000);
-            
-            // Clear poll interval on timeout
-            setTimeout(() => clearInterval(pollInterval), 600000);
           }
         });
 
