@@ -34,7 +34,13 @@ export function useSupabaseAgents(organizationId) {
       try {
         const { data } = await base44.functions.invoke('getSupabaseConfig', {});
         if (data?.url && data?.anonKey) {
-          const client = createClient(data.url, data.anonKey);
+          const client = createClient(data.url, data.anonKey, {
+            realtime: {
+              params: {
+                eventsPerSecond: 10
+              }
+            }
+          });
           setSupabaseClient(client);
         }
       } catch (err) {
