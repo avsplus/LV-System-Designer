@@ -435,78 +435,105 @@ export default function NetworkMapping() {
     try {
       console.log('🔔 Subscribing to ping results:', commandId);
 
+      const processResult = async (resultRow) => {
+        try {
+          let result = resultRow.result;
+          if (typeof result === 'string') {
+            result = JSON.parse(result);
+          }
+
+          const targets = result?.targets || [];
+          console.log('📦 Processing ping results for', targets.length, 'targets');
+          
+          if (!Array.isArray(targets) || targets.length === 0) {
+            toast.error('No ping results returned');
+            setIsPinging(false);
+            return;
+          }
+
+          setPingResults(targets);
+          
+          const online = targets.filter(r => r.reachable).length;
+          toast.success(`Ping complete: ${online}/${targets.length} devices online`);
+          
+          // Update device statuses in Supabase
+          const updatePromises = targets.map(target => {
+            const device = devices.find(d => d.ip_address === target.ip);
+            if (device) {
+              return supabaseClient
+                .from('devices')
+                .update({ 
+                  status: target.reachable ? 'online' : 'offline',
+                  updated_date: new Date().toISOString()
+                })
+                .eq('id', device.id);
+            }
+            return Promise.resolve();
+          });
+
+          await Promise.all(updatePromises);
+          setIsPinging(false);
+        } catch (error) {
+          console.error('Failed to process ping result:', error);
+          toast.error('Failed to process ping results');
+          setIsPinging(false);
+        }
+      };
+
+      // Check if results already exist (race condition handling)
+      const { data: existingResults, error: selectError } = await supabaseClient
+        .from('agent_ping_results')
+        .select('*')
+        .eq('command_id', commandId)
+        .limit(1);
+
+      if (selectError) {
+        console.error('❌ Error checking existing results:', selectError);
+      }
+
+      if (existingResults && existingResults.length > 0) {
+        console.log('📥 Found existing ping result (race condition):', existingResults[0]);
+        await processResult(existingResults[0]);
+        return;
+      }
+
+      console.log('🔔 Setting up Realtime subscription for command_id:', commandId);
+
       const channel = supabaseClient
         .channel(`ping-results-${commandId}`)
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
             table: 'agent_ping_results',
             filter: `command_id=eq.${commandId}`,
           },
           async (payload) => {
-            console.log('📥 Ping result received:', payload.new);
-            
-            try {
-              let result = payload.new.result;
-              if (typeof result === 'string') {
-                result = JSON.parse(result);
-              }
-
-              const targets = result?.targets || [];
-              console.log('📦 Processing ping results for', targets.length, 'targets');
-              
-              if (!Array.isArray(targets) || targets.length === 0) {
-                toast.error('No ping results returned');
-                setIsPinging(false);
-                supabaseClient.removeChannel(channel);
-                return;
-              }
-
-              setPingResults(targets);
-              
-              const online = targets.filter(r => r.reachable).length;
-              toast.success(`Ping complete: ${online}/${targets.length} devices online`);
-              
-              // Update device statuses in Supabase
-              const updatePromises = targets.map(target => {
-                const device = devices.find(d => d.ip_address === target.ip);
-                if (device) {
-                  return supabaseClient
-                    .from('devices')
-                    .update({ 
-                      status: target.reachable ? 'online' : 'offline',
-                      updated_date: new Date().toISOString()
-                    })
-                    .eq('id', device.id);
-                }
-                return Promise.resolve();
-              });
-
-              await Promise.all(updatePromises);
-              
-              setIsPinging(false);
-              supabaseClient.removeChannel(channel);
-            } catch (error) {
-              console.error('Failed to process ping result:', error);
-              toast.error('Failed to process ping results');
-              setIsPinging(false);
-              supabaseClient.removeChannel(channel);
-            }
+            console.log('📥 Ping result received via Realtime:', payload.new);
+            clearTimeout(timeout);
+            await processResult(payload.new);
+            supabaseClient.removeChannel(channel);
           }
         )
-        .subscribe((status) => {
+        .subscribe((status, err) => {
           console.log('📡 Ping subscription status:', status);
+          if (err) {
+            console.error('❌ Subscription error:', err);
+            toast.error('Subscription error: ' + err.message);
+            setIsPinging(false);
+          }
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Successfully subscribed to ping results channel');
+          }
         });
 
       // Timeout after 30 seconds
-      setTimeout(() => {
-        if (isPinging) {
-          supabaseClient.removeChannel(channel);
-          setIsPinging(false);
-          toast.error('Ping timeout - no response from agent');
-        }
+      const timeout = setTimeout(() => {
+        console.error('⏱️ Ping timeout - no Realtime event received in 30 seconds');
+        supabaseClient.removeChannel(channel);
+        setIsPinging(false);
+        toast.error('Ping timeout - no response from agent');
       }, 30000);
     } catch (error) {
       console.error('Failed to subscribe to ping results:', error);
