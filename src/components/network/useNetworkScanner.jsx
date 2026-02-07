@@ -140,13 +140,13 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
             table: 'agent_scan_results',
             filter: `command_id=eq.${commandId}`,
           },
           async (payload) => {
-            console.log('📥 Scan result received via Realtime:', payload.new);
+            console.log('📥 Scan result received via Realtime:', payload);
             clearTimeout(timeout);
             await processResult(payload.new);
             supabaseClient.removeChannel(channel);
