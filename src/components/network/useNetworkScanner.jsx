@@ -149,28 +149,9 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           console.log('📡 Subscription status:', status);
         });
 
-      // Polling fallback - check every 2 seconds
-      const pollInterval = setInterval(async () => {
-        console.log('🔄 Polling for scan results...');
-        const { data: results } = await supabaseClient
-          .from('agent_scan_results')
-          .select('*')
-          .eq('command_id', commandId)
-          .limit(1);
-
-        if (results && results.length > 0) {
-          console.log('📥 Scan result found via polling:', results[0]);
-          clearInterval(pollInterval);
-          clearTimeout(timeout);
-          supabaseClient.removeChannel(channel);
-          await processResult(results[0]);
-        }
-      }, 2000);
-
       // Timeout after 10 minutes
       const timeout = setTimeout(() => {
         console.warn('⏱️ Scan timeout reached');
-        clearInterval(pollInterval);
         supabaseClient.removeChannel(channel);
         if (isScanning) {
           setIsScanning(false);
