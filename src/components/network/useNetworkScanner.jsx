@@ -72,21 +72,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       return;
     }
     
-    try {
-      // Check if results already exist (race condition)
-      const { data: existingResults } = await supabaseClient
-        .from('agent_scan_results')
-        .select('*')
-        .eq('command_id', commandId)
-        .limit(1);
-
-      if (existingResults && existingResults.length > 0) {
-        console.log('📥 Found existing scan result:', existingResults[0]);
-        await processResult(existingResults[0]);
-        return;
-      }
-
-      const processResult = async (resultRow) => {
+    const processResult = async (resultRow) => {
         try {
           let result = resultRow.result;
           if (typeof result === 'string') {
@@ -126,6 +112,20 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           setIsScanning(false);
         }
       };
+    
+    try {
+      // Check if results already exist (race condition)
+      const { data: existingResults } = await supabaseClient
+        .from('agent_scan_results')
+        .select('*')
+        .eq('command_id', commandId)
+        .limit(1);
+
+      if (existingResults && existingResults.length > 0) {
+        console.log('📥 Found existing scan result:', existingResults[0]);
+        await processResult(existingResults[0]);
+        return;
+      }
 
       const channel = supabaseClient
         .channel(`scan-results-${commandId}`)
