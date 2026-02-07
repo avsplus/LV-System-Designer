@@ -147,7 +147,6 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           },
           async (payload) => {
             console.log('📥 Scan result received via Realtime:', payload.new);
-            clearInterval(pollInterval);
             clearTimeout(timeout);
             await processResult(payload.new);
             supabaseClient.removeChannel(channel);
@@ -162,28 +161,6 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
             console.log('✅ Successfully subscribed to scan results channel');
           }
         });
-
-      // Fallback polling every 3 seconds (in case Realtime misses)
-      const pollInterval = setInterval(async () => {
-        console.log('🔄 Polling for scan results (fallback)...');
-        const { data, error } = await supabaseClient
-          .from('agent_scan_results')
-          .select('*')
-          .eq('command_id', commandId)
-          .limit(1);
-        
-        if (error) {
-          console.error('❌ Polling error:', error);
-        } else if (data && data.length > 0) {
-          console.log('📥 Found result via polling:', data[0]);
-          clearInterval(pollInterval);
-          clearTimeout(timeout);
-          await processResult(data[0]);
-          supabaseClient.removeChannel(channel);
-        } else {
-          console.log('⏳ No results yet...');
-        }
-      }, 3000);
 
       // Timeout after 10 minutes
       const timeout = setTimeout(() => {
