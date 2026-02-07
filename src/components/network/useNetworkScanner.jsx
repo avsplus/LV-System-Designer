@@ -160,23 +160,32 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           if (status === 'SUBSCRIBED') {
             console.log('✅ Successfully subscribed to scan results channel');
             
-            // DEBUG: Check database every 5 seconds to see if results exist (but don't process them)
-            const debugInterval = setInterval(async () => {
-              const { data: debugResults } = await supabaseClient
+            // WORKAROUND: Poll database since Realtime events aren't firing
+            let processed = false;
+            const pollInterval = setInterval(async () => {
+              if (processed) {
+                clearInterval(pollInterval);
+                return;
+              }
+              
+              const { data: results } = await supabaseClient
                 .from('agent_scan_results')
                 .select('*')
-                .eq('command_id', commandId);
+                .eq('command_id', commandId)
+                .limit(1);
               
-              if (debugResults && debugResults.length > 0) {
-                console.log('🐛 DEBUG: Results exist in database but Realtime did not fire!', debugResults);
-                console.log('🐛 This means Realtime subscriptions are NOT working correctly');
-              } else {
-                console.log('🐛 DEBUG: No results in database yet');
+              if (results && results.length > 0) {
+                console.log('✅ Found scan results via polling (Realtime workaround):', results[0]);
+                processed = true;
+                clearInterval(pollInterval);
+                clearTimeout(timeout);
+                await processResult(results[0]);
+                supabaseClient.removeChannel(channel);
               }
-            }, 5000);
+            }, 2000);
             
-            // Clear debug interval on timeout
-            setTimeout(() => clearInterval(debugInterval), 600000);
+            // Clear poll interval on timeout
+            setTimeout(() => clearInterval(pollInterval), 600000);
           }
         });
 
