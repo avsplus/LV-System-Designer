@@ -73,50 +73,48 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
     }
     
     const processResult = async (resultRow) => {
-        try {
-          let result = resultRow.result;
-          if (typeof result === 'string') {
-            result = JSON.parse(result);
-          }
-
-          const hosts = result?.hosts || [];
-          console.log(`📦 Processing ${hosts.length} discovered hosts`);
-
-          const processPromises = hosts.map(host => {
-            console.log('🔍 Processing host:', host);
-            if (host.mac) {
-              return onDeviceDiscovered?.({
-                ip_address: host.ip,
-                mac_address: host.mac,
-                vendor: host.vendor,
-                hostname: host.hostname,
-                network_id: currentNetworkId,
-                device_type: host.device_type,
-                open_ports: host.open_ports || []
-              });
-            }
-            return Promise.resolve();
-          });
-
-          await Promise.all(processPromises);
-          console.log('✅ All devices processed');
-
-          onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
-          
-          setTimeout(() => {
-            setIsScanning(false);
-          }, 2000);
-        } catch (error) {
-          console.error('❌ Failed to process scan result:', error);
-          onError?.('Failed to process scan results');
-          setIsScanning(false);
+      try {
+        let result = resultRow.result;
+        if (typeof result === 'string') {
+          result = JSON.parse(result);
         }
-      };
+
+        const hosts = result?.hosts || [];
+        console.log(`📦 Processing ${hosts.length} discovered hosts`);
+
+        const processPromises = hosts.map(host => {
+          console.log('🔍 Processing host:', host);
+          if (host.mac) {
+            return onDeviceDiscovered?.({
+              ip_address: host.ip,
+              mac_address: host.mac,
+              vendor: host.vendor,
+              hostname: host.hostname,
+              network_id: currentNetworkId,
+              device_type: host.device_type,
+              open_ports: host.open_ports || []
+            });
+          }
+          return Promise.resolve();
+        });
+
+        await Promise.all(processPromises);
+        console.log('✅ All devices processed');
+
+        onScanProgress?.({ percent: 100, status: 'finished', devicesFound: hosts.length });
+        
+        setTimeout(() => {
+          setIsScanning(false);
+        }, 2000);
+      } catch (error) {
+        console.error('❌ Failed to process scan result:', error);
+        onError?.('Failed to process scan results');
+        setIsScanning(false);
+      }
+    };
     
     try {
-      console.log('🔍 Checking for existing results for command_id:', commandId);
-      
-      // Check if results already exist (race condition)
+      // Check if results already exist (race condition handling only)
       const { data: existingResults, error: selectError } = await supabaseClient
         .from('agent_scan_results')
         .select('*')
@@ -128,7 +126,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       }
 
       if (existingResults && existingResults.length > 0) {
-        console.log('📥 Found existing scan result:', existingResults[0]);
+        console.log('📥 Found existing scan result (race condition):', existingResults[0]);
         await processResult(existingResults[0]);
         return;
       }
@@ -156,6 +154,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           console.log('📡 Subscription status:', status);
           if (err) {
             console.error('❌ Subscription error:', err);
+            onError?.('Subscription error: ' + err.message);
+            setIsScanning(false);
           }
           if (status === 'SUBSCRIBED') {
             console.log('✅ Successfully subscribed to scan results channel');
@@ -164,24 +164,7 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
 
       // Timeout after 10 minutes
       const timeout = setTimeout(() => {
-        console.warn('⏱️ Scan timeout reached (10 minutes)');
-        console.log('🔍 Checking for results one more time before timeout...');
-        supabaseClient
-          .from('agent_scan_results')
-          .select('*')
-          .eq('command_id', commandId)
-          .limit(1)
-          .then(({ data, error }) => {
-            if (error) {
-              console.error('❌ Final check error:', error);
-            } else if (data && data.length > 0) {
-              console.log('📥 Found result on final check!');
-              processResult(data[0]);
-            } else {
-              console.log('❌ No results found after timeout');
-            }
-          });
-        
+        console.error('⏱️ Scan timeout - no Realtime event received in 10 minutes');
         supabaseClient.removeChannel(channel);
         if (isScanning) {
           setIsScanning(false);
