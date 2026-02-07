@@ -23,8 +23,7 @@ Deno.serve(async (req) => {
     const { data: recentPings, error: pingsError } = await supabase
       .from('agent_ping_results')
       .select('*')
-      .order('created_date', { ascending: false })
-      .limit(3);
+      .limit(5);
 
     if (pingsError) {
       return Response.json({
