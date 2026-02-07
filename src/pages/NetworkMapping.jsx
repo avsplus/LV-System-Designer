@@ -442,8 +442,23 @@ export default function NetworkMapping() {
             result = JSON.parse(result);
           }
 
-          // Handle both formats: array directly or object with targets property
-          const targets = Array.isArray(result) ? result : (result?.targets || []);
+          console.log('🔍 Raw result:', result);
+          
+          // Handle different result formats
+          let targets = [];
+          if (Array.isArray(result)) {
+            // If array with one element that has targets property
+            if (result.length === 1 && result[0]?.targets) {
+              targets = result[0].targets;
+            } else {
+              // Otherwise use the array directly
+              targets = result;
+            }
+          } else if (result?.targets) {
+            // Object with targets property
+            targets = result.targets;
+          }
+          
           console.log('📦 Processing ping results for', targets.length, 'targets');
           
           if (!Array.isArray(targets) || targets.length === 0) {
