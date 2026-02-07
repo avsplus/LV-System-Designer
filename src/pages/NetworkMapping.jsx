@@ -1181,7 +1181,7 @@ export default function NetworkMapping() {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
-                          {device.open_ports ? (
+                          {device.open_ports && Array.isArray(device.open_ports) && device.open_ports.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {device.open_ports.slice(0, 3).map((port, idx) => (
                                 <Badge key={idx} variant="outline" className="text-xs border-gray-700 text-gray-400">
