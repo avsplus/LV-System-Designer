@@ -159,6 +159,24 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
           }
           if (status === 'SUBSCRIBED') {
             console.log('✅ Successfully subscribed to scan results channel');
+            
+            // DEBUG: Check database every 5 seconds to see if results exist (but don't process them)
+            const debugInterval = setInterval(async () => {
+              const { data: debugResults } = await supabaseClient
+                .from('agent_scan_results')
+                .select('*')
+                .eq('command_id', commandId);
+              
+              if (debugResults && debugResults.length > 0) {
+                console.log('🐛 DEBUG: Results exist in database but Realtime did not fire!', debugResults);
+                console.log('🐛 This means Realtime subscriptions are NOT working correctly');
+              } else {
+                console.log('🐛 DEBUG: No results in database yet');
+              }
+            }, 5000);
+            
+            // Clear debug interval on timeout
+            setTimeout(() => clearInterval(debugInterval), 600000);
           }
         });
 
