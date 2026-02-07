@@ -114,12 +114,18 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
       };
     
     try {
+      console.log('🔍 Checking for existing results for command_id:', commandId);
+      
       // Check if results already exist (race condition)
-      const { data: existingResults } = await supabaseClient
+      const { data: existingResults, error: selectError } = await supabaseClient
         .from('agent_scan_results')
         .select('*')
         .eq('command_id', commandId)
         .limit(1);
+
+      if (selectError) {
+        console.error('❌ Error checking existing results:', selectError);
+      }
 
       if (existingResults && existingResults.length > 0) {
         console.log('📥 Found existing scan result:', existingResults[0]);
@@ -127,6 +133,8 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
         return;
       }
 
+      console.log('🔔 Setting up Realtime subscription for command_id:', commandId);
+      
       const channel = supabaseClient
         .channel(`scan-results-${commandId}`)
         .on(
@@ -145,13 +153,36 @@ export default function useNetworkScanner(onDeviceDiscovered, onScanProgress, on
             supabaseClient.removeChannel(channel);
           }
         )
-        .subscribe((status) => {
+        .subscribe((status, err) => {
           console.log('📡 Subscription status:', status);
+          if (err) {
+            console.error('❌ Subscription error:', err);
+          }
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Successfully subscribed to scan results channel');
+          }
         });
 
       // Timeout after 10 minutes
       const timeout = setTimeout(() => {
-        console.warn('⏱️ Scan timeout reached');
+        console.warn('⏱️ Scan timeout reached (10 minutes)');
+        console.log('🔍 Checking for results one more time before timeout...');
+        supabaseClient
+          .from('agent_scan_results')
+          .select('*')
+          .eq('command_id', commandId)
+          .limit(1)
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('❌ Final check error:', error);
+            } else if (data && data.length > 0) {
+              console.log('📥 Found result on final check!');
+              processResult(data[0]);
+            } else {
+              console.log('❌ No results found after timeout');
+            }
+          });
+        
         supabaseClient.removeChannel(channel);
         if (isScanning) {
           setIsScanning(false);
