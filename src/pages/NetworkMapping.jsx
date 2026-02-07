@@ -442,7 +442,8 @@ export default function NetworkMapping() {
             result = JSON.parse(result);
           }
 
-          const targets = result?.targets || [];
+          // Handle both formats: array directly or object with targets property
+          const targets = Array.isArray(result) ? result : (result?.targets || []);
           console.log('📦 Processing ping results for', targets.length, 'targets');
           
           if (!Array.isArray(targets) || targets.length === 0) {
