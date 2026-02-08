@@ -60,36 +60,30 @@ Deno.serve(async (req) => {
         
         console.log(`🎯 Pinging ${targets.length} devices for agent ${agent.agent_id}`);
         
-        // Insert ping command directly into agent_commands table
-        const { data: insertedCommand, error: insertError } = await supabase
-          .from('agent_commands')
-          .insert({
-            agent_id: agent.agent_id,
-            organization_id: agent.organization_id,
-            command_type: 'ping_devices',
-            params: {
-              targets,
-              timeoutMs: 1000,
-              count: 3,
-              maxConcurrency: 16
-            },
-            status: 'pending',
-            nonce: crypto.randomUUID()
-          })
-          .select()
-          .single();
+        // Use sendAgentCommand (same as manual ping)
+        const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
+          organization_id: agent.organization_id,
+          agent_id: agent.agent_id,
+          command_type: 'ping_devices',
+          parameters: {
+            targets,
+            timeoutMs: 1000,
+            count: 3,
+            maxConcurrency: 16
+          }
+        });
         
-        if (insertError || !insertedCommand) {
-          throw new Error('Failed to insert command: ' + insertError?.message);
+        if (!commandResult?.command_id) {
+          throw new Error('Failed to send command');
         }
         
-        console.log(`✅ Ping command ${insertedCommand.id} sent for agent ${agent.agent_id}`);
+        console.log(`✅ Ping command ${commandResult.command_id} sent for agent ${agent.agent_id}`);
         
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
           devices_targeted: targets.length,
-          command_id: insertedCommand.id,
+          command_id: commandResult.command_id,
           success: true
         });
         
