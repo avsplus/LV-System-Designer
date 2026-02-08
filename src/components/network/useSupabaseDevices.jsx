@@ -8,7 +8,7 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!supabaseClient || !organizationId || !agentId) {
+    if (!supabaseClient || !organizationId) {
       setIsLoading(false);
       return;
     }
@@ -19,12 +19,17 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
     // 1. Initial fetch
     async function loadInitial() {
       try {
-        const { data, error: fetchError } = await supabaseClient
+        let query = supabaseClient
           .from('devices')
           .select('*')
-          .eq('organization_id', organizationId)
-          .eq('agent_id', agentId)
-          .order('created_at', { ascending: false });
+          .eq('organization_id', organizationId);
+
+        // Only filter by agent_id if a specific agent is selected (not 'all')
+        if (agentId && agentId !== 'all') {
+          query = query.eq('agent_id', agentId);
+        }
+
+        const { data, error: fetchError } = await query.order('created_at', { ascending: false });
 
         if (fetchError) throw fetchError;
 
@@ -43,16 +48,22 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
 
     loadInitial();
 
-    // 2. Subscribe to realtime changes - always filter by agent_id
+    // 2. Subscribe to realtime changes
+    const channelName = agentId && agentId !== 'all' 
+      ? `devices-changes-${agentId}` 
+      : `devices-changes-org-${organizationId}`;
+    
     channel = supabaseClient
-      .channel(`devices-changes-${agentId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'devices',
-          filter: `agent_id=eq.${agentId}`,
+          filter: agentId && agentId !== 'all' 
+            ? `agent_id=eq.${agentId}`
+            : `organization_id=eq.${organizationId}`,
         },
         (payload) => {
           if (!mounted) return;
