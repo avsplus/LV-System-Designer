@@ -98,19 +98,14 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
         }, [organizationId, agentId, supabaseClient]);
 
   const refresh = async () => {
-    if (!supabaseClient || !organizationId) return;
+    if (!supabaseClient || !organizationId || !agentId) return;
     
     try {
-      let query = supabaseClient
+      const { data, error: fetchError } = await supabaseClient
         .from('devices')
         .select('*')
-        .eq('organization_id', organizationId);
-      
-      if (agentId) {
-        query = query.eq('agent_id', agentId);
-      }
-      
-      const { data, error: fetchError } = await query
+        .eq('organization_id', organizationId)
+        .eq('agent_id', agentId)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
