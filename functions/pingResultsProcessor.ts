@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       .from('agent_ping_results')
       .select('*')
       .gte('created_at', tenMinutesAgo)
-      .is('processed', null)
+      .or('processed.is.null,processed.eq.false')
       .order('created_at', { ascending: true });
     
     if (fetchError) {
