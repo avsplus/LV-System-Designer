@@ -49,23 +49,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to update monitoring status' }, { status: 500 });
     }
     
-    // If enabling monitoring, trigger initial ping (scheduled automation will handle updates)
+    // If enabling monitoring, trigger immediate initial ping
     let devicesTargeted = 0;
     if (enabled) {
       try {
-        // Get devices for this agent (by agent_id and organization_id)
-        const agentDevices = await base44.asServiceRole.entities.Device.filter({
-          organization_id: user.organization_id,
-          agent_id: agent_id
-        });
+        // Get devices for this agent from Supabase
+        const { data: agentDevices } = await supabase
+          .from('devices')
+          .select('*')
+          .eq('organization_id', user.organization_id)
+          .eq('agent_id', agent_id);
         
         console.log('📊 Total devices found for agent:', agentDevices?.length || 0);
         console.log('📊 Agent ID:', agent_id);
         
-        // Get devices with IP addresses (don't filter by status)
+        // Get devices with IP addresses
         const targets = agentDevices
-          .filter(d => d.ip_address)
-          .map(d => d.ip_address);
+          ?.filter(d => d.ip_address)
+          .map(d => d.ip_address) || [];
         
         devicesTargeted = targets.length;
         
@@ -73,8 +74,8 @@ Deno.serve(async (req) => {
         console.log('🎯 Target IPs:', targets);
         
         if (targets.length > 0) {
-          // Fire and forget - scheduled automation handles updates
-          base44.asServiceRole.functions.invoke('sendAgentCommand', {
+          // Trigger immediate ping
+          const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
             organization_id: user.organization_id,
             agent_id: agent_id,
             command_type: 'ping_devices',
@@ -84,9 +85,9 @@ Deno.serve(async (req) => {
               count: 3,
               maxConcurrency: 16
             }
-          }).catch(err => console.error('Ping failed:', err));
+          });
           
-          console.log('📡 Triggered ping for', targets.length, 'devices (updates handled by scheduled automation)');
+          console.log('📡 Immediate ping triggered:', commandResult?.command_id);
         } else {
           console.log('⚠️ No devices with IP addresses found to ping');
         }
