@@ -8,7 +8,7 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!supabaseClient || !organizationId) {
+    if (!supabaseClient || !organizationId || !agentId) {
       setIsLoading(false);
       return;
     }
@@ -19,16 +19,11 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
     // 1. Initial fetch
     async function loadInitial() {
       try {
-        let query = supabaseClient
+        const { data, error: fetchError } = await supabaseClient
           .from('devices')
           .select('*')
-          .eq('organization_id', organizationId);
-        
-        if (agentId) {
-          query = query.eq('agent_id', agentId);
-        }
-        
-        const { data, error: fetchError } = await query
+          .eq('organization_id', organizationId)
+          .eq('agent_id', agentId)
           .order('created_at', { ascending: false });
 
         if (fetchError) throw fetchError;
@@ -48,20 +43,16 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
 
     loadInitial();
 
-    // 2. Subscribe to realtime changes
-    // Filter by agent_id if provided (unique), otherwise by organization_id
-    const filterColumn = agentId ? 'agent_id' : 'organization_id';
-    const filterValue = agentId || organizationId;
-    
+    // 2. Subscribe to realtime changes - always filter by agent_id
     channel = supabaseClient
-      .channel(`devices-changes-${filterColumn}-${filterValue}`)
+      .channel(`devices-changes-${agentId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'devices',
-          filter: `${filterColumn}=eq.${filterValue}`,
+          filter: `agent_id=eq.${agentId}`,
         },
         (payload) => {
           if (!mounted) return;
