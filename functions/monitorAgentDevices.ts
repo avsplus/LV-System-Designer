@@ -1,10 +1,7 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
     // Initialize Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_KEY');
@@ -30,14 +27,14 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'No agents with monitoring enabled' });
     }
     
-    console.log(`Found ${agents.length} agents with monitoring enabled`);
+    console.log(`⏰ Monitoring ${agents.length} agents`);
     
     const results = [];
     
     // For each monitored agent, get their devices and ping them
     for (const agent of agents) {
       try {
-        // Get devices for this agent from Supabase
+        // Get devices for this agent
         const { data: devices } = await supabase
           .from('devices')
           .select('*')
@@ -58,37 +55,43 @@ Deno.serve(async (req) => {
           continue;
         }
         
-        console.log(`Sending ping command for ${targets.length} devices (agent ${agent.agent_id})`);
+        console.log(`🎯 Pinging ${targets.length} devices for agent ${agent.agent_id}`);
         
-        // Send ping command - don't wait for results
-        const { data: commandResult } = await base44.asServiceRole.functions.invoke('sendAgentCommand', {
-          organization_id: agent.organization_id,
-          agent_id: agent.agent_id,
-          command_type: 'ping_devices',
-          parameters: {
-            targets,
-            timeoutMs: 1000,
-            count: 3,
-            maxConcurrency: 16
-          }
-        });
+        // Insert ping command directly into agent_commands table
+        const { data: insertedCommand, error: insertError } = await supabase
+          .from('agent_commands')
+          .insert({
+            agent_id: agent.agent_id,
+            organization_id: agent.organization_id,
+            command_type: 'ping_devices',
+            params: {
+              targets,
+              timeoutMs: 1000,
+              count: 3,
+              maxConcurrency: 16
+            },
+            status: 'pending',
+            nonce: crypto.randomUUID()
+          })
+          .select()
+          .single();
         
-        if (!commandResult?.command_id) {
-          throw new Error('No command_id returned');
+        if (insertError || !insertedCommand) {
+          throw new Error('Failed to insert command: ' + insertError?.message);
         }
         
-        console.log('✅ Ping command sent:', commandResult.command_id);
+        console.log(`✅ Ping command ${insertedCommand.id} sent for agent ${agent.agent_id}`);
         
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
           devices_targeted: targets.length,
-          command_id: commandResult.command_id,
+          command_id: insertedCommand.id,
           success: true
         });
         
       } catch (error) {
-        console.error(`Failed to send ping for agent ${agent.agent_id}:`, error);
+        console.error(`Failed to ping agent ${agent.agent_id}:`, error);
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
