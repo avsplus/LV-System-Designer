@@ -248,6 +248,8 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
 
   const handleDeleteRoom = useCallback((roomId) => {
     const room = rooms.find(r => r.id === roomId);
+    
+    // Optimistic update - immediately remove from UI
     setRooms(prev => prev.filter(r => r.id !== roomId));
     if (room) {
       setCanvasProducts(prev => prev.filter(cp => cp.room !== roomId));
@@ -257,6 +259,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         return fromDevice?.room !== roomId && toDevice?.room !== roomId;
       }));
     }
+    
     if (currentProject?.id && room) {
       trackActivity(ActivityActions.REMOVED_ROOM, currentProject.id, currentProject.name, { room_name: room.name });
     }
