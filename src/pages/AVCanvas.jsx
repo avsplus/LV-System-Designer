@@ -1190,8 +1190,10 @@ function AVCanvasContent() {
 
   // Touch handlers for pinch-to-zoom and pan
   const handleCanvasTouchStart = (e) => {
-    // Prevent browser zoom/pull-to-refresh
-    e.preventDefault();
+    // Prevent default only if we have multiple touches (pinch)
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
     
     // Double-tap to center (similar to middle-click double-click)
     if (e.touches.length === 1) {
@@ -1260,8 +1262,10 @@ function AVCanvasContent() {
   };
 
   const handleCanvasTouchMove = (e) => {
-    // Prevent browser zoom/scroll
-    e.preventDefault();
+    // Only prevent default for multi-touch (pinch)
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
     handleCanvasTouchMovePan(e, canvasRef.current);
   };
 
