@@ -1,37 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SettingsProvider } from "./components/settings/SettingsContext";
 import { Toaster } from "sonner";
+import { AnimatePresence, motion } from "framer-motion";
 import OrganizationGuard from "./components/auth/OrganizationGuard";
+import BottomTabs from "./components/mobile/BottomTabs";
+import { useLocation } from "react-router-dom";
+import { useMediaQuery } from "./components/mobile/useMediaQuery";
 
 export default function Layout({ children }) {
+  const location = useLocation();
+  const isMobile = !useMediaQuery('(min-width: 768px)');
+  const [prevPath, setPrevPath] = useState(location.pathname);
+
+  // Detect direction of navigation for animation
+  const isForward = location.pathname.includes(prevPath) ? true : false;
+  
+  useEffect(() => {
+    setPrevPath(location.pathname);
+  }, [location.pathname]);
+
   return (
     <SettingsProvider>
       <style>{`
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: rgba(75, 85, 99, 0.5);
-          border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(107, 114, 128, 0.7);
-        }
-        ::-webkit-scrollbar-corner {
-          background: transparent;
-        }
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+        :root {
+          --safe-area-inset-top: env(safe-area-inset-top, 0px);
+          --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+          --safe-area-inset-left: env(safe-area-inset-left, 0px);
+          --safe-area-inset-right: env(safe-area-inset-right, 0px);
         }
       `}</style>
       <OrganizationGuard>
-        <div className="min-h-screen">
-          {children}
+        <div className="min-h-screen bg-gray-950">
+          {/* Page transitions with framer-motion */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, x: isForward ? 20 : -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: isForward ? -20 : 20 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className={isMobile ? "pb-16 safe-area-bottom" : ""}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Mobile Bottom Navigation */}
+          {isMobile && <BottomTabs />}
         </div>
       </OrganizationGuard>
       <Toaster position="bottom-right" richColors />
