@@ -109,15 +109,20 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
         }, [organizationId, agentId, supabaseClient]);
 
   const refresh = async () => {
-    if (!supabaseClient || !organizationId || !agentId) return;
+    if (!supabaseClient || !organizationId) return;
     
     try {
-      const { data, error: fetchError } = await supabaseClient
+      let query = supabaseClient
         .from('devices')
         .select('*')
-        .eq('organization_id', organizationId)
-        .eq('agent_id', agentId)
-        .order('created_at', { ascending: false });
+        .eq('organization_id', organizationId);
+
+      // Only filter by agent_id if a specific agent is selected (not 'all')
+      if (agentId && agentId !== 'all') {
+        query = query.eq('agent_id', agentId);
+      }
+
+      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
       setDevices(data ?? []);
