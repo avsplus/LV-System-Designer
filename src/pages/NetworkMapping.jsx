@@ -490,8 +490,9 @@ export default function NetworkMapping() {
                   updated_date: new Date().toISOString()
                 })
                 .eq('id', device.id)
+                .select()
                 .then(result => {
-                  console.log('✅ Update result:', result);
+                  console.log('✅ Update result with data:', result);
                   return result;
                 });
             }
