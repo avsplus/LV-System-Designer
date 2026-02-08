@@ -117,12 +117,6 @@ Deno.serve(async (req) => {
         
         await Promise.all(updatePromises);
         
-        // Mark ping result as processed
-        await supabase
-          .from('agent_ping_results')
-          .update({ processed: true })
-          .eq('id', pingResult.id);
-        
         console.log(`✅ Updated ${updated}/${pingTargets.length} device statuses`);
         
         results.push({
