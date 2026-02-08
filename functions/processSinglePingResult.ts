@@ -6,8 +6,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { event, data } = await req.json();
     
-    // This is triggered by entity automation when a new AgentPingResult is created
-    if (event?.type !== 'create' || !data) {
+    // This is triggered by entity automation when a new AgentPingResult is created or updated
+    if (!event || (event.type !== 'create' && event.type !== 'update') || !data) {
       return Response.json({ error: 'Invalid event' }, { status: 400 });
     }
     
