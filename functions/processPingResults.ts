@@ -74,8 +74,12 @@ Deno.serve(async (req) => {
         if (device.status !== newStatus) {
           const { error: updateError } = await supabase
             .from('devices')
-            .update({ status: newStatus })
-            .eq('id', device.id);
+            .update({ 
+              status: newStatus,
+              updated_date: new Date().toISOString()
+            })
+            .eq('id', device.id)
+            .select();
           
           if (!updateError) {
             updated++;
