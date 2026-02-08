@@ -13,15 +13,18 @@ Deno.serve(async (req) => {
     
     console.log('⏰ Starting automated ping results processing...');
     
-    // Get all unprocessed ping results from the last 10 minutes
+    // Atomically claim unprocessed ping results by marking them as processing
+    // This prevents race conditions when multiple automation instances run simultaneously
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const processingId = crypto.randomUUID();
     
+    // Atomically update unprocessed results to claim them for this instance
     const { data: pingResults, error: fetchError } = await supabase
       .from('agent_ping_results')
-      .select('*')
+      .update({ processed: true, processing_id: processingId })
       .gte('created_at', tenMinutesAgo)
       .or('processed.is.null,processed.eq.false')
-      .order('created_at', { ascending: true });
+      .select();
     
     if (fetchError) {
       console.error('Failed to fetch ping results:', fetchError);
