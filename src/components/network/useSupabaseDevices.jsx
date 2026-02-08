@@ -49,30 +49,24 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
     loadInitial();
 
     // 2. Subscribe to realtime changes
-    // Note: Supabase Realtime only supports single-column filters, so filter by org then agent in callback
+    // Filter by agent_id if provided (unique), otherwise by organization_id
+    const filterColumn = agentId ? 'agent_id' : 'organization_id';
+    const filterValue = agentId || organizationId;
+    
     channel = supabaseClient
-      .channel(`devices-changes-${organizationId}-${agentId || 'all'}`)
+      .channel(`devices-changes-${filterColumn}-${filterValue}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'devices',
-          filter: `organization_id=eq.${organizationId}`,
+          filter: `${filterColumn}=eq.${filterValue}`,
         },
         (payload) => {
           if (!mounted) return;
 
           console.log('🔔 Device Realtime event:', payload.eventType, payload.new || payload.old);
-
-          // Filter by agentId in code if specified
-          if (agentId) {
-            const eventAgentId = payload.new?.agent_id || payload.old?.agent_id;
-            if (eventAgentId !== agentId) {
-              console.log('⏭️ Skipping event - different agent:', eventAgentId, 'vs', agentId);
-              return;
-            }
-          }
 
           setDevices((prev) => {
             if (payload.eventType === 'INSERT') {
