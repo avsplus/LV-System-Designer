@@ -1190,6 +1190,9 @@ function AVCanvasContent() {
 
   // Touch handlers for pinch-to-zoom and pan
   const handleCanvasTouchStart = (e) => {
+    // Prevent browser zoom/pull-to-refresh
+    e.preventDefault();
+    
     // Double-tap to center (similar to middle-click double-click)
     if (e.touches.length === 1) {
       const now = Date.now();
@@ -1257,6 +1260,8 @@ function AVCanvasContent() {
   };
 
   const handleCanvasTouchMove = (e) => {
+    // Prevent browser zoom/scroll
+    e.preventDefault();
     handleCanvasTouchMovePan(e, canvasRef.current);
   };
 
@@ -2312,6 +2317,11 @@ function AVCanvasContent() {
               onTouchMove={currentProject ? handleCanvasTouchMove : undefined}
               onTouchEnd={currentProject ? handleCanvasTouchEnd : undefined}
               className={`flex-1 relative overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 transition-colors ${isPanning || spacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
+              style={{
+                touchAction: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
+                ...{
              data-canvas-background="true"
               style={{
                 backgroundImage: orgSettings?.canvas_theme === 'grid' || orgSettings?.canvas_theme === 'dark' 
