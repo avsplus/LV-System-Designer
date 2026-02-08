@@ -81,6 +81,12 @@ export default function NetworkMapping() {
   // Use Supabase Realtime for auto-updates instead of polling
   const { devices = [], isLoading, refresh: refreshDevices } = useSupabaseDevices(organizationId, selectedAgent?.agent_id, supabaseClient);
 
+  // Debug: Log when devices array changes
+  useEffect(() => {
+    console.log('📊 Devices state updated in NetworkMapping:', devices.length, 'devices');
+    console.log('📊 Device statuses:', devices.map(d => `${d.name}: ${d.status}`));
+  }, [devices]);
+
   const { data: networks = [] } = useQuery({
     queryKey: ['networks', organizationId],
     queryFn: () => base44.entities.Network.filter({ organization_id: organizationId }),
