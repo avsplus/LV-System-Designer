@@ -51,7 +51,7 @@ export default function BottomTabs() {
           return (
             <Link
               key={tab.path}
-              to={createPageUrl(tab.path)}
+              to={getTabPath(tab.path)}
               className={`flex flex-col items-center justify-center w-16 h-14 rounded-lg transition-colors user-select-none ${
                 active 
                   ? 'text-blue-400 bg-blue-500/10' 
