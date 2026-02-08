@@ -236,10 +236,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       name: roomName,
       floorplanId: floorplanId
     };
-    
-    // Optimistic update
     setRooms(prev => [...prev, newRoom]);
-    
     if (currentProject?.id) {
       trackActivity(ActivityActions.ADDED_ROOM, currentProject.id, currentProject.name, { room_name: roomName });
     }
@@ -248,8 +245,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
 
   const handleDeleteRoom = useCallback((roomId) => {
     const room = rooms.find(r => r.id === roomId);
-    
-    // Optimistic update - immediately remove from UI
     setRooms(prev => prev.filter(r => r.id !== roomId));
     if (room) {
       setCanvasProducts(prev => prev.filter(cp => cp.room !== roomId));
@@ -259,7 +254,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         return fromDevice?.room !== roomId && toDevice?.room !== roomId;
       }));
     }
-    
     if (currentProject?.id && room) {
       trackActivity(ActivityActions.REMOVED_ROOM, currentProject.id, currentProject.name, { room_name: room.name });
     }
@@ -296,17 +290,12 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, [currentProject, canvasProducts, rooms]);
 
   const handlePositionChange = useCallback((instanceId, newPosition) => {
-    // Optimistic update - immediately update UI
-    const oldProducts = canvasProducts;
-    const newProducts = canvasProducts.map(cp => 
+    setCanvasProducts(prev => prev.map(cp => 
       cp.instanceId === instanceId 
         ? ensureNetworkInfo({ ...cp, position: newPosition })
         : ensureNetworkInfo(cp)
-    );
-    setCanvasProducts(newProducts);
-
-    // Auto-save will handle the database update (100ms debounce)
-  }, [canvasProducts]);
+    ));
+  }, []);
 
   const handleNetworkInfoChange = useCallback((instanceId, networkInfo) => {
     setCanvasProducts(prev => prev.map(cp => 
