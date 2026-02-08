@@ -13,14 +13,14 @@ Deno.serve(async (req) => {
     
     console.log('⏰ Starting automated ping results processing...');
     
-    // Get recent ping results (last 2 minutes)
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    // Get recent ping results (last 10 minutes to catch any missed ones)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     
     const { data: pingResults, error: fetchError } = await supabase
       .from('agent_ping_results')
       .select('*')
-      .gte('created_date', twoMinutesAgo)
-      .order('created_date', { ascending: false });
+      .gte('created_at', tenMinutesAgo)
+      .order('created_at', { ascending: false });
     
     if (fetchError) {
       console.error('Failed to fetch ping results:', fetchError);
