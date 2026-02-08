@@ -685,40 +685,39 @@ export default function NetworkMapping() {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       {/* Header */}
-      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 md:gap-4">
+      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0">
           <Link to={createPageUrl("AVCanvas")}>
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8 md:h-10 md:w-10">
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-10 w-10 flex-shrink-0">
               <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0">
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/654057aa4_AVSystemDesign-NetAgentIcon.png" 
               alt="OrionTrace" 
-              className="w-8 h-8 md:w-12 md:h-12"
+              className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex-shrink-0"
             />
-            <div>
-              <h1 className="text-lg md:text-2xl font-bold text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-lg md:text-2xl font-bold text-white flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 OrionTrace
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] md:text-xs">Coming Soon</Badge>
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[8px] sm:text-[10px] md:text-xs px-1.5 py-0.5">Coming</Badge>
               </h1>
-              <p className="text-xs md:text-sm text-gray-400 hidden sm:block">Network Agent</p>
-              <p className="text-[10px] md:text-xs text-gray-500 hidden lg:block">Visualize and manage your network topology</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-400 hidden sm:block">Network Agent</p>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
           <Link to={createPageUrl("AgentManager")} className="hidden sm:block">
-            <Button variant="outline" className="border-gray-700 text-sm">
-              <Activity className="w-4 h-4 md:mr-2" />
-              <span className="hidden md:inline">Manage Agents</span>
+            <Button variant="outline" className="border-gray-700 text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3">
+              <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-2" />
+              <span className="hidden md:inline">Manage</span>
             </Button>
           </Link>
           <Button
             variant="outline"
-            className="border-gray-700 text-sm"
+            className="border-gray-700 text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3"
             onClick={async () => {
               try {
                 const org = await base44.entities.Organization.filter({ id: organizationId });
@@ -733,8 +732,8 @@ export default function NetworkMapping() {
               }
             }}
           >
-            <Activity className="w-4 h-4 md:mr-2" />
-            <span className="hidden md:inline">Download Agent</span>
+            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-2" />
+            <span className="hidden md:inline">Download</span>
           </Button>
         </div>
       </div>
@@ -751,43 +750,42 @@ export default function NetworkMapping() {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-3 md:px-6 py-2 md:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
-        <div className="flex items-center gap-2 md:gap-4 flex-wrap w-full sm:w-auto">
+      <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-2.5 sm:px-4 md:px-6 py-2.5 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 sm:justify-between overflow-x-auto">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap w-full sm:w-auto min-w-0">
           {selectedAgent && (
             <>
-              <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700">
-                <div className={`w-2 h-2 rounded-full ${
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-gray-800/50 rounded-lg border border-gray-700 min-w-0">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   selectedAgent.status === 'online' || selectedAgent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
                   selectedAgent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
                   selectedAgent.status === 'error' ? 'bg-red-400 animate-pulse' :
                   'bg-red-400'
                 }`} />
-                <div>
-                  <p className="text-xs md:text-sm font-medium text-white">{selectedAgent.name}</p>
-                  <p className="text-[10px] md:text-xs text-gray-400">{selectedAgent.status}</p>
+                <div className="min-w-0">
+                  <p className="text-[11px] sm:text-xs md:text-sm font-medium text-white truncate">{selectedAgent.name}</p>
+                  <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-400">{selectedAgent.status}</p>
                 </div>
               </div>
               <Button
                 variant="outline"
                 onClick={() => setSelectedAgent(null)}
-                className="border-gray-700 text-xs md:text-sm"
+                className="border-gray-700 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
               >
                 Change
               </Button>
             </>
           )}
-          <div className="flex gap-1.5 md:gap-2 flex-wrap">
+          <div className="flex gap-1 sm:gap-1.5 md:gap-2 flex-wrap">
             {selectedAgent && supabaseClient && (
               <>
                 {isScanning ? (
                 <Button 
                   onClick={stopScan} 
                   variant="outline"
-                  size="sm"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-xs"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
                 >
-                  <X className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                  <span className="hidden md:inline">Stop Scan</span>
+                  <X className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
+                  <span className="hidden md:inline">Stop</span>
                 </Button>
               ) : (
                 <Button 
@@ -797,11 +795,10 @@ export default function NetworkMapping() {
                     startScan('', '');
                   }} 
                   variant="outline"
-                  size="sm"
-                  className="border-green-500 text-green-400 hover:bg-green-500/10 text-xs"
+                  className="border-green-500 text-green-400 hover:bg-green-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
                 >
-                  <RefreshCw className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                  <span className="hidden md:inline">Scan Network</span>
+                  <RefreshCw className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
+                  <span className="hidden sm:inline">Scan</span>
                 </Button>
               )}
               
@@ -809,10 +806,9 @@ export default function NetworkMapping() {
                 <Button 
                   onClick={() => deleteDeviceMutation.mutate(selectedDevice.id)}
                   variant="outline"
-                  size="sm"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-xs"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
                 >
-                  <Trash2 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <Trash2 className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
                   <span className="hidden md:inline">Remove</span>
                 </Button>
               )}
@@ -822,11 +818,10 @@ export default function NetworkMapping() {
                   onClick={handlePingDevices}
                   disabled={isPinging}
                   variant="outline"
-                  size="sm"
-                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10 text-xs"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
                 >
-                  <Activity className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                  <span className="hidden sm:inline">{isPinging ? 'Pinging...' : `Ping (${selectedDevices.size})`}</span>
+                  <Activity className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
+                  <span className="hidden sm:inline">{isPinging ? 'Ping' : `Ping (${selectedDevices.size})`}</span>
                   <span className="sm:hidden">{selectedDevices.size}</span>
                 </Button>
               )}
@@ -835,11 +830,10 @@ export default function NetworkMapping() {
                 <Button 
                   onClick={handleClearAllDevices}
                   variant="outline"
-                  size="sm"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-xs"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
                 >
-                  <Eraser className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                  <span className="hidden md:inline">Clear All</span>
+                  <Eraser className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
+                  <span className="hidden sm:inline">Clear</span>
                 </Button>
                 )}
                 </>
