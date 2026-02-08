@@ -79,7 +79,12 @@ export default function NetworkMapping() {
 
   // Fetch devices and networks
   // Use Supabase Realtime for auto-updates instead of polling
-  const { devices = [], isLoading, refresh: refreshDevices } = useSupabaseDevices(organizationId, selectedAgent?.agent_id, supabaseClient);
+  // When no agent selected, fetch all devices; when agent selected, fetch only that agent's devices
+  const { devices = [], isLoading, refresh: refreshDevices } = useSupabaseDevices(
+    organizationId, 
+    selectedAgent?.agent_id || 'all', 
+    supabaseClient
+  );
 
   // Debug: Log when devices array changes
   useEffect(() => {
