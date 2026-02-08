@@ -260,77 +260,84 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-950">
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="bg-gray-900 border-b border-gray-800 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Link to={createPageUrl("AVCanvas")}>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-                <ChevronLeft className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-9 w-9 flex-shrink-0">
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Settings</h1>
-              <p className="text-sm text-gray-400">Configure your organization and canvas preferences</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white truncate">Settings</h1>
+              <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">Configure your organization and canvas preferences</p>
             </div>
           </div>
           {canEdit && (
             <Button 
               onClick={() => saveMutation.mutate(form)}
               disabled={saveMutation.isPending}
-              className={saved ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+              className={`${saved ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"} text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 flex-shrink-0`}
             >
               {saveMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
               ) : saved ? (
-                <Check className="w-4 h-4 mr-2" />
+                <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               ) : (
-                <Save className="w-4 h-4 mr-2" />
+                <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               )}
-              {saved ? 'Saved!' : 'Save Changes'}
+              <span className="hidden sm:inline">{saved ? 'Saved!' : 'Save Changes'}</span>
+              <span className="sm:hidden">{saved ? 'Saved!' : 'Save'}</span>
             </Button>
           )}
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto p-6">
-        <Tabs defaultValue="organization" className="space-y-6">
-          <TabsList className="bg-gray-800 border border-gray-700">
-            <TabsTrigger value="organization" className="data-[state=active]:bg-gray-700">
-              <Building2 className="w-4 h-4 mr-2" />
-              Organization
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="data-[state=active]:bg-gray-700">
-              <Palette className="w-4 h-4 mr-2" />
-              Appearance
-            </TabsTrigger>
-            <TabsTrigger value="canvas" className="data-[state=active]:bg-gray-700">
-              <Layout className="w-4 h-4 mr-2" />
-              Canvas
-            </TabsTrigger>
-            {canViewAdvanced && (
-              <>
-                <TabsTrigger value="fields" className="data-[state=active]:bg-gray-700">
-                  <Database className="w-4 h-4 mr-2" />
-                  Custom Fields
-                </TabsTrigger>
-                <TabsTrigger value="export" className="data-[state=active]:bg-gray-700">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Export
-                </TabsTrigger>
-              </>
-            )}
-            <TabsTrigger value="billing" className="data-[state=active]:bg-gray-700">
-              <CreditCard className="w-4 h-4 mr-2" />
-              Billing
-            </TabsTrigger>
-          </TabsList>
+      <div className="max-w-5xl mx-auto p-3 sm:p-6">
+        <Tabs defaultValue="organization" className="space-y-4 sm:space-y-6">
+           <TabsList className="bg-gray-800 border border-gray-700 flex-wrap h-auto gap-1 p-1">
+             <TabsTrigger value="organization" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm px-2 sm:px-4 py-2">
+               <Building2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+               <span className="hidden sm:inline">Organization</span>
+               <span className="sm:hidden">Org</span>
+             </TabsTrigger>
+             <TabsTrigger value="appearance" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm px-2 sm:px-4 py-2">
+               <Palette className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+               <span className="hidden sm:inline">Appearance</span>
+               <span className="sm:hidden">Look</span>
+             </TabsTrigger>
+             <TabsTrigger value="canvas" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm px-2 sm:px-4 py-2">
+               <Layout className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+               <span className="hidden sm:inline">Canvas</span>
+               <span className="sm:hidden">Canvas</span>
+             </TabsTrigger>
+             {canViewAdvanced && (
+               <>
+                 <TabsTrigger value="fields" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm px-2 sm:px-4 py-2">
+                   <Database className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                   <span className="hidden sm:inline">Custom Fields</span>
+                   <span className="sm:hidden">Fields</span>
+                 </TabsTrigger>
+                 <TabsTrigger value="export" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm px-2 sm:px-4 py-2">
+                   <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                   <span className="hidden sm:inline">Export</span>
+                   <span className="sm:hidden">Exp</span>
+                 </TabsTrigger>
+               </>
+             )}
+             <TabsTrigger value="billing" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm px-2 sm:px-4 py-2">
+               <CreditCard className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+               <span className="hidden sm:inline">Billing</span>
+               <span className="sm:hidden">Bill</span>
+             </TabsTrigger>
+           </TabsList>
 
           {/* Organization Tab */}
-          <TabsContent value="organization" className="space-y-6">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+          <TabsContent value="organization" className="space-y-4 sm:space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-6">
               <h3 className="text-lg font-semibold text-white">Organization Details</h3>
               
-              <div className="grid gap-6">
+              <div className="grid gap-4 sm:gap-6">
                 <div>
                   <Label className="text-gray-300">Organization Name</Label>
                   <Input
