@@ -472,22 +472,35 @@ export default function NetworkMapping() {
           const online = targets.filter(r => r.reachable).length;
           toast.success(`Ping complete: ${online}/${targets.length} devices online`);
           
+          console.log('📝 Updating device statuses:', targets);
+          console.log('📋 Available devices:', devices.length);
+          
           // Update device statuses in Supabase
           const updatePromises = targets.map(target => {
+            console.log('🔍 Looking for device with IP:', target.ip, 'Reachable:', target.reachable);
             const device = devices.find(d => d.ip_address === target.ip);
+            console.log('✅ Found device:', device?.id, device?.name);
             if (device) {
+              const newStatus = target.reachable ? 'online' : 'offline';
+              console.log('💾 Updating device', device.id, 'to status:', newStatus);
               return supabaseClient
                 .from('devices')
                 .update({ 
-                  status: target.reachable ? 'online' : 'offline',
+                  status: newStatus,
                   updated_date: new Date().toISOString()
                 })
-                .eq('id', device.id);
+                .eq('id', device.id)
+                .then(result => {
+                  console.log('✅ Update result:', result);
+                  return result;
+                });
             }
+            console.log('❌ No device found for IP:', target.ip);
             return Promise.resolve();
           });
 
           await Promise.all(updatePromises);
+          console.log('✅ All device updates complete');
           setIsPinging(false);
         } catch (error) {
           console.error('Failed to process ping result:', error);
