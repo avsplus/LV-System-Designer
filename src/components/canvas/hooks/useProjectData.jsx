@@ -236,7 +236,10 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       name: roomName,
       floorplanId: floorplanId
     };
+    
+    // Optimistic update
     setRooms(prev => [...prev, newRoom]);
+    
     if (currentProject?.id) {
       trackActivity(ActivityActions.ADDED_ROOM, currentProject.id, currentProject.name, { room_name: roomName });
     }
