@@ -2240,7 +2240,7 @@ function AVCanvasContent() {
                 </div>
               )}
               
-              <div className="flex items-center gap-0.5 md:gap-1 bg-gray-800 border border-gray-700 rounded-lg px-1 md:px-2 py-1">
+              <div className="hidden md:flex items-center gap-0.5 md:gap-1 bg-gray-800 border border-gray-700 rounded-lg px-1 md:px-2 py-1">
                 <Button size="icon" variant="ghost" onClick={handleZoomOut} className="h-8 w-8 md:h-7 md:w-7 text-gray-300 hover:text-white">
                   <ZoomOut className="w-4 h-4" />
                 </Button>
