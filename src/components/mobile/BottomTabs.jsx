@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { Layout, Zap, Library, User } from 'lucide-react';
@@ -7,6 +7,15 @@ import { useLocation } from 'react-router-dom';
 export default function BottomTabs() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [tabStates, setTabStates] = useState(() => {
+    const savedStates = localStorage.getItem('bottomTabsStates');
+    return savedStates ? JSON.parse(savedStates) : {
+      AVCanvas: '/',
+      NetworkMapping: '/',
+      DeviceManager: '/',
+      Settings: '/'
+    };
+  });
 
   const tabs = [
     { name: 'Canvas', icon: Layout, path: 'AVCanvas' },
@@ -15,10 +24,25 @@ export default function BottomTabs() {
     { name: 'Account', icon: User, path: 'Settings' },
   ];
 
+  // Store tab state when navigating
+  useEffect(() => {
+    const currentTab = tabs.find(tab => currentPath.includes(tab.path));
+    if (currentTab) {
+      const newStates = { ...tabStates, [currentTab.path]: currentPath };
+      setTabStates(newStates);
+      localStorage.setItem('bottomTabsStates', JSON.stringify(newStates));
+    }
+  }, [currentPath]);
+
   const isActive = (path) => currentPath.includes(path);
+  
+  // Get correct path for tab - either current path if active, or stored state
+  const getTabPath = (path) => {
+    return isActive(path) ? currentPath : (tabStates[path] || createPageUrl(path));
+  };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40 safe-area-bottom hidden sm:block md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40 safe-area-bottom md:hidden">
       <div className="flex items-center justify-around h-16 px-2 pb-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
