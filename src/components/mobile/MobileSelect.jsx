@@ -12,7 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useMediaQuery } from './useMediaQuery';
 
 /**
  * MobileSelect: Uses bottom-sheet drawer on mobile, standard select on desktop
