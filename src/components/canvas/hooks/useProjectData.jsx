@@ -290,12 +290,17 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
   }, [currentProject, canvasProducts, rooms]);
 
   const handlePositionChange = useCallback((instanceId, newPosition) => {
-    setCanvasProducts(prev => prev.map(cp => 
+    // Optimistic update - immediately update UI
+    const oldProducts = canvasProducts;
+    const newProducts = canvasProducts.map(cp => 
       cp.instanceId === instanceId 
         ? ensureNetworkInfo({ ...cp, position: newPosition })
         : ensureNetworkInfo(cp)
-    ));
-  }, []);
+    );
+    setCanvasProducts(newProducts);
+
+    // Auto-save will handle the database update (100ms debounce)
+  }, [canvasProducts]);
 
   const handleNetworkInfoChange = useCallback((instanceId, networkInfo) => {
     setCanvasProducts(prev => prev.map(cp => 
