@@ -739,12 +739,12 @@ export default function NetworkMapping() {
       </div>
 
       {/* Warning Banner */}
-      <div className="bg-yellow-500/10 border-y border-yellow-500/30 px-6 py-3">
-        <div className="flex items-center gap-3 text-yellow-400">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium">Tool Under Active Development</p>
-            <p className="text-xs text-yellow-400/80">This feature is currently being developed and may not work as intended. Some features may be incomplete or unstable.</p>
+      <div className="bg-yellow-500/10 border-y border-yellow-500/30 px-3 sm:px-6 py-2 sm:py-3">
+        <div className="flex items-start sm:items-center gap-2 sm:gap-3 text-yellow-400">
+          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 sm:mt-0" />
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-medium">Tool Under Active Development</p>
+            <p className="text-[10px] sm:text-xs text-yellow-400/80">This feature is currently being developed and may not work as intended. Some features may be incomplete or unstable.</p>
           </div>
         </div>
       </div>
@@ -846,7 +846,7 @@ export default function NetworkMapping() {
       <AgentHealthAlerts agents={agents} />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-6 relative">
+      <div className="flex-1 overflow-auto p-3 sm:p-6 relative">
         {/* Health Panel Sidebar */}
         {showHealthPanel && selectedAgent && (
           <div className="absolute top-6 right-6 w-80 bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-2xl z-10">
@@ -1249,7 +1249,7 @@ export default function NetworkMapping() {
                             {device.status}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm">
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-400 text-[10px] sm:text-xs hidden lg:table-cell">
                           {(() => {
                             let ports = device.open_ports;
                             if (typeof ports === 'string') {
@@ -1261,15 +1261,15 @@ export default function NetworkMapping() {
                             }
                             if (Array.isArray(ports) && ports.length > 0) {
                               return (
-                                <div className="flex flex-wrap gap-1">
-                                  {ports.slice(0, 3).map((port, idx) => (
-                                    <Badge key={idx} variant="outline" className="text-xs border-gray-700 text-gray-400">
+                                <div className="flex flex-wrap gap-0.5">
+                                  {ports.slice(0, 2).map((port, idx) => (
+                                    <Badge key={idx} variant="outline" className="text-[9px] border-gray-700 text-gray-400">
                                       {port}
                                     </Badge>
                                   ))}
-                                  {ports.length > 3 && (
-                                    <Badge variant="outline" className="text-xs border-gray-700 text-gray-500">
-                                      +{ports.length - 3}
+                                  {ports.length > 2 && (
+                                    <Badge variant="outline" className="text-[9px] border-gray-700 text-gray-500">
+                                      +{ports.length - 2}
                                     </Badge>
                                   )}
                                 </div>
@@ -1278,18 +1278,17 @@ export default function NetworkMapping() {
                             return '-';
                           })()}
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-right">
                           <Button
-                            size="sm"
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
                               toast.info('Link device to floorplan - coming soon');
                             }}
-                            className="border-cyan-500 text-cyan-400 hover:bg-cyan-500/10"
+                            className="border-cyan-500 text-cyan-400 hover:bg-cyan-500/10 text-[10px] sm:text-xs h-8 sm:h-9 px-1.5 sm:px-2"
                           >
-                            <Link2 className="w-4 h-4 mr-2" />
-                            Link
+                            <Link2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Link</span>
                           </Button>
                         </td>
                       </tr>
