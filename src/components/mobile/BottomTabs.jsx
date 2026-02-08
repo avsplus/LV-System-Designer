@@ -18,8 +18,8 @@ export default function BottomTabs() {
   const isActive = (path) => currentPath.includes(path);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40 safe-area-bottom">
-      <div className="flex items-center justify-around h-16 px-2 pb-2 sm:pb-0">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40 safe-area-bottom hidden sm:block md:hidden">
+      <div className="flex items-center justify-around h-16 px-2 pb-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const active = isActive(tab.path);
