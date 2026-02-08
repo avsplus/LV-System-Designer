@@ -93,53 +93,54 @@ export default function Home() {
               className="h-10 w-auto"
             />
           </div>
-          <div className="flex items-center gap-4">
-            <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
-            <a href="#pricing" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Pricing</a>
-            <Button onClick={handleGetStarted} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800">
+          <div className="flex items-center gap-2 md:gap-4">
+            <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden md:block text-sm">Features</a>
+            <a href="#pricing" className="text-gray-400 hover:text-white transition-colors hidden md:block text-sm">Pricing</a>
+            <Button onClick={handleGetStarted} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800 text-sm px-3 hidden sm:inline-flex">
               Sign In
             </Button>
-            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
-              Start Free Trial
-              <ArrowRight className="w-4 h-4 ml-2" />
+            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700 text-sm px-4">
+              <span className="hidden sm:inline">Start Free Trial</span>
+              <span className="sm:hidden">Start Free</span>
+              <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2" />
             </Button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 mb-6">
+          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 mb-4 md:mb-6 text-xs">
             <Sparkles className="w-3 h-3 mr-1" />
             Professional AV Design Tool
           </Badge>
           
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent leading-tight">
             Professional AV<br />System Design Software
           </h1>
           
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+          <p className="text-base md:text-xl text-gray-400 max-w-2xl mx-auto mb-8 md:mb-10 px-4">
             Built for AV integrators, system designers, and low voltage installation professionals. 
             Design, document, and deliver stunning AV systems with drag-and-drop simplicity.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
             <Button 
               size="lg" 
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-base md:text-lg px-6 md:px-8 py-5 md:py-6"
             >
               Start Designing Free
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="border-gray-700 text-gray-300 hover:bg-gray-800 text-lg px-8 py-6"
+              className="border-gray-700 text-gray-300 hover:bg-gray-800 text-base md:text-lg px-6 md:px-8 py-5 md:py-6"
               onClick={() => setShowTutorials(true)}
             >
-              <Play className="w-5 h-5 mr-2" />
+              <Play className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               See How It Works
             </Button>
           </div>
@@ -167,16 +168,16 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-6 bg-gray-900/50">
+      <section id="features" className="py-12 md:py-20 px-4 md:px-6 bg-gray-900/50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Everything You Need</h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <div className="text-center mb-10 md:mb-16">
+            <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">Everything You Need</h2>
+            <p className="text-gray-400 text-sm md:text-lg max-w-2xl mx-auto px-4">
               Powerful features designed specifically for AV professionals and integrators.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {FEATURES.map((feature, i) => (
               <div 
                 key={i}
@@ -194,14 +195,14 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-6">
+      <section className="py-12 md:py-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
-              <h2 className="text-4xl font-bold mb-6">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">
                 Save Hours on Every Project
               </h2>
-              <p className="text-gray-400 text-lg mb-8">
+              <p className="text-gray-400 text-base md:text-lg mb-6 md:mb-8">
                 Stop wrestling with generic drawing tools. AV System Design is purpose-built 
                 for audio-visual professionals, with device libraries, smart connections, 
                 and instant documentation.
@@ -246,14 +247,14 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6 bg-gray-900/50">
+      <section id="pricing" className="py-12 md:py-20 px-4 md:px-6 bg-gray-900/50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-gray-400 text-lg">Start free, upgrade when you need more.</p>
+          <div className="text-center mb-10 md:mb-16">
+            <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-gray-400 text-sm md:text-lg">Start free, upgrade when you need more.</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
             {PLANS.map((plan, i) => (
               <div 
                 key={i}
@@ -297,20 +298,20 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6">
+      <section className="py-12 md:py-20 px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-12">
-            <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Workflow?</h2>
-            <p className="text-gray-400 text-lg mb-8">
+          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-6 md:p-12">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">Ready to Transform Your Workflow?</h2>
+            <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8">
               Join AV professionals who are designing better systems, faster.
             </p>
             <Button 
               size="lg"
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-base md:text-lg px-6 md:px-8 py-5 md:py-6"
             >
               Start Your Free Account
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
             </Button>
           </div>
         </div>

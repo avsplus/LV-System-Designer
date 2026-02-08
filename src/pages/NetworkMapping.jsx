@@ -685,40 +685,40 @@ export default function NetworkMapping() {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       {/* Header */}
-      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 md:gap-4">
           <Link to={createPageUrl("AVCanvas")}>
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-              <ChevronLeft className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8 md:h-10 md:w-10">
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/654057aa4_AVSystemDesign-NetAgentIcon.png" 
               alt="OrionTrace" 
-              className="w-12 h-12"
+              className="w-8 h-8 md:w-12 md:h-12"
             />
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-lg md:text-2xl font-bold text-white flex items-center gap-2">
                 OrionTrace
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Coming Soon</Badge>
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] md:text-xs">Coming Soon</Badge>
               </h1>
-              <p className="text-sm text-gray-400">Network Agent</p>
-              <p className="text-xs text-gray-500">Visualize and manage your network topology</p>
+              <p className="text-xs md:text-sm text-gray-400 hidden sm:block">Network Agent</p>
+              <p className="text-[10px] md:text-xs text-gray-500 hidden lg:block">Visualize and manage your network topology</p>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Link to={createPageUrl("AgentManager")}>
-            <Button variant="outline" className="border-gray-700">
-              <Activity className="w-4 h-4 mr-2" />
-              Manage Agents
+        <div className="flex items-center gap-2 md:gap-3">
+          <Link to={createPageUrl("AgentManager")} className="hidden sm:block">
+            <Button variant="outline" className="border-gray-700 text-sm">
+              <Activity className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Manage Agents</span>
             </Button>
           </Link>
           <Button
             variant="outline"
-            className="border-gray-700"
+            className="border-gray-700 text-sm"
             onClick={async () => {
               try {
                 const org = await base44.entities.Organization.filter({ id: organizationId });
@@ -733,8 +733,8 @@ export default function NetworkMapping() {
               }
             }}
           >
-            <Activity className="w-4 h-4 mr-2" />
-            Download Agent
+            <Activity className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Download Agent</span>
           </Button>
         </div>
       </div>
@@ -751,11 +751,11 @@ export default function NetworkMapping() {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="bg-gray-900/60 backdrop-blur-sm border-b border-gray-800 px-3 md:px-6 py-2 md:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
+        <div className="flex items-center gap-2 md:gap-4 flex-wrap w-full sm:w-auto">
           {selectedAgent && (
             <>
-              <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700">
                 <div className={`w-2 h-2 rounded-full ${
                   selectedAgent.status === 'online' || selectedAgent.status === 'registered' ? 'bg-green-400 animate-pulse' : 
                   selectedAgent.status === 'scanning' ? 'bg-blue-400 animate-pulse' :
@@ -763,30 +763,31 @@ export default function NetworkMapping() {
                   'bg-red-400'
                 }`} />
                 <div>
-                  <p className="text-sm font-medium text-white">{selectedAgent.name}</p>
-                  <p className="text-xs text-gray-400">{selectedAgent.status}</p>
+                  <p className="text-xs md:text-sm font-medium text-white">{selectedAgent.name}</p>
+                  <p className="text-[10px] md:text-xs text-gray-400">{selectedAgent.status}</p>
                 </div>
               </div>
               <Button
                 variant="outline"
                 onClick={() => setSelectedAgent(null)}
-                className="border-gray-700"
+                className="border-gray-700 text-xs md:text-sm"
               >
-                Change Agent
+                Change
               </Button>
             </>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 md:gap-2 flex-wrap">
             {selectedAgent && supabaseClient && (
               <>
                 {isScanning ? (
                 <Button 
                   onClick={stopScan} 
                   variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                  size="sm"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-xs"
                 >
-                  <X className="w-4 h-4 mr-2" />
-                  Stop Scan
+                  <X className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <span className="hidden md:inline">Stop Scan</span>
                 </Button>
               ) : (
                 <Button 
@@ -796,10 +797,11 @@ export default function NetworkMapping() {
                     startScan('', '');
                   }} 
                   variant="outline"
-                  className="border-green-500 text-green-400 hover:bg-green-500/10"
+                  size="sm"
+                  className="border-green-500 text-green-400 hover:bg-green-500/10 text-xs"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Scan Network
+                  <RefreshCw className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <span className="hidden md:inline">Scan Network</span>
                 </Button>
               )}
               
@@ -807,10 +809,11 @@ export default function NetworkMapping() {
                 <Button 
                   onClick={() => deleteDeviceMutation.mutate(selectedDevice.id)}
                   variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                  size="sm"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-xs"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Remove Device
+                  <Trash2 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <span className="hidden md:inline">Remove</span>
                 </Button>
               )}
               
@@ -819,10 +822,12 @@ export default function NetworkMapping() {
                   onClick={handlePingDevices}
                   disabled={isPinging}
                   variant="outline"
-                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                  size="sm"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10 text-xs"
                 >
-                  <Activity className="w-4 h-4 mr-2" />
-                  {isPinging ? 'Pinging...' : `Ping Selected (${selectedDevices.size})`}
+                  <Activity className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <span className="hidden sm:inline">{isPinging ? 'Pinging...' : `Ping (${selectedDevices.size})`}</span>
+                  <span className="sm:hidden">{selectedDevices.size}</span>
                 </Button>
               )}
               
@@ -830,10 +835,11 @@ export default function NetworkMapping() {
                 <Button 
                   onClick={handleClearAllDevices}
                   variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                  size="sm"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-xs"
                 >
-                  <Eraser className="w-4 h-4 mr-2" />
-                  Clear All
+                  <Eraser className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <span className="hidden md:inline">Clear All</span>
                 </Button>
                 )}
                 </>
@@ -874,17 +880,17 @@ export default function NetworkMapping() {
             </div>
             
             {agents.length === 0 ? (
-              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
-                <p className="text-gray-400 mb-4">No agents registered yet</p>
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 md:p-8 text-center">
+                <p className="text-sm md:text-base text-gray-400 mb-4">No agents registered yet</p>
                 <Link to={createPageUrl("AgentManager")}>
-                  <Button className="bg-cyan-600 hover:bg-cyan-700">
+                  <Button className="bg-cyan-600 hover:bg-cyan-700 text-sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Register Your First Agent
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 w-full max-w-6xl px-4">
                 {agents.map(agent => {
                   // Filter devices for this specific agent (by agent_id and organization_id)
                   const agentDevices = devices.filter(d => 
@@ -1056,15 +1062,15 @@ export default function NetworkMapping() {
             )}
           </div>
         ) : devices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <NetworkIcon className="w-16 h-16 mb-4 opacity-20" />
-            <p className="text-lg font-medium">No devices yet</p>
-            <p className="text-sm">Add devices manually or scan a network</p>
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 px-4">
+            <NetworkIcon className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4 opacity-20" />
+            <p className="text-base md:text-lg font-medium">No devices yet</p>
+            <p className="text-xs md:text-sm text-center">Add devices manually or scan a network</p>
           </div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mx-2 md:mx-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-gray-800/50 border-b border-gray-800">
                   <tr>
                     <th className="w-12 px-4 py-3">
