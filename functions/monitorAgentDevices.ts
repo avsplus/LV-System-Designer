@@ -79,11 +79,74 @@ Deno.serve(async (req) => {
         
         console.log(`✅ Ping command ${commandResult.command_id} sent for agent ${agent.agent_id}`);
         
+        // Wait for and process results (same as manual ping)
+        const commandId = commandResult.command_id;
+        const timeout = 30000; // 30 seconds
+        const startTime = Date.now();
+        let processed = false;
+        
+        while (Date.now() - startTime < timeout) {
+          // Check for results
+          const { data: pingResults } = await supabase
+            .from('agent_ping_results')
+            .select('*')
+            .eq('command_id', commandId)
+            .limit(1);
+          
+          if (pingResults && pingResults.length > 0) {
+            console.log('📥 Ping results received for agent', agent.agent_id);
+            
+            // Process results immediately
+            let result = pingResults[0].result;
+            if (typeof result === 'string') {
+              result = JSON.parse(result);
+            }
+            
+            // Handle different result formats
+            let pingTargets = [];
+            if (Array.isArray(result)) {
+              if (result.length === 1 && result[0]?.targets) {
+                pingTargets = result[0].targets;
+              } else {
+                pingTargets = result;
+              }
+            } else if (result?.targets) {
+              pingTargets = result.targets;
+            }
+            
+            console.log(`📦 Processing ${pingTargets.length} ping targets for agent ${agent.agent_id}`);
+            
+            // Update device statuses
+            for (const target of pingTargets) {
+              const device = devices?.find(d => d.ip_address === target.ip);
+              if (device) {
+                const newStatus = target.reachable ? 'online' : 'offline';
+                await supabase
+                  .from('devices')
+                  .update({ 
+                    status: newStatus,
+                    updated_date: new Date().toISOString()
+                  })
+                  .eq('id', device.id);
+                
+                console.log(`✅ Updated ${device.name} to ${newStatus}`);
+              }
+            }
+            
+            processed = true;
+            break;
+          }
+          
+          // Wait a bit before checking again
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
         results.push({
           agent_id: agent.agent_id,
           agent_name: agent.name,
           devices_targeted: targets.length,
           command_id: commandResult.command_id,
+          processed,
           success: true
         });
         
