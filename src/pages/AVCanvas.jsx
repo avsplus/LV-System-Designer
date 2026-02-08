@@ -2033,47 +2033,60 @@ function AVCanvasContent() {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex h-[100dvh] w-full bg-gray-950 overflow-hidden">
-        <div className={`transition-all duration-300 ease-in-out ${showSidebar ? 'w-auto' : 'w-0'} overflow-hidden`}>
-          {showSidebar && (
-            <ProductSidebar 
-              products={products} 
-              onProductSelect={(product) => {
-                setSelectedProduct(product);
-                setSelectedCanvasProduct(null);
-                setSelectedConnection(null);
-                setShowFloorplanManager(false);
-                setShowRoomManager(false);
-                setSelectedFloorplanId(null);
-                setPanelHistory(prev => {
-                  const filtered = prev.filter(p => p !== 'productDetails');
-                  return [...filtered.slice(-1), 'productDetails'];
-                });
-              }}
-            />
+        {/* Mobile overlay sidebar */}
+        <div className={`fixed md:relative inset-y-0 left-0 z-50 transition-transform duration-300 ${showSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${showSidebar ? 'w-full sm:w-96 md:w-auto' : 'md:w-0'}`}>
+          {(showSidebar || window.innerWidth >= 768) && (
+            <>
+              {/* Mobile backdrop */}
+              {showSidebar && (
+                <div 
+                  className="fixed inset-0 bg-black/60 md:hidden z-40"
+                  onClick={() => setShowSidebar(false)}
+                />
+              )}
+              <div className="relative z-50 h-full">
+                  <ProductSidebar 
+                products={products} 
+                onProductSelect={(product) => {
+                  setSelectedProduct(product);
+                  setSelectedCanvasProduct(null);
+                  setSelectedConnection(null);
+                  setShowFloorplanManager(false);
+                  setShowRoomManager(false);
+                  setSelectedFloorplanId(null);
+                  setPanelHistory(prev => {
+                    const filtered = prev.filter(p => p !== 'productDetails');
+                    return [...filtered.slice(-1), 'productDetails'];
+                  });
+                  setShowSidebar(false); // Close sidebar on mobile after selection
+                }}
+              />
+              </div>
+            </>
           )}
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 relative">
-          {/* Sidebar toggle button */}
+          {/* Sidebar toggle button - larger on mobile */}
           <button 
             onClick={() => setShowSidebar(!showSidebar)}
-            className={`absolute top-1/2 -translate-y-1/2 z-[60] h-[72px] w-[22px] bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white transition-all flex items-center justify-center ${
-              showSidebar ? 'left-0 rounded-l-none border-l-0 rounded-r-md' : 'left-0 rounded-r-md'
+            className={`fixed md:absolute top-4 md:top-1/2 md:-translate-y-1/2 z-[60] h-12 w-12 md:h-[72px] md:w-[22px] bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white transition-all flex items-center justify-center shadow-lg md:shadow-none rounded-lg md:rounded-r-md ${
+              showSidebar ? 'left-4 md:left-0 md:rounded-l-none md:border-l-0' : 'left-4 md:left-0'
             }`}
             title={showSidebar ? "Hide sidebar" : "Show sidebar"}
           >
-            {showSidebar ? <PanelLeftClose className="w-3 h-3" /> : <PanelLeftOpen className="w-3 h-3" />}
+            {showSidebar ? <PanelLeftClose className="w-4 h-4 md:w-3 md:h-3" /> : <PanelLeftOpen className="w-4 h-4 md:w-3 md:h-3" />}
           </button>
 
-          <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">AV System Design</h1>
-              <div className="flex items-center gap-3 mt-0.5">
-                <p className="text-sm text-gray-400">
+          <div className="bg-gray-900 border-b border-gray-800 px-3 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg md:text-2xl font-bold text-white truncate">AV System Design</h1>
+              <div className="flex items-center gap-2 md:gap-3 mt-0.5">
+                <p className="text-xs md:text-sm text-gray-400 truncate">
                   {currentProject ? (
                     <>Project: <span className="text-blue-400 font-medium">{currentProject.name}</span></>
                   ) : (
-                    'Drag products to canvas and create connections'
+                    <span className="hidden sm:inline">Drag products to canvas and create connections</span>
                   )}
                 </p>
                 <CollaboratorIndicator 
@@ -2082,13 +2095,13 @@ function AVCanvasContent() {
                 />
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 md:gap-2 flex-wrap self-end sm:self-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                    <FolderOpen className="w-4 h-4 mr-2" />
-                    Project
-                    <ChevronDown className="w-4 h-4 ml-2" />
+                  <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 text-xs md:text-sm">
+                    <FolderOpen className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                    <span className="hidden md:inline">Project</span>
+                    <ChevronDown className="w-3 h-3 md:w-4 md:h-4 md:ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
@@ -2164,7 +2177,8 @@ function AVCanvasContent() {
 
                   {currentProject && (
                     <Button 
-                      variant="outline" 
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
                         setShowFloorplanManager(true);
                         setShowRoomManager(false);
@@ -2173,18 +2187,18 @@ function AVCanvasContent() {
                         setSelectedConnection(null);
                         setSelectedFloorplanId(null);
                       }} 
-                      className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                      <Layers className="w-4 h-4 mr-2" />
-                      Floorplans
+                      className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 text-xs md:text-sm">
+                      <Layers className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                      <span className="hidden md:inline">Floorplans</span>
                     </Button>
                   )}
 
                   <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                  <Wrench className="w-4 h-4 mr-2" />
-                  Tools
-                  <ChevronDown className="w-4 h-4 ml-2" />
+                  <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500 text-xs md:text-sm">
+                  <Wrench className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                  <span className="hidden md:inline">Tools</span>
+                  <ChevronDown className="w-3 h-3 md:w-4 md:h-4 md:ml-2" />
                   </Button>
                   </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-800 border-gray-700">
@@ -2226,17 +2240,17 @@ function AVCanvasContent() {
                 </div>
               )}
               
-              <div className="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1">
-                <Button size="icon" variant="ghost" onClick={handleZoomOut} className="h-7 w-7 text-gray-300 hover:text-white">
+              <div className="flex items-center gap-0.5 md:gap-1 bg-gray-800 border border-gray-700 rounded-lg px-1 md:px-2 py-1">
+                <Button size="icon" variant="ghost" onClick={handleZoomOut} className="h-8 w-8 md:h-7 md:w-7 text-gray-300 hover:text-white">
                   <ZoomOut className="w-4 h-4" />
                 </Button>
-                <span className="text-sm text-gray-400 min-w-[3rem] text-center">
+                <span className="text-xs md:text-sm text-gray-400 min-w-[2.5rem] md:min-w-[3rem] text-center">
                   {Math.round(zoom * 100)}%
                 </span>
-                <Button size="icon" variant="ghost" onClick={handleZoomIn} className="h-7 w-7 text-gray-300 hover:text-white">
+                <Button size="icon" variant="ghost" onClick={handleZoomIn} className="h-8 w-8 md:h-7 md:w-7 text-gray-300 hover:text-white">
                   <ZoomIn className="w-4 h-4" />
                 </Button>
-                <Button size="icon" variant="ghost" onClick={handleZoomReset} className="h-7 w-7 text-gray-300 hover:text-white">
+                <Button size="icon" variant="ghost" onClick={handleZoomReset} className="h-8 w-8 md:h-7 md:w-7 text-gray-300 hover:text-white">
                   <Maximize2 className="w-3 h-3" />
                 </Button>
               </div>
@@ -2244,23 +2258,23 @@ function AVCanvasContent() {
 
 
 
-              <Link to={createPageUrl("Settings")}>
-                <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                  <Settings className="w-4 h-4" />
+              <Link to={createPageUrl("Settings")} className="hidden sm:block">
+                <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                  <Settings className="w-3 h-3 md:w-4 md:h-4" />
                 </Button>
               </Link>
               
               {isAtLeast(ROLES.ADMINISTRATOR) && (
-                <Link to={createPageUrl("Admin")}>
-                  <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                    <Users className="w-4 h-4" />
+                <Link to={createPageUrl("Admin")} className="hidden sm:block">
+                  <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                    <Users className="w-3 h-3 md:w-4 md:h-4" />
                   </Button>
                 </Link>
               )}
               
               <Link to={createPageUrl("account")}>
-                <Button variant="outline" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                  <User className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
+                  <User className="w-3 h-3 md:w-4 md:h-4" />
                 </Button>
               </Link>
             </div>
