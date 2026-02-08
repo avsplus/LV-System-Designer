@@ -79,7 +79,7 @@ export default function NetworkMapping() {
 
   // Fetch devices and networks
   // Use Supabase Realtime for auto-updates instead of polling
-  const { devices = [], isLoading } = useSupabaseDevices(organizationId, selectedAgent?.agent_id, supabaseClient);
+  const { devices = [], isLoading, refresh: refreshDevices } = useSupabaseDevices(organizationId, selectedAgent?.agent_id, supabaseClient);
 
   const { data: networks = [] } = useQuery({
     queryKey: ['networks', organizationId],
@@ -502,8 +502,10 @@ export default function NetworkMapping() {
           await Promise.all(updatePromises);
           console.log('✅ All device updates complete');
           
-          // Force refresh devices query to reflect status changes immediately
-          queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+          // Force refresh devices to reflect status changes immediately
+          if (refreshDevices) {
+            await refreshDevices();
+          }
           
           setIsPinging(false);
         } catch (error) {

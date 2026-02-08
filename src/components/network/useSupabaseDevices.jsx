@@ -97,5 +97,29 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
         };
         }, [organizationId, agentId, supabaseClient]);
 
-  return { devices, isLoading, error };
+  const refresh = async () => {
+    if (!supabaseClient || !organizationId) return;
+    
+    try {
+      let query = supabaseClient
+        .from('devices')
+        .select('*')
+        .eq('organization_id', organizationId);
+      
+      if (agentId) {
+        query = query.eq('agent_id', agentId);
+      }
+      
+      const { data, error: fetchError } = await query
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+      setDevices(data ?? []);
+    } catch (err) {
+      console.error('Failed to refresh devices:', err);
+      setError(err);
+    }
+  };
+
+  return { devices, isLoading, error, refresh };
 }
