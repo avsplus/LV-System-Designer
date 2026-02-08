@@ -88,6 +88,70 @@ Deno.serve(async (req) => {
           });
           
           console.log('📡 Immediate ping triggered:', commandResult?.command_id);
+          
+          // Subscribe to results and process immediately (like manual ping does)
+          if (commandResult?.command_id) {
+            const commandId = commandResult.command_id;
+            
+            // Wait for results with timeout
+            const timeout = 30000; // 30 seconds
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < timeout) {
+              // Check for results
+              const { data: pingResults } = await supabase
+                .from('agent_ping_results')
+                .select('*')
+                .eq('command_id', commandId)
+                .limit(1);
+              
+              if (pingResults && pingResults.length > 0) {
+                console.log('📥 Ping results received');
+                
+                // Process results immediately
+                let result = pingResults[0].result;
+                if (typeof result === 'string') {
+                  result = JSON.parse(result);
+                }
+                
+                // Handle different result formats
+                let pingTargets = [];
+                if (Array.isArray(result)) {
+                  if (result.length === 1 && result[0]?.targets) {
+                    pingTargets = result[0].targets;
+                  } else {
+                    pingTargets = result;
+                  }
+                } else if (result?.targets) {
+                  pingTargets = result.targets;
+                }
+                
+                console.log(`📦 Processing ${pingTargets.length} ping targets`);
+                
+                // Update device statuses
+                for (const target of pingTargets) {
+                  const device = agentDevices?.find(d => d.ip_address === target.ip);
+                  if (device) {
+                    const newStatus = target.reachable ? 'online' : 'offline';
+                    await supabase
+                      .from('devices')
+                      .update({ 
+                        status: newStatus,
+                        updated_date: new Date().toISOString()
+                      })
+                      .eq('id', device.id);
+                    
+                    console.log(`✅ Updated ${device.name} to ${newStatus}`);
+                  }
+                }
+                
+                break;
+              }
+              
+              // Wait a bit before checking again
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
         } else {
           console.log('⚠️ No devices with IP addresses found to ping');
         }
