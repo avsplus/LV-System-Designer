@@ -500,12 +500,7 @@ export default function NetworkMapping() {
           });
 
           await Promise.all(updatePromises);
-          console.log('✅ All device updates complete');
-          
-          // Force refresh devices to reflect status changes immediately
-          if (refreshDevices) {
-            await refreshDevices();
-          }
+          console.log('✅ All device updates complete - Realtime should auto-update UI');
           
           setIsPinging(false);
         } catch (error) {

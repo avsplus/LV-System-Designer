@@ -66,26 +66,35 @@ export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
         (payload) => {
           if (!mounted) return;
 
-          console.log('Device change received:', payload.eventType, payload);
+          console.log('🔔 Device Realtime event:', payload.eventType, payload.new);
 
           setDevices((prev) => {
             if (payload.eventType === 'INSERT') {
+              console.log('➕ Adding device:', payload.new.name);
               return [...prev, payload.new];
             }
             if (payload.eventType === 'UPDATE') {
+              console.log('🔄 Updating device:', payload.new.name, 'Status:', payload.new.status);
               return prev.map(d =>
                 d.id === payload.new.id ? payload.new : d
               );
             }
             if (payload.eventType === 'DELETE') {
+              console.log('➖ Deleting device:', payload.old.id);
               return prev.filter(d => d.id !== payload.old.id);
             }
             return prev;
           });
         }
       )
-      .subscribe((status) => {
-        console.log('Devices subscription status:', status);
+      .subscribe((status, err) => {
+        console.log('🔔 Devices Realtime subscription status:', status);
+        if (err) {
+          console.error('❌ Devices subscription error:', err);
+        }
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to devices changes');
+        }
       });
 
     // 3. Cleanup
