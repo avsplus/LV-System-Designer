@@ -501,6 +501,10 @@ export default function NetworkMapping() {
 
           await Promise.all(updatePromises);
           console.log('✅ All device updates complete');
+          
+          // Force refresh devices query to reflect status changes immediately
+          queryClient.invalidateQueries({ queryKey: ['networkDevices'] });
+          
           setIsPinging(false);
         } catch (error) {
           console.error('Failed to process ping result:', error);
