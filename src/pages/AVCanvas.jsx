@@ -2910,7 +2910,7 @@ function AVCanvasContent() {
                           onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
-                            if (activeTool === 'select' && !ann.locked) {
+                            if (activeTool === 'select' && !ann.locked && !isMobile) {
                               e.stopPropagation();
                               setSelectedAnnotation(idx);
                               setSelectedProduct(null);
@@ -2923,6 +2923,12 @@ function AVCanvasContent() {
                               handleSymbolAnnotationDragStart(e, idx);
                             }
                           }}
+                          onTouchStart={(e) => {
+                            if (activeTool === 'select' && !ann.locked) {
+                              handleAnnotationTouchStart(e, idx);
+                            }
+                          }}
+                          onTouchEnd={handleAnnotationTouchEnd}
                         >
                           <SymbolRenderer 
                             symbolId={ann.symbolId} 
@@ -2952,7 +2958,7 @@ function AVCanvasContent() {
                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
-                          if (activeTool === 'select' && !ann.locked) {
+                          if (activeTool === 'select' && !ann.locked && !isMobile) {
                             e.stopPropagation();
                             setSelectedAnnotation(idx);
                             setSelectedProduct(null);
@@ -2966,6 +2972,12 @@ function AVCanvasContent() {
                             handleSymbolAnnotationDragStart(e, idx);
                           }
                          }}
+                         onTouchStart={(e) => {
+                           if (activeTool === 'select' && !ann.locked) {
+                             handleAnnotationTouchStart(e, idx);
+                           }
+                         }}
+                         onTouchEnd={handleAnnotationTouchEnd}
                          onDoubleClick={(e) => {
                            e.stopPropagation();
                            if (activeTool === 'select') {
@@ -3092,7 +3104,7 @@ function AVCanvasContent() {
                           onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
-                            if (activeTool === 'select' && !ann.locked) {
+                            if (activeTool === 'select' && !ann.locked && !isMobile) {
                               e.stopPropagation();
                               setSelectedAnnotation(idx);
                               setSelectedProduct(null);
@@ -3116,6 +3128,12 @@ function AVCanvasContent() {
                               setEditingText(ann.id);
                             }
                           }}
+                          onTouchStart={(e) => {
+                            if (activeTool === 'select' && !ann.locked) {
+                              handleAnnotationTouchStart(e, idx);
+                            }
+                          }}
+                          onTouchEnd={handleAnnotationTouchEnd}
                           onDoubleClick={(e) => {
                             if (activeTool === 'select') {
                               e.stopPropagation();
@@ -3162,7 +3180,7 @@ function AVCanvasContent() {
                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
-                           if (activeTool === 'select' && !ann.locked) {
+                           if (activeTool === 'select' && !ann.locked && !isMobile) {
                              e.stopPropagation();
                              setSelectedAnnotation(idx);
                              setSelectedProduct(null);
@@ -3176,6 +3194,12 @@ function AVCanvasContent() {
                              handleSymbolAnnotationDragStart(e, idx);
                            }
                           }}
+                          onTouchStart={(e) => {
+                            if (activeTool === 'select' && !ann.locked) {
+                              handleAnnotationTouchStart(e, idx);
+                            }
+                          }}
+                          onTouchEnd={handleAnnotationTouchEnd}
                          />
 
                          </g>
@@ -3392,7 +3416,7 @@ function AVCanvasContent() {
                           onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
-                            if (activeTool === 'select' && !ann.locked) {
+                            if (activeTool === 'select' && !ann.locked && !isMobile) {
                               e.stopPropagation();
                               setSelectedAnnotation(idx);
                               setSelectedProduct(null);
@@ -3405,6 +3429,12 @@ function AVCanvasContent() {
                               handleSymbolAnnotationDragStart(e, idx);
                             }
                           }}
+                          onTouchStart={(e) => {
+                            if (activeTool === 'select' && !ann.locked) {
+                              handleAnnotationTouchStart(e, idx);
+                            }
+                          }}
+                          onTouchEnd={handleAnnotationTouchEnd}
                         >
                           <SymbolRenderer 
                             symbolId={ann.symbolId} 
@@ -3434,7 +3464,7 @@ function AVCanvasContent() {
                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
-                          if (activeTool === 'select' && !ann.locked) {
+                          if (activeTool === 'select' && !ann.locked && !isMobile) {
                             e.stopPropagation();
                             setSelectedAnnotation(idx);
                             setSelectedProduct(null);
@@ -3448,6 +3478,12 @@ function AVCanvasContent() {
                             handleSymbolAnnotationDragStart(e, idx);
                           }
                          }}
+                         onTouchStart={(e) => {
+                           if (activeTool === 'select' && !ann.locked) {
+                             handleAnnotationTouchStart(e, idx);
+                           }
+                         }}
+                         onTouchEnd={handleAnnotationTouchEnd}
                          onDoubleClick={(e) => {
                            e.stopPropagation();
                            if (activeTool === 'select') {
@@ -3574,7 +3610,7 @@ function AVCanvasContent() {
                           onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={(e) => {
-                            if (activeTool === 'select' && !ann.locked) {
+                            if (activeTool === 'select' && !ann.locked && !isMobile) {
                               e.stopPropagation();
                               setSelectedAnnotation(idx);
                               setSelectedProduct(null);
@@ -3598,6 +3634,12 @@ function AVCanvasContent() {
                               setEditingText(ann.id);
                             }
                           }}
+                          onTouchStart={(e) => {
+                            if (activeTool === 'select' && !ann.locked) {
+                              handleAnnotationTouchStart(e, idx);
+                            }
+                          }}
+                          onTouchEnd={handleAnnotationTouchEnd}
                           onDoubleClick={(e) => {
                             if (activeTool === 'select') {
                               e.stopPropagation();
@@ -3644,7 +3686,7 @@ function AVCanvasContent() {
                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
                          onMouseLeave={() => setHoveredAnnotation(null)}
                          onMouseDown={(e) => {
-                           if (activeTool === 'select' && !ann.locked) {
+                           if (activeTool === 'select' && !ann.locked && !isMobile) {
                              e.stopPropagation();
                              setSelectedAnnotation(idx);
                              setSelectedProduct(null);
@@ -3658,6 +3700,12 @@ function AVCanvasContent() {
                              handleSymbolAnnotationDragStart(e, idx);
                            }
                           }}
+                          onTouchStart={(e) => {
+                            if (activeTool === 'select' && !ann.locked) {
+                              handleAnnotationTouchStart(e, idx);
+                            }
+                          }}
+                          onTouchEnd={handleAnnotationTouchEnd}
                          />
 
                          </g>
