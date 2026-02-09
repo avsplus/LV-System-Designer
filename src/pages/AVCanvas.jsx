@@ -2292,11 +2292,13 @@ function AVCanvasContent() {
                 </Link>
               )}
               
-              <Link to={createPageUrl("Settings")}>
+              {!isMobile && (
+              <Link to={createPageUrl("account")}>
                 <Button variant="outline" size="sm" className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500">
-                  <Settings className="w-3 h-3 md:w-4 md:h-4" />
+                  <User className="w-3 h-3 md:w-4 md:h-4" />
                 </Button>
               </Link>
+              )}
             </div>
           </div>
 
