@@ -48,7 +48,9 @@ export default function AnnotationToolbar({
   ];
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3">
+    <div className={`absolute left-1/2 -translate-x-1/2 z-50 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 ${
+      isMobile ? 'bottom-20' : 'bottom-6'
+    }`}>
       <div className="flex items-center gap-2">
         {/* Tool Buttons */}
         <div className="flex items-center gap-1 pr-2 border-r border-gray-700">
