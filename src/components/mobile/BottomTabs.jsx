@@ -21,7 +21,7 @@ export default function BottomTabs() {
     { name: 'Canvas', icon: Layout, path: 'AVCanvas' },
     { name: 'Network', icon: Zap, path: 'NetworkMapping' },
     { name: 'Library', icon: Library, path: 'DeviceManager' },
-    { name: 'Account', icon: User, path: 'Settings' },
+    { name: 'Account', icon: User, path: 'account' },
   ];
 
   // Store tab state when navigating
@@ -34,11 +34,15 @@ export default function BottomTabs() {
     }
   }, [currentPath]);
 
-  const isActive = (path) => currentPath.includes(path);
+  const isActive = (path) => {
+    // More precise matching to avoid false positives
+    const pageName = currentPath.split('/').pop() || currentPath;
+    return pageName === path || currentPath.includes(`/${path}`);
+  };
   
-  // Get correct path for tab - either current path if active, or stored state
+  // Always navigate to the base page path
   const getTabPath = (path) => {
-    return isActive(path) ? currentPath : (tabStates[path] || createPageUrl(path));
+    return createPageUrl(path);
   };
 
   return (
