@@ -702,6 +702,9 @@ function AVCanvasContent() {
   };
 
   const handleFloorplanMouseDown = (e, floorplanId) => {
+      // Don't allow floorplan dragging on mobile - only canvas pan/zoom
+      if (isMobile) return;
+
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
 
