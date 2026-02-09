@@ -80,7 +80,7 @@ export default function AnnotationDetailsPanel({
   // Mobile drawer for mobile devices
   if (isMobile) {
     return (
-      <Drawer open={true} onClose={onClose}>
+      <Drawer open={true} onOpenChange={(open) => !open && onClose()}>
         <DrawerContent className="bg-gray-900 border-t border-gray-800">
           <DrawerHeader className="border-b border-gray-800">
             <div className="flex items-center justify-between">
