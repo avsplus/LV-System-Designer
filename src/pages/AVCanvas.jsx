@@ -1450,7 +1450,16 @@ function AVCanvasContent() {
 
   useEffect(() => {
     const handleDragMove = (e) => {
-      setDragMousePosition({ x: e.clientX, y: e.clientY });
+      const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
+      
+      setDragMousePosition({ x: clientX, y: clientY });
+      
+      // Cancel long press if finger moves during touch
+      if (e.type === 'touchmove' && longPressTimer && !isLongPress) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+      }
       
       // Handle symbol/annotation dragging
       if (annotationDragInitial !== null) {
@@ -1459,8 +1468,8 @@ function AVCanvasContent() {
           const ann = annotations[selectedAnnotation];
           const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
 
-          const currentCanvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
-          const currentCanvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
+          const currentCanvasX = (clientX - canvasRect.left - pan.x) / zoom;
+          const currentCanvasY = (clientY - canvasRect.top - pan.y) / zoom;
           const newCoords = floorplan 
             ? canvasToFloorplanCoords(currentCanvasX, currentCanvasY, floorplan)
             : { x: currentCanvasX, y: currentCanvasY };
@@ -1578,9 +1587,16 @@ function AVCanvasContent() {
     };
 
     const handleDragEnd = (e) => {
+      // Clear long press timer
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+      }
+      
       // Complete symbol/annotation dragging
       if (annotationDragInitial !== null) {
         setAnnotationDragInitial(null);
+        setIsLongPress(false);
         return;
       }
 
@@ -1641,11 +1657,15 @@ function AVCanvasContent() {
 
     window.addEventListener('mousemove', handleDragMove);
     window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener('touchmove', handleDragMove);
+    window.addEventListener('touchend', handleDragEnd);
     return () => {
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDragMove);
+      window.removeEventListener('touchend', handleDragEnd);
     };
-  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, drawingAnnotation, activeTool, pan, zoom, annotations, annotationDragInitial, selectedAnnotation]);
+  }, [handleGlobalMouseMove, handleGlobalMouseUp, handleResizeMove, handleResizeEnd, drawingArrow, drawingAnnotation, activeTool, pan, zoom, annotations, annotationDragInitial, selectedAnnotation, longPressTimer, isLongPress]);
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
