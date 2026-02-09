@@ -37,6 +37,7 @@ export default function AnnotationToolbar({
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showSymbols, setShowSymbols] = useState(false);
+  const isMobile = !useMediaQuery('(min-width: 768px)');
 
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Select' },
