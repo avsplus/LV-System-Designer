@@ -393,3 +393,278 @@ export default function AnnotationDetailsPanel({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        {/* Symbol Label */}
+        {annotation.type === 'symbol' && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Symbol</p>
+            <div className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white">
+              {annotation.symbolId}
+            </div>
+          </div>
+        )}
+
+        {/* Symbol Controls */}
+        {annotation.type === 'symbol' && (
+          <>
+            {/* Scale */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-gray-500">Size</p>
+                <span className="text-sm text-blue-400 font-medium">{Math.round((annotation.scale || 1) * 100)}%</span>
+              </div>
+              <Slider
+                value={[annotation.scale || 1]}
+                onValueChange={handleScaleChange}
+                min={0.25}
+                max={3}
+                step={0.25}
+                className="w-full"
+              />
+            </div>
+
+            {/* Rotation */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-gray-500">Rotation</p>
+                <span className="text-sm text-blue-400 font-medium">{annotation.rotation || 0}°</span>
+              </div>
+              <Button
+                onClick={handleRotate}
+                variant="outline"
+                className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <RotateCw className="w-4 h-4 mr-2" />
+                Rotate 90°
+              </Button>
+            </div>
+
+            {/* Flip Horizontal */}
+            <div>
+              <Button
+                onClick={handleFlipHorizontal}
+                variant="outline"
+                className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <FlipHorizontal className="w-4 h-4 mr-2" />
+                {annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
+              </Button>
+            </div>
+
+            {/* Description */}
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Description</p>
+              <Textarea
+                value={annotation.description || ''}
+                onChange={handleDescriptionChange}
+                placeholder="Add notes or description..."
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
+                rows={3}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Text Content */}
+        {annotation.type === 'text' && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Text</p>
+            <input
+              type="text"
+              value={annotation.text || ''}
+              onChange={handleTextChange}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              placeholder="Enter text..."
+            />
+          </div>
+        )}
+
+        {/* Color Control */}
+        {(annotation.type === 'symbol' || annotation.type === 'text' || annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'line') && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">{annotation.type === 'symbol' ? 'Icon Color Overlay' : 'Color'}</p>
+            <div className="flex gap-3 items-center">
+              <input
+                type="color"
+                value={annotation.color || '#3b82f6'}
+                onChange={handleColorChange}
+                className="w-12 h-10 rounded cursor-pointer border border-gray-700"
+              />
+              <span className="text-sm text-gray-400">{annotation.color}</span>
+            </div>
+            {annotation.type === 'symbol' && (
+              <p className="text-xs text-gray-500 mt-2">Adjust hue and brightness of the icon</p>
+            )}
+          </div>
+        )}
+
+        {/* Stroke Width */}
+        {annotation.type !== 'text' && annotation.type !== 'symbol' && (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-sm text-gray-500">Stroke Width</p>
+              <span className="text-sm text-blue-400 font-medium">{annotation.strokeWidth}px</span>
+            </div>
+            <Slider
+              value={[annotation.strokeWidth || 2]}
+              onValueChange={handleStrokeWidthChange}
+              min={1}
+              max={10}
+              step={0.5}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Fill Toggle */}
+        {annotation.type !== 'text' && annotation.type !== 'line' && annotation.type !== 'symbol' && (
+          <div className="flex items-center gap-3 py-2">
+            <input
+              type="checkbox"
+              id="fill"
+              checked={annotation.fill || false}
+              onChange={handleFillChange}
+              className="w-4 h-4 rounded border-gray-600 cursor-pointer accent-blue-500"
+            />
+            <label htmlFor="fill" className="text-sm text-gray-300 cursor-pointer">
+              Fill Shape
+            </label>
+          </div>
+        )}
+
+        {/* Font Size */}
+        {annotation.type === 'text' && (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-sm text-gray-500">Font Size</p>
+              <span className="text-sm text-blue-400 font-medium">{annotation.fontSize}px</span>
+            </div>
+            <Slider
+              value={[annotation.fontSize || 16]}
+              onValueChange={handleFontSizeChange}
+              min={8}
+              max={72}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Radius */}
+        {annotation.type === 'circle' && (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-sm text-gray-500">Radius</p>
+              <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.radius || 0)}px</span>
+            </div>
+            <Slider
+              value={[annotation.radius || 0]}
+              onValueChange={handleRadiusChange}
+              min={5}
+              max={500}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Width */}
+        {annotation.type === 'rectangle' && (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-sm text-gray-500">Width</p>
+              <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.width || 0)}px</span>
+            </div>
+            <Slider
+              value={[annotation.width || 0]}
+              onValueChange={handleWidthChange}
+              min={10}
+              max={500}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Height */}
+        {annotation.type === 'rectangle' && (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-sm text-gray-500">Height</p>
+              <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.height || 0)}px</span>
+            </div>
+            <Slider
+              value={[annotation.height || 0]}
+              onValueChange={handleHeightChange}
+              min={10}
+              max={500}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Position Info */}
+        <div className="pt-2 border-t border-gray-800">
+          <p className="text-sm text-gray-500 mb-3">Position</p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center py-2 border-b border-gray-800">
+              <span className="text-xs text-gray-400">X Coordinate</span>
+              <span className="text-xs text-gray-200">{Math.round(annotation.position?.x || 0)}px</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-800">
+              <span className="text-xs text-gray-400">Y Coordinate</span>
+              <span className="text-xs text-gray-200">{Math.round(annotation.position?.y || 0)}px</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="border-t border-gray-800 p-4 space-y-2">
+        <Button
+          onClick={onDuplicate}
+          variant="outline"
+          className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+        >
+          <Copy className="w-4 h-4 mr-2" />
+          Duplicate
+        </Button>
+        <Button
+          onClick={() => setShowDelete(true)}
+          className="w-full bg-red-600 hover:bg-red-700 text-white"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete Annotation
+        </Button>
+      </div>
+
+      {/* Delete Confirmation */}
+      {showDelete && (
+        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <p className="text-white mb-4 text-sm">Delete this annotation?</p>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowDelete(false)}
+                variant="outline"
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  onDelete(index);
+                  onClose();
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
