@@ -3,6 +3,8 @@ import { X, Trash2, FlipHorizontal, RotateCw, Copy } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+import { useMediaQuery } from "@/components/mobile/useMediaQuery";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 
 export default function AnnotationDetailsPanel({ 
   annotation, 
@@ -13,6 +15,7 @@ export default function AnnotationDetailsPanel({
   index 
 }) {
   const [showDelete, setShowDelete] = useState(false);
+  const isMobile = !useMediaQuery('(min-width: 768px)');
 
   if (!annotation) return null;
 
@@ -74,23 +77,27 @@ export default function AnnotationDetailsPanel({
     return 'Annotation';
   };
 
-  return (
-    <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">{getAnnotationLabel()} Properties</h2>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onClose}
-          className="text-gray-400 hover:text-white hover:bg-gray-700"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
+  // Mobile drawer for mobile devices
+  if (isMobile) {
+    return (
+      <Drawer open={true} onClose={onClose}>
+        <DrawerContent className="bg-gray-900 border-t border-gray-800">
+          <DrawerHeader className="border-b border-gray-800">
+            <div className="flex items-center justify-between">
+              <DrawerTitle className="text-lg font-semibold text-white">{getAnnotationLabel()} Properties</DrawerTitle>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onClose}
+                className="text-gray-400 hover:text-white hover:bg-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </DrawerHeader>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Content */}
+          <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
         
         {/* Symbol Label */}
         {annotation.type === 'symbol' && (
@@ -318,51 +325,71 @@ export default function AnnotationDetailsPanel({
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="border-t border-gray-800 p-4 space-y-2">
+          {/* Action Buttons */}
+          <div className="border-t border-gray-800 p-4 space-y-2 pb-8">
+            <Button
+              onClick={onDuplicate}
+              variant="outline"
+              className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white h-12 text-base"
+            >
+              <Copy className="w-5 h-5 mr-2" />
+              Duplicate
+            </Button>
+            <Button
+              onClick={() => setShowDelete(true)}
+              className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base"
+            >
+              <Trash2 className="w-5 h-5 mr-2" />
+              Delete Annotation
+            </Button>
+          </div>
+
+          {/* Delete Confirmation */}
+          {showDelete && (
+            <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center z-50">
+              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mx-4 max-w-sm">
+                <p className="text-white mb-4 text-base">Delete this annotation?</p>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowDelete(false)}
+                    variant="outline"
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white border-gray-600 h-11"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      onDelete(index);
+                      onClose();
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 h-11"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  // Desktop sidebar for larger screens
+  return (
+    <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-white">{getAnnotationLabel()} Properties</h2>
         <Button
-          onClick={onDuplicate}
-          variant="outline"
-          className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+          size="icon"
+          variant="ghost"
+          onClick={onClose}
+          className="text-gray-400 hover:text-white hover:bg-gray-700"
         >
-          <Copy className="w-4 h-4 mr-2" />
-          Duplicate
-        </Button>
-        <Button
-          onClick={() => setShowDelete(true)}
-          className="w-full bg-red-600 hover:bg-red-700 text-white"
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Delete Annotation
+          <X className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Delete Confirmation */}
-      {showDelete && (
-        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <p className="text-white mb-4 text-sm">Delete this annotation?</p>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setShowDelete(false)}
-                variant="outline"
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  onDelete(index);
-                  onClose();
-                }}
-                className="flex-1 bg-red-600 hover:bg-red-700"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
