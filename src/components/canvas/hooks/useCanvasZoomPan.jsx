@@ -147,8 +147,11 @@ export default function useCanvasZoomPan(defaultZoom = 1) {
       const isOnButton = e.target.closest('button');
       const isOnPort = e.target.hasAttribute('data-port-type') || e.target.hasAttribute('data-port-id');
       const isOnFloorplan = e.target.tagName === 'IMG' || e.target.closest('[data-floorplan]');
+      const isOnAnnotation = e.target.tagName === 'text' || e.target.tagName === 'rect' || 
+                            e.target.tagName === 'circle' || e.target.tagName === 'line' || 
+                            e.target.tagName === 'g' || e.target.tagName === 'polygon';
       
-      if (!isOnDevice && !isOnButton && !isOnPort && !isOnFloorplan) {
+      if (!isOnDevice && !isOnButton && !isOnPort && !isOnFloorplan && !isOnAnnotation) {
         setIsPanning(true);
         setPanStart({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
       }
