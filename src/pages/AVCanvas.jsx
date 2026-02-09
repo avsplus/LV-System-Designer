@@ -130,6 +130,8 @@ function AVCanvasContent() {
   const [annotationDragStart, setAnnotationDragStart] = useState(null);
   const [annotationDragInitial, setAnnotationDragInitial] = useState(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [longPressTimer, setLongPressTimer] = useState(null);
+  const [isLongPress, setIsLongPress] = useState(false);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
@@ -741,6 +743,11 @@ function AVCanvasContent() {
       Math.abs(e.clientY - floorplanDragStart.startMouseY) > 5
     )) {
       return; // Was a drag, not a click
+    }
+
+    // Don't open panel on mobile
+    if (isMobile) {
+      return;
     }
 
     e.stopPropagation();
@@ -1402,13 +1409,43 @@ function AVCanvasContent() {
     e.stopPropagation();
     setSelectedAnnotation(idx);
     const ann = annotations[idx];
+    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
     setAnnotationDragInitial({
-      clientX: e.clientX,
-      clientY: e.clientY,
+      clientX,
+      clientY,
       annotationX: ann.position.x,
       annotationY: ann.position.y,
       endPosition: ann.endPosition ? { ...ann.endPosition } : null
     });
+  };
+
+  const handleAnnotationTouchStart = (e, idx) => {
+    if (!isMobile) return;
+    
+    const ann = annotations[idx];
+    if (ann.locked) return;
+
+    // Start long press timer
+    const timer = setTimeout(() => {
+      setIsLongPress(true);
+      // Start drag
+      setSelectedAnnotation(idx);
+      handleSymbolAnnotationDragStart(e, idx);
+    }, 500); // 500ms long press
+    
+    setLongPressTimer(timer);
+  };
+
+  const handleAnnotationTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    if (isLongPress) {
+      setIsLongPress(false);
+      setAnnotationDragInitial(null);
+    }
   };
 
   useEffect(() => {
