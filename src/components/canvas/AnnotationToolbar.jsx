@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import SymbolPicker from "./SymbolPicker";
+import { useMediaQuery } from "@/components/mobile/useMediaQuery";
 
 const COLORS = [
   { name: 'Blue', value: '#3b82f6' },
