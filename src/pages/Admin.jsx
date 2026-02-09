@@ -151,26 +151,26 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="bg-gray-900 border-b border-gray-800 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Link to={createPageUrl("AVCanvas")}>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-                <ChevronLeft className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-9 w-9">
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-              <p className="text-sm text-gray-400">Manage users, roles, and settings</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white truncate">Admin Dashboard</h1>
+              <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">Manage users, roles, and settings</p>
             </div>
           </div>
           <RoleBadge role={userRole} />
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-8">
           <StatCard label="Total Users" value={stats.totalUsers} icon={Users} />
                           {stats.pendingApproval > 0 && (
                             <StatCard label="Pending Approval" value={stats.pendingApproval} icon={Clock} color="yellow" />
@@ -182,24 +182,24 @@ export default function Admin() {
           <StatCard label="Projects" value={stats.totalProjects} icon={Activity} color="cyan" />
         </div>
 
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="bg-gray-800 border border-gray-700">
-            <TabsTrigger value="users" className="data-[state=active]:bg-gray-700">
-              <Users className="w-4 h-4 mr-2" />
-              Users
+        <Tabs defaultValue="users" className="space-y-4 sm:space-y-6">
+          <TabsList className="bg-gray-800 border border-gray-700 grid grid-cols-3 sm:grid-cols-4 gap-1">
+            <TabsTrigger value="users" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="roles" className="data-[state=active]:bg-gray-700">
-              <Shield className="w-4 h-4 mr-2" />
-              Roles
+            <TabsTrigger value="roles" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm">
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Roles</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="data-[state=active]:bg-gray-700">
-              <Activity className="w-4 h-4 mr-2" />
-              Activity
+            <TabsTrigger value="activity" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm">
+              <Activity className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Activity</span>
             </TabsTrigger>
             {isAtLeast(ROLES.OWNER) && (
-              <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
+              <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700 text-xs sm:text-sm">
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Settings</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -244,7 +244,7 @@ export default function Admin() {
 
             {/* Users List */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-              <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-800/50 text-sm font-medium text-gray-400 border-b border-gray-800">
+              <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-800/50 text-sm font-medium text-gray-400 border-b border-gray-800">
                 <div className="col-span-4">User</div>
                 <div className="col-span-3">Role</div>
                 <div className="col-span-3">Projects</div>
@@ -270,20 +270,20 @@ export default function Admin() {
                     const canEditThisUser = canManage(currentUserRole) && u.email !== user?.email;
                     
                     return (
-                      <div key={u.id} className="grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-gray-800/30">
-                        <div className="col-span-4 flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium">
+                      <div key={u.id} className="flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-4 px-3 sm:px-4 py-4 hover:bg-gray-800/30">
+                        <div className="md:col-span-4 flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
                             {u.full_name?.charAt(0) || u.email?.charAt(0) || '?'}
                           </div>
-                          <div>
-                            <p className="text-white font-medium">{u.full_name || 'Unknown'}</p>
-                            <p className="text-sm text-gray-400">{u.email}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white font-medium text-sm sm:text-base truncate">{u.full_name || 'Unknown'}</p>
+                            <p className="text-xs sm:text-sm text-gray-400 truncate">{u.email}</p>
                           </div>
                           {u.email === user?.email && (
-                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">You</Badge>
+                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs flex-shrink-0">You</Badge>
                           )}
                         </div>
-                        <div className="col-span-3">
+                        <div className="md:col-span-3 flex items-center gap-2">
                           {canEditThisUser ? (
                             <Select 
                               value={currentUserRole} 
@@ -309,15 +309,15 @@ export default function Admin() {
                             <RoleBadge role={currentUserRole} size="small" />
                           )}
                         </div>
-                        <div className="col-span-3 flex items-center gap-2">
-                                                        <span className="text-gray-400">{userProjects.length} project{userProjects.length !== 1 ? 's' : ''}</span>
-                                                        {u.status === 'pending' && u.email !== user?.email && (
-                                                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
-                                                            Pending
-                                                          </Badge>
-                                                        )}
-                                                      </div>
-                        <div className="col-span-2 text-right">
+                        <div className="md:col-span-3 flex items-center gap-2">
+                          <span className="text-gray-400 text-xs sm:text-sm">{userProjects.length} project{userProjects.length !== 1 ? 's' : ''}</span>
+                          {u.status === 'pending' && u.email !== user?.email && (
+                            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                              Pending
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="md:col-span-2 flex justify-start md:justify-end">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">

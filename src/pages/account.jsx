@@ -131,11 +131,11 @@ function AccountContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-3 sm:p-6">
         <Link to={createPageUrl("AVCanvas")}>
           <Button
             variant="ghost"
-            className="text-gray-400 hover:text-white mb-6 -ml-2"
+            className="text-gray-400 hover:text-white mb-4 sm:mb-6 -ml-2"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Canvas
@@ -152,11 +152,11 @@ function AccountContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-start gap-6">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
                   {(user.display_name || user.full_name || user.email || '?')[0].toUpperCase()}
                 </div>
-                <div className="flex-1 space-y-4">
+                <div className="flex-1 w-full space-y-4">
                   {isEditing ? (
                     <div className="space-y-3">
                       <div>
@@ -189,17 +189,17 @@ function AccountContent() {
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <div>
-                        <h2 className="text-2xl font-bold text-white">
-                          {user.display_name || user.full_name || 'No name set'}
-                        </h2>
-                        <div className="flex items-center gap-2 text-gray-400 mt-1">
-                          <Mail className="w-4 h-4" />
-                          {user.email}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                   <>
+                     <div>
+                       <h2 className="text-xl sm:text-2xl font-bold text-white">
+                         {user.display_name || user.full_name || 'No name set'}
+                       </h2>
+                       <div className="flex items-center gap-2 text-gray-400 mt-1 text-sm sm:text-base">
+                         <Mail className="w-4 h-4" />
+                         <span className="truncate">{user.email}</span>
+                       </div>
+                     </div>
+                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           Joined {new Date(user.created_date).toLocaleDateString()}
@@ -357,16 +357,16 @@ function AccountContent() {
           {/* Data & Privacy */}
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Download className="w-5 h-5" />
+              <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg">
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                 Data & Privacy
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-start justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
-                <div>
-                  <h4 className="text-white font-medium">Export Your Data</h4>
-                  <p className="text-sm text-gray-400 mt-1">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <div className="flex-1">
+                  <h4 className="text-white font-medium text-sm sm:text-base">Export Your Data</h4>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">
                     Download a copy of all your data including projects, devices, and activity history.
                   </p>
                 </div>
@@ -374,7 +374,8 @@ function AccountContent() {
                   variant="outline"
                   onClick={handleExportData}
                   disabled={isExporting}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700 flex-shrink-0"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700 flex-shrink-0 w-full sm:w-auto"
+                  size="sm"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -385,23 +386,24 @@ function AccountContent() {
                 </Button>
               </div>
 
-              <div className="flex items-start justify-between p-4 bg-red-500/5 rounded-lg border border-red-500/20">
-                <div>
-                  <h4 className="text-red-400 font-medium flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:justify-between p-4 bg-red-500/5 rounded-lg border border-red-500/20">
+                <div className="flex-1">
+                  <h4 className="text-red-400 font-medium flex items-center gap-2 text-sm sm:text-base">
                     <AlertTriangle className="w-4 h-4" />
                     Delete Account
                   </h4>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">
                     Permanently delete your account and all associated data. This cannot be undone.
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 flex-shrink-0"
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 flex-shrink-0 w-full sm:w-auto"
+                  size="sm"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Account
+                  Delete
                 </Button>
               </div>
             </CardContent>

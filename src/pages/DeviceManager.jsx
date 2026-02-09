@@ -225,27 +225,29 @@ export default function DeviceManager() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
+      <div className="max-w-7xl mx-auto p-3 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div className="w-full sm:w-auto">
             <Link to={createPageUrl("AVCanvas")}>
               <Button
                 variant="ghost"
-                className="text-gray-400 hover:text-white mb-3 -ml-2"
+                className="text-gray-400 hover:text-white mb-2 sm:mb-3 -ml-2"
+                size="sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Canvas
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-white mb-2">Device Manager</h1>
-            <p className="text-sm text-gray-400">Manage your AV product library</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Device Manager</h1>
+            <p className="text-xs sm:text-sm text-gray-400">Manage your AV product library</p>
           </div>
           <Button
             onClick={() => {
               setEditingDevice(null);
               setShowForm(true);
             }}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+            size="sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add New Device
@@ -284,21 +286,21 @@ export default function DeviceManager() {
           </div>
         )}
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-          <div className="flex gap-4 items-center">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <Input
                 placeholder="Search by brand or model..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 text-sm"
               />
             </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm"
+              className="px-3 sm:px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs sm:text-sm"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => (
@@ -306,7 +308,7 @@ export default function DeviceManager() {
               ))}
             </select>
           </div>
-          <div className="mt-3 text-xs text-gray-400">
+          <div className="mt-2 sm:mt-3 text-xs text-gray-400">
             Showing {filteredProducts.length} of {products.length} devices
           </div>
         </div>

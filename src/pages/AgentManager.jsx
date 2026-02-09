@@ -179,32 +179,32 @@ export default function AgentManager() {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       {/* Header */}
-      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <Link to={createPageUrl("NetworkMapping")}>
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-              <ChevronLeft className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-9 w-9">
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Activity className="w-6 h-6 text-cyan-400" />
-              Agent Management
+          <div className="min-w-0 flex-1 sm:flex-initial">
+            <h1 className="text-lg sm:text-2xl font-bold text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
+              <span className="truncate">Agent Management</span>
             </h1>
-            <p className="text-sm text-gray-400">Manage your network scanning agents</p>
+            <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">Manage your network scanning agents</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <span className="text-sm text-gray-400">Total Agents:</span>
-            <span className="text-lg font-bold text-cyan-400">{agents.length}</span>
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+            <span className="text-xs sm:text-sm text-gray-400">Total:</span>
+            <span className="text-base sm:text-lg font-bold text-cyan-400">{agents.length}</span>
           </div>
           {installerData?.url && (
             <a href={installerData.url} download>
-              <Button variant="outline" className="border-gray-700">
-                <Download className="w-4 h-4 mr-2" />
-                Download Agent
+              <Button variant="outline" className="border-gray-700" size="sm">
+                <Download className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Download</span>
               </Button>
             </a>
           )}
@@ -213,14 +213,15 @@ export default function AgentManager() {
               variant="outline" 
               className="border-gray-700"
               onClick={() => setShowInstallerUpload(true)}
+              size="sm"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              {installerData?.url ? 'Replace Installer' : 'Upload Installer'}
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{installerData?.url ? 'Replace' : 'Upload'}</span>
             </Button>
           )}
-          <Button onClick={() => setShowRegistration(true)} className="bg-cyan-600 hover:bg-cyan-700">
-            <Key className="w-4 h-4 mr-2" />
-            Register Agent
+          <Button onClick={() => setShowRegistration(true)} className="bg-cyan-600 hover:bg-cyan-700" size="sm">
+            <Key className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Register</span>
           </Button>
         </div>
       </div>
@@ -229,15 +230,15 @@ export default function AgentManager() {
       <AgentHealthAlerts agents={agents} />
 
       {/* Agents List */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-3 sm:p-6">
         {agents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <Activity className="w-16 h-16 mb-4 opacity-20" />
-            <p className="text-lg font-medium">No agents registered</p>
-            <p className="text-sm">Register your first scanning agent to get started</p>
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 px-4">
+            <Activity className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 opacity-20" />
+            <p className="text-base sm:text-lg font-medium">No agents registered</p>
+            <p className="text-xs sm:text-sm text-center">Register your first scanning agent to get started</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {agents.map(agent => {
               const assignedNetwork = networks.find(n => n.id === agent.assigned_network_id);
               const isEditing = editingAgent?.id === agent.id;
@@ -245,9 +246,9 @@ export default function AgentManager() {
               return (
                 <div
                   key={agent.id}
-                  className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/30 transition-colors"
+                  className="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 hover:border-cyan-500/30 transition-colors"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
                     {isEditing ? (
                       <Input
                         value={editingAgent.name}
@@ -255,30 +256,30 @@ export default function AgentManager() {
                         className="bg-gray-800 border-gray-700 text-white"
                       />
                     ) : (
-                      <div>
-                        <h3 className="text-lg font-bold text-white">{agent.name}</h3>
-                        <p className="text-xs text-gray-500 font-mono">{agent.agent_id}</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-bold text-white truncate">{agent.name}</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 font-mono truncate">{agent.agent_id}</p>
                       </div>
                     )}
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 flex-shrink-0">
                       {isEditing ? (
                         <>
                           <Button
                             size="icon"
                             variant="ghost"
                             onClick={() => handleUpdateAgent(agent)}
-                            className="h-8 w-8 text-green-400"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-green-400"
                           >
-                            <Check className="w-4 h-4" />
+                            <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
                             onClick={() => setEditingAgent(null)}
-                            className="h-8 w-8 text-gray-400"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                         </>
                       ) : (
@@ -287,9 +288,9 @@ export default function AgentManager() {
                             size="icon"
                             variant="ghost"
                             onClick={() => setEditingAgent({ ...agent, id: agent.id })}
-                            className="h-8 w-8 text-gray-400 hover:text-white"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-white"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           <Button
                             size="icon"
@@ -299,10 +300,10 @@ export default function AgentManager() {
                               setShowUnregisterDialog(true);
                               generateUnregisterTokenMutation.mutate(agent.agent_id);
                             }}
-                            className="h-8 w-8 text-gray-400 hover:text-yellow-400"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-yellow-400"
                             title="Generate Unregister Code"
                           >
-                            <ShieldOff className="w-4 h-4" />
+                            <ShieldOff className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           <Button
                             size="icon"
@@ -312,22 +313,22 @@ export default function AgentManager() {
                                 deleteAgentMutation.mutate(agent.id);
                               }
                             }}
-                            className="h-8 w-8 text-gray-400 hover:text-red-400"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-red-400"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                         </>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                       <AgentHealthMonitor agent={agent} compact />
 
                     {agent.version && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Version</span>
-                        <span className="text-sm text-white">{agent.version}</span>
+                        <span className="text-xs sm:text-sm text-gray-400">Version</span>
+                        <span className="text-xs sm:text-sm text-white">{agent.version}</span>
                       </div>
                     )}
 
@@ -362,22 +363,22 @@ export default function AgentManager() {
                       <>
                         {agent.location && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-400">Location</span>
-                            <span className="text-sm text-white">{agent.location}</span>
+                            <span className="text-xs sm:text-sm text-gray-400">Location</span>
+                            <span className="text-xs sm:text-sm text-white truncate ml-2">{agent.location}</span>
                           </div>
                         )}
 
                         {assignedNetwork && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-400">Assigned Network</span>
-                            <span className="text-sm text-white">{assignedNetwork.name}</span>
+                            <span className="text-xs sm:text-sm text-gray-400">Network</span>
+                            <span className="text-xs sm:text-sm text-white truncate ml-2">{assignedNetwork.name}</span>
                           </div>
                         )}
 
                         {agent.last_seen && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-400">Last Seen</span>
-                            <span className="text-sm text-white">
+                            <span className="text-xs sm:text-sm text-gray-400">Last Seen</span>
+                            <span className="text-[10px] sm:text-sm text-white">
                               {new Date(agent.last_seen).toLocaleString()}
                             </span>
                           </div>

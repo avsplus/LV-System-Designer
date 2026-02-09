@@ -116,31 +116,31 @@ export default function WirePricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6">
+    <div className="min-h-screen bg-gray-950 p-3 sm:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
           <Link to={createPageUrl("AVCanvas")}>
-            <Button variant="ghost" className="text-gray-400 hover:text-white">
+            <Button variant="ghost" className="text-gray-400 hover:text-white" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Canvas
+              Back
             </Button>
           </Link>
         </div>
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-            <Cable className="w-5 h-5 text-purple-400" />
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+            <Cable className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Wire Pricing</h1>
-            <p className="text-gray-400 text-sm">Manage material and labor costs for wire runs</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Wire Pricing</h1>
+            <p className="text-gray-400 text-xs sm:text-sm">Manage material and labor costs</p>
           </div>
         </div>
 
         {canEdit && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
-            <h3 className="text-white font-medium mb-3">Add New Wire Pricing</h3>
-            <div className="grid grid-cols-5 gap-3">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+            <h3 className="text-white font-medium mb-3 text-sm sm:text-base">Add New Wire Pricing</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Wire Type</label>
                 <select
