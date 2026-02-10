@@ -2426,6 +2426,237 @@ function AVCanvasContent() {
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
+                {/* Annotations on floorplans - render here to ensure proper layering */}
+                {annotations.map((ann, idx) => {
+                  const isHovered = hoveredAnnotation === idx;
+                  const isSelected = selectedAnnotation === idx;
+                  const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
+
+                  const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
+                  if (ann.floorplanId && (!floorplan || !floorplan.visible)) return null;
+                  if (ann.hidden) return null;
+
+                  const canvasPos = floorplan 
+                    ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
+                    : ann.position;
+
+                  const handleAnnotationClick = (e) => {
+                    if (activeTool === 'select' && !ann.locked) {
+                      e.stopPropagation();
+                      setSelectedAnnotation(idx);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                      setShowFloorplanManager(false);
+                      setShowRoomManager(false);
+                      setSelectedFloorplanId(null);
+                      setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                      if (!isMobile) {
+                        handleSymbolAnnotationDragStart(e, idx);
+                      }
+                    }
+                  };
+
+                  const handleAnnotationTouch = (e) => {
+                    if (activeTool === 'select' && !ann.locked) {
+                      e.stopPropagation();
+                      setSelectedAnnotation(idx);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                      setShowFloorplanManager(false);
+                      setShowRoomManager(false);
+                      setSelectedFloorplanId(null);
+                      setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                      handleAnnotationTouchStart(e, idx);
+                    }
+                  };
+
+                  // Render based on type
+                  if (ann.type === 'symbol') {
+                    return (
+                      <g key={ann.id}
+                        className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                        onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                        onMouseLeave={() => setHoveredAnnotation(null)}
+                        onMouseDown={handleAnnotationClick}
+                        onTouchStart={handleAnnotationTouch}
+                        onTouchEnd={handleAnnotationTouchEnd}
+                      >
+                        <SymbolRenderer 
+                          symbolId={ann.symbolId} 
+                          position={canvasPos} 
+                          color={ann.color || '#3b82f6'}
+                          scale={ann.scale || 1}
+                          rotation={ann.rotation || 0}
+                          flipped={ann.flipped || false}
+                        />
+                      </g>
+                    );
+                  }
+
+                  if (ann.type === 'text') {
+                    return (
+                      <text key={ann.id}
+                        x={canvasPos.x}
+                        y={canvasPos.y}
+                        fill={ann.color}
+                        fontSize={ann.fontSize}
+                        fontWeight="500"
+                        className={`pointer-events-auto select-none ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                        onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                        onMouseLeave={() => setHoveredAnnotation(null)}
+                        onMouseDown={handleAnnotationClick}
+                        onTouchStart={handleAnnotationTouch}
+                        onTouchEnd={handleAnnotationTouchEnd}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          if (activeTool === 'select' || activeTool === 'text') {
+                            setEditingText(ann.id);
+                          }
+                        }}
+                      >
+                        {ann.text}
+                      </text>
+                    );
+                  }
+
+                  if (ann.type === 'rectangle') {
+                    let canvasWidth, canvasHeight;
+                    if (floorplan) {
+                      const fpScale = floorplan.scale || 1;
+                      const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                      let fpWidth, fpHeight;
+                      if (hasCalibration) {
+                        const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                        fpWidth = floorplan.imageWidth * scaleFactor;
+                        fpHeight = floorplan.imageHeight * scaleFactor;
+                      } else if (floorplan.imageWidth && floorplan.imageHeight) {
+                        fpWidth = 500 * fpScale;
+                        fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
+                      } else {
+                        fpWidth = 500 * fpScale;
+                        fpHeight = 500 * fpScale;
+                      }
+                      canvasWidth = ann.width * fpWidth;
+                      canvasHeight = ann.height * fpHeight;
+                    } else {
+                      canvasWidth = ann.width || 0;
+                      canvasHeight = ann.height || 0;
+                    }
+
+                    return (
+                      <g key={ann.id}>
+                        <rect
+                          x={canvasPos.x - 10}
+                          y={canvasPos.y - 10}
+                          width={canvasWidth + 20}
+                          height={canvasHeight + 20}
+                          fill="transparent"
+                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onMouseDown={handleAnnotationClick}
+                          onTouchStart={handleAnnotationTouch}
+                          onTouchEnd={handleAnnotationTouchEnd}
+                        />
+                        <rect
+                          x={canvasPos.x}
+                          y={canvasPos.y}
+                          width={canvasWidth}
+                          height={canvasHeight}
+                          stroke={strokeColor}
+                          strokeWidth={ann.strokeWidth}
+                          fill={ann.fill ? ann.color : 'none'}
+                          fillOpacity={ann.fill ? 0.3 : 0}
+                          className="pointer-events-none"
+                        />
+                      </g>
+                    );
+                  }
+
+                  if (ann.type === 'circle') {
+                    let canvasRadius;
+                    if (floorplan) {
+                      const fpScale = floorplan.scale || 1;
+                      const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
+                      let fpWidth;
+                      if (hasCalibration) {
+                        const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
+                        fpWidth = floorplan.imageWidth * scaleFactor;
+                      } else {
+                        fpWidth = 500 * fpScale;
+                      }
+                      canvasRadius = ann.radius * fpWidth;
+                    } else {
+                      canvasRadius = ann.radius || 0;
+                    }
+
+                    return (
+                      <g key={ann.id}>
+                        <circle
+                          cx={canvasPos.x}
+                          cy={canvasPos.y}
+                          r={canvasRadius + 10}
+                          fill="transparent"
+                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onMouseDown={handleAnnotationClick}
+                          onTouchStart={handleAnnotationTouch}
+                          onTouchEnd={handleAnnotationTouchEnd}
+                        />
+                        <circle
+                          cx={canvasPos.x}
+                          cy={canvasPos.y}
+                          r={canvasRadius}
+                          stroke={strokeColor}
+                          strokeWidth={ann.strokeWidth}
+                          fill={ann.fill ? ann.color : 'none'}
+                          fillOpacity={ann.fill ? 0.3 : 0}
+                          className="pointer-events-none"
+                        />
+                      </g>
+                    );
+                  }
+
+                  if (ann.type === 'line' && ann.endPosition) {
+                    const endCanvasPos = floorplan 
+                      ? floorplanToCanvasCoords(ann.endPosition.x, ann.endPosition.y, floorplan)
+                      : ann.endPosition;
+                    
+                    return (
+                      <g key={ann.id}>
+                        <line
+                          x1={canvasPos.x}
+                          y1={canvasPos.y}
+                          x2={endCanvasPos.x}
+                          y2={endCanvasPos.y}
+                          stroke={strokeColor}
+                          strokeWidth={isHovered || isSelected ? ann.strokeWidth + 1 : ann.strokeWidth}
+                          className="pointer-events-none"
+                        />
+                        <line
+                          x1={canvasPos.x}
+                          y1={canvasPos.y}
+                          x2={endCanvasPos.x}
+                          y2={endCanvasPos.y}
+                          stroke="transparent"
+                          strokeWidth="40"
+                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                          onMouseLeave={() => setHoveredAnnotation(null)}
+                          onMouseDown={handleAnnotationClick}
+                          onTouchStart={handleAnnotationTouch}
+                          onTouchEnd={handleAnnotationTouchEnd}
+                        />
+                      </g>
+                    );
+                  }
+
+                  return null;
+                })}
+
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Check if this floorplan is being resized
                   const isThisOneResizing = resizingRef.current?.id === fp.id;
