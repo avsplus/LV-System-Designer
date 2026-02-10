@@ -1431,7 +1431,8 @@ function AVCanvasContent() {
     if (!isMobile) return;
     
     const ann = annotations[idx];
-    if (ann.locked) return;
+    // On mobile, ignore locked state - always allow interaction
+    if (ann.locked && !isMobile) return;
 
     // Start long press timer
     const timer = setTimeout(() => {
@@ -2440,8 +2441,10 @@ function AVCanvasContent() {
                     ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
                     : ann.position;
 
+                  const isLocked = ann.locked && !isMobile; // Always unlocked on mobile
+
                   const handleAnnotationClick = (e) => {
-                    if (activeTool === 'select' && !ann.locked) {
+                    if (activeTool === 'select' && !isLocked) {
                       e.stopPropagation();
                       setSelectedAnnotation(idx);
                       setSelectedProduct(null);
@@ -2458,7 +2461,7 @@ function AVCanvasContent() {
                   };
 
                   const handleAnnotationTouch = (e) => {
-                    if (activeTool === 'select' && !ann.locked) {
+                    if (activeTool === 'select' && !isLocked) {
                       e.stopPropagation();
                       setSelectedAnnotation(idx);
                       setSelectedProduct(null);
@@ -2476,8 +2479,8 @@ function AVCanvasContent() {
                   if (ann.type === 'symbol') {
                     return (
                       <g key={ann.id}
-                        className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                        onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                        className={`pointer-events-auto ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                        onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                         onMouseLeave={() => setHoveredAnnotation(null)}
                         onMouseDown={handleAnnotationClick}
                         onTouchStart={handleAnnotationTouch}
@@ -2503,8 +2506,8 @@ function AVCanvasContent() {
                         fill={ann.color}
                         fontSize={ann.fontSize}
                         fontWeight="500"
-                        className={`pointer-events-auto select-none ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                        onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                        className={`pointer-events-auto select-none ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                        onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                         onMouseLeave={() => setHoveredAnnotation(null)}
                         onMouseDown={handleAnnotationClick}
                         onTouchStart={handleAnnotationTouch}
@@ -2553,8 +2556,8 @@ function AVCanvasContent() {
                           width={canvasWidth + 20}
                           height={canvasHeight + 20}
                           fill="transparent"
-                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                          className={`pointer-events-auto ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={handleAnnotationClick}
                           onTouchStart={handleAnnotationTouch}
@@ -2599,8 +2602,8 @@ function AVCanvasContent() {
                           cy={canvasPos.y}
                           r={canvasRadius + 10}
                           fill="transparent"
-                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                          className={`pointer-events-auto ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={handleAnnotationClick}
                           onTouchStart={handleAnnotationTouch}
@@ -2643,8 +2646,8 @@ function AVCanvasContent() {
                           y2={endCanvasPos.y}
                           stroke="transparent"
                           strokeWidth="40"
-                          className={`pointer-events-auto ${ann.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                          onMouseEnter={() => !ann.locked && setHoveredAnnotation(idx)}
+                          className={`pointer-events-auto ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                          onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                           onMouseLeave={() => setHoveredAnnotation(null)}
                           onMouseDown={handleAnnotationClick}
                           onTouchStart={handleAnnotationTouch}
