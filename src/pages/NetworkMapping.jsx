@@ -708,8 +708,8 @@ export default function NetworkMapping() {
           </div>
         </div>
         
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
-          <Link to={createPageUrl("AgentManager")} className="hidden sm:block">
+        <div className="hidden md:flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+          <Link to={createPageUrl("AgentManager")}>
             <Button variant="outline" className="border-gray-700 text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3">
               <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-2" />
               <span className="hidden md:inline">Manage</span>
@@ -769,7 +769,7 @@ export default function NetworkMapping() {
               <Button
                 variant="outline"
                 onClick={() => setSelectedAgent(null)}
-                className="border-gray-700 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+                className="border-gray-700 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-3 flex-shrink-0"
               >
                 Change
               </Button>
@@ -782,7 +782,7 @@ export default function NetworkMapping() {
                 <Button 
                   onClick={stopScan} 
                   variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-3 flex-shrink-0"
                 >
                   <X className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
                   <span className="hidden md:inline">Stop</span>
@@ -795,7 +795,7 @@ export default function NetworkMapping() {
                     startScan('', '');
                   }} 
                   variant="outline"
-                  className="border-green-500 text-green-400 hover:bg-green-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+                  className="border-green-500 text-green-400 hover:bg-green-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-3 flex-shrink-0"
                 >
                   <RefreshCw className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
                   <span className="hidden sm:inline">Scan</span>
@@ -806,7 +806,7 @@ export default function NetworkMapping() {
                 <Button 
                   onClick={() => deleteDeviceMutation.mutate(selectedDevice.id)}
                   variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-3 flex-shrink-0"
                 >
                   <Trash2 className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
                   <span className="hidden md:inline">Remove</span>
@@ -818,24 +818,13 @@ export default function NetworkMapping() {
                   onClick={handlePingDevices}
                   disabled={isPinging}
                   variant="outline"
-                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-3 flex-shrink-0"
                 >
                   <Activity className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
                   <span className="hidden sm:inline">{isPinging ? 'Ping' : `Ping (${selectedDevices.size})`}</span>
                   <span className="sm:hidden">{selectedDevices.size}</span>
                 </Button>
               )}
-              
-              {devices.length > 0 && (
-                <Button 
-                  onClick={handleClearAllDevices}
-                  variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10 text-[11px] sm:text-xs md:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
-                >
-                  <Eraser className="w-3 h-3 md:w-4 md:h-4 md:mr-1.5" />
-                  <span className="hidden sm:inline">Clear</span>
-                </Button>
-                )}
                 </>
                 )}
                 </div>
