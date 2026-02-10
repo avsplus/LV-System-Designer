@@ -2893,7 +2893,7 @@ function AVCanvasContent() {
             </div>
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
-              <g style={{ pointerEvents: 'none' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+              <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {/* Connections - render FIRST so annotations appear on top */}
                 {connections.map((connection, index) => {
                   if (index === hoveredConnectionIndex) return null;
