@@ -1168,6 +1168,7 @@ function AVCanvasContent() {
         };
         setAnnotations([...annotations, newAnnotation]);
         setEditingText(newAnnotation.id);
+        markLocalChange();
       }
       return;
     }
@@ -1310,12 +1311,14 @@ function AVCanvasContent() {
       updated[index] = updatedAnnotation;
       setAnnotations(updated);
     }
+    markLocalChange();
   };
 
   const handleDeleteAnnotation = (index) => {
     const updated = annotations.filter((_, i) => i !== index);
     setAnnotations(updated);
     setSelectedAnnotation(null);
+    markLocalChange();
   };
 
   const handleDuplicateAnnotation = (index) => {
@@ -1339,6 +1342,7 @@ function AVCanvasContent() {
     const updated = [...annotations, duplicate];
     setAnnotations(updated);
     setSelectedAnnotation(updated.length - 1);
+    markLocalChange();
     toast.success('Annotation duplicated');
   };
 
@@ -1649,6 +1653,7 @@ function AVCanvasContent() {
         if (shouldSave) {
           const updated = [...annotations, drawingAnnotation];
           setAnnotations(updated);
+          markLocalChange();
         }
         setDrawingAnnotation(null);
         return;
@@ -3942,13 +3947,13 @@ function AVCanvasContent() {
                 const canvasRect = canvasRef.current.getBoundingClientRect();
                 const canvasX = (canvasRect.width / 2 - pan.x) / zoom;
                 const canvasY = (canvasRect.height / 2 - pan.y) / zoom;
-                
+
                 const floorplan = getFloorplanAtPoint(canvasX, canvasY);
                 if (!floorplan) {
                   toast.error('Please place symbol on a floorplan');
                   return;
                 }
-                
+
                 const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
                 const newAnnotation = {
                   id: Date.now().toString(),
@@ -3963,6 +3968,7 @@ function AVCanvasContent() {
                 };
                 const updated = [...annotations, newAnnotation];
                 setAnnotations(updated);
+                markLocalChange();
               }}
             />
           )}
