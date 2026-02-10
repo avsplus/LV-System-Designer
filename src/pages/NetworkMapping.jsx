@@ -1053,7 +1053,7 @@ export default function NetworkMapping() {
         ) : (
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mx-2 md:mx-0">
             <div className="overflow-x-auto md:overflow-visible">
-              <table className="w-full md:min-w-[800px]">
+              <table className="w-full">
                 <thead className="bg-gray-800/50 border-b border-gray-800 sticky top-0">
                   <tr>
                     <th className="w-10 sm:w-12 px-2 sm:px-3 md:px-4 py-2 sm:py-3">
@@ -1159,7 +1159,7 @@ export default function NetworkMapping() {
                                 'text-red-400'
                               }`} />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 max-w-[120px] md:max-w-none">
                               {editingDevice === device.id ? (
                                 <div className="flex items-center gap-2">
                                   <Input
@@ -1198,7 +1198,7 @@ export default function NetworkMapping() {
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-1 sm:gap-2 group min-w-0">
-                                  <p className="text-xs sm:text-sm text-white font-medium truncate">{device.name}</p>
+                                  <p className="text-[11px] sm:text-sm text-white font-medium break-words md:truncate">{device.name}</p>
                                   <Button
                                     variant="ghost"
                                     className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1"
@@ -1212,7 +1212,7 @@ export default function NetworkMapping() {
                                 </div>
                               )}
                               {device.vendor && (
-                                <p className="text-[10px] sm:text-xs text-gray-500 truncate">{device.vendor}</p>
+                                <p className="text-[9px] sm:text-xs text-gray-500 break-words md:truncate">{device.vendor}</p>
                               )}
                             </div>
                           </div>
@@ -1222,7 +1222,7 @@ export default function NetworkMapping() {
                             {device.device_type?.split('_').join(' ') || device.type?.split('_').join(' ') || 'other'}
                           </Badge>
                         </td>
-                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-300 font-mono text-[10px] sm:text-xs md:text-sm">
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-300 font-mono text-[10px] sm:text-xs md:text-sm max-w-[100px] md:max-w-none break-all">
                           {device.ip_address || '-'}
                         </td>
                         <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-400 font-mono text-[9px] md:text-xs hidden lg:table-cell">
