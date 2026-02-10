@@ -1063,8 +1063,8 @@ export default function NetworkMapping() {
           </div>
         ) : (
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mx-2 md:mx-0">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px]">
+            <div className="overflow-x-auto md:overflow-visible">
+              <table className="w-full md:min-w-[800px]">
                 <thead className="bg-gray-800/50 border-b border-gray-800 sticky top-0">
                   <tr>
                     <th className="w-10 sm:w-12 px-2 sm:px-3 md:px-4 py-2 sm:py-3">
@@ -1088,19 +1088,19 @@ export default function NetworkMapping() {
                         <ArrowUpDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </div>
                     </th>
-                    <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('type')}>
+                    <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors hidden md:table-cell" onClick={() => handleSort('type')}>
                       <div className="flex items-center gap-1">
                         <span>Type</span>
                         <ArrowUpDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </div>
                     </th>
-                    <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors hidden sm:table-cell" onClick={() => handleSort('ip_address')}>
+                    <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('ip_address')}>
                       <div className="flex items-center gap-1">
                         <span>IP</span>
                         <ArrowUpDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </div>
                     </th>
-                    <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors hidden md:table-cell" onClick={() => handleSort('mac_address')}>
+                    <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition-colors hidden lg:table-cell" onClick={() => handleSort('mac_address')}>
                       <div className="flex items-center gap-1">
                         <span>MAC</span>
                         <ArrowUpDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -1115,7 +1115,7 @@ export default function NetworkMapping() {
                     <th className="text-left px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 hidden lg:table-cell">
                       Ports
                     </th>
-                    <th className="text-right px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400">Act</th>
+                    <th className="text-right px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-400 hidden md:table-cell">Act</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -1228,15 +1228,15 @@ export default function NetworkMapping() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3">
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 hidden md:table-cell">
                           <Badge className="bg-gray-700 text-gray-300 border-gray-600 text-[10px] sm:text-xs">
                             {device.device_type?.split('_').join(' ') || device.type?.split('_').join(' ') || 'other'}
                           </Badge>
                         </td>
-                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-300 font-mono text-[10px] sm:text-xs md:text-sm hidden sm:table-cell">
-                          {device.ip_address?.substring(0, 12) || '-'}
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-300 font-mono text-[10px] sm:text-xs md:text-sm">
+                          {device.ip_address || '-'}
                         </td>
-                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-400 font-mono text-[9px] md:text-xs hidden md:table-cell">
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-400 font-mono text-[9px] md:text-xs hidden lg:table-cell">
                           {device.mac_address?.substring(0, 12) || '-'}
                         </td>
                         <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3">
@@ -1278,7 +1278,7 @@ export default function NetworkMapping() {
                             return '-';
                           })()}
                         </td>
-                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-right">
+                        <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-right hidden md:table-cell">
                           <Button
                             variant="outline"
                             onClick={(e) => {
