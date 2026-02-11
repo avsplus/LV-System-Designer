@@ -2427,7 +2427,8 @@ function AVCanvasContent() {
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
-                {/* Annotations on floorplans - render here to ensure proper layering */}
+                {/* Non-symbol annotations rendered as SVG overlay */}
+                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
                 {annotations.map((ann, idx) => {
                   const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
@@ -2659,6 +2660,7 @@ function AVCanvasContent() {
 
                   return null;
                 })}
+                </svg>
 
                 {floorplans.filter(fp => fp.visible).map((fp, index) => {
                   // Check if this floorplan is being resized
