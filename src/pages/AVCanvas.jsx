@@ -3121,8 +3121,7 @@ function AVCanvasContent() {
                   );
                 })}
 
-                {/* Annotations now rendered in floorplans layer above for proper layering */}
-                  const isSelected = selectedAnnotation === idx;
+                {/* Drawing annotation preview */}
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
                   // Get floorplan and convert coordinates
@@ -3624,8 +3623,7 @@ function AVCanvasContent() {
                   );
                 })}
 
-                {/* Annotations now rendered in floorplans layer above for proper layering */}
-                  const isSelected = selectedAnnotation === idx;
+                {/* Drawing annotation preview */}
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
                   // Get floorplan and convert coordinates
