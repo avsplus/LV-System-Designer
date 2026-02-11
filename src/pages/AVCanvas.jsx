@@ -2427,12 +2427,9 @@ function AVCanvasContent() {
             }}>
               {/* Floorplans Layer */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
-                {/* Non-symbol annotations rendered as SVG overlay */}
-                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
                 {annotations.map((ann, idx) => {
                   const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
-                  const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
                   const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
                   if (ann.floorplanId && (!floorplan || !floorplan.visible)) return null;
@@ -2442,7 +2439,7 @@ function AVCanvasContent() {
                     ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
                     : ann.position;
 
-                  const isLocked = ann.locked && !isMobile; // Always unlocked on mobile
+                  const isLocked = ann.locked && !isMobile;
 
                   const handleAnnotationClick = (e) => {
                     if (activeTool === 'select' && !isLocked) {
@@ -2476,28 +2473,92 @@ function AVCanvasContent() {
                     }
                   };
 
-                  // Render based on type
+                  // Render symbols only (SVG annotations rendered below)
                   if (ann.type === 'symbol') {
                     return (
-                      <g key={ann.id}
+                      <div key={ann.id}
                         className={`pointer-events-auto ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
                         onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                         onMouseLeave={() => setHoveredAnnotation(null)}
                         onMouseDown={handleAnnotationClick}
                         onTouchStart={handleAnnotationTouch}
                         onTouchEnd={handleAnnotationTouchEnd}
+                        style={{
+                          position: 'absolute',
+                          left: `${canvasPos.x}px`,
+                          top: `${canvasPos.y}px`,
+                          transform: 'translate(-50%, -50%)',
+                          zIndex: 100
+                        }}
                       >
-                        <SymbolRenderer 
-                          symbolId={ann.symbolId} 
-                          position={canvasPos} 
-                          color={ann.color || '#3b82f6'}
-                          scale={ann.scale || 1}
-                          rotation={ann.rotation || 0}
-                          flipped={ann.flipped || false}
-                        />
-                      </g>
+                        <svg width="120" height="120" viewBox="-60 -60 120 120" style={{ overflow: 'visible' }}>
+                          <SymbolRenderer 
+                            symbolId={ann.symbolId} 
+                            position={{ x: 0, y: 0 }}
+                            color={ann.color || '#3b82f6'}
+                            scale={ann.scale || 1}
+                            rotation={ann.rotation || 0}
+                            flipped={ann.flipped || false}
+                          />
+                        </svg>
+                      </div>
                     );
                   }
+                  
+                  return null;
+                })}
+
+                {/* SVG annotations (non-symbols) */}
+                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
+                {annotations.map((ann, idx) => {
+                  const isHovered = hoveredAnnotation === idx;
+                  const isSelected = selectedAnnotation === idx;
+                  const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
+
+                  const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
+                  if (ann.floorplanId && (!floorplan || !floorplan.visible)) return null;
+                  if (ann.hidden) return null;
+
+                  const canvasPos = floorplan 
+                    ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
+                    : ann.position;
+
+                  const isLocked = ann.locked && !isMobile;
+
+                  const handleAnnotationClick = (e) => {
+                    if (activeTool === 'select' && !isLocked) {
+                      e.stopPropagation();
+                      setSelectedAnnotation(idx);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                      setShowFloorplanManager(false);
+                      setShowRoomManager(false);
+                      setSelectedFloorplanId(null);
+                      setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                      if (!isMobile) {
+                        handleSymbolAnnotationDragStart(e, idx);
+                      }
+                    }
+                  };
+
+                  const handleAnnotationTouch = (e) => {
+                    if (activeTool === 'select' && !isLocked) {
+                      e.stopPropagation();
+                      setSelectedAnnotation(idx);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                      setShowFloorplanManager(false);
+                      setShowRoomManager(false);
+                      setSelectedFloorplanId(null);
+                      setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                      handleAnnotationTouchStart(e, idx);
+                    }
+                  };
+
+                  // Skip symbols (already rendered above)
+                  if (ann.type === 'symbol') return null;
 
                   if (ann.type === 'text') {
                     return (
