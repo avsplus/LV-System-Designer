@@ -3442,13 +3442,7 @@ function AVCanvasContent() {
                          />
 
                          </g>
-                         );
-                         }
-                         return null;
 
-                         {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
-
-                {/* Drawing annotation preview */}
                 {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
                   const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
                   if (!floorplan) return null;
@@ -3944,13 +3938,7 @@ function AVCanvasContent() {
                          />
 
                          </g>
-                         );
-                         }
-                         return null;
 
-                         {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
-
-                {/* Drawing annotation preview */}
                 {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
                   const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
                   if (!floorplan) return null;
