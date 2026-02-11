@@ -3122,7 +3122,6 @@ function AVCanvasContent() {
                 })}
 
                 {/* Annotations now rendered in floorplans layer above for proper layering */}
-                  const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
@@ -3446,9 +3445,9 @@ function AVCanvasContent() {
                          </g>
                          );
                          }
+                         return null;
 
-
-                {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
+                         {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
 
                 {/* Drawing annotation preview */}
                 {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
@@ -3626,7 +3625,6 @@ function AVCanvasContent() {
                 })}
 
                 {/* Annotations now rendered in floorplans layer above for proper layering */}
-                  const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
                   const strokeColor = isHovered || isSelected ? '#ef4444' : ann.color;
 
@@ -3950,9 +3948,9 @@ function AVCanvasContent() {
                          </g>
                          );
                          }
+                         return null;
 
-
-                {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
+                         {/* Symbol Drawing Preview - Not needed as symbols are placed directly */}
 
                 {/* Drawing annotation preview */}
                 {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
