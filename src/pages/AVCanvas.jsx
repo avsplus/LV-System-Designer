@@ -2475,6 +2475,7 @@ function AVCanvasContent() {
 
                   // Render symbols only (SVG annotations rendered below)
                   if (ann.type === 'symbol') {
+                    const symbolSize = 120;
                     return (
                       <div key={ann.id}
                         className={isLocked ? 'cursor-not-allowed' : 'cursor-move'}
@@ -2487,16 +2488,18 @@ function AVCanvasContent() {
                           position: 'absolute',
                           left: `${canvasPos.x}px`,
                           top: `${canvasPos.y}px`,
+                          width: `${symbolSize}px`,
+                          height: `${symbolSize}px`,
                           transform: 'translate(-50%, -50%)',
                           zIndex: 100,
                           pointerEvents: 'auto'
                         }}
                       >
-                        <svg width="120" height="120" viewBox="-60 -60 120 120" style={{ overflow: 'visible', pointerEvents: 'none' }}>
+                        <svg width="100%" height="100%" viewBox="-60 -60 120 120" style={{ overflow: 'visible', display: 'block' }}>
                           <SymbolRenderer 
                             symbolId={ann.symbolId} 
                             position={{ x: 0, y: 0 }}
-                            color={ann.color || '#3b82f6'}
+                            color={isSelected ? '#ef4444' : (ann.color || '#3b82f6')}
                             scale={ann.scale || 1}
                             rotation={ann.rotation || 0}
                             flipped={ann.flipped || false}
