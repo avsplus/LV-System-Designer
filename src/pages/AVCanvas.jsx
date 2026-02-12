@@ -2476,12 +2476,31 @@ function AVCanvasContent() {
                   // Render symbols only (SVG annotations rendered below)
                   if (ann.type === 'symbol') {
                     const symbolSize = 120;
+                    
+                    const handleSymbolClick = (e) => {
+                      if (activeTool === 'select' && !isLocked) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedAnnotation(idx);
+                        setSelectedProduct(null);
+                        setSelectedCanvasProduct(null);
+                        setSelectedConnection(null);
+                        setShowFloorplanManager(false);
+                        setShowRoomManager(false);
+                        setSelectedFloorplanId(null);
+                        setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                        if (!isMobile && e.type === 'mousedown') {
+                          handleSymbolAnnotationDragStart(e, idx);
+                        }
+                      }
+                    };
+                    
                     return (
                       <div key={ann.id}
                         className={isLocked ? 'cursor-not-allowed' : 'cursor-move'}
                         onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                         onMouseLeave={() => setHoveredAnnotation(null)}
-                        onMouseDown={handleAnnotationClick}
+                        onMouseDown={handleSymbolClick}
                         onTouchStart={handleAnnotationTouch}
                         onTouchEnd={handleAnnotationTouchEnd}
                         style={{
