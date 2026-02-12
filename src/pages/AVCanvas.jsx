@@ -2477,22 +2477,27 @@ function AVCanvasContent() {
                   if (ann.type === 'symbol') {
                     const symbolSize = 120;
                     
-                    const handleSymbolClick = (e) => {
-                      if (activeTool === 'select' && !isLocked) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSelectedAnnotation(idx);
-                        setSelectedProduct(null);
-                        setSelectedCanvasProduct(null);
-                        setSelectedConnection(null);
-                        setShowFloorplanManager(false);
-                        setShowRoomManager(false);
-                        setSelectedFloorplanId(null);
-                        setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                        if (!isMobile && e.type === 'mousedown') {
-                          handleSymbolAnnotationDragStart(e, idx);
-                        }
+                    const handleSymbolMouseDown = (e) => {
+                      if (activeTool !== 'select' || isLocked) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedAnnotation(idx);
+                      setSelectedProduct(null);
+                      setSelectedCanvasProduct(null);
+                      setSelectedConnection(null);
+                      setShowFloorplanManager(false);
+                      setShowRoomManager(false);
+                      setSelectedFloorplanId(null);
+                      setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                      if (!isMobile) {
+                        handleSymbolAnnotationDragStart(e, idx);
                       }
+                    };
+
+                    const handleSymbolClick = (e) => {
+                      if (activeTool !== 'select' || isLocked) return;
+                      e.preventDefault();
+                      e.stopPropagation();
                     };
                     
                     return (
@@ -2500,7 +2505,8 @@ function AVCanvasContent() {
                         className={isLocked ? 'cursor-not-allowed' : 'cursor-move'}
                         onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                         onMouseLeave={() => setHoveredAnnotation(null)}
-                        onMouseDown={handleSymbolClick}
+                        onMouseDown={handleSymbolMouseDown}
+                        onClick={handleSymbolClick}
                         onTouchStart={handleAnnotationTouch}
                         onTouchEnd={handleAnnotationTouchEnd}
                         style={{
