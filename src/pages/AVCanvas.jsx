@@ -2477,7 +2477,7 @@ function AVCanvasContent() {
                   if (ann.type === 'symbol') {
                     return (
                       <div key={ann.id}
-                        className={`pointer-events-auto ${isLocked ? 'cursor-not-allowed' : 'cursor-move'}`}
+                        className={isLocked ? 'cursor-not-allowed' : 'cursor-move'}
                         onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
                         onMouseLeave={() => setHoveredAnnotation(null)}
                         onMouseDown={handleAnnotationClick}
@@ -2488,10 +2488,11 @@ function AVCanvasContent() {
                           left: `${canvasPos.x}px`,
                           top: `${canvasPos.y}px`,
                           transform: 'translate(-50%, -50%)',
-                          zIndex: 100
+                          zIndex: 100,
+                          pointerEvents: 'auto'
                         }}
                       >
-                        <svg width="120" height="120" viewBox="-60 -60 120 120" style={{ overflow: 'visible' }}>
+                        <svg width="120" height="120" viewBox="-60 -60 120 120" style={{ overflow: 'visible', pointerEvents: 'none' }}>
                           <SymbolRenderer 
                             symbolId={ann.symbolId} 
                             position={{ x: 0, y: 0 }}
