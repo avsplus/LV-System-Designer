@@ -25,20 +25,16 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
 
         // Use PNG icon if available with color overlay
         if (iconUrl) {
-          const filterId = `color-overlay-${symbolId}-${position.x}-${position.y}`;
+          const filterId = `color-overlay-${symbolId}-${Math.random()}`;
           const rgb = hexToRgb(color || '#3b82f6');
           
           return (
-            <g transform={`translate(${position.x}, ${position.y}) rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
+            <g transform={`rotate(${rotation}) scale(${flipped ? -1 : 1}, 1)`}>
               <defs>
-                <filter id={filterId}>
-                  <feColorMatrix
-                    type="matrix"
-                    values={`0 0 0 0 ${rgb.r / 255}
-                            0 0 0 0 ${rgb.g / 255}
-                            0 0 0 0 ${rgb.b / 255}
-                            0 0 0 1 0`}
-                  />
+                <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+                  <feFlood floodColor={color || '#3b82f6'} result="flood" />
+                  <feComposite in="SourceGraphic" in2="flood" operator="in" result="composite" />
+                  <feComposite in="composite" in2="SourceAlpha" operator="in" />
                 </filter>
               </defs>
               <image 
@@ -48,7 +44,7 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
                 width={scaledSize}
                 height={scaledSize}
                 preserveAspectRatio="xMidYMid meet"
-                filter={color && color !== '#ffffff' ? `url(#${filterId})` : 'none'}
+                style={{ filter: `url(#${filterId})` }}
               />
             </g>
           );
