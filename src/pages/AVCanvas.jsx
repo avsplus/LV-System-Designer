@@ -2808,7 +2808,7 @@ function AVCanvasContent() {
                         width: `${renderWidth}px`,
                         height: `${renderHeight}px`,
                         pointerEvents: 'auto',
-                        cursor: fp.locked ? 'not-allowed' : (isThisOneDragging ? 'grabbing' : 'grab'),
+                        cursor: isThisOneDragging ? 'grabbing' : 'grab',
                         outline: isSelected ? '3px solid #3b82f6' : 'none',
                         outlineOffset: isSelected ? '4px' : '0',
                         boxShadow: isSelected ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
