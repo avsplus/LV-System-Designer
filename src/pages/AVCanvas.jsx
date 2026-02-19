@@ -2516,7 +2516,7 @@ function AVCanvasContent() {
                           width: `${symbolSize}px`,
                           height: `${symbolSize}px`,
                           transform: 'translate(-50%, -50%)',
-                          zIndex: 100,
+                          zIndex: 1200,
                           pointerEvents: 'auto'
                         }}
                       >
@@ -2538,7 +2538,7 @@ function AVCanvasContent() {
                 })}
 
                 {/* SVG annotations (non-symbols) */}
-                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
+                 <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible', zIndex: 1200 }}>
                 {annotations.map((ann, idx) => {
                   const isHovered = hoveredAnnotation === idx;
                   const isSelected = selectedAnnotation === idx;
