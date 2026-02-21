@@ -80,9 +80,20 @@ Deno.serve(async (req) => {
           .update({ status: 'used', used_by_agent_id: agent_id })
           .eq('id', tokens.id);
 
+        // Fetch org name for re-registration response too
+        let orgNameReReg = '';
+        try {
+          const base44 = createClientFromRequest(req);
+          const orgs = await base44.asServiceRole.entities.Organization.filter({ id: tokens.organization_id });
+          if (orgs && orgs.length > 0) orgNameReReg = orgs[0].name || '';
+        } catch (e) {
+          console.warn('Could not fetch org name:', e.message);
+        }
+
         return Response.json({
           success: true,
           org_id: tokens.organization_id,
+          org_name: orgNameReReg,
           org_public_key: orgPublicKey,
           message: 'Agent re-registered successfully'
         }, {
