@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       org_id: tokens.organization_id,
+      org_name: orgName,
       org_public_key: orgPublicKey,
       message: 'Agent registered successfully'
     }, {
