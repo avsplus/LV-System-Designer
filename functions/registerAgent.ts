@@ -104,7 +104,17 @@ Deno.serve(async (req) => {
     if (!orgPublicKey) {
       return Response.json({ error: 'Invalid registration token configuration' }, { status: 500 });
     }
-    
+
+    // Fetch organization name from Base44
+    let orgName = '';
+    try {
+      const base44 = createClientFromRequest(req);
+      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: tokens.organization_id });
+      if (orgs && orgs.length > 0) orgName = orgs[0].name || '';
+    } catch (e) {
+      console.warn('Could not fetch org name:', e.message);
+    }
+
     // Register agent in Supabase
     const { error: insertError } = await supabase
       .from('agents')
