@@ -1225,7 +1225,7 @@ export default function NetworkMapping() {
                           {device.ip_address || '-'}
                         </td>
                         <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-gray-400 font-mono text-[9px] md:text-xs hidden lg:table-cell">
-                          {device.mac_address?.substring(0, 12) || '-'}
+                          {device.mac_address || '-'}
                         </td>
                         <td className="px-2 sm:px-3 md:px-4 py-2 sm:py-3">
                           <Badge className={
