@@ -2379,7 +2379,7 @@ function AVCanvasContent() {
             onMouseDown={currentProject ? (e) => {
               document.body.classList.add('canvas-dragging');
               document.body.style.userSelect = 'none';
-              if (activeTool !== 'select' && activeTool !== 'text') {
+              if (activeTool !== 'select' && activeTool !== 'text' && activeTool !== 'snapshot') {
                 handleAnnotationMouseDown(e);
               } else {
                 handleMouseDown(e);
