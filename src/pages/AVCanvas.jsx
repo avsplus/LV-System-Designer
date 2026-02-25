@@ -32,7 +32,7 @@ import ExportPDFDialog from "../components/canvas/ExportPDFDialog";
 import ImportProductsDialog from "../components/canvas/ImportProductsDialog";
 import EnrichConnectionsDialog from "../components/canvas/EnrichConnectionsDialog";
 import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
-import AnnotationDetailsPanel from "../components/canvas/AnnotationDetailsPanel";
+import AnnotationPanelRouter from "../components/canvas/AnnotationPanelRouter";
 import SymbolRenderer from "../components/canvas/SymbolRenderer";
 import SymbolLegend from "../components/canvas/SymbolLegend";
 
