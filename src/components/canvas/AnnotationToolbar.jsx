@@ -42,6 +42,7 @@ export default function AnnotationToolbar({
   const tools = [
     { id: 'select', icon: MousePointer, label: 'Select' },
     { id: 'text', icon: Type, label: 'Text' },
+    { id: 'snapshot', icon: Camera, label: 'Snapshot', color: 'text-yellow-400' },
     { id: 'rectangle', icon: Square, label: 'Rectangle' },
     { id: 'circle', icon: Circle, label: 'Circle' },
     { id: 'line', icon: Minus, label: 'Line' }
