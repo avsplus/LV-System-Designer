@@ -2584,8 +2584,8 @@ function AVCanvasContent() {
                     }
                   };
 
-                  // Skip symbols (already rendered above)
-                  if (ann.type === 'symbol') return null;
+                  // Skip symbols and snapshots (rendered as DOM elements above)
+                  if (ann.type === 'symbol' || ann.type === 'snapshot') return null;
 
                   if (ann.type === 'text') {
                     return (
