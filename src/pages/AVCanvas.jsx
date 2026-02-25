@@ -3747,16 +3747,14 @@ function AVCanvasContent() {
           />
         )}
 
-        {selectedAnnotation !== null && (
-           <AnnotationDetailsPanel
-             annotation={annotations[selectedAnnotation]}
-             index={selectedAnnotation}
-             onClose={() => setSelectedAnnotation(null)}
-             onUpdate={handleUpdateAnnotation}
-             onDelete={handleDeleteAnnotation}
-             onDuplicate={() => handleDuplicateAnnotation(selectedAnnotation)}
-           />
-        )}
+        <AnnotationPanelRouter
+          annotations={annotations}
+          selectedAnnotation={selectedAnnotation}
+          onClose={() => setSelectedAnnotation(null)}
+          onUpdate={handleUpdateAnnotation}
+          onDelete={handleDeleteAnnotation}
+          onDuplicate={() => handleDuplicateAnnotation(selectedAnnotation)}
+        />
 
         {connectingFrom !== null && connectingTo !== null && (
           <ConnectionTypeDialog
