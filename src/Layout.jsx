@@ -11,6 +11,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const isMobile = !useMediaQuery('(min-width: 768px)');
   const [prevPath, setPrevPath] = useState(location.pathname);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   // Detect direction of navigation for animation
   const isForward = location.pathname.includes(prevPath) ? true : false;
@@ -18,6 +19,16 @@ export default function Layout({ children }) {
   useEffect(() => {
     setPrevPath(location.pathname);
   }, [location.pathname]);
+
+  useEffect(() => {
+    import('@/api/base44Client').then(({ base44 }) => {
+      base44.auth.isAuthenticated().then(setIsAuthenticated).catch(() => setIsAuthenticated(false));
+    });
+  }, [location.pathname]);
+
+  const isHomePage = location.pathname === '/' || location.pathname === '/Home';
+  // Hide bottom tabs on landing/unauthenticated state
+  const showBottomTabs = isMobile && isAuthenticated === true && !isHomePage;
 
   return (
     <SettingsProvider>
@@ -39,14 +50,14 @@ export default function Layout({ children }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isForward ? -20 : 20 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className={isMobile ? "pb-16 safe-area-bottom" : ""}
+              className={showBottomTabs ? "pb-16 safe-area-bottom" : ""}
             >
               {children}
             </motion.div>
           </AnimatePresence>
 
-          {/* Mobile Bottom Navigation */}
-          {isMobile && <BottomTabs />}
+          {/* Mobile Bottom Navigation - only for authenticated users */}
+          {showBottomTabs && <BottomTabs />}
         </div>
       </OrganizationGuard>
       <Toaster position="bottom-right" richColors />
