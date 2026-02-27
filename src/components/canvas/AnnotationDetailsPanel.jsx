@@ -200,7 +200,7 @@ export default function AnnotationDetailsPanel({
         );
       case 'select':
         return (
-          <div key={fieldKey} className="space-y-2">
+          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
             <Select value={value || ''} onValueChange={onChange}>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
@@ -212,7 +212,6 @@ export default function AnnotationDetailsPanel({
                 sideOffset={5}
                 className="bg-gray-800 border-gray-700"
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                onPointerDown={(e) => e.stopPropagation()}
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
@@ -238,7 +237,7 @@ export default function AnnotationDetailsPanel({
         );
       case 'array':
         return (
-          <div key={fieldKey} className="space-y-2">
+          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
             <div className="space-y-2">
               {(value || []).map((item, idx) => (
@@ -260,7 +259,6 @@ export default function AnnotationDetailsPanel({
                       sideOffset={5}
                       className="bg-gray-800 border-gray-700"
                       onCloseAutoFocus={(e) => e.preventDefault()}
-                      onPointerDown={(e) => e.stopPropagation()}
                     >
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
@@ -272,7 +270,9 @@ export default function AnnotationDetailsPanel({
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => {
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
                       const newArr = value.filter((_, i) => i !== idx);
                       onChange(newArr);
                     }}
@@ -286,7 +286,11 @@ export default function AnnotationDetailsPanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onChange([...(value || []), ''])}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange([...(value || []), '']);
+                  }}
                   className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
                 >
                   + Add {fieldConfig.label}
