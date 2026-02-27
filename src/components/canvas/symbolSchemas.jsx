@@ -270,8 +270,14 @@ export const symbolSchemas = {
   },
 
   tv_display: {
-    category: 'Video',
+    category: 'Audio/Video',
     label: 'TV Display',
+    ui: {
+      visualTriggers: ['screenSize', 'resolution', 'orientation'],
+      showHeightLabel: true,
+      showScreenSize: true,
+      allowRotation: true
+    },
     defaults: {
       specs: {
         screenSize: 55,
@@ -307,7 +313,8 @@ export const symbolSchemas = {
         label: 'Height',
         min: 0,
         max: 120,
-        step: 1
+        step: 1,
+        validate: { adaWarningBelow: 24, adaWarningAbove: 60 }
       },
       heightType: {
         type: 'select',
@@ -319,6 +326,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['wall', 'stand', 'ceiling']
       }
+    },
+    costModel: {
+      laborHours: 1.5,
+      materialMultiplier: 1.2,
+      dependsOn: ['screenSize']
     }
   },
 
