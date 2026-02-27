@@ -690,6 +690,7 @@ function AVCanvasContent() {
     setSelectedProduct(null);
     setSelectedCanvasProduct(null);
     setSelectedConnection(null);
+    setSelectedAnnotation(null);
     };
 
   const handleFloorplansUpdate = (updatedFloorplans) => {
