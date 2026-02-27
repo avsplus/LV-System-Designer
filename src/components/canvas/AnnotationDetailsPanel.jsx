@@ -685,6 +685,61 @@ export default function AnnotationDetailsPanel({
           </div>
         )}
 
+        {/* Items: Questions / Tasks / Notes */}
+        <div className="pt-2 border-t border-gray-800">
+          <p className="text-sm text-gray-500 mb-2">Items</p>
+          {items.length > 0 && (
+            <div className="space-y-1.5 mb-3">
+              {items.map((item) => {
+                const typeDef = ITEM_TYPES.find(t => t.key === item.type) || ITEM_TYPES[0];
+                const Icon = typeDef.icon;
+                return (
+                  <div key={item.id} className={`flex items-start gap-2 p-2 rounded-lg border ${typeDef.bg}`}>
+                    <button onClick={() => handleToggleItem(item.id)} className="mt-0.5 shrink-0">
+                      {item.type === 'task' ? (
+                        <div className={`w-4 h-4 rounded border-2 border-green-500 flex items-center justify-center ${item.completed ? 'bg-green-500' : ''}`}>
+                          {item.completed && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                      ) : (
+                        <Icon className={`w-4 h-4 ${typeDef.color}`} />
+                      )}
+                    </button>
+                    <span className={`text-xs flex-1 leading-relaxed ${item.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}>{item.text}</span>
+                    <button onClick={() => handleDeleteItem(item.id)} className="shrink-0 text-gray-600 hover:text-red-400 transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div className="flex gap-1.5 mb-1.5">
+            {ITEM_TYPES.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setNewItemType(t.key)}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded text-xs border transition-all ${newItemType === t.key ? t.bg + ' ' + t.color : 'border-gray-700 text-gray-500 hover:border-gray-600'}`}
+              >
+                <t.icon className="w-3 h-3" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+              placeholder={`Add a ${newItemType}...`}
+              className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            />
+            <Button size="sm" onClick={handleAddItem} className="h-7 px-2 bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+
         {/* Position Info */}
         <div className="pt-2 border-t border-gray-800">
           <p className="text-sm text-gray-500 mb-3">Position</p>
