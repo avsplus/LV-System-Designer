@@ -467,5 +467,7 @@ export function getSymbolSchema(symbolId) {
 
 export function getDefaultSpecs(symbolId) {
   const schema = getSymbolSchema(symbolId);
-  return schema ? { ...schema.defaults } : null;
+  if (!schema) return null;
+  // Deep clone to prevent mutations of original schema
+  return JSON.parse(JSON.stringify(schema.defaults));
 }
