@@ -150,6 +150,42 @@ export default function AnnotationDetailsPanel({
     onUpdate(index, { ...annotation, description: e.target.value });
   };
 
+  const handleBrandChange = (e) => {
+    onUpdate(index, { ...annotation, brand: e.target.value });
+  };
+
+  const handleModelChange = (e) => {
+    onUpdate(index, { ...annotation, model: e.target.value });
+  };
+
+  const SpecsSection = () => (
+    <div>
+      <p className="text-sm text-gray-500 mb-2">Specs</p>
+      <div className="space-y-2">
+        <div>
+          <label className="text-xs text-gray-400 mb-1 block">Brand</label>
+          <input
+            type="text"
+            value={annotation.brand || ''}
+            onChange={handleBrandChange}
+            placeholder="e.g. Samsung, Sony..."
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-400 mb-1 block">Model</label>
+          <input
+            type="text"
+            value={annotation.model || ''}
+            onChange={handleModelChange}
+            placeholder="e.g. QN85B, XBR-65..."
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const getAnnotationLabel = () => {
     if (annotation.type === 'text') return 'Text';
     if (annotation.type === 'rectangle') return 'Rectangle';
