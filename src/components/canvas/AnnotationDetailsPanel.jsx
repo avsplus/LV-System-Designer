@@ -25,6 +25,7 @@ export default function AnnotationDetailsPanel({
   const [showDelete, setShowDelete] = useState(false);
   const [newItemType, setNewItemType] = useState('question');
   const [newItemText, setNewItemText] = useState('');
+  const [showSpecsPanel, setShowSpecsPanel] = useState(false);
   const isMobile = !useMediaQuery('(min-width: 768px)');
 
   const items = annotation?.items || [];
