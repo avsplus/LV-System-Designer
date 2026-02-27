@@ -405,7 +405,7 @@ export default function AnnotationDetailsPanel({
             <X className="w-4 h-4" />
           </Button>
         </div>
-        {annotation.type === 'symbol' && schema && (
+        {annotation.type === 'symbol' && (
           <div className="flex gap-0 px-4">
             <button
               onClick={() => setActiveTab('properties')}
