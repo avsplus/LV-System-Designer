@@ -1,7 +1,7 @@
 import React from 'react';
 import { Camera } from 'lucide-react';
 
-export default function SnapshotMarker({ annotation, canvasPos, isSelected, isHovered, scale = 1, onMouseDown, onTouchStart, onTouchEnd }) {
+export default function SnapshotMarker({ annotation, canvasPos, isSelected, isHovered, scale = 1, onMouseDown, onTouchStart, onTouchEnd, onClick }) {
   const size = 48 * scale;
   const imageCount = annotation.images?.length || 0;
 
@@ -19,6 +19,7 @@ export default function SnapshotMarker({ annotation, canvasPos, isSelected, isHo
         cursor: 'move'
       }}
       onMouseDown={onMouseDown}
+      onClick={onClick}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
