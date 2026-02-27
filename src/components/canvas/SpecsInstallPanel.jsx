@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 
 export default function SpecsInstallPanel({ schema, specs, installation, onSpecsChange, onInstallationChange }) {
   const [expandedSection, setExpandedSection] = useState('specs');
+  const [openDropdowns, setOpenDropdowns] = useState({});
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
     switch (fieldConfig.type) {
