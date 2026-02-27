@@ -142,27 +142,33 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         onToggle={() => setExpandedSection(expandedSection === 'specs' ? 'installation' : 'specs')}
       >
         <div className="space-y-4">
-          {Object.entries(schema.specs).map(([key, config]) =>
-            renderFieldInput(key, config, specs[key], (value) => {
-              onSpecsChange({ ...specs, [key]: value });
-            })
-          )}
+           {Object.entries(schema.specs).map(([key, config]) => {
+             const handleChange = (value) => {
+               const updated = { ...localSpecs, [key]: value };
+               setLocalSpecs(updated);
+               onSpecsChange(updated);
+             };
+             return renderFieldInput(key, config, localSpecs[key], handleChange);
+           })}
         </div>
-      </Section>
+        </Section>
 
-      <Section
-        title="Installation"
-        isOpen={expandedSection === 'installation'}
-        onToggle={() => setExpandedSection(expandedSection === 'installation' ? 'specs' : 'installation')}
-      >
-        <div className="space-y-4">
-          {Object.entries(schema.installation).map(([key, config]) =>
-            renderFieldInput(key, config, installation[key], (value) => {
-              onInstallationChange({ ...installation, [key]: value });
-            })
-          )}
-        </div>
-      </Section>
+        <Section
+         title="Installation"
+         isOpen={expandedSection === 'installation'}
+         onToggle={() => setExpandedSection(expandedSection === 'installation' ? 'specs' : 'installation')}
+        >
+         <div className="space-y-4">
+           {Object.entries(schema.installation).map(([key, config]) => {
+             const handleChange = (value) => {
+               const updated = { ...localInstallation, [key]: value };
+               setLocalInstallation(updated);
+               onInstallationChange(updated);
+             };
+             return renderFieldInput(key, config, localInstallation[key], handleChange);
+           })}
+         </div>
+        </Section>
     </>
   );
 }
