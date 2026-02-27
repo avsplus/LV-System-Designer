@@ -618,7 +618,7 @@ export default function AnnotationDetailsPanel({
                 )}
               </div>
             </Section>
-          </>
+          </div>
         )}
       </div>
 
