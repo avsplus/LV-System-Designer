@@ -373,6 +373,36 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
   );
 }
 
+// Render specs label below symbol
+export function renderSymbolLabel({ symbolId, specs, installation, position, scale = 1 }) {
+  const label = getSymbolLabel(symbolId, specs, installation);
+  if (!label) return null;
+
+  const lines = label.split('\n');
+  const lineHeight = 12;
+  const yOffset = (scale * 30) + 20;
+
+  return (
+    <g>
+      {lines.map((line, idx) => (
+        <text
+          key={idx}
+          x={position.x}
+          y={position.y + yOffset + idx * lineHeight}
+          textAnchor="middle"
+          fontSize={11}
+          fontFamily="monospace"
+          fill="#94a3b8"
+          opacity="0.9"
+          pointerEvents="none"
+        >
+          {line}
+        </text>
+      ))}
+    </g>
+  );
+}
+
 // Helper to convert hex color to RGB
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
