@@ -335,8 +335,13 @@ export const symbolSchemas = {
   },
 
   av_receiver: {
-    category: 'Audio',
+    category: 'Audio/Video',
     label: 'AV Receiver',
+    ui: {
+      visualTriggers: ['channels', 'power'],
+      showHeightLabel: false,
+      allowRotation: false
+    },
     defaults: {
       specs: {
         channels: '7.2',
@@ -384,6 +389,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['rack', 'shelf', 'wall']
       }
+    },
+    costModel: {
+      laborHours: 2.0,
+      materialMultiplier: 1.0,
+      dependsOn: ['channels', 'power']
     }
   },
 
