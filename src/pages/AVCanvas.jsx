@@ -32,6 +32,7 @@ import ExportDialogs from "../components/canvas/ExportDialogs";
 import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
 import AnnotationPanelRouter from "../components/canvas/AnnotationPanelRouter";
 import AnnotationLayer from "../components/canvas/AnnotationLayer";
+import CanvasConnectionLayer from "../components/canvas/CanvasConnectionLayer";
 import useCanvasAnnotations from "../components/canvas/hooks/useCanvasAnnotations";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
