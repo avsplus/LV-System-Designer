@@ -9,20 +9,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'imageUrl required' }, { status: 400 });
     }
 
-    const imageResponse = await fetch(imageUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    const imageResponse = await fetch(imageUrl);
 
     if (!imageResponse.ok) {
-      return Response.json({ error: 'Failed to fetch image' }, { status: 400 });
+      return Response.json({ error: `Failed to fetch image: ${imageResponse.status}` }, { status: 400 });
     }
 
-    const blob = await imageResponse.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-    const base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)));
-    const dataUrl = `data:${blob.type};base64,${base64}`;
+    const arrayBuffer = await imageResponse.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+    const dataUrl = `data:${contentType};base64,${base64}`;
 
     return Response.json({ dataUrl });
   } catch (error) {
