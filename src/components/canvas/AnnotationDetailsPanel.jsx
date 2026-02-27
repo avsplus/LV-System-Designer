@@ -162,8 +162,8 @@ export default function AnnotationDetailsPanel({
   };
 
   const schema = annotation.type === 'symbol' ? getSymbolSchema(annotation.symbolId) : null;
-  const specs = annotation.specs || {};
-  const installation = annotation.installation || {};
+  const specs = annotation.specs || (schema ? JSON.parse(JSON.stringify(schema.defaults?.specs || {})) : {});
+  const installation = annotation.installation || (schema ? JSON.parse(JSON.stringify(schema.defaults?.installation || {})) : {});
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
     switch (fieldConfig.type) {
