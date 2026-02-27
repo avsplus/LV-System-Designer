@@ -27,25 +27,23 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         );
       case 'select':
         return (
-          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+          <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <Select value={value || ''} onValueChange={onChange}>
-              <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                <SelectValue placeholder={`Select ${fieldConfig.label}`} />
-              </SelectTrigger>
-              <SelectContent 
-                side="bottom" 
-                avoidCollisions={false}
-                sideOffset={5}
-                className="bg-gray-800 border-gray-700 z-[9999]"
-              >
-                {fieldConfig.options.map((opt) => (
-                  <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
-                    {opt}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2">
+              {fieldConfig.options.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => onChange(opt)}
+                  className={`px-3 py-1.5 text-xs rounded border transition ${
+                    value === opt
+                      ? 'bg-blue-600 border-blue-500 text-white'
+                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
           </div>
         );
       case 'text':
