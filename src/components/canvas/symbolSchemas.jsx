@@ -398,8 +398,13 @@ export const symbolSchemas = {
   },
 
   microphone: {
-    category: 'Audio',
+    category: 'Audio/Video',
     label: 'Microphone',
+    ui: {
+      visualTriggers: ['type', 'pattern'],
+      showHeightLabel: true,
+      allowRotation: true
+    },
     defaults: {
       specs: {
         type: 'condenser',
@@ -434,7 +439,8 @@ export const symbolSchemas = {
         label: 'Height',
         min: 0,
         max: 120,
-        step: 1
+        step: 1,
+        validate: { adaWarningBelow: 36, adaWarningAbove: 72 }
       },
       heightType: {
         type: 'select',
@@ -446,6 +452,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['table', 'stand', 'wall', 'ceiling']
       }
+    },
+    costModel: {
+      laborHours: 0.75,
+      materialMultiplier: 0.9,
+      dependsOn: ['type']
     }
   }
 };
