@@ -182,22 +182,7 @@ export default function AnnotationDetailsPanel({
 
 
 
-  const Section = ({ title, isOpen, onToggle, children }) => (
-    <div className="border border-gray-700 rounded-lg overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 transition"
-      >
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-      {isOpen && (
-        <div className="p-4 bg-gray-900 space-y-4 border-t border-gray-700">
-          {children}
-        </div>
-      )}
-    </div>
-  );
+
 
   // Mobile drawer
   if (isMobile) {
