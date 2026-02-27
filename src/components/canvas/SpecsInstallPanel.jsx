@@ -28,7 +28,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         );
       case 'select':
         return (
-          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>
+          <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
             <Select value={value || ''} onValueChange={onChange}>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
@@ -39,6 +39,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                 avoidCollisions={false}
                 sideOffset={5}
                 className="bg-gray-800 border-gray-700 z-[9999]"
+                portalled
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
