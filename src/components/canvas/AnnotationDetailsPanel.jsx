@@ -243,6 +243,7 @@ export default function AnnotationDetailsPanel({
                       newArr[idx] = val;
                       onChange(newArr);
                     }}
+                    modal={false}
                   >
                     <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
                       <SelectValue placeholder="Select" />
