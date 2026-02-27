@@ -85,7 +85,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                       avoidCollisions={false}
                       sideOffset={5}
                       className="bg-gray-800 border-gray-700 z-[9999]"
-                      portalled
                     >
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
