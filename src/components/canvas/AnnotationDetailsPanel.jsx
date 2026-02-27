@@ -588,7 +588,7 @@ export default function AnnotationDetailsPanel({
 
         {/* Specs & Install Tab */}
         {activeTab === 'specs' && schema && (
-          <>
+          <div onPointerDown={(e) => e.stopPropagation()}>
             <Section
               title="Specifications"
               isOpen={expandedSection === 'specs'}
