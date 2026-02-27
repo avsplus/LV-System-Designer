@@ -61,35 +61,30 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         );
       case 'array':
         return (
-          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+          <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <div className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+            <div className="space-y-2">
               {(value || []).map((item, idx) => (
                 <div key={idx} className="flex gap-2">
-                  <Select
+                  <input
+                    type="text"
                     value={item || ''}
-                    onValueChange={(val) => {
+                    onChange={(e) => {
                       const newArr = [...(value || [])];
-                      newArr[idx] = val;
+                      newArr[idx] = e.target.value;
                       onChange(newArr);
                     }}
-                  >
-                    <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent 
-                      side="bottom" 
-                      avoidCollisions={false}
-                      sideOffset={5}
-                      className="bg-gray-800 border-gray-700 z-[9999]"
-                    >
+                    list={`${fieldKey}-options`}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                    placeholder="Enter value"
+                  />
+                  {fieldConfig.options && (
+                    <datalist id={`${fieldKey}-options`}>
                       {fieldConfig.options.map((opt) => (
-                        <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
-                          {opt}
-                        </SelectItem>
+                        <option key={opt} value={opt} />
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </datalist>
+                  )}
                   <Button
                     variant="outline"
                     size="icon"
@@ -97,7 +92,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                       const newArr = value.filter((_, i) => i !== idx);
                       onChange(newArr);
                     }}
-                    className="bg-red-900 hover:bg-red-800 border-red-700"
+                    className="bg-red-900 hover:bg-red-800 border-red-700 h-10 w-10"
                   >
                     <X className="w-4 h-4" />
                   </Button>
