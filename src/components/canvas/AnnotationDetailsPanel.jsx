@@ -152,6 +152,7 @@ export default function AnnotationDetailsPanel({
 
   const [brand, setBrand] = useState(annotation.brand || '');
   const [model, setModel] = useState(annotation.model || '');
+  const [sku, setSku] = useState(annotation.sku || '');
   const [productImageUrl, setProductImageUrl] = useState(annotation.product_image_url || null);
   const [imageLoading, setImageLoading] = useState(false);
   const imageSearchTimeout = useRef(null);
@@ -160,46 +161,59 @@ export default function AnnotationDetailsPanel({
   useEffect(() => {
     setBrand(annotation.brand || '');
     setModel(annotation.model || '');
+    setSku(annotation.sku || '');
     setProductImageUrl(annotation.product_image_url || null);
   }, [annotation.id]);
+
+  const triggerImageSearch = (newBrand, newModel, newSku) => {
+    if (imageSearchTimeout.current) clearTimeout(imageSearchTimeout.current);
+    const identifier = newModel?.trim() || newSku?.trim();
+    if (!identifier) {
+      setProductImageUrl(null);
+      setImageLoading(false);
+      return;
+    }
+    setImageLoading(true);
+    imageSearchTimeout.current = setTimeout(async () => {
+      try {
+        const { base44 } = await import('@/api/base44Client');
+        const query = [newBrand, identifier].filter(Boolean).join(' ');
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: `Find a product image URL for: "${query}". Return only a direct image URL (jpg/png) from the manufacturer's website or a reputable source. Must be a real, working URL.`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: 'object',
+            properties: { image_url: { type: 'string' } }
+          }
+        });
+        const url = result?.image_url || null;
+        setProductImageUrl(url);
+        onUpdate(index, { ...annotation, brand: newBrand, model: newModel, sku: newSku, product_image_url: url });
+      } catch (e) {
+        setProductImageUrl(null);
+      }
+      setImageLoading(false);
+    }, 1200);
+  };
 
   const handleBrandChange = (e) => {
     const val = e.target.value;
     setBrand(val);
-    onUpdate(index, { ...annotation, brand: val, model, product_image_url: productImageUrl });
+    onUpdate(index, { ...annotation, brand: val, model, sku, product_image_url: productImageUrl });
   };
 
   const handleModelChange = (e) => {
     const val = e.target.value;
     setModel(val);
-    onUpdate(index, { ...annotation, brand, model: val, product_image_url: productImageUrl });
-    // Debounce image search when model changes
-    if (imageSearchTimeout.current) clearTimeout(imageSearchTimeout.current);
-    if (val.trim() && (brand.trim() || annotation.brand?.trim())) {
-      setImageLoading(true);
-      imageSearchTimeout.current = setTimeout(async () => {
-        try {
-          const { base44 } = await import('@/api/base44Client');
-          const result = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find a product image URL for: ${brand || annotation.brand} ${val}. Return only a direct image URL (jpg/png) from the manufacturer's website or a reputable source. Must be a real, working URL.`,
-            add_context_from_internet: true,
-            response_json_schema: {
-              type: 'object',
-              properties: { image_url: { type: 'string' } }
-            }
-          });
-          const url = result?.image_url || null;
-          setProductImageUrl(url);
-          onUpdate(index, { ...annotation, brand: brand || annotation.brand, model: val, product_image_url: url });
-        } catch (e) {
-          setProductImageUrl(null);
-        }
-        setImageLoading(false);
-      }, 1200);
-    } else {
-      setProductImageUrl(null);
-      setImageLoading(false);
-    }
+    onUpdate(index, { ...annotation, brand, model: val, sku, product_image_url: productImageUrl });
+    triggerImageSearch(brand, val, sku);
+  };
+
+  const handleSkuChange = (e) => {
+    const val = e.target.value;
+    setSku(val);
+    onUpdate(index, { ...annotation, brand, model, sku: val, product_image_url: productImageUrl });
+    triggerImageSearch(brand, model, val);
   };
 
   const specsAndImageSection = (
@@ -213,7 +227,7 @@ export default function AnnotationDetailsPanel({
               type="text"
               value={brand}
               onChange={handleBrandChange}
-              placeholder="e.g. Samsung, Sony..."
+              placeholder="e.g. Samsung, Leviton..."
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -224,6 +238,16 @@ export default function AnnotationDetailsPanel({
               value={model}
               onChange={handleModelChange}
               placeholder="e.g. QN85B, XBR-65..."
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">SKU / Part Number</label>
+            <input
+              type="text"
+              value={sku}
+              onChange={handleSkuChange}
+              placeholder="e.g. 41642-002-00W..."
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -240,7 +264,7 @@ export default function AnnotationDetailsPanel({
             <div className="w-full bg-gray-800 border border-gray-700 rounded overflow-hidden">
               <img
                 src={productImageUrl}
-                alt={`${brand} ${model}`}
+                alt={`${brand} ${model || sku}`}
                 className="w-full object-contain max-h-40"
                 onError={() => setProductImageUrl(null)}
               />
