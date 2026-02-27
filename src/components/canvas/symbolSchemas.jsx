@@ -80,6 +80,12 @@ export const symbolSchemas = {
   touch_panel: {
     category: 'Control',
     label: 'Touch Panel',
+    ui: {
+      visualTriggers: ['screenSize', 'orientation'],
+      showHeightLabel: true,
+      showScreenSize: true,
+      allowRotation: true
+    },
     defaults: {
       specs: {
         screenSize: 7,
@@ -115,7 +121,8 @@ export const symbolSchemas = {
         label: 'Height',
         min: 0,
         max: 120,
-        step: 1
+        step: 1,
+        validate: { adaWarningBelow: 15, adaWarningAbove: 54 }
       },
       heightType: {
         type: 'select',
@@ -127,6 +134,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['recessed', 'surface', 'flush']
       }
+    },
+    costModel: {
+      laborHours: 2.0,
+      materialMultiplier: 1.5,
+      dependsOn: ['screenSize']
     }
   },
 
