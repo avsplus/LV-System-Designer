@@ -212,6 +212,18 @@ export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpd
     </div>
   );
 
+  const lightbox = lightboxUrl && (
+    <div
+      className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4"
+      onClick={() => setLightboxUrl(null)}
+    >
+      <button className="absolute top-4 right-4 text-white bg-gray-800 rounded-full p-2 hover:bg-gray-700" onClick={() => setLightboxUrl(null)}>
+        <X className="w-5 h-5" />
+      </button>
+      <img src={lightboxUrl} alt="Full size" className="max-w-full max-h-full object-contain rounded shadow-2xl" onClick={(e) => e.stopPropagation()} />
+    </div>
+  );
+
   if (isMobile) {
     return (
       <Drawer open={true} onOpenChange={(open) => !open && onClose()}>
