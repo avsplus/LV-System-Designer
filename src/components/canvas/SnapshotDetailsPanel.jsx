@@ -97,18 +97,6 @@ export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpd
         />
       </div>
 
-      {/* Caption / Notes */}
-      <div>
-        <p className="text-sm text-gray-500 mb-2">Notes</p>
-        <Textarea
-          value={annotation.caption || ''}
-          onChange={handleCaptionChange}
-          placeholder="Add notes or description..."
-          className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
-          rows={3}
-        />
-      </div>
-
       {/* Questions / Tasks / Notes Items */}
       <div>
         <p className="text-sm text-gray-500 mb-2">Items</p>
