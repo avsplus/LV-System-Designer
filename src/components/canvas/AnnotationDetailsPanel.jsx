@@ -162,8 +162,21 @@ export default function AnnotationDetailsPanel({
   };
 
   const schema = annotation.type === 'symbol' ? getSymbolSchema(annotation.symbolId) : null;
-  const specs = annotation.specs || (schema ? JSON.parse(JSON.stringify(schema.defaults?.specs || {})) : {});
-  const installation = annotation.installation || (schema ? JSON.parse(JSON.stringify(schema.defaults?.installation || {})) : {});
+  
+  // Initialize specs/installation from schema defaults if missing
+  React.useEffect(() => {
+    if (schema && annotation.type === 'symbol') {
+      if (!annotation.specs && schema.defaults?.specs) {
+        onUpdate(index, { ...annotation, specs: JSON.parse(JSON.stringify(schema.defaults.specs)) }, true);
+      }
+      if (!annotation.installation && schema.defaults?.installation) {
+        onUpdate(index, { ...annotation, installation: JSON.parse(JSON.stringify(schema.defaults.installation)) }, true);
+      }
+    }
+  }, [schema, annotation.type, annotation.symbolId]);
+
+  const specs = annotation.specs || (schema?.defaults?.specs ? JSON.parse(JSON.stringify(schema.defaults.specs)) : {});
+  const installation = annotation.installation || (schema?.defaults?.installation ? JSON.parse(JSON.stringify(schema.defaults.installation)) : {});
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
     switch (fieldConfig.type) {
