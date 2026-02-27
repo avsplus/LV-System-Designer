@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpdate, onDelete, onDuplicate }) {
   const [showDelete, setShowDelete] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
+  const [lightboxUrl, setLightboxUrl] = React.useState(null);
   const isMobile = !useMediaQuery('(min-width: 768px)');
   const fileInputRef = useRef(null);
 
