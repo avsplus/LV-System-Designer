@@ -74,16 +74,15 @@ export default function useCanvasAnnotations({
     const canvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
     const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
     const floorplan = getFloorplanAtPoint(canvasX, canvasY);
-    if (!floorplan) { toast.error('Please draw annotation on a floorplan'); return; }
-    const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
+    const fpCoords = floorplan ? canvasToFloorplanCoords(canvasX, canvasY, floorplan) : { x: canvasX, y: canvasY };
 
     let newAnnotation;
     if (activeTool === 'rectangle') {
-      newAnnotation = { id: Date.now().toString(), type: 'rectangle', floorplanId: floorplan.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, width: 0, height: 0 };
+      newAnnotation = { id: Date.now().toString(), type: 'rectangle', floorplanId: floorplan?.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, width: 0, height: 0 };
     } else if (activeTool === 'circle') {
-      newAnnotation = { id: Date.now().toString(), type: 'circle', floorplanId: floorplan.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, radius: 0 };
+      newAnnotation = { id: Date.now().toString(), type: 'circle', floorplanId: floorplan?.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, radius: 0 };
     } else if (activeTool === 'line') {
-      newAnnotation = { id: Date.now().toString(), type: 'line', floorplanId: floorplan.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth };
+      newAnnotation = { id: Date.now().toString(), type: 'line', floorplanId: floorplan?.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth };
     }
     if (newAnnotation) setDrawingAnnotation(newAnnotation);
   }, [activeTool, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, annotationColor, annotationStrokeWidth, annotationFill]);
