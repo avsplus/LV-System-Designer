@@ -29,21 +29,16 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         return (
           <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <div className="flex flex-wrap gap-2">
+            <select
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Select {fieldConfig.label}</option>
               {fieldConfig.options.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => onChange(opt)}
-                  className={`px-3 py-1.5 text-xs rounded border transition ${
-                    value === opt
-                      ? 'bg-blue-600 border-blue-500 text-white'
-                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  {opt}
-                </button>
+                <option key={opt} value={opt}>{opt}</option>
               ))}
-            </div>
+            </select>
           </div>
         );
       case 'text':
