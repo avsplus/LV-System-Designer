@@ -205,10 +205,23 @@ Return both the image_url (direct image link) and product_page_url (product list
       });
       const imgUrl = result?.image_url || null;
       const pageUrl = result?.product_page_url || null;
-      setProductImageUrl(imgUrl);
+
+      // Process image through backend if URL found
+      let processedImageUrl = imgUrl;
+      if (imgUrl) {
+        try {
+          const imgResponse = await base44.functions.invoke('processProductImage', { imageUrl: imgUrl });
+          processedImageUrl = imgResponse?.data?.dataUrl || imgUrl;
+        } catch (e) {
+          // Fallback to original URL if processing fails
+          processedImageUrl = imgUrl;
+        }
+      }
+
+      setProductImageUrl(processedImageUrl);
       setProductPageUrl(pageUrl);
       setImageError(false);
-      onUpdate(index, { ...annotation, brand: newBrand, model: newModel, sku: newSku, product_image_url: imgUrl, product_page_url: pageUrl });
+      onUpdate(index, { ...annotation, brand: newBrand, model: newModel, sku: newSku, product_image_url: processedImageUrl, product_page_url: pageUrl });
     } catch (e) {
       setProductImageUrl(null);
     }
