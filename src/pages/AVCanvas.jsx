@@ -1131,32 +1131,8 @@ function AVCanvasContent() {
   };
 
   const handleCanvasClick = (e) => {
-    // Handle text tool click
-    if (activeTool === 'text' && currentProject) {
-      const canvasRect = canvasRef.current?.getBoundingClientRect();
-      if (canvasRect) {
-        const canvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
-        const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
-        
-        const floorplan = getFloorplanAtPoint(canvasX, canvasY);
-        const fpCoords = floorplan ? canvasToFloorplanCoords(canvasX, canvasY, floorplan) : { x: canvasX, y: canvasY };
-        
-        const newAnnotation = {
-          id: Date.now().toString(),
-          type: 'text',
-          floorplanId: floorplan?.id,
-          position: fpCoords,
-          text: 'Text',
-          color: annotationColor,
-          fontSize: annotationFontSize
-        };
-        setAnnotations([...annotations, newAnnotation]);
-        setEditingText(newAnnotation.id);
-        markLocalChange();
-      }
-      return;
-    }
-    
+    if (activeTool === 'snapshot' && currentProject) { handleSnapshotClick(e); return; }
+    if (activeTool === 'text' && currentProject) { handleTextClick(e); return; }
     // Only trigger if clicking directly on the canvas background, not on products/connections
     const isEmptySpace = e.target === e.currentTarget || 
                         e.target.tagName === 'svg' || 
