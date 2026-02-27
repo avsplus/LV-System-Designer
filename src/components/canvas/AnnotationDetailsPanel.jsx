@@ -202,7 +202,7 @@ export default function AnnotationDetailsPanel({
         return (
           <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <Select value={value || ''} onValueChange={onChange}>
+            <Select value={value || ''} onValueChange={onChange} modal={false}>>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                 <SelectValue placeholder={`Select ${fieldConfig.label}`} />
               </SelectTrigger>
