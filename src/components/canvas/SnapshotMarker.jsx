@@ -23,17 +23,15 @@ export default function SnapshotMarker({ annotation, canvasPos, isSelected, isHo
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div
-        className={`w-full h-full rounded-full flex items-center justify-center shadow-lg transition-all ${
-          isSelected ? 'ring-2 ring-red-400 ring-offset-1' :
-          isHovered ? 'ring-2 ring-yellow-300 ring-offset-1' : ''
-        }`}
-        style={{
-          backgroundColor: isSelected ? '#ef4444' : (isHovered ? '#fbbf24' : (annotation.color || '#f59e0b')),
-          boxShadow: `0 2px 10px rgba(0,0,0,0.4)`
-        }}
-      >
-        <Camera className="text-white" style={{ width: `${size * 0.5}px`, height: `${size * 0.5}px` }} />
+      <div className="w-full h-full flex items-center justify-center">
+        <Camera
+          style={{
+            width: `${size}px`,
+            height: `${size}px`,
+            color: isSelected ? '#ef4444' : (isHovered ? '#fbbf24' : (annotation.color || '#f59e0b')),
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
+          }}
+        />
       </div>
 
       {/* Photo count badge */}
