@@ -179,7 +179,14 @@ export default function AnnotationDetailsPanel({
         const { base44 } = await import('@/api/base44Client');
         const query = [newBrand, identifier].filter(Boolean).join(' ');
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Find a product image URL for: "${query}". Return only a direct image URL (jpg/png) from the manufacturer's website or a reputable source. Must be a real, working URL.`,
+          prompt: `Search Google Images or the manufacturer's website for a product photo of "${query}". 
+I need a direct, publicly accessible image URL (ending in .jpg, .jpeg, .png, or .webp) showing this specific product.
+Prefer images from:
+1. The manufacturer's official website (e.g. leviton.com, samsung.com, sony.com)
+2. Major retailers like Amazon, Home Depot, B&H Photo, Crutchfield
+3. CDN image hosts like images-na.ssl-images-amazon.com, m.media-amazon.com
+
+Return the most relevant product photo URL. Do NOT return placeholder or logo images. The URL must be a real image that loads directly.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: 'object',
