@@ -89,7 +89,7 @@ export default function AnnotationLayer({
                 setSelectedProduct(null); setSelectedCanvasProduct(null); setSelectedConnection(null);
                 setShowFloorplanManager(false); setShowRoomManager(false); setSelectedFloorplanId(null);
                 setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
-                if (!isMobile) handleSymbolAnnotationDragStart(e, idx);
+                handleSymbolAnnotationDragStart(e, idx);
               }}
               onTouchStart={touchAnnotation}
               onTouchEnd={handleAnnotationTouchEnd}
