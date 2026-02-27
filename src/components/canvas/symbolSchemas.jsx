@@ -206,8 +206,14 @@ export const symbolSchemas = {
   },
 
   projector: {
-    category: 'Video',
+    category: 'Audio/Video',
     label: 'Projector',
+    ui: {
+      visualTriggers: ['brightness', 'resolution', 'throwRatio'],
+      showHeightLabel: true,
+      showBrightness: true,
+      allowRotation: false
+    },
     defaults: {
       specs: {
         brightness: '3000 ANSI',
@@ -255,6 +261,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['ceiling', 'wall']
       }
+    },
+    costModel: {
+      laborHours: 3.0,
+      materialMultiplier: 2.0,
+      dependsOn: ['brightness', 'resolution']
     }
   },
 
