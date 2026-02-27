@@ -211,6 +211,7 @@ export default function AnnotationDetailsPanel({
                 avoidCollisions={true}
                 sideOffset={5}
                 className="bg-gray-800 border-gray-700"
+                onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
               >
                 {fieldConfig.options.map((opt) => (
@@ -258,6 +259,7 @@ export default function AnnotationDetailsPanel({
                       avoidCollisions={true}
                       sideOffset={5}
                       className="bg-gray-800 border-gray-700"
+                      onOpenAutoFocus={(e) => e.preventDefault()}
                       onCloseAutoFocus={(e) => e.preventDefault()}
                     >
                       {fieldConfig.options.map((opt) => (
