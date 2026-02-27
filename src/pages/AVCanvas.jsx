@@ -1031,7 +1031,6 @@ function AVCanvasContent() {
   },[handleGlobalMouseMove,handleGlobalMouseUp,handleResizeMove,handleResizeEnd,handleAnnotationGlobalMove,handleAnnotationGlobalUp,drawingArrow,pan,zoom,annotations,selectedAnnotation,arrows,canvasProducts,connections,rooms,floorplans,currentProject]);
 
   const connectionsByCategory = CONNECTIONS_BY_CATEGORY;
-  const CARD_WIDTH = 320, CARD_HEIGHT = 280, PORT_DOT_SIZE = 20, PORT_GAP = 12;
 
   const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
