@@ -886,91 +886,31 @@ function AVCanvasContent() {
     });
   };
 
+  const centerOnFloorplans = () => {
+    const visibleFps = floorplans.filter(fp => fp.visible);
+    if (!visibleFps.length) return;
+    const bounds = visibleFps.reduce((acc, fp) => {
+      const pos=fp.position||{x:0,y:0}; const scale=fp.scale||1;
+      const hasCal=fp.imageWidth&&fp.imageHeight&&fp.pixelsPerInch;
+      let w=(hasCal?fp.imageWidth*(1/fp.pixelsPerInch)*scale:500*scale);
+      let h=fp.imageHeight?w*(fp.imageHeight/fp.imageWidth):500*scale;
+      return{minX:Math.min(acc.minX,pos.x),minY:Math.min(acc.minY,pos.y),maxX:Math.max(acc.maxX,pos.x+w),maxY:Math.max(acc.maxY,pos.y+h)};
+    }, {minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity});
+    const cX=(bounds.minX+bounds.maxX)/2; const cY=(bounds.minY+bounds.maxY)/2;
+    const r=canvasRef.current?.getBoundingClientRect();
+    if(r){setPan({x:r.width/2-cX,y:r.height/2-cY});setZoom(1);}
+  };
+
   const handleMouseDown = (e) => {
-    // Handle middle mouse button - double-click to center/reset, single-click to pan
     if (e.button === 1) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const now = Date.now();
-      const timeSinceLastClick = now - lastMiddleClickRef.current;
-      
-      if (timeSinceLastClick < 400) {
-        // Double middle-click detected
-        
-        if (floorplans.length > 0) {
-          // Calculate center of all visible floorplans with correct aspect ratio
-          const visibleFloorplans = floorplans.filter(fp => fp.visible);
-          if (visibleFloorplans.length > 0) {
-            const bounds = visibleFloorplans.reduce((acc, fp) => {
-              const pos = fp.position || { x: 0, y: 0 };
-              const scale = fp.scale || 1;
-              const hasDimensions = fp.imageWidth && fp.imageHeight;
-              const hasCalibration = hasDimensions && fp.pixelsPerInch;
-              let width, height;
-
-              if (hasDimensions) {
-                // Calculate width based on calibration or default
-                if (hasCalibration) {
-                  const scaleFactor = (1 / fp.pixelsPerInch) * scale;
-                  width = fp.imageWidth * scaleFactor;
-                } else {
-                  width = 500 * scale;
-                }
-                // Always calculate height from width to preserve aspect ratio
-                height = width * (fp.imageHeight / fp.imageWidth);
-              } else {
-                width = 500 * scale;
-                height = 500 * scale;
-              }
-
-              return {
-                minX: Math.min(acc.minX, pos.x),
-                minY: Math.min(acc.minY, pos.y),
-                maxX: Math.max(acc.maxX, pos.x + width),
-                maxY: Math.max(acc.maxY, pos.y + height)
-              };
-            }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
-
-            const centerX = (bounds.minX + bounds.maxX) / 2;
-            const centerY = (bounds.minY + bounds.maxY) / 2;
-
-            // Get canvas center
-            const canvasRect = canvasRef.current?.getBoundingClientRect();
-            if (canvasRect) {
-              const viewportCenterX = canvasRect.width / 2;
-              const viewportCenterY = canvasRect.height / 2;
-
-              // Calculate pan to center floorplans at 100% zoom
-              setPan({
-                x: viewportCenterX - centerX,
-                y: viewportCenterY - centerY
-              });
-              setZoom(1);
-              toast.success('Centered floorplans at 100% zoom');
-            }
-          }
-        }
-        lastMiddleClickRef.current = 0;
-        return;
-      } else {
-        lastMiddleClickRef.current = now;
-      }
-      
-      // Allow middle-click panning anywhere on canvas
-      handlePanStart(e, canvasRef.current);
-      return;
+      e.preventDefault(); e.stopPropagation();
+      const now=Date.now(); const dt=now-lastMiddleClickRef.current;
+      if(dt<400){centerOnFloorplans();toast.success('Centered floorplans at 100% zoom');lastMiddleClickRef.current=0;return;}
+      lastMiddleClickRef.current=now;
+      handlePanStart(e, canvasRef.current); return;
     }
-    
-    // Only pan with other buttons when clicking on empty canvas space
-    const isEmptySpace = e.target === e.currentTarget || 
-                        e.target.tagName === 'svg' || 
-                        e.target.getAttribute('data-canvas-background') === 'true';
-    
-    // Don't start panning if we might be dragging an annotation
-    if (isEmptySpace && !draggingFloorplan && !annotationMouseDownRef.current) {
-      handlePanStart(e, canvasRef.current);
-    }
+    const isEmptySpace = e.target===e.currentTarget||e.target.tagName==='svg'||e.target.getAttribute('data-canvas-background')==='true';
+    if (isEmptySpace && !draggingFloorplan && !annotationMouseDownRef.current) handlePanStart(e, canvasRef.current);
   };
 
   // Floorplan coordinate helpers
