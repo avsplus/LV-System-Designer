@@ -91,6 +91,9 @@ export default function AnnotationLayer({
                 setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
                 handleSymbolAnnotationDragStart(e, idx);
               }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               onTouchStart={touchAnnotation}
               onTouchEnd={handleAnnotationTouchEnd}
             />
