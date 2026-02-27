@@ -2498,30 +2498,9 @@ function AVCanvasContent() {
 
                 {/* Connection preview */}
 
-                {/* Arrowhead marker definitions */}
                 <defs>
-                  <marker
-                    id="arrowhead"
-                    markerWidth="10"
-                    markerHeight="10"
-                    refX="9"
-                    refY="3"
-                    orient="auto"
-                    markerUnits="strokeWidth"
-                  >
-                    <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
-                  </marker>
-                  <marker
-                    id="arrowhead-hover"
-                    markerWidth="10"
-                    markerHeight="10"
-                    refX="9"
-                    refY="3"
-                    orient="auto"
-                    markerUnits="strokeWidth"
-                  >
-                    <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
-                  </marker>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><polygon points="0 0, 10 3, 0 6" fill="#3b82f6" /></marker>
+                  <marker id="arrowhead-hover" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><polygon points="0 0, 10 3, 0 6" fill="#ef4444" /></marker>
                 </defs>
               </g>
             </svg>
