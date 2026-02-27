@@ -64,7 +64,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         );
       case 'array':
         return (
-          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
             <div className="space-y-2">
               {(value || []).map((item, idx) => (
@@ -76,8 +76,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                       newArr[idx] = val;
                       onChange(newArr);
                     }}
-                    open={openDropdowns[`${fieldKey}-${idx}`]}
-                    onOpenChange={(open) => setOpenDropdowns({...openDropdowns, [`${fieldKey}-${idx}`]: open})}
                   >
                     <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
                       <SelectValue placeholder="Select" />
