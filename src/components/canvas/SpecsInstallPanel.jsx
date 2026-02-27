@@ -29,9 +29,9 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         );
       case 'select':
         return (
-          <div key={fieldKey} className="space-y-2">
+          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <Select value={value || ''} onValueChange={onChange}>
+            <Select value={value || ''} onValueChange={onChange} open={openDropdowns[fieldKey]} onOpenChange={(open) => setOpenDropdowns({...openDropdowns, [fieldKey]: open})}>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                 <SelectValue placeholder={`Select ${fieldConfig.label}`} />
               </SelectTrigger>
@@ -39,8 +39,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                 side="bottom" 
                 avoidCollisions={false}
                 sideOffset={5}
-                className="bg-gray-800 border-gray-700 z-50"
-                portal={true}
+                className="bg-gray-800 border-gray-700 z-[9999]"
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
