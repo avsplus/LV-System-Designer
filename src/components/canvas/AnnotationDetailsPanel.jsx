@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { X, Trash2, FlipHorizontal, RotateCw, Copy } from 'lucide-react';
+import { X, Trash2, FlipHorizontal, RotateCw, Copy, HelpCircle, CheckSquare, StickyNote, Check, Plus } from 'lucide-react';
+
+const ITEM_TYPES = [
+  { key: 'question', label: 'Question', icon: HelpCircle, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30' },
+  { key: 'task', label: 'Task', icon: CheckSquare, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/30' },
+  { key: 'note', label: 'Note', icon: StickyNote, color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30' },
+];
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
