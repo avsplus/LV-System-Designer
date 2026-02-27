@@ -8,16 +8,41 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
+const ITEM_TYPES = [
+  { key: 'question', label: 'Question', icon: HelpCircle, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30' },
+  { key: 'task', label: 'Task', icon: CheckSquare, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/30' },
+  { key: 'note', label: 'Note', icon: StickyNote, color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30' },
+];
+
 export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpdate, onDelete, onDuplicate }) {
   const [showDelete, setShowDelete] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const [lightboxUrl, setLightboxUrl] = React.useState(null);
+  const [newItemType, setNewItemType] = React.useState('question');
+  const [newItemText, setNewItemText] = React.useState('');
   const isMobile = !useMediaQuery('(min-width: 768px)');
   const fileInputRef = useRef(null);
 
   if (!annotation) return null;
 
   const images = annotation.images || [];
+  const items = annotation.items || [];
+
+  const handleAddItem = () => {
+    if (!newItemText.trim()) return;
+    const newItem = { id: Date.now().toString(), type: newItemType, text: newItemText.trim(), completed: false };
+    onUpdate(index, { ...annotation, items: [...items, newItem] });
+    setNewItemText('');
+  };
+
+  const handleToggleItem = (itemId) => {
+    const updated = items.map(it => it.id === itemId ? { ...it, completed: !it.completed } : it);
+    onUpdate(index, { ...annotation, items: updated });
+  };
+
+  const handleDeleteItem = (itemId) => {
+    onUpdate(index, { ...annotation, items: items.filter(it => it.id !== itemId) });
+  };
 
   const handleTitleChange = (e) => {
     onUpdate(index, { ...annotation, title: e.target.value });
