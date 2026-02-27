@@ -973,93 +973,33 @@ function AVCanvasContent() {
     }
   };
 
-  // Helper: Convert canvas coordinates to floorplan-relative coordinates
+  // Floorplan coordinate helpers
   const canvasToFloorplanCoords = (canvasX, canvasY, floorplan) => {
     if (!floorplan) return { x: canvasX, y: canvasY };
-    
-    const fpPos = floorplan.position || { x: 0, y: 0 };
-    const fpScale = floorplan.scale || 1;
-    
-    // Calculate floorplan dimensions
-    let fpWidth, fpHeight;
-    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-    if (hasCalibration) {
-      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-      fpWidth = floorplan.imageWidth * scaleFactor;
-      fpHeight = floorplan.imageHeight * scaleFactor;
-    } else if (floorplan.imageWidth && floorplan.imageHeight) {
-      fpWidth = 500 * fpScale;
-      fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
-    } else {
-      fpWidth = 500 * fpScale;
-      fpHeight = 500 * fpScale;
-    }
-    
-    // Convert to floorplan-relative coordinates (0-1 normalized)
-    const relX = (canvasX - fpPos.x) / fpWidth;
-    const relY = (canvasY - fpPos.y) / fpHeight;
-    
-    return { x: relX, y: relY };
+    const fpPos = floorplan.position||{x:0,y:0}; const fpScale=floorplan.scale||1;
+    let fpWidth,fpHeight; const hasCal=floorplan.imageWidth&&floorplan.imageHeight&&floorplan.pixelsPerInch;
+    if(hasCal){const sf=(1/floorplan.pixelsPerInch)*fpScale;fpWidth=floorplan.imageWidth*sf;fpHeight=floorplan.imageHeight*sf;}
+    else if(floorplan.imageWidth&&floorplan.imageHeight){fpWidth=500*fpScale;fpHeight=fpWidth*(floorplan.imageHeight/floorplan.imageWidth);}
+    else{fpWidth=500*fpScale;fpHeight=500*fpScale;}
+    return {x:(canvasX-fpPos.x)/fpWidth,y:(canvasY-fpPos.y)/fpHeight};
   };
-
-  // Helper: Convert floorplan-relative coordinates to canvas coordinates
   const floorplanToCanvasCoords = (relX, relY, floorplan) => {
     if (!floorplan) return { x: relX, y: relY };
-    
-    const fpPos = floorplan.position || { x: 0, y: 0 };
-    const fpScale = floorplan.scale || 1;
-    
-    // Calculate floorplan dimensions
-    let fpWidth, fpHeight;
-    const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-    if (hasCalibration) {
-      const scaleFactor = (1 / floorplan.pixelsPerInch) * fpScale;
-      fpWidth = floorplan.imageWidth * scaleFactor;
-      fpHeight = floorplan.imageHeight * scaleFactor;
-    } else if (floorplan.imageWidth && floorplan.imageHeight) {
-      fpWidth = 500 * fpScale;
-      fpHeight = fpWidth * (floorplan.imageHeight / floorplan.imageWidth);
-    } else {
-      fpWidth = 500 * fpScale;
-      fpHeight = 500 * fpScale;
-    }
-    
-    // Convert to canvas coordinates
-    const canvasX = fpPos.x + relX * fpWidth;
-    const canvasY = fpPos.y + relY * fpHeight;
-    
-    return { x: canvasX, y: canvasY };
+    const fpPos = floorplan.position||{x:0,y:0}; const fpScale=floorplan.scale||1;
+    let fpWidth,fpHeight; const hasCal=floorplan.imageWidth&&floorplan.imageHeight&&floorplan.pixelsPerInch;
+    if(hasCal){const sf=(1/floorplan.pixelsPerInch)*fpScale;fpWidth=floorplan.imageWidth*sf;fpHeight=floorplan.imageHeight*sf;}
+    else if(floorplan.imageWidth&&floorplan.imageHeight){fpWidth=500*fpScale;fpHeight=fpWidth*(floorplan.imageHeight/floorplan.imageWidth);}
+    else{fpWidth=500*fpScale;fpHeight=500*fpScale;}
+    return {x:fpPos.x+relX*fpWidth,y:fpPos.y+relY*fpHeight};
   };
-
-  // Helper: Find which floorplan a canvas point is on
   const getFloorplanAtPoint = (canvasX, canvasY) => {
-    // Check floorplans in reverse order (top to bottom z-order)
-    for (let i = floorplans.length - 1; i >= 0; i--) {
-      const fp = floorplans[i];
-      if (!fp.visible) continue;
-      
-      const fpPos = fp.position || { x: 0, y: 0 };
-      const fpScale = fp.scale || 1;
-      
-      let fpWidth, fpHeight;
-      const hasCalibration = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
-      if (hasCalibration) {
-        const scaleFactor = (1 / fp.pixelsPerInch) * fpScale;
-        fpWidth = fp.imageWidth * scaleFactor;
-        fpHeight = fp.imageHeight * scaleFactor;
-      } else if (fp.imageWidth && fp.imageHeight) {
-        fpWidth = 500 * fpScale;
-        fpHeight = fpWidth * (fp.imageHeight / fp.imageWidth);
-      } else {
-        fpWidth = 500 * fpScale;
-        fpHeight = 500 * fpScale;
-      }
-      
-      if (canvasX >= fpPos.x && canvasX <= fpPos.x + fpWidth &&
-          canvasY >= fpPos.y && canvasY <= fpPos.y + fpHeight) {
-        return fp;
-      }
-    }
+    for(let i=floorplans.length-1;i>=0;i--){const fp=floorplans[i];if(!fp.visible)continue;
+      const fpPos=fp.position||{x:0,y:0};const fpScale=fp.scale||1;let fpWidth,fpHeight;
+      const hasCal=fp.imageWidth&&fp.imageHeight&&fp.pixelsPerInch;
+      if(hasCal){const sf=(1/fp.pixelsPerInch)*fpScale;fpWidth=fp.imageWidth*sf;fpHeight=fp.imageHeight*sf;}
+      else if(fp.imageWidth&&fp.imageHeight){fpWidth=500*fpScale;fpHeight=fpWidth*(fp.imageHeight/fp.imageWidth);}
+      else{fpWidth=500*fpScale;fpHeight=500*fpScale;}
+      if(canvasX>=fpPos.x&&canvasX<=fpPos.x+fpWidth&&canvasY>=fpPos.y&&canvasY<=fpPos.y+fpHeight)return fp;}
     return null;
   };
 
