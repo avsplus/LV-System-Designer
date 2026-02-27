@@ -254,10 +254,7 @@ export default function AnnotationDetailsPanel({
                 <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
               </Button>
             </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Description</p>
-              <Textarea value={annotation.description || ''} onChange={handleDescriptionChange} placeholder="Add notes or description..." className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none" rows={3} />
-            </div>
+            <SpecsSection />
           </>
         )}
 
@@ -452,10 +449,7 @@ export default function AnnotationDetailsPanel({
                 <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
               </Button>
             </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Description</p>
-              <Textarea value={annotation.description || ''} onChange={handleDescriptionChange} placeholder="Add notes or description..." className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none" rows={3} />
-            </div>
+            <SpecsSection />
           </>
         )}
 
