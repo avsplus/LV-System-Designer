@@ -264,7 +264,23 @@ export default function AnnotationDetailsPanel({
                     <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
-                    <SelectContent side="bottom" avoidCollisions={false} className="bg-gray-800 border-gray-700" onCloseAutoFocus={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
+                    <SelectContent 
+                      side="bottom" 
+                      avoidCollisions={false} 
+                      className="bg-gray-800 border-gray-700"
+                      onCloseAutoFocus={(e) => {
+                        console.log('array SelectContent onCloseAutoFocus triggered');
+                        e.preventDefault();
+                      }}
+                      onPointerDownOutside={(e) => {
+                        console.log('array SelectContent onPointerDownOutside triggered');
+                        e.preventDefault();
+                      }}
+                      onInteractOutside={(e) => {
+                        console.log('array SelectContent onInteractOutside triggered');
+                        e.preventDefault();
+                      }}
+                    >
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
                           {opt}
