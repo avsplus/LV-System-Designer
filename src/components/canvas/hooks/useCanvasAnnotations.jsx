@@ -36,11 +36,10 @@ export default function useCanvasAnnotations({
     const canvasX = (e.clientX - canvasRect.left - pan.x) / zoom;
     const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
     const floorplan = getFloorplanAtPoint(canvasX, canvasY);
-    if (!floorplan) { toast.error('Please place snapshot on a floorplan'); return true; }
-    const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
+    const position = floorplan ? canvasToFloorplanCoords(canvasX, canvasY, floorplan) : { x: canvasX, y: canvasY };
     const newAnnotation = {
-      id: Date.now().toString(), type: 'snapshot', floorplanId: floorplan.id,
-      position: fpCoords, title: 'Snapshot', caption: '', images: [], scale: 1, color: '#f59e0b'
+      id: Date.now().toString(), type: 'snapshot', floorplanId: floorplan?.id,
+      position, title: 'Snapshot', caption: '', images: [], scale: 1, color: '#f59e0b'
     };
     const updated = [...annotations, newAnnotation];
     setAnnotations(updated);
