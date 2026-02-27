@@ -202,13 +202,13 @@ export default function AnnotationDetailsPanel({
         return (
           <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <Select value={value || ''} onValueChange={onChange} modal={false}>
+            <Select value={value || ''} onValueChange={onChange}>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                 <SelectValue placeholder={`Select ${fieldConfig.label}`} />
               </SelectTrigger>
               <SelectContent 
                 side="bottom" 
-                avoidCollisions={false}
+                avoidCollisions={true}
                 sideOffset={5}
                 className="bg-gray-800 border-gray-700"
               >
@@ -248,14 +248,13 @@ export default function AnnotationDetailsPanel({
                       newArr[idx] = val;
                       onChange(newArr);
                     }}
-                    modal={false}
                   >
                     <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent 
                       side="bottom" 
-                      avoidCollisions={false}
+                      avoidCollisions={true}
                       sideOffset={5}
                       className="bg-gray-800 border-gray-700"
                     >
