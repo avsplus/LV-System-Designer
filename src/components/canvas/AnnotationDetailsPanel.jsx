@@ -211,7 +211,7 @@ export default function AnnotationDetailsPanel({
                 avoidCollisions={true}
                 sideOffset={5}
                 className="bg-gray-800 border-gray-700"
-                portal={false}
+                onCloseAutoFocus={(e) => e.preventDefault()}
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
@@ -258,7 +258,7 @@ export default function AnnotationDetailsPanel({
                       avoidCollisions={true}
                       sideOffset={5}
                       className="bg-gray-800 border-gray-700"
-                      portal={false}
+                      onCloseAutoFocus={(e) => e.preventDefault()}
                     >
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
