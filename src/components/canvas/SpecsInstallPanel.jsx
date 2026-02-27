@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
 export default function SpecsInstallPanel({ schema, specs, installation, onSpecsChange, onInstallationChange }) {
+  console.log('[SpecsInstallPanel] Render - schema:', schema, 'specs:', specs, 'installation:', installation);
+  
   const [expandedSection, setExpandedSection] = useState('specs');
   const [localSpecs, setLocalSpecs] = useState(specs);
   const [localInstallation, setLocalInstallation] = useState(installation);
+
+  useEffect(() => {
+    console.log('[SpecsInstallPanel] Props changed - updating local state');
+    setLocalSpecs(specs);
+    setLocalInstallation(installation);
+  }, [specs, installation]);
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
     switch (fieldConfig.type) {
