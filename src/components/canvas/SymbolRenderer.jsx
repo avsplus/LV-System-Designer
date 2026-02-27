@@ -14,7 +14,7 @@ const SYMBOL_ICONS = {
 };
 
 // Renders symbols with PNG icons or fallback SVGs
-export default function SymbolRenderer({ symbolId, position, color, scale = 1, rotation = 0, flipped = false }) {
+export default function SymbolRenderer({ symbolId, position, color, scale = 1, rotation = 0, flipped = false, specs = {}, installation = {} }) {
         const baseSize = 60;
         const scaledSize = baseSize * scale;
         const iconUrl = SYMBOL_ICONS[symbolId];
