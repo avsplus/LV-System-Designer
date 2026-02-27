@@ -103,8 +103,31 @@ export default function AnnotationLayer({
         return null;
       })}
 
-      {/* SVG annotations */}
-      <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible', zIndex: 1200 }}>
+      {/* SVG annotations & labels */}
+       <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible', zIndex: 1200 }}>
+         {/* Render symbol inline labels */}
+         {annotations.map((ann, idx) => {
+           if (ann.type !== 'symbol') return null;
+           const fp = ann.floorplanId ? floorplans.find(f => f.id === ann.floorplanId) : null;
+           if (ann.floorplanId && (!fp || !fp.visible)) return null;
+           if (ann.hidden) return null;
+           const canvasPos = fp ? floorplanToCanvasCoords(ann.position.x, ann.position.y, fp) : ann.position;
+           return (
+             <g key={`label-${ann.id}`}>
+               {renderSymbolLabel({
+                 symbolId: ann.symbolId,
+                 specs: ann.specs || {},
+                 installation: ann.installation || {},
+                 position: canvasPos,
+                 scale: ann.scale || 1
+               })}
+             </g>
+           );
+         })}
+       </svg>
+
+       {/* SVG annotations */}
+       <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible', zIndex: 1200 }}>
         {annotations.map((ann, idx) => {
           const isHovered = hoveredAnnotation === idx;
           const isSelected = selectedAnnotation === idx;
