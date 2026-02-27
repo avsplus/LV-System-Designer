@@ -1,5 +1,5 @@
 import React from 'react';
-import SymbolRenderer from './SymbolRenderer';
+import SymbolRenderer, { renderSymbolLabel } from './SymbolRenderer';
 import SymbolLegend from './SymbolLegend';
 import SnapshotMarker from './SnapshotMarker';
 
