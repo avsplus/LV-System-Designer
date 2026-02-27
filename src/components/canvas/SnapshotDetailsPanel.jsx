@@ -28,7 +28,7 @@ export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpd
   };
 
   const handleScaleChange = (value) => {
-    onUpdate(index, { ...annotation, scale: value[0] }, true);
+    onUpdate(index, { ...annotation, scale: value[0] });
   };
 
   const handleUploadImage = async (e) => {
