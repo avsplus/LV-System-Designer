@@ -191,63 +191,36 @@ export default function AnnotationDetailsPanel({
           </div>
         )}
 
+        {/* Items right after symbol name */}
+        {annotation.type === 'symbol' && <ItemsSection />}
+
         {/* Symbol Controls */}
         {annotation.type === 'symbol' && (
           <>
-            {/* Scale */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm text-gray-500">Size</p>
                 <span className="text-sm text-blue-400 font-medium">{Math.round((annotation.scale || 1) * 100)}%</span>
               </div>
-              <Slider
-                value={[annotation.scale || 1]}
-                onValueChange={handleScaleChange}
-                min={0.25}
-                max={3}
-                step={0.25}
-                className="w-full"
-              />
+              <Slider value={[annotation.scale || 1]} onValueChange={handleScaleChange} min={0.25} max={3} step={0.25} className="w-full" />
             </div>
-
-            {/* Rotation */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm text-gray-500">Rotation</p>
                 <span className="text-sm text-blue-400 font-medium">{annotation.rotation || 0}°</span>
               </div>
-              <Button
-                onClick={handleRotate}
-                variant="outline"
-                className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
-              >
-                <RotateCw className="w-4 h-4 mr-2" />
-                Rotate 90°
+              <Button onClick={handleRotate} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
+                <RotateCw className="w-4 h-4 mr-2" />Rotate 90°
               </Button>
             </div>
-
-            {/* Flip Horizontal */}
             <div>
-              <Button
-                onClick={handleFlipHorizontal}
-                variant="outline"
-                className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
-              >
-                <FlipHorizontal className="w-4 h-4 mr-2" />
-                {annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
+              <Button onClick={handleFlipHorizontal} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
+                <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
               </Button>
             </div>
-
-            {/* Description */}
             <div>
               <p className="text-sm text-gray-500 mb-2">Description</p>
-              <Textarea
-                value={annotation.description || ''}
-                onChange={handleDescriptionChange}
-                placeholder="Add notes or description..."
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
-                rows={3}
-              />
+              <Textarea value={annotation.description || ''} onChange={handleDescriptionChange} placeholder="Add notes or description..." className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none" rows={3} />
             </div>
           </>
         )}
@@ -256,13 +229,7 @@ export default function AnnotationDetailsPanel({
         {annotation.type === 'text' && (
           <div>
             <p className="text-sm text-gray-500 mb-2">Text</p>
-            <input
-              type="text"
-              value={annotation.text || ''}
-              onChange={handleTextChange}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-              placeholder="Enter text..."
-            />
+            <input type="text" value={annotation.text || ''} onChange={handleTextChange} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" placeholder="Enter text..." />
           </div>
         )}
 
@@ -271,17 +238,10 @@ export default function AnnotationDetailsPanel({
           <div>
             <p className="text-sm text-gray-500 mb-2">{annotation.type === 'symbol' ? 'Icon Color Overlay' : 'Color'}</p>
             <div className="flex gap-3 items-center">
-              <input
-                type="color"
-                value={annotation.color || '#3b82f6'}
-                onChange={handleColorChange}
-                className="w-12 h-10 rounded cursor-pointer border border-gray-700"
-              />
+              <input type="color" value={annotation.color || '#3b82f6'} onChange={handleColorChange} className="w-12 h-10 rounded cursor-pointer border border-gray-700" />
               <span className="text-sm text-gray-400">{annotation.color}</span>
             </div>
-            {annotation.type === 'symbol' && (
-              <p className="text-xs text-gray-500 mt-2">Adjust hue and brightness of the icon</p>
-            )}
+            {annotation.type === 'symbol' && <p className="text-xs text-gray-500 mt-2">Adjust hue and brightness of the icon</p>}
           </div>
         )}
 
@@ -292,30 +252,15 @@ export default function AnnotationDetailsPanel({
               <p className="text-sm text-gray-500">Stroke Width</p>
               <span className="text-sm text-blue-400 font-medium">{annotation.strokeWidth}px</span>
             </div>
-            <Slider
-              value={[annotation.strokeWidth || 2]}
-              onValueChange={handleStrokeWidthChange}
-              min={1}
-              max={10}
-              step={0.5}
-              className="w-full"
-            />
+            <Slider value={[annotation.strokeWidth || 2]} onValueChange={handleStrokeWidthChange} min={1} max={10} step={0.5} className="w-full" />
           </div>
         )}
 
         {/* Fill Toggle */}
         {annotation.type !== 'text' && annotation.type !== 'line' && annotation.type !== 'symbol' && (
           <div className="flex items-center gap-3 py-2">
-            <input
-              type="checkbox"
-              id="fill"
-              checked={annotation.fill || false}
-              onChange={handleFillChange}
-              className="w-4 h-4 rounded border-gray-600 cursor-pointer accent-blue-500"
-            />
-            <label htmlFor="fill" className="text-sm text-gray-300 cursor-pointer">
-              Fill Shape
-            </label>
+            <input type="checkbox" id="fill-mobile" checked={annotation.fill || false} onChange={handleFillChange} className="w-4 h-4 rounded border-gray-600 cursor-pointer accent-blue-500" />
+            <label htmlFor="fill-mobile" className="text-sm text-gray-300 cursor-pointer">Fill Shape</label>
           </div>
         )}
 
@@ -326,14 +271,7 @@ export default function AnnotationDetailsPanel({
               <p className="text-sm text-gray-500">Font Size</p>
               <span className="text-sm text-blue-400 font-medium">{annotation.fontSize}px</span>
             </div>
-            <Slider
-              value={[annotation.fontSize || 16]}
-              onValueChange={handleFontSizeChange}
-              min={8}
-              max={72}
-              step={1}
-              className="w-full"
-            />
+            <Slider value={[annotation.fontSize || 16]} onValueChange={handleFontSizeChange} min={8} max={72} step={1} className="w-full" />
           </div>
         )}
 
@@ -344,107 +282,32 @@ export default function AnnotationDetailsPanel({
               <p className="text-sm text-gray-500">Radius</p>
               <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.radius || 0)}px</span>
             </div>
-            <Slider
-              value={[annotation.radius || 0]}
-              onValueChange={handleRadiusChange}
-              min={5}
-              max={500}
-              step={1}
-              className="w-full"
-            />
+            <Slider value={[annotation.radius || 0]} onValueChange={handleRadiusChange} min={5} max={500} step={1} className="w-full" />
           </div>
         )}
 
-        {/* Width */}
+        {/* Width / Height */}
         {annotation.type === 'rectangle' && (
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-gray-500">Width</p>
-              <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.width || 0)}px</span>
+          <>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-gray-500">Width</p>
+                <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.width || 0)}px</span>
+              </div>
+              <Slider value={[annotation.width || 0]} onValueChange={handleWidthChange} min={10} max={500} step={1} className="w-full" />
             </div>
-            <Slider
-              value={[annotation.width || 0]}
-              onValueChange={handleWidthChange}
-              min={10}
-              max={500}
-              step={1}
-              className="w-full"
-            />
-          </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-gray-500">Height</p>
+                <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.height || 0)}px</span>
+              </div>
+              <Slider value={[annotation.height || 0]} onValueChange={handleHeightChange} min={10} max={500} step={1} className="w-full" />
+            </div>
+          </>
         )}
 
-        {/* Height */}
-        {annotation.type === 'rectangle' && (
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-gray-500">Height</p>
-              <span className="text-sm text-blue-400 font-medium">{Math.round(annotation.height || 0)}px</span>
-            </div>
-            <Slider
-              value={[annotation.height || 0]}
-              onValueChange={handleHeightChange}
-              min={10}
-              max={500}
-              step={1}
-              className="w-full"
-            />
-          </div>
-        )}
-
-        {/* Items: Questions / Tasks / Notes */}
-        <div className="pt-2 border-t border-gray-800">
-          <p className="text-sm text-gray-500 mb-2">Items</p>
-          {items.length > 0 && (
-            <div className="space-y-1.5 mb-3">
-              {items.map((item) => {
-                const typeDef = ITEM_TYPES.find(t => t.key === item.type) || ITEM_TYPES[0];
-                const Icon = typeDef.icon;
-                return (
-                  <div key={item.id} className={`flex items-start gap-2 p-2 rounded-lg border ${typeDef.bg}`}>
-                    <button onClick={() => handleToggleItem(item.id)} className="mt-0.5 shrink-0">
-                      {item.type === 'task' ? (
-                        <div className={`w-4 h-4 rounded border-2 border-green-500 flex items-center justify-center ${item.completed ? 'bg-green-500' : ''}`}>
-                          {item.completed && <Check className="w-2.5 h-2.5 text-white" />}
-                        </div>
-                      ) : (
-                        <Icon className={`w-4 h-4 ${typeDef.color}`} />
-                      )}
-                    </button>
-                    <span className={`text-xs flex-1 leading-relaxed ${item.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}>{item.text}</span>
-                    <button onClick={() => handleDeleteItem(item.id)} className="shrink-0 text-gray-600 hover:text-red-400 transition-colors">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <div className="flex gap-1.5 mb-1.5">
-            {ITEM_TYPES.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setNewItemType(t.key)}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded text-xs border transition-all ${newItemType === t.key ? t.bg + ' ' + t.color : 'border-gray-700 text-gray-500 hover:border-gray-600'}`}
-              >
-                <t.icon className="w-3 h-3" />
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1.5">
-            <input
-              type="text"
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-              placeholder={`Add a ${newItemType}...`}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-            />
-            <Button size="sm" onClick={handleAddItem} className="h-7 px-2 bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
+        {/* Items for non-symbol types */}
+        {annotation.type !== 'symbol' && <ItemsSection />}
 
         {/* Position Info */}
         <div className="pt-2 border-t border-gray-800">
