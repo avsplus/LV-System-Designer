@@ -624,6 +624,12 @@ function AVCanvasContent() {
       // Don't allow floorplan dragging on mobile - only canvas pan/zoom
       if (isMobile) return;
 
+      // If an annotation drawing tool is active, handle annotation drawing instead
+      if (activeTool !== 'select' && activeTool !== 'text' && activeTool !== 'snapshot') {
+        handleAnnotationMouseDown(e);
+        return;
+      }
+
       // Only allow left click (button 0) to drag floorplans
       if (e.button !== 0) return;
 
