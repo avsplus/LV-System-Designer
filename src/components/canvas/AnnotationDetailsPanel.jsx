@@ -275,16 +275,23 @@ export default function AnnotationDetailsPanel({
                       side="bottom" 
                       avoidCollisions={false} 
                       className="bg-gray-800 border-gray-700"
+                      onOpenAutoFocus={(e) => {
+                        console.log('array onOpenAutoFocus triggered');
+                        e.preventDefault();
+                      }}
                       onCloseAutoFocus={(e) => {
-                        console.log('array SelectContent onCloseAutoFocus triggered');
+                        console.log('array SelectContent onCloseAutoFocus triggered', e);
                         e.preventDefault();
                       }}
                       onPointerDownOutside={(e) => {
-                        console.log('array SelectContent onPointerDownOutside triggered');
+                        console.log('array SelectContent onPointerDownOutside triggered', e);
                         e.preventDefault();
                       }}
+                      onPointerMove={(e) => {
+                        console.log('array onPointerMove triggered');
+                      }}
                       onInteractOutside={(e) => {
-                        console.log('array SelectContent onInteractOutside triggered');
+                        console.log('array SelectContent onInteractOutside triggered', e);
                         e.preventDefault();
                       }}
                     >
