@@ -247,7 +247,7 @@ export default function AnnotationDetailsPanel({
                     <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
-                    <SelectContent side="bottom" className="bg-gray-800 border-gray-700">
+                    <SelectContent side="bottom" avoidCollisions={false} className="bg-gray-800 border-gray-700">
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
                           {opt}
