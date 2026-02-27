@@ -470,7 +470,8 @@ export const symbolSchemas = {
 };
 
 export function getSymbolSchema(symbolId) {
-  return symbolSchemas[symbolId];
+  // Try direct lookup first, then check for mapped IDs
+  return symbolSchemas[symbolId] || symbolSchemas[symbolIdMap[symbolId]];
 }
 
 export function getDefaultSpecs(symbolId) {
