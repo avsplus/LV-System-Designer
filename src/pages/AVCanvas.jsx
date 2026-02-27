@@ -164,81 +164,14 @@ function AVCanvasContent() {
 
 
 
-  const lastMiddleClickRef = useRef(0);
-  const lastTapRef = useRef(0);
-  const annotationMouseDownRef = useRef(null);
-  
   const canvasRef = useRef(null);
   const portRefs = useRef(new Map());
   const connectingStateRef = useRef(null);
-  
-  const PORT_HIT_RADIUS = 50; // Hit detection radius for port snapping
-  const PORT_OFFSET = 20;    // Offset from port dots when drawing temporary connection lines
-  
-  // Generates orthogonal (right-angle) connection routing to avoid cluttered visual paths
-  // Handles different direction combinations (left/right to left/right edges)
-  const generateOrthogonalPath = (fromPos, toPos, fromIsInput, toIsInput) => {
-    const fromDirection = fromIsInput ? 'left' : 'right';
-    const toDirection = toIsInput ? 'left' : 'right';
-    
-    const fromOffset = {
-      x: fromPos.x + (fromDirection === 'right' ? PORT_OFFSET : -PORT_OFFSET),
-      y: fromPos.y
-    };
-    
-    const toOffset = {
-      x: toPos.x + (toDirection === 'right' ? PORT_OFFSET : -PORT_OFFSET),
-      y: toPos.y
-    };
-    
-    const points = [fromPos, fromOffset];
-    const dx = toOffset.x - fromOffset.x;
-    const dy = toOffset.y - fromOffset.y;
-    
-    if (fromDirection === 'right' && toDirection === 'left') {
-      if (dx > 0) {
-        const midX = fromOffset.x + dx / 2;
-        points.push({ x: midX, y: fromOffset.y });
-        points.push({ x: midX, y: toOffset.y });
-      } else {
-        const midX = fromOffset.x + Math.max(20, -dx / 2);
-        const midY = fromOffset.y + dy / 2;
-        points.push({ x: midX, y: fromOffset.y });
-        points.push({ x: midX, y: midY });
-        points.push({ x: toOffset.x - 20, y: midY });
-        points.push({ x: toOffset.x - 20, y: toOffset.y });
-      }
-    } else if (fromDirection === 'left' && toDirection === 'right') {
-      const midX = fromOffset.x + dx / 2;
-      const midY = fromOffset.y + dy / 2;
-      points.push({ x: fromOffset.x - 20, y: fromOffset.y });
-      points.push({ x: fromOffset.x - 20, y: midY });
-      points.push({ x: toOffset.x + 20, y: midY });
-      points.push({ x: toOffset.x + 20, y: toOffset.y });
-    } else {
-      const midX = Math.min(fromOffset.x, toOffset.x) - 40;
-      const midY = fromOffset.y + dy / 2;
-      points.push({ x: midX, y: fromOffset.y });
-      points.push({ x: midX, y: midY });
-      points.push({ x: midX, y: toOffset.y });
-    }
-    
-    points.push(toOffset);
-    points.push(toPos);
-    
-    return points;
-  };
-  
-  // Converts array of {x,y} points to SVG path data format
-  // Used for rendering both permanent connections and temporary drag-preview lines
-  const pointsToPathData = (points) => {
-    if (points.length < 2) return '';
-    let path = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      path += ` L ${points[i].x} ${points[i].y}`;
-    }
-    return path;
-  };
+  const lastMiddleClickRef = useRef(0);
+  const lastTapRef = useRef(0);
+  const annotationMouseDownRef = useRef(null);
+  const PORT_HIT_RADIUS = 50;
+  const CARD_WIDTH = 320, CARD_HEIGHT = 280, PORT_DOT_SIZE = 20, PORT_GAP = 12;
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['avProducts'],
