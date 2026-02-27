@@ -335,7 +335,7 @@ export default function AnnotationDetailsPanel({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-visible p-4 space-y-4" onScrollCapture={(e) => e.stopPropagation()}>
+      <div className="flex-1 overflow-y-auto overflow-x-visible p-4 space-y-4">
         {/* Properties Tab */}
         {activeTab === 'properties' && (
           <>
