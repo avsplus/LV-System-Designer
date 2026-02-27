@@ -64,9 +64,9 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
         );
       case 'array':
         return (
-          <div key={fieldKey} className="space-y-2">
+          <div key={fieldKey} className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <div className="space-y-2">
+            <div className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
               {(value || []).map((item, idx) => (
                 <div key={idx} className="flex gap-2">
                   <Select
