@@ -319,7 +319,7 @@ export default function AnnotationDetailsPanel({
                 <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
               </Button>
             </div>
-            <SpecsSection />
+            {specsAndImageSection}
           </>
         )}
 
@@ -514,7 +514,7 @@ export default function AnnotationDetailsPanel({
                 <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
               </Button>
             </div>
-            <SpecsSection />
+            {specsAndImageSection}
           </>
         )}
 
