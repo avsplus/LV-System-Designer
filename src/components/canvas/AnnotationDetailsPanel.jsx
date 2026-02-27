@@ -236,19 +236,25 @@ export default function AnnotationDetailsPanel({
             <div className="space-y-2">
               {(value || []).map((item, idx) => (
                 <div key={idx} className="flex gap-2">
-                  <select
+                  <Select
                     value={item || ''}
-                    onChange={(e) => {
+                    onValueChange={(val) => {
                       const newArr = [...(value || [])];
-                      newArr[idx] = e.target.value;
+                      newArr[idx] = val;
                       onChange(newArr);
                     }}
-                    className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:border-blue-500 focus:outline-none"
                   >
-                    {fieldConfig.options.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="flex-1 bg-gray-800 border-gray-700 text-white text-sm">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      {fieldConfig.options.map((opt) => (
+                        <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     variant="outline"
                     size="icon"
