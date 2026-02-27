@@ -1595,18 +1595,16 @@ function AVCanvasContent() {
                 const canvasY = (canvasRect.height / 2 - pan.y) / zoom;
 
                 const floorplan = getFloorplanAtPoint(canvasX, canvasY);
-                if (!floorplan) {
-                  toast.error('Please place symbol on a floorplan');
-                  return;
-                }
+                const position = floorplan
+                  ? canvasToFloorplanCoords(canvasX, canvasY, floorplan)
+                  : { x: canvasX, y: canvasY };
 
-                const fpCoords = canvasToFloorplanCoords(canvasX, canvasY, floorplan);
                 const newAnnotation = {
                   id: Date.now().toString(),
                   type: 'symbol',
                   symbolId: symbol,
-                  floorplanId: floorplan.id,
-                  position: fpCoords,
+                  floorplanId: floorplan?.id,
+                  position,
                   color: annotationColor,
                   scale: 1,
                   rotation: 0,
