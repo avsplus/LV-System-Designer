@@ -21,7 +21,27 @@ export default function AnnotationDetailsPanel({
   index 
 }) {
   const [showDelete, setShowDelete] = useState(false);
+  const [newItemType, setNewItemType] = useState('question');
+  const [newItemText, setNewItemText] = useState('');
   const isMobile = !useMediaQuery('(min-width: 768px)');
+
+  const items = annotation?.items || [];
+
+  const handleAddItem = () => {
+    if (!newItemText.trim()) return;
+    const newItem = { id: Date.now().toString(), type: newItemType, text: newItemText.trim(), completed: false };
+    onUpdate(index, { ...annotation, items: [...items, newItem] });
+    setNewItemText('');
+  };
+
+  const handleToggleItem = (itemId) => {
+    const updated = items.map(it => it.id === itemId ? { ...it, completed: !it.completed } : it);
+    onUpdate(index, { ...annotation, items: updated });
+  };
+
+  const handleDeleteItem = (itemId) => {
+    onUpdate(index, { ...annotation, items: items.filter(it => it.id !== itemId) });
+  };
 
   if (!annotation) return null;
 
