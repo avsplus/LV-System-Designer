@@ -42,6 +42,7 @@ import { useSettings } from "../components/settings/SettingsContext";
 import useCanvasZoomPan from "../components/canvas/hooks/useCanvasZoomPan";
 import useProjectData, { ensureNetworkInfo } from "../components/canvas/hooks/useProjectData";
 import useResponsiveCanvas from "../components/canvas/hooks/useResponsiveCanvas";
+import { CONNECTIONS_BY_CATEGORY } from "../components/canvas/constants";
 
 function AVCanvasContent() {
     const queryClient = useQueryClient();
