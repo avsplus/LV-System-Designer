@@ -31,8 +31,8 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportDialogs from "../components/canvas/ExportDialogs";
 import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
 import AnnotationPanelRouter from "../components/canvas/AnnotationPanelRouter";
-import SymbolRenderer from "../components/canvas/SymbolRenderer";
-import SymbolLegend from "../components/canvas/SymbolLegend";
+import AnnotationLayer from "../components/canvas/AnnotationLayer";
+import useCanvasAnnotations from "../components/canvas/hooks/useCanvasAnnotations";
 
 import { trackActivity, ActivityActions } from "../components/activity/activityTracker";
 import { usePermissions } from "../components/auth/usePermissions";
