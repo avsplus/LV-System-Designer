@@ -990,20 +990,45 @@ function AVCanvasContent() {
   };
   const handleCanvasTouchEnd = () => handleCanvasTouchEndPan();
 
+  useEffect(() => { connectingStateRef.current = connectingState; }, [connectingState]);
   useEffect(() => {
-    connectingStateRef.current = connectingState;
-  }, [connectingState]);
-
-  // Prevent browser selection during canvas interactions (works instantly)
-  useEffect(() => {
-    const preventSelect = (e) => {
-      if (document.body.classList.contains('canvas-dragging')) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener('selectstart', preventSelect);
-    return () => document.removeEventListener('selectstart', preventSelect);
+    const ps = (e) => { if(document.body.classList.contains('canvas-dragging')) e.preventDefault(); };
+    document.addEventListener('selectstart', ps);
+    return () => document.removeEventListener('selectstart', ps);
   }, []);
+
+  const {
+    activeTool, setActiveTool, drawingAnnotation,
+    selectedAnnotation, setSelectedAnnotation, hoveredAnnotation, setHoveredAnnotation,
+    annotationColor, setAnnotationColor, annotationStrokeWidth, setAnnotationStrokeWidth,
+    annotationFill, setAnnotationFill, annotationFontSize, setAnnotationFontSize,
+    editingText, setEditingText, annotationDragInitial,
+    handleSnapshotClick, handleTextClick, handleAnnotationMouseDown,
+    handleSymbolAnnotationDragStart, handleAnnotationTouchStart, handleAnnotationTouchEnd,
+    handleUpdateAnnotation, handleDeleteAnnotation, handleDuplicateAnnotation,
+    handleAnnotationGlobalMove, handleAnnotationGlobalUp,
+  } = useCanvasAnnotations({
+    annotations, setAnnotations, floorplans, pan, zoom, canvasRef, markLocalChange,
+    canvasToFloorplanCoords, floorplanToCanvasCoords, getFloorplanAtPoint, isMobile,
+  });
+
+  useEffect(() => {
+    const onMove = (e) => {
+      const cX=e.clientX||(e.touches&&e.touches[0]?.clientX), cY=e.clientY||(e.touches&&e.touches[0]?.clientY);
+      setDragMousePosition({x:cX,y:cY});
+      if(handleAnnotationGlobalMove(e,selectedAnnotation)) return;
+      if(drawingArrow){const r=canvasRef.current?.getBoundingClientRect();if(r)setDrawingArrow(p=>({...p,end:{x:(e.clientX-r.left-pan.x)/zoom,y:(e.clientY-r.top-pan.y)/zoom}}));return;}
+      handleGlobalMouseMove(e); handleResizeMove(e);
+    };
+    const onUp = (e) => {
+      if(handleAnnotationGlobalUp(e)) return;
+      if(drawingArrow){const d=Math.hypot(drawingArrow.end.x-drawingArrow.start.x,drawingArrow.end.y-drawingArrow.start.y);if(d>20){const na=[...arrows,drawingArrow];setArrows(na);if(markLocalChangeRef.current)markLocalChangeRef.current();if(currentProject?.id)base44.entities.AVProject.update(currentProject.id,{canvas_products:canvasProducts,connections,rooms,floorplans,arrows:na,annotations}).catch(()=>{});}setDrawingArrow(null);return;}
+      handleGlobalMouseUp(e); handleResizeEnd(e);
+    };
+    window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
+    window.addEventListener('touchmove',onMove);window.addEventListener('touchend',onUp);
+    return()=>{window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);window.removeEventListener('touchmove',onMove);window.removeEventListener('touchend',onUp);};
+  },[handleGlobalMouseMove,handleGlobalMouseUp,handleResizeMove,handleResizeEnd,handleAnnotationGlobalMove,handleAnnotationGlobalUp,drawingArrow,pan,zoom,annotations,selectedAnnotation,arrows,canvasProducts,connections,rooms,floorplans,currentProject]);
 
   const connectionsByCategory = CONNECTIONS_BY_CATEGORY;
   const CARD_WIDTH = 320, CARD_HEIGHT = 280, PORT_DOT_SIZE = 20, PORT_GAP = 12;
