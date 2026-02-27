@@ -1286,10 +1286,7 @@ function AVCanvasContent() {
   }, []);
 
   const connectionsByCategory = CONNECTIONS_BY_CATEGORY;
-  const CARD_WIDTH = 320;
-  const CARD_HEIGHT = 280;
-  const PORT_DOT_SIZE = 20;
-  const PORT_GAP = 12;
+  const CARD_WIDTH = 320, CARD_HEIGHT = 280, PORT_DOT_SIZE = 20, PORT_GAP = 12;
 
   // Calculates world position of a connection port on the canvas
   // Used to position connection line endpoints and determine visual port locations
