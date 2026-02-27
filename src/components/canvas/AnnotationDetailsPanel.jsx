@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Trash2, FlipHorizontal, RotateCw, Copy, HelpCircle, CheckSquare, StickyNote, Check, Plus } from 'lucide-react';
+import SpecsPanel from './SpecsPanel';
+import { getDefaultSpecs } from './symbolSchemas';
 
 const ITEM_TYPES = [
   { key: 'question', label: 'Question', icon: HelpCircle, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30' },
