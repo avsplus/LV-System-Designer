@@ -451,37 +451,13 @@ export default function AnnotationDetailsPanel({
 
         {/* Specs & Install Tab */}
         {activeTab === 'specs' && schema && (
-          <div onPointerDown={(e) => e.stopPropagation()}>
-            <Section
-              title="Specifications"
-              isOpen={expandedSection === 'specs'}
-              onToggle={() => setExpandedSection(expandedSection === 'specs' ? 'installation' : 'specs')}
-            >
-              <div className="space-y-4">
-                {Object.entries(schema.specs).map(([key, config]) =>
-                  renderFieldInput(key, config, specs[key], (value) => {
-                    const updated = { ...annotation, specs: { ...specs, [key]: value } };
-                    handleSpecsChange(index, updated);
-                  })
-                )}
-              </div>
-            </Section>
-
-            <Section
-              title="Installation"
-              isOpen={expandedSection === 'installation'}
-              onToggle={() => setExpandedSection(expandedSection === 'installation' ? 'specs' : 'installation')}
-            >
-              <div className="space-y-4">
-                {Object.entries(schema.installation).map(([key, config]) =>
-                  renderFieldInput(key, config, installation[key], (value) => {
-                    const updated = { ...annotation, installation: { ...installation, [key]: value } };
-                    handleSpecsChange(index, updated);
-                  })
-                )}
-              </div>
-            </Section>
-          </div>
+          <SpecsInstallPanel
+            schema={schema}
+            specs={specs}
+            installation={installation}
+            onSpecsChange={(updatedSpecs) => handleSpecsChange(index, { ...annotation, specs: updatedSpecs })}
+            onInstallationChange={(updatedInstall) => handleSpecsChange(index, { ...annotation, installation: updatedInstall })}
+          />
         )}
       </div>
 
