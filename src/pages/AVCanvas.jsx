@@ -1624,10 +1624,10 @@ function AVCanvasContent() {
           {/* Text editing overlay */}
           {editingText && annotations.find(a => a.id === editingText) && (() => {
             const ann = annotations.find(a => a.id === editingText);
-            const floorplan = floorplans.find(fp => fp.id === ann.floorplanId);
-            if (!floorplan) return null;
-            
-            const canvasPos = floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan);
+            const floorplan = ann.floorplanId ? floorplans.find(fp => fp.id === ann.floorplanId) : null;
+            const canvasPos = floorplan
+              ? floorplanToCanvasCoords(ann.position.x, ann.position.y, floorplan)
+              : ann.position;
             const screenX = canvasPos.x * zoom + pan.x;
             const screenY = canvasPos.y * zoom + pan.y;
             return (
