@@ -1496,7 +1496,7 @@ function AVCanvasContent() {
               </div>
             )}
 
-            {currentProject && canvasProducts.length === 0 && !snapshot.isDraggingOver && !isMobile && (
+            {currentProject && canvasProducts.length === 0 && floorplans.length === 0 && annotations.length === 0 && !snapshot.isDraggingOver && !isMobile && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
                   <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
