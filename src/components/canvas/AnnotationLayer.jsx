@@ -189,18 +189,17 @@ export default function AnnotationLayer({
 
         {/* Drawing preview */}
         {drawingAnnotation && drawingAnnotation.type !== 'symbol' && (() => {
-          const fp = floorplans.find(f => f.id === drawingAnnotation.floorplanId);
-          if (!fp) return null;
-          const sp = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, fp);
-          const fpScale = fp.scale || 1;
-          const hasCalib = fp.imageWidth && fp.imageHeight && fp.pixelsPerInch;
-          const fpW = hasCalib ? fp.imageWidth * (1/fp.pixelsPerInch) * fpScale : 500 * fpScale;
-          const fpH = hasCalib ? fp.imageHeight * (1/fp.pixelsPerInch) * fpScale : (fp.imageHeight ? fpW*(fp.imageHeight/fp.imageWidth) : 500*fpScale);
+          const fp = drawingAnnotation.floorplanId ? floorplans.find(f => f.id === drawingAnnotation.floorplanId) : null;
+          const sp = fp ? floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, fp) : drawingAnnotation.position;
+          const fpScale = fp?.scale || 1;
+          const hasCalib = fp?.imageWidth && fp?.imageHeight && fp?.pixelsPerInch;
+          const fpW = fp ? (hasCalib ? fp.imageWidth * (1/fp.pixelsPerInch) * fpScale : 500 * fpScale) : 500;
+          const fpH = fp ? (hasCalib ? fp.imageHeight * (1/fp.pixelsPerInch) * fpScale : (fp.imageHeight ? fpW*(fp.imageHeight/fp.imageWidth) : 500*fpScale)) : 500;
           return (
             <g>
               {drawingAnnotation.type === 'rectangle' && drawingAnnotation.width && <rect x={sp.x} y={sp.y} width={drawingAnnotation.width*fpW} height={drawingAnnotation.height*fpH} stroke={drawingAnnotation.color} strokeWidth={drawingAnnotation.strokeWidth} fill={drawingAnnotation.fill?drawingAnnotation.color:'none'} fillOpacity={drawingAnnotation.fill?0.3:0} strokeDasharray="8,4" className="pointer-events-none" opacity="0.8" />}
               {drawingAnnotation.type === 'circle' && drawingAnnotation.radius && <circle cx={sp.x} cy={sp.y} r={drawingAnnotation.radius*fpW} stroke={drawingAnnotation.color} strokeWidth={drawingAnnotation.strokeWidth} fill={drawingAnnotation.fill?drawingAnnotation.color:'none'} fillOpacity={drawingAnnotation.fill?0.3:0} strokeDasharray="8,4" className="pointer-events-none" opacity="0.8" />}
-              {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (() => { const ep = floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, fp); return <line x1={sp.x} y1={sp.y} x2={ep.x} y2={ep.y} stroke={drawingAnnotation.color} strokeWidth={drawingAnnotation.strokeWidth} strokeDasharray="8,4" className="pointer-events-none" opacity="0.8" />; })()}
+              {drawingAnnotation.type === 'line' && drawingAnnotation.endPosition && (() => { const ep = fp ? floorplanToCanvasCoords(drawingAnnotation.endPosition.x, drawingAnnotation.endPosition.y, fp) : drawingAnnotation.endPosition; return <line x1={sp.x} y1={sp.y} x2={ep.x} y2={ep.y} stroke={drawingAnnotation.color} strokeWidth={drawingAnnotation.strokeWidth} strokeDasharray="8,4" className="pointer-events-none" opacity="0.8" />; })()}
             </g>
           );
         })()}
