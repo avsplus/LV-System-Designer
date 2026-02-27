@@ -1,4 +1,12 @@
 // Symbol specification schemas - defines all configurable properties per symbol type
+// Symbol ID mappings for legacy/shorthand IDs
+const symbolIdMap = {
+  'NET-DO': 'data_outlet',
+  'NET-DP': 'data_outlet',
+  'NET-WAP': 'data_outlet',
+  'ELEC-2G': 'data_outlet'
+};
+
 export const symbolSchemas = {
   // Network Devices
   data_outlet: {
