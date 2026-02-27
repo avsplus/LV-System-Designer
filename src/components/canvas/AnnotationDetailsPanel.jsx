@@ -200,18 +200,20 @@ export default function AnnotationDetailsPanel({
         );
       case 'select':
         return (
-          <div key={fieldKey} className="space-y-2 relative z-50">
+          <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <select
-              value={value || ''}
-              onChange={(e) => onChange(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none relative z-50"
-            >
-              <option value="">Select {fieldConfig.label}</option>
-              {fieldConfig.options.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            <Select value={value || ''} onValueChange={onChange}>
+              <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                <SelectValue placeholder={`Select ${fieldConfig.label}`} />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700">
+                {fieldConfig.options.map((opt) => (
+                  <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         );
       case 'text':
