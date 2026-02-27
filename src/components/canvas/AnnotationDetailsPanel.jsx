@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { X, Trash2, FlipHorizontal, RotateCw, Copy, HelpCircle, CheckSquare, StickyNote, Check, Plus } from 'lucide-react';
 import SpecsPanel from './SpecsPanel';
 import { getDefaultSpecs } from './symbolSchemas';
