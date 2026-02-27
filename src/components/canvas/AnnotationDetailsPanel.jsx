@@ -182,47 +182,46 @@ export default function AnnotationDetailsPanel({
 
           {/* Content */}
           <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
-        
-        {/* Symbol Label */}
-        {annotation.type === 'symbol' && (
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Symbol</p>
-            <div className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white">
-              {annotation.symbolId}
-            </div>
-          </div>
-        )}
 
-        {/* Items right after symbol name */}
-        {annotation.type === 'symbol' && <ItemsSection />}
+            {/* Symbol Label */}
+            {annotation.type === 'symbol' && (
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Symbol</p>
+                <div className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white">
+                  {annotation.symbolId}
+                </div>
+              </div>
+            )}
 
-        {/* Symbol Controls */}
-        {annotation.type === 'symbol' && (
-          <>
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-sm text-gray-500">Size</p>
-                <span className="text-sm text-blue-400 font-medium">{Math.round((annotation.scale || 1) * 100)}%</span>
-              </div>
-              <Slider value={[annotation.scale || 1]} onValueChange={handleScaleChange} min={0.25} max={3} step={0.25} className="w-full" />
-            </div>
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-sm text-gray-500">Rotation</p>
-                <span className="text-sm text-blue-400 font-medium">{annotation.rotation || 0}°</span>
-              </div>
-              <Button onClick={handleRotate} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
-                <RotateCw className="w-4 h-4 mr-2" />Rotate 90°
-              </Button>
-            </div>
-            <div>
-              <Button onClick={handleFlipHorizontal} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
-                <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
-              </Button>
-            </div>
-            {specsAndImageSection}
-          </>
-        )}
+            {/* Items right after symbol name */}
+            {annotation.type === 'symbol' && <ItemsSection />}
+
+            {/* Symbol Controls */}
+            {annotation.type === 'symbol' && (
+              <>
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm text-gray-500">Size</p>
+                    <span className="text-sm text-blue-400 font-medium">{Math.round((annotation.scale || 1) * 100)}%</span>
+                  </div>
+                  <Slider value={[annotation.scale || 1]} onValueChange={handleScaleChange} min={0.25} max={3} step={0.25} className="w-full" />
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm text-gray-500">Rotation</p>
+                    <span className="text-sm text-blue-400 font-medium">{annotation.rotation || 0}°</span>
+                  </div>
+                  <Button onClick={handleRotate} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <RotateCw className="w-4 h-4 mr-2" />Rotate 90°
+                  </Button>
+                </div>
+                <div>
+                  <Button onClick={handleFlipHorizontal} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
+                  </Button>
+                </div>
+              </>
+            )}
 
         {/* Text Content */}
         {annotation.type === 'text' && (
