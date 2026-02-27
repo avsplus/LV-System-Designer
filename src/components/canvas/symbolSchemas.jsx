@@ -143,8 +143,13 @@ export const symbolSchemas = {
   },
 
   speaker: {
-    category: 'Audio',
+    category: 'Audio/Video',
     label: 'Speaker',
+    ui: {
+      visualTriggers: ['power'],
+      showHeightLabel: true,
+      allowRotation: true
+    },
     defaults: {
       specs: {
         impedance: '8',
@@ -170,7 +175,7 @@ export const symbolSchemas = {
       },
       frequency: {
         type: 'text',
-        label: 'Frequency Response',
+        label: 'Frequency Response'
       }
     },
     installation: {
@@ -179,7 +184,8 @@ export const symbolSchemas = {
         label: 'Height',
         min: 0,
         max: 120,
-        step: 1
+        step: 1,
+        validate: { adaWarningBelow: 15 }
       },
       heightType: {
         type: 'select',
@@ -191,6 +197,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['wall', 'ceiling', 'shelf']
       }
+    },
+    costModel: {
+      laborHours: 1.0,
+      materialMultiplier: 0.8,
+      dependsOn: ['power']
     }
   },
 
