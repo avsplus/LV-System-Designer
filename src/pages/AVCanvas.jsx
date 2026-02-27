@@ -667,6 +667,11 @@ function AVCanvasContent() {
       return; // Was a drag, not a click
     }
 
+    // If an annotation tool is active, let the canvas click handler place the annotation
+    if (activeTool === 'snapshot') { handleSnapshotClick(e); return; }
+    if (activeTool === 'text') { handleTextClick(e); return; }
+    if (activeTool !== 'select') return; // drawing tools handled by mousedown
+
     // Don't open panel on mobile
     if (isMobile) {
       return;
