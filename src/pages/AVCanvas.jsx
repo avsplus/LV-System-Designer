@@ -974,90 +974,20 @@ function AVCanvasContent() {
     }
   };
 
-  // Touch handlers for pinch-to-zoom and pan
   const handleCanvasTouchStart = (e) => {
-    // Prevent default only if we have multiple touches (pinch)
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
-    
-    // Double-tap to center (similar to middle-click double-click)
+    if (e.touches.length > 1) e.preventDefault();
     if (e.touches.length === 1) {
-      const now = Date.now();
-      const timeSinceLastTap = now - lastTapRef.current;
-      
-      if (timeSinceLastTap < 300) {
-        // Double-tap detected - center on floorplans
-        e.preventDefault();
-        if (floorplans.length > 0) {
-          const visibleFloorplans = floorplans.filter(fp => fp.visible);
-          if (visibleFloorplans.length > 0) {
-            const bounds = visibleFloorplans.reduce((acc, fp) => {
-              const pos = fp.position || { x: 0, y: 0 };
-              const scale = fp.scale || 1;
-              const hasDimensions = fp.imageWidth && fp.imageHeight;
-              const hasCalibration = hasDimensions && fp.pixelsPerInch;
-              let width, height;
-
-              if (hasDimensions) {
-                if (hasCalibration) {
-                  const scaleFactor = (1 / fp.pixelsPerInch) * scale;
-                  width = fp.imageWidth * scaleFactor;
-                } else {
-                  width = 500 * scale;
-                }
-                height = width * (fp.imageHeight / fp.imageWidth);
-              } else {
-                width = 500 * scale;
-                height = 500 * scale;
-              }
-
-              return {
-                minX: Math.min(acc.minX, pos.x),
-                minY: Math.min(acc.minY, pos.y),
-                maxX: Math.max(acc.maxX, pos.x + width),
-                maxY: Math.max(acc.maxY, pos.y + height)
-              };
-            }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
-
-            const centerX = (bounds.minX + bounds.maxX) / 2;
-            const centerY = (bounds.minY + bounds.maxY) / 2;
-
-            const canvasRect = canvasRef.current?.getBoundingClientRect();
-            if (canvasRect) {
-              const viewportCenterX = canvasRect.width / 2;
-              const viewportCenterY = canvasRect.height / 2;
-
-              setPan({
-                x: viewportCenterX - centerX,
-                y: viewportCenterY - centerY
-              });
-              setZoom(1);
-              toast.success('Centered on floorplans');
-            }
-          }
-        }
-        lastTapRef.current = 0;
-        return;
-      } else {
-        lastTapRef.current = now;
-      }
+      const now=Date.now(); const dt=now-lastTapRef.current;
+      if(dt<300){e.preventDefault();centerOnFloorplans();toast.success('Centered on floorplans');lastTapRef.current=0;return;}
+      lastTapRef.current=now;
     }
-    
     handleCanvasTouchStartPan(e, canvasRef.current);
   };
-
   const handleCanvasTouchMove = (e) => {
-    // Only prevent default for multi-touch (pinch)
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
+    if(e.touches.length>1) e.preventDefault();
     handleCanvasTouchMovePan(e, canvasRef.current);
   };
-
-  const handleCanvasTouchEnd = () => {
-    handleCanvasTouchEndPan();
-  };
+  const handleCanvasTouchEnd = () => handleCanvasTouchEndPan();
 
   useEffect(() => {
     connectingStateRef.current = connectingState;
