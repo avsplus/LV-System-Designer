@@ -1007,59 +1007,29 @@ function AVCanvasContent() {
   const connectionsByCategory = CONNECTIONS_BY_CATEGORY;
   const CARD_WIDTH = 320, CARD_HEIGHT = 280, PORT_DOT_SIZE = 20, PORT_GAP = 12;
 
-  // Calculates world position of a connection port on the canvas
-  // Used to position connection line endpoints and determine visual port locations
   const getPortWorldPosition = (instanceId, connectionType, isOutput) => {
     const product = canvasProducts.find(cp => cp.instanceId === instanceId);
     if (!product) return null;
-
-    const defaultConnections = connectionsByCategory[product.product.category] || { inputs: [], outputs: [] };
-    const hasDbConnections = (product.product.input_connections?.length > 0) || 
-                              (product.product.output_connections?.length > 0);
-    // NOTE: Database connections might have string ports from legacy data, so normalize to {id, label, direction} objects
-    // This prevents React error #31 which occurs when component children use inconsistent data types
-    let conns = hasDbConnections ? {
-      inputs: (product.product.input_connections || []).map(conn => ({
-        type: conn.type,
-        ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'input' } : p)
-      })),
-      outputs: (product.product.output_connections || []).map(conn => ({
-        type: conn.type,
-        ports: (conn.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: 'output' } : p)
-      }))
-    } : defaultConnections;
-
-    const types = isOutput ? conns.outputs : conns.inputs;
-    // Normalize ports to objects - ensures consistent data structure throughout rendering
-    // Handles both old string format and new {id, label, direction} object format
-    const normalizedTypes = types.map(t => ({
-      ...t,
-      ports: (t.ports || []).map(p => typeof p === 'string' ? { id: p, label: p, direction: isOutput ? 'output' : 'input' } : p)
-    }));
-    const portIndex = normalizedTypes.findIndex(t => t.type === connectionType);
-    
+    const defaultConns = connectionsByCategory[product.product.category] || { inputs: [], outputs: [] };
+    const hasDb = (product.product.input_connections?.length > 0) || (product.product.output_connections?.length > 0);
+    const norm = p => typeof p === 'string' ? { id: p, label: p } : p;
+    let conns = hasDb ? {
+      inputs: (product.product.input_connections||[]).map(c=>({type:c.type,ports:(c.ports||[]).map(norm)})),
+      outputs: (product.product.output_connections||[]).map(c=>({type:c.type,ports:(c.ports||[]).map(norm)}))
+    } : defaultConns;
+    const types = (isOutput ? conns.outputs : conns.inputs).map(t=>({...t,ports:(t.ports||[]).map(norm)}));
+    const portIndex = types.findIndex(t => t.type === connectionType);
     if (portIndex === -1) return null;
-
-    const totalPorts = Math.min(normalizedTypes.length, 6);
+    const totalPorts = Math.min(types.length, 6);
     const totalHeight = (totalPorts - 1) * (PORT_DOT_SIZE + PORT_GAP);
     const startY = product.position.y + CARD_HEIGHT / 2 - totalHeight / 2;
     const portY = startY + portIndex * (PORT_DOT_SIZE + PORT_GAP);
-
-    const portX = isOutput 
-      ? product.position.x + CARD_WIDTH + PORT_DOT_SIZE / 2
-      : product.position.x - PORT_DOT_SIZE / 2;
-
+    const portX = isOutput ? product.position.x + CARD_WIDTH + PORT_DOT_SIZE / 2 : product.position.x - PORT_DOT_SIZE / 2;
     return { x: portX, y: portY };
   };
 
-  // Wrapper for consistency - gets port position by connection type
-  // Delegates to getPortWorldPosition for actual calculation
-  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => {
-    return getPortWorldPosition(instanceId, connectionType, isOutput);
-  };
+  const getConnectionPointPosition = (instanceId, connectionType, portName, isOutput) => getPortWorldPosition(instanceId, connectionType, isOutput);
 
-  // Pre-calculates all connection endpoint positions and edge sides (for visual routing)
-  // Cached to avoid recalculating during every render
   const connectionPositions = connections.map((connection, index) => {
     const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
     const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
