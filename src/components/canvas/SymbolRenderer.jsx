@@ -373,6 +373,15 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
   );
 }
 
+// Get symbol label text based on specs
+function getSymbolLabel(symbolId, specs = {}, installation = {}) {
+  const lines = [];
+  if (specs.data_ports) lines.push(`${specs.data_ports}x RJ45`);
+  if (specs.screen_size) lines.push(`${specs.screen_size}"`);
+  if (installation.mounting) lines.push(installation.mounting);
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
 // Render specs label below symbol
 export function renderSymbolLabel({ symbolId, specs, installation, position, scale = 1 }) {
   const label = getSymbolLabel(symbolId, specs, installation);
