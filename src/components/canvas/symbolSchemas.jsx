@@ -2,8 +2,14 @@
 export const symbolSchemas = {
   // Network Devices
   data_outlet: {
-    category: 'Network',
+    category: 'Communications',
     label: 'Data Outlet',
+    ui: {
+      visualTriggers: ['ports', 'faceplateOrientation', 'color'],
+      showHeightLabel: true,
+      showPortCount: true,
+      allowRotation: false
+    },
     defaults: {
       specs: {
         ports: 2,
@@ -23,12 +29,15 @@ export const symbolSchemas = {
         label: 'Number of Ports',
         min: 1,
         max: 8,
-        step: 1
+        step: 1,
+        validate: { adaWarningBelow: 0 }
       },
       portTypes: {
         type: 'array',
         label: 'Port Types',
-        options: ['Cat6', 'Cat6A', 'Fiber', 'HDMI', 'USB', 'Power']
+        options: ['Cat6', 'Cat6A', 'Fiber', 'HDMI', 'USB', 'Power'],
+        dependsOn: 'ports',
+        lengthMatches: 'ports'
       },
       faceplateOrientation: {
         type: 'select',
@@ -47,7 +56,8 @@ export const symbolSchemas = {
         label: 'Height',
         min: 0,
         max: 120,
-        step: 1
+        step: 1,
+        validate: { adaWarningBelow: 15, adaWarningAbove: 48 }
       },
       heightType: {
         type: 'select',
@@ -59,6 +69,11 @@ export const symbolSchemas = {
         label: 'Mounting',
         options: ['surface', 'recessed']
       }
+    },
+    costModel: {
+      laborHours: 0.5,
+      materialMultiplier: 1.0,
+      dependsOn: ['ports']
     }
   },
 
