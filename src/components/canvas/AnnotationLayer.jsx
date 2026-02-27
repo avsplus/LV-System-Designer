@@ -54,24 +54,24 @@ export default function AnnotationLayer({
         };
 
         if (ann.type === 'symbol') {
-          const symbolSize = 120;
-          return (
-            <div key={ann.id}
-              className={isLocked ? 'cursor-not-allowed' : 'cursor-move'}
-              onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
-              onMouseLeave={() => setHoveredAnnotation(null)}
-              onMouseDown={(e) => { if (activeTool !== 'select' || isLocked) return; e.preventDefault(); selectAnnotation(e); }}
-              onClick={(e) => { if (activeTool !== 'select' || isLocked) return; e.preventDefault(); e.stopPropagation(); }}
-              onTouchStart={touchAnnotation}
-              onTouchEnd={handleAnnotationTouchEnd}
-              style={{ position: 'absolute', left: `${canvasPos.x}px`, top: `${canvasPos.y}px`, width: `${symbolSize}px`, height: `${symbolSize}px`, transform: 'translate(-50%, -50%)', zIndex: 1200, pointerEvents: 'auto' }}
-            >
-              <svg width="100%" height="100%" viewBox="-60 -60 120 120" style={{ overflow: 'visible', display: 'block' }}>
-                <SymbolRenderer symbolId={ann.symbolId} position={{ x: 0, y: 0 }} color={isSelected ? '#ef4444' : (ann.color || '#3b82f6')} scale={ann.scale || 1} rotation={ann.rotation || 0} flipped={ann.flipped || false} />
-              </svg>
-            </div>
-          );
-        }
+           const symbolSize = 120;
+           return (
+             <div key={ann.id}
+               className={isLocked ? 'cursor-not-allowed' : 'cursor-move'}
+               onMouseEnter={() => !isLocked && setHoveredAnnotation(idx)}
+               onMouseLeave={() => setHoveredAnnotation(null)}
+               onMouseDown={(e) => { if (activeTool !== 'select' || isLocked) return; e.preventDefault(); selectAnnotation(e); }}
+               onClick={(e) => { if (activeTool !== 'select' || isLocked) return; e.preventDefault(); e.stopPropagation(); }}
+               onTouchStart={touchAnnotation}
+               onTouchEnd={handleAnnotationTouchEnd}
+               style={{ position: 'absolute', left: `${canvasPos.x}px`, top: `${canvasPos.y}px`, width: `${symbolSize}px`, height: `${symbolSize}px`, transform: 'translate(-50%, -50%)', zIndex: 1200, pointerEvents: 'auto' }}
+             >
+               <svg width="100%" height="100%" viewBox="-60 -60 120 120" style={{ overflow: 'visible', display: 'block' }}>
+                 <SymbolRenderer symbolId={ann.symbolId} position={{ x: 0, y: 0 }} color={isSelected ? '#ef4444' : (ann.color || '#3b82f6')} scale={ann.scale || 1} rotation={ann.rotation || 0} flipped={ann.flipped || false} specs={ann.specs || {}} installation={ann.installation || {}} />
+               </svg>
+             </div>
+           );
+         }
 
         if (ann.type === 'snapshot') {
           return (
