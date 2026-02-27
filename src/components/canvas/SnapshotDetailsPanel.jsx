@@ -138,10 +138,10 @@ export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpd
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {images.map((url, imgIdx) => (
-              <div key={imgIdx} className="relative group rounded overflow-hidden border border-gray-700 aspect-video bg-gray-800">
+              <div key={imgIdx} className="relative group rounded overflow-hidden border border-gray-700 aspect-video bg-gray-800 cursor-pointer" onClick={() => setLightboxUrl(url)}>
                 <img src={url} alt={`Photo ${imgIdx + 1}`} className="w-full h-full object-cover" />
                 <button
-                  onClick={() => handleRemoveImage(imgIdx)}
+                  onClick={(e) => { e.stopPropagation(); handleRemoveImage(imgIdx); }}
                   className="absolute top-1 right-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="w-3 h-3 text-white" />
