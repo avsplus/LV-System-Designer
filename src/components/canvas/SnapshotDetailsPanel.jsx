@@ -224,20 +224,6 @@ export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpd
         )}
       </div>
 
-      {/* Position Info */}
-      <div className="pt-2 border-t border-gray-800">
-        <p className="text-sm text-gray-500 mb-3">Position</p>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center py-2 border-b border-gray-800">
-            <span className="text-xs text-gray-400">X Coordinate</span>
-            <span className="text-xs text-gray-200">{Math.round(annotation.position?.x || 0)}px</span>
-          </div>
-          <div className="flex justify-between items-center py-2 border-b border-gray-800">
-            <span className="text-xs text-gray-400">Y Coordinate</span>
-            <span className="text-xs text-gray-200">{Math.round(annotation.position?.y || 0)}px</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
