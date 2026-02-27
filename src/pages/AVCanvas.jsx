@@ -1553,131 +1553,20 @@ function AVCanvasContent() {
 
             <svg className="absolute pointer-events-none" style={{ zIndex: 1, top: 0, left: 0, width: '100%', height: '100%', minWidth: '4000px', minHeight: '4000px', overflow: 'visible' }}>
               <g style={{ pointerEvents: 'auto' }} transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                {/* Connections - render FIRST so annotations appear on top */}
-                {connections.map((connection, index) => {
-                  if (index === hoveredConnectionIndex) return null;
-                  const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
-                  const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
-                  if (!fromProduct || !toProduct) return null;
-
-                  let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
-
-                  if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
-                    const fallback = getProductEdgePoint(connection.from, connection.to, index);
-                    fromPoint = fromPoint || fallback.from;
-                    toPoint = toPoint || fallback.to;
-
-                    if (!fromEdge || !toEdge) {
-                      const dx = toProduct.position.x - fromProduct.position.x;
-                      const dy = toProduct.position.y - fromProduct.position.y;
-
-                      if (Math.abs(dx) > Math.abs(dy)) {
-                        fromEdge = dx > 0 ? 'right' : 'left';
-                        toEdge = dx > 0 ? 'left' : 'right';
-                      } else {
-                        fromEdge = dy > 0 ? 'bottom' : 'top';
-                        toEdge = dy > 0 ? 'top' : 'bottom';
-                      }
-                    }
-                  }
-
-                  if (!fromPoint || !toPoint) return null;
-                  const isHighlighted = highlightedConnections.includes(index);
-
-                  return (
-                    <ConnectionLine
-                      key={index}
-                      from={fromPoint}
-                      to={toPoint}
-                      fromEdge={fromEdge}
-                      toEdge={toEdge}
-                      connectionType={connection.type}
-                      wireId={connection.wireId}
-                      waypoints={connection.waypoints}
-                      isHighlighted={isHighlighted}
-                      isSelected={selectedConnection?.index === index}
-                      offset={0}
-                      zoom={zoom}
-                      pan={pan}
-                      onRemove={() => handleRemoveConnection(index)}
-                      onClick={() => handleConnectionClick(connection, index)}
-                      onHover={() => handleConnectionHover(index)}
-                      onLeave={handleConnectionLeave}
-                      onWaypointsChange={(newWaypoints) => {
-                        const newConnections = [...connections];
-                        newConnections[index].waypoints = newWaypoints;
-                        setConnections(newConnections);
-                      }}
-                    />
-                  );
-                })}
-
-                {hoveredConnectionIndex !== null && connections[hoveredConnectionIndex] && (() => {
-                  const index = hoveredConnectionIndex;
-                  const connection = connections[index];
-                  if (!connection) return null;
-                  const fromProduct = canvasProducts.find(cp => cp.instanceId === connection.from);
-                  const toProduct = canvasProducts.find(cp => cp.instanceId === connection.to);
-                  if (!fromProduct || !toProduct) return null;
-
-                  let { fromPoint, toPoint, fromEdge, toEdge } = connectionPositions[index] || {};
-
-                  if (!fromPoint || !toPoint || !fromEdge || !toEdge) {
-                    const fallback = getProductEdgePoint(connection.from, connection.to, index);
-                    fromPoint = fromPoint || fallback.from;
-                    toPoint = toPoint || fallback.to;
-
-                    if (!fromEdge || !toEdge) {
-                      const dx = toProduct.position.x - fromProduct.position.x;
-                      const dy = toProduct.position.y - fromProduct.position.y;
-
-                      if (Math.abs(dx) > Math.abs(dy)) {
-                        fromEdge = dx > 0 ? 'right' : 'left';
-                        toEdge = dx > 0 ? 'left' : 'right';
-                      } else {
-                        fromEdge = dy > 0 ? 'bottom' : 'top';
-                        toEdge = dy > 0 ? 'top' : 'bottom';
-                      }
-                    }
-                  }
-
-                  if (!fromPoint || !toPoint) return null;
-                  const isHighlighted = highlightedConnections.includes(index);
-
-                  return (
-                    <ConnectionLine
-                        key={`hovered-${index}`}
-                        from={fromPoint}
-                        to={toPoint}
-                        fromEdge={fromEdge}
-                        toEdge={toEdge}
-                        connectionType={connection.type}
-                        wireId={connection.wireId}
-                        waypoints={connection.waypoints}
-                        isHighlighted={isHighlighted}
-                        isSelected={selectedConnection?.index === index}
-                        offset={0}
-                        zoom={zoom}
-                        pan={pan}
-                        onRemove={() => handleRemoveConnection(index)}
-                        onClick={() => handleConnectionClick(connection, index)}
-                        onHover={() => handleConnectionHover(index)}
-                        onLeave={handleConnectionLeave}
-                        onWaypointsChange={(newWaypoints) => {
-                          const newConnections = [...connections];
-                          newConnections[index].waypoints = newWaypoints;
-                          setConnections(newConnections);
-                        }}
-                      />
-                  );
-                })()}
-
-                {/* Connection preview */}
-
-                <defs>
-                  <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><polygon points="0 0, 10 3, 0 6" fill="#3b82f6" /></marker>
-                  <marker id="arrowhead-hover" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><polygon points="0 0, 10 3, 0 6" fill="#ef4444" /></marker>
-                </defs>
+                <CanvasConnectionLayer
+                  connections={connections} canvasProducts={canvasProducts}
+                  connectionPositions={connectionPositions}
+                  hoveredConnectionIndex={hoveredConnectionIndex}
+                  highlightedConnections={highlightedConnections}
+                  selectedConnection={selectedConnection}
+                  zoom={zoom} pan={pan}
+                  handleRemoveConnection={handleRemoveConnection}
+                  handleConnectionClick={handleConnectionClick}
+                  handleConnectionHover={handleConnectionHover}
+                  handleConnectionLeave={handleConnectionLeave}
+                  setConnections={setConnections}
+                  CARD_WIDTH={CARD_WIDTH} CARD_HEIGHT={CARD_HEIGHT}
+                />
               </g>
             </svg>
 
