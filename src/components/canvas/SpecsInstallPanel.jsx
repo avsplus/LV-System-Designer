@@ -17,6 +17,13 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
   }, [specs, installation]);
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
+    console.log(`[renderFieldInput] key=${fieldKey}, type=${fieldConfig.type}, value=`, value, 'config:', fieldConfig);
+    
+    const handleChange = (newValue) => {
+      console.log(`[handleChange] ${fieldKey}: ${value} -> ${newValue}`);
+      onChange(newValue);
+    };
+
     switch (fieldConfig.type) {
       case 'number':
         return (
@@ -27,7 +34,10 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
             </div>
             <Slider
               value={[value || fieldConfig.min || 0]}
-              onValueChange={(v) => onChange(v[0])}
+              onValueChange={(v) => {
+                console.log(`[Slider] onValueChange: ${v[0]}`);
+                handleChange(v[0]);
+              }}
               min={fieldConfig.min || 0}
               max={fieldConfig.max || 100}
               step={fieldConfig.step || 1}
@@ -41,11 +51,14 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
             <select
               value={value || ''}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => {
+                console.log(`[select] onChange: ${e.target.value}`);
+                handleChange(e.target.value);
+              }}
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
             >
               <option value="">Select {fieldConfig.label}</option>
-              {fieldConfig.options.map((opt) => (
+              {fieldConfig.options && fieldConfig.options.map((opt) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
@@ -58,7 +71,10 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
             <input
               type="text"
               value={value || ''}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => {
+                console.log(`[text] onChange: ${e.target.value}`);
+                handleChange(e.target.value);
+              }}
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
               placeholder={fieldConfig.label}
             />
@@ -75,9 +91,10 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                     type="text"
                     value={item || ''}
                     onChange={(e) => {
+                      console.log(`[array] item ${idx} change: ${e.target.value}`);
                       const newArr = [...(value || [])];
                       newArr[idx] = e.target.value;
-                      onChange(newArr);
+                      handleChange(newArr);
                     }}
                     list={`${fieldKey}-options`}
                     className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
@@ -94,8 +111,9 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                     variant="outline"
                     size="icon"
                     onClick={() => {
+                      console.log(`[array] delete item ${idx}`);
                       const newArr = value.filter((_, i) => i !== idx);
-                      onChange(newArr);
+                      handleChange(newArr);
                     }}
                     className="bg-red-900 hover:bg-red-800 border-red-700 h-10 w-10"
                   >
@@ -108,7 +126,8 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    onChange([...(value || []), '']);
+                    console.log(`[array] add new item`);
+                    handleChange([...(value || []), '']);
                   }}
                   className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
                 >
