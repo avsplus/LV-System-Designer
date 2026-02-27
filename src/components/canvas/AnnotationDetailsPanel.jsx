@@ -388,6 +388,11 @@ export default function AnnotationDetailsPanel({
     );
   }
 
+  // Show specs panel for symbols on desktop
+  if (annotation.type === 'symbol' && showSpecsPanel) {
+    return <SpecsPanel annotation={annotation} onSpecsChange={handleSpecsChange} onClose={() => setShowSpecsPanel(false)} />;
+  }
+
   // Desktop sidebar for larger screens
   return (
     <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
