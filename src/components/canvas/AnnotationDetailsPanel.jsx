@@ -211,6 +211,7 @@ export default function AnnotationDetailsPanel({
                 avoidCollisions={true}
                 sideOffset={5}
                 className="bg-gray-800 border-gray-700"
+                portal={false}
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
@@ -257,6 +258,7 @@ export default function AnnotationDetailsPanel({
                       avoidCollisions={true}
                       sideOffset={5}
                       className="bg-gray-800 border-gray-700"
+                      portal={false}
                     >
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
@@ -428,7 +430,7 @@ export default function AnnotationDetailsPanel({
 
   // Desktop sidebar with tabs
   return (
-    <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
+    <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-visible">
       {/* Header with Tabs */}
       <div className="border-b border-gray-800">
         <div className="p-4 flex items-center justify-between border-b border-gray-800">
@@ -464,7 +466,7 @@ export default function AnnotationDetailsPanel({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto overflow-x-visible p-4 space-y-4">
         {/* Properties Tab */}
         {activeTab === 'properties' && (
           <>
