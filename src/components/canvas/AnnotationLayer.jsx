@@ -75,14 +75,25 @@ export default function AnnotationLayer({
 
         if (ann.type === 'snapshot') {
           return (
-            <div key={ann.id}
-              style={{ position: 'absolute', left: `${canvasPos.x}px`, top: `${canvasPos.y}px`, transform: 'translate(-50%, -50%)', zIndex: 1200, pointerEvents: 'auto' }}
-              onMouseDown={selectAnnotation}
+            <SnapshotMarker
+              key={ann.id}
+              annotation={ann}
+              canvasPos={canvasPos}
+              isSelected={isSelected}
+              isHovered={hoveredAnnotation === idx}
+              scale={ann.scale || 1}
+              onMouseDown={(e) => {
+                if (activeTool !== 'select' || isLocked) return;
+                e.stopPropagation();
+                setSelectedAnnotation(idx);
+                setSelectedProduct(null); setSelectedCanvasProduct(null); setSelectedConnection(null);
+                setShowFloorplanManager(false); setShowRoomManager(false); setSelectedFloorplanId(null);
+                setPanelHistory([{ panel: 'annotationDetails', index: idx }]);
+                if (!isMobile) handleSymbolAnnotationDragStart(e, idx);
+              }}
               onTouchStart={touchAnnotation}
               onTouchEnd={handleAnnotationTouchEnd}
-            >
-              <SnapshotMarker annotation={ann} isSelected={isSelected} onClick={(e) => { e.stopPropagation(); selectAnnotation(e); }} />
-            </div>
+            />
           );
         }
 

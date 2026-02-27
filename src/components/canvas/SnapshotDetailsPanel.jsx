@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { X, Trash2, Copy, Upload, Plus, ImageOff } from 'lucide-react';
+import { X, Trash2, Copy, Upload, Plus, ImageOff, Camera } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
