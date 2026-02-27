@@ -4,17 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
 export default function SpecsInstallPanel({ schema, specs, installation, onSpecsChange, onInstallationChange }) {
-  console.log('[SpecsInstallPanel] Render - schema:', schema, 'specs:', specs, 'installation:', installation);
-  
   const [expandedSection, setExpandedSection] = useState('specs');
-  const [localSpecs, setLocalSpecs] = useState(specs);
-  const [localInstallation, setLocalInstallation] = useState(installation);
-
-  useEffect(() => {
-    console.log('[SpecsInstallPanel] Props changed - updating local state');
-    setLocalSpecs(specs);
-    setLocalInstallation(installation);
-  }, [specs, installation]);
+  const [localSpecs, setLocalSpecs] = useState(specs || {});
+  const [localInstallation, setLocalInstallation] = useState(installation || {});
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
     console.log(`[renderFieldInput] key=${fieldKey}, type=${fieldConfig.type}, value=`, value, 'config:', fieldConfig);
