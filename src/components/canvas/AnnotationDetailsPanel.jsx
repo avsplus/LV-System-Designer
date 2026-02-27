@@ -376,7 +376,7 @@ export default function AnnotationDetailsPanel({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        
+
         {/* Symbol Label */}
         {annotation.type === 'symbol' && (
           <div>
@@ -414,7 +414,6 @@ export default function AnnotationDetailsPanel({
                 <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
               </Button>
             </div>
-            {specsAndImageSection}
           </>
         )}
 
