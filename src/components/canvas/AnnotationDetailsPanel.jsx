@@ -150,40 +150,105 @@ export default function AnnotationDetailsPanel({
     onUpdate(index, { ...annotation, description: e.target.value });
   };
 
+  const [brand, setBrand] = useState(annotation.brand || '');
+  const [model, setModel] = useState(annotation.model || '');
+  const [productImageUrl, setProductImageUrl] = useState(annotation.product_image_url || null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const imageSearchTimeout = useRef(null);
+
+  // Sync local state if annotation changes (e.g. different annotation selected)
+  useEffect(() => {
+    setBrand(annotation.brand || '');
+    setModel(annotation.model || '');
+    setProductImageUrl(annotation.product_image_url || null);
+  }, [annotation.id]);
+
   const handleBrandChange = (e) => {
-    onUpdate(index, { ...annotation, brand: e.target.value });
+    const val = e.target.value;
+    setBrand(val);
+    onUpdate(index, { ...annotation, brand: val, model, product_image_url: productImageUrl });
   };
 
   const handleModelChange = (e) => {
-    onUpdate(index, { ...annotation, model: e.target.value });
+    const val = e.target.value;
+    setModel(val);
+    onUpdate(index, { ...annotation, brand, model: val, product_image_url: productImageUrl });
+    // Debounce image search when model changes
+    if (imageSearchTimeout.current) clearTimeout(imageSearchTimeout.current);
+    if (val.trim() && (brand.trim() || annotation.brand?.trim())) {
+      setImageLoading(true);
+      imageSearchTimeout.current = setTimeout(async () => {
+        try {
+          const { base44 } = await import('@/api/base44Client');
+          const result = await base44.integrations.Core.InvokeLLM({
+            prompt: `Find a product image URL for: ${brand || annotation.brand} ${val}. Return only a direct image URL (jpg/png) from the manufacturer's website or a reputable source. Must be a real, working URL.`,
+            add_context_from_internet: true,
+            response_json_schema: {
+              type: 'object',
+              properties: { image_url: { type: 'string' } }
+            }
+          });
+          const url = result?.image_url || null;
+          setProductImageUrl(url);
+          onUpdate(index, { ...annotation, brand: brand || annotation.brand, model: val, product_image_url: url });
+        } catch (e) {
+          setProductImageUrl(null);
+        }
+        setImageLoading(false);
+      }, 1200);
+    } else {
+      setProductImageUrl(null);
+      setImageLoading(false);
+    }
   };
 
-  const SpecsSection = () => (
-    <div>
-      <p className="text-sm text-gray-500 mb-2">Specs</p>
-      <div className="space-y-2">
-        <div>
-          <label className="text-xs text-gray-400 mb-1 block">Brand</label>
-          <input
-            type="text"
-            value={annotation.brand || ''}
-            onChange={handleBrandChange}
-            placeholder="e.g. Samsung, Sony..."
-            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-gray-400 mb-1 block">Model</label>
-          <input
-            type="text"
-            value={annotation.model || ''}
-            onChange={handleModelChange}
-            placeholder="e.g. QN85B, XBR-65..."
-            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-          />
+  const specsAndImageSection = (
+    <>
+      <div>
+        <p className="text-sm text-gray-500 mb-2">Specs</p>
+        <div className="space-y-2">
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">Brand</label>
+            <input
+              type="text"
+              value={brand}
+              onChange={handleBrandChange}
+              placeholder="e.g. Samsung, Sony..."
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">Model</label>
+            <input
+              type="text"
+              value={model}
+              onChange={handleModelChange}
+              placeholder="e.g. QN85B, XBR-65..."
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            />
+          </div>
         </div>
       </div>
-    </div>
+      {(imageLoading || productImageUrl) && (
+        <div>
+          <p className="text-sm text-gray-500 mb-2">Product Image</p>
+          {imageLoading ? (
+            <div className="w-full h-32 bg-gray-800 border border-gray-700 rounded flex items-center justify-center">
+              <span className="text-xs text-gray-400 animate-pulse">Searching for image...</span>
+            </div>
+          ) : productImageUrl ? (
+            <div className="w-full bg-gray-800 border border-gray-700 rounded overflow-hidden">
+              <img
+                src={productImageUrl}
+                alt={`${brand} ${model}`}
+                className="w-full object-contain max-h-40"
+                onError={() => setProductImageUrl(null)}
+              />
+            </div>
+          ) : null}
+        </div>
+      )}
+    </>
   );
 
   const getAnnotationLabel = () => {
