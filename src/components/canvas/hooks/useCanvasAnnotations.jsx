@@ -189,24 +189,24 @@ export default function useCanvasAnnotations({
       if (canvasRect) {
         const mouseX = (e.clientX - canvasRect.left - pan.x) / zoom;
         const mouseY = (e.clientY - canvasRect.top - pan.y) / zoom;
-        const floorplan = floorplans.find(fp => fp.id === drawingAnnotation.floorplanId);
-        if (!floorplan) return true;
-        const fpCoords = canvasToFloorplanCoords(mouseX, mouseY, floorplan);
-        const startCanvasCoords = floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan);
-        const fpScale = floorplan.scale || 1;
-        const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch;
-        let fpWidth = hasCalibration ? floorplan.imageWidth * (1 / floorplan.pixelsPerInch) * fpScale : 500 * fpScale;
-        let fpHeight = hasCalibration ? floorplan.imageHeight * (1 / floorplan.pixelsPerInch) * fpScale : (floorplan.imageHeight ? fpWidth * (floorplan.imageHeight / floorplan.imageWidth) : 500 * fpScale);
+        const floorplan = drawingAnnotation.floorplanId ? floorplans.find(fp => fp.id === drawingAnnotation.floorplanId) : null;
+        const FALLBACK_SIZE = 500;
+        const fpWidth = floorplan ? (() => { const fpScale = floorplan.scale || 1; const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch; return hasCalibration ? floorplan.imageWidth * (1/floorplan.pixelsPerInch) * fpScale : 500 * fpScale; })() : FALLBACK_SIZE;
+        const fpHeight = floorplan ? (() => { const fpScale = floorplan.scale || 1; const hasCalibration = floorplan.imageWidth && floorplan.imageHeight && floorplan.pixelsPerInch; const w = hasCalibration ? floorplan.imageWidth*(1/floorplan.pixelsPerInch)*fpScale : 500*fpScale; return hasCalibration ? floorplan.imageHeight*(1/floorplan.pixelsPerInch)*fpScale : (floorplan.imageHeight ? w*(floorplan.imageHeight/floorplan.imageWidth) : 500*(floorplan.scale||1)); })() : FALLBACK_SIZE;
+        const startX = floorplan ? floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan).x : drawingAnnotation.position.x;
+        const startY = floorplan ? floorplanToCanvasCoords(drawingAnnotation.position.x, drawingAnnotation.position.y, floorplan).y : drawingAnnotation.position.y;
 
         if (activeTool === 'line') {
-          setDrawingAnnotation(prev => ({ ...prev, endPosition: fpCoords }));
+          const endPos = floorplan ? canvasToFloorplanCoords(mouseX, mouseY, floorplan) : { x: mouseX, y: mouseY };
+          setDrawingAnnotation(prev => ({ ...prev, endPosition: endPos }));
         } else if (activeTool === 'rectangle') {
-          const width = Math.abs(mouseX - startCanvasCoords.x);
-          const height = Math.abs(mouseY - startCanvasCoords.y);
-          setDrawingAnnotation(prev => ({ ...prev, width: width / fpWidth, height: height / fpHeight, position: { x: Math.min(prev.position.x, fpCoords.x), y: Math.min(prev.position.y, fpCoords.y) } }));
+          const width = Math.abs(mouseX - startX);
+          const height = Math.abs(mouseY - startY);
+          const curPos = floorplan ? canvasToFloorplanCoords(Math.min(mouseX, startX), Math.min(mouseY, startY), floorplan) : { x: Math.min(mouseX, startX), y: Math.min(mouseY, startY) };
+          setDrawingAnnotation(prev => ({ ...prev, width: width / fpWidth, height: height / fpHeight, position: curPos }));
         } else if (activeTool === 'circle') {
-          const dx = mouseX - startCanvasCoords.x;
-          const dy = mouseY - startCanvasCoords.y;
+          const dx = mouseX - startX;
+          const dy = mouseY - startY;
           setDrawingAnnotation(prev => ({ ...prev, radius: Math.sqrt(dx * dx + dy * dy) / fpWidth }));
         }
       }
