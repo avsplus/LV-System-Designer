@@ -165,42 +165,65 @@ export default function AnnotationDetailsPanel({
     setProductImageUrl(annotation.product_image_url || null);
   }, [annotation.id]);
 
+  const [imageError, setImageError] = useState(false);
+  const [productPageUrl, setProductPageUrl] = useState(annotation.product_page_url || null);
+
+  const runImageSearch = async (newBrand, newModel, newSku) => {
+    const identifier = newSku?.trim() || newModel?.trim();
+    if (!identifier) return;
+    setImageLoading(true);
+    setImageError(false);
+    setProductImageUrl(null);
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      const query = [newBrand, identifier].filter(Boolean).join(' ');
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `I need to find a product image for: "${query}".
+
+Please search the web and find:
+1. A direct image URL for this product (hosted on a CDN or image server)
+2. The product page URL where this product is listed
+
+For the image URL, look for images hosted on:
+- wikimedia.org or commons.wikimedia.org
+- i5.walmartimages.com
+- images-na.ssl-images-amazon.com or m.media-amazon.com
+- assets.homedepot-static.com
+- cdn.shopify.com
+- az417944.vo.msecnd.net (Leviton's CDN)
+- Any manufacturer CDN (e.g. leviton.com, lutron.com, sonos.com)
+
+Return both the image_url (direct image link) and product_page_url (product listing page). If you cannot find a direct image URL, return null for image_url but still return the product_page_url.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            image_url: { type: 'string' },
+            product_page_url: { type: 'string' }
+          }
+        }
+      });
+      const imgUrl = result?.image_url || null;
+      const pageUrl = result?.product_page_url || null;
+      setProductImageUrl(imgUrl);
+      setProductPageUrl(pageUrl);
+      setImageError(false);
+      onUpdate(index, { ...annotation, brand: newBrand, model: newModel, sku: newSku, product_image_url: imgUrl, product_page_url: pageUrl });
+    } catch (e) {
+      setProductImageUrl(null);
+    }
+    setImageLoading(false);
+  };
+
   const triggerImageSearch = (newBrand, newModel, newSku) => {
     if (imageSearchTimeout.current) clearTimeout(imageSearchTimeout.current);
-    const identifier = newModel?.trim() || newSku?.trim();
+    const identifier = newSku?.trim() || newModel?.trim();
     if (!identifier) {
       setProductImageUrl(null);
       setImageLoading(false);
       return;
     }
-    setImageLoading(true);
-    imageSearchTimeout.current = setTimeout(async () => {
-      try {
-        const { base44 } = await import('@/api/base44Client');
-        const query = [newBrand, identifier].filter(Boolean).join(' ');
-        const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Search Google Images or the manufacturer's website for a product photo of "${query}". 
-I need a direct, publicly accessible image URL (ending in .jpg, .jpeg, .png, or .webp) showing this specific product.
-Prefer images from:
-1. The manufacturer's official website (e.g. leviton.com, samsung.com, sony.com)
-2. Major retailers like Amazon, Home Depot, B&H Photo, Crutchfield
-3. CDN image hosts like images-na.ssl-images-amazon.com, m.media-amazon.com
-
-Return the most relevant product photo URL. Do NOT return placeholder or logo images. The URL must be a real image that loads directly.`,
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: 'object',
-            properties: { image_url: { type: 'string' } }
-          }
-        });
-        const url = result?.image_url || null;
-        setProductImageUrl(url);
-        onUpdate(index, { ...annotation, brand: newBrand, model: newModel, sku: newSku, product_image_url: url });
-      } catch (e) {
-        setProductImageUrl(null);
-      }
-      setImageLoading(false);
-    }, 1200);
+    imageSearchTimeout.current = setTimeout(() => runImageSearch(newBrand, newModel, newSku), 1500);
   };
 
   const handleBrandChange = (e) => {
@@ -258,25 +281,58 @@ Return the most relevant product photo URL. Do NOT return placeholder or logo im
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
+          {(model || sku) && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => runImageSearch(brand, model, sku)}
+              disabled={imageLoading}
+              className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+            >
+              {imageLoading ? 'Searching...' : '🔍 Search Product Image'}
+            </Button>
+          )}
         </div>
       </div>
-      {(imageLoading || productImageUrl) && (
+      {(imageLoading || productImageUrl || imageError || productPageUrl) && (
         <div>
           <p className="text-sm text-gray-500 mb-2">Product Image</p>
           {imageLoading ? (
             <div className="w-full h-32 bg-gray-800 border border-gray-700 rounded flex items-center justify-center">
               <span className="text-xs text-gray-400 animate-pulse">Searching for image...</span>
             </div>
-          ) : productImageUrl ? (
+          ) : productImageUrl && !imageError ? (
             <div className="w-full bg-gray-800 border border-gray-700 rounded overflow-hidden">
               <img
                 src={productImageUrl}
                 alt={`${brand} ${model || sku}`}
                 className="w-full object-contain max-h-40"
-                onError={() => setProductImageUrl(null)}
+                onError={() => setImageError(true)}
+                onLoad={() => setImageError(false)}
               />
+              {productPageUrl && (
+                <div className="px-3 py-2 border-t border-gray-700">
+                  <a href={productPageUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 underline truncate block">
+                    View Product Page ↗
+                  </a>
+                </div>
+              )}
             </div>
-          ) : null}
+          ) : (
+            <div className="w-full bg-gray-800 border border-gray-700 rounded p-3 space-y-2">
+              <p className="text-xs text-gray-400">Couldn't display the image directly.</p>
+              {productPageUrl && (
+                <a href={productPageUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 underline block">
+                  View product on manufacturer's site ↗
+                </a>
+              )}
+              {productImageUrl && (
+                <a href={productImageUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 hover:text-gray-300 underline block truncate">
+                  Open image URL ↗
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
     </>
