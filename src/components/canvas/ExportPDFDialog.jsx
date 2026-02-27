@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -216,6 +217,9 @@ Only return URLs that:
             <FileText className="w-5 h-5 text-blue-400" />
             Export to PDF
           </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Configure export settings and generate your PDF document
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
