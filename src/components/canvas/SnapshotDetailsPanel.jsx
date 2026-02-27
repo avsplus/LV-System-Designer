@@ -239,25 +239,29 @@ export default function SnapshotDetailsPanel({ annotation, index, onClose, onUpd
           <div className="max-h-[70vh] overflow-y-auto p-4">{content}</div>
           <div className="border-t border-gray-800 p-4 pb-8">{actions}</div>
           {deleteConfirm}
+          {lightbox}
         </DrawerContent>
       </Drawer>
     );
   }
 
   return (
-    <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
-      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Camera className="w-4 h-4 text-yellow-400" />
-          Snapshot Properties
-        </h2>
-        <Button size="icon" variant="ghost" onClick={onClose} className="text-gray-400 hover:text-white hover:bg-gray-700">
-          <X className="w-4 h-4" />
-        </Button>
+    <>
+      <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Camera className="w-4 h-4 text-yellow-400" />
+            Snapshot Properties
+          </h2>
+          <Button size="icon" variant="ghost" onClick={onClose} className="text-gray-400 hover:text-white hover:bg-gray-700">
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">{content}</div>
+        <div className="border-t border-gray-800 p-4">{actions}</div>
+        {deleteConfirm}
       </div>
-      <div className="flex-1 overflow-y-auto p-4">{content}</div>
-      <div className="border-t border-gray-800 p-4">{actions}</div>
-      {deleteConfirm}
-    </div>
+      {lightbox}
+    </>
   );
 }
