@@ -36,9 +36,10 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
               </SelectTrigger>
               <SelectContent 
                 side="bottom" 
-                avoidCollisions={true}
+                avoidCollisions={false}
                 sideOffset={5}
-                className="bg-gray-800 border-gray-700"
+                className="bg-gray-800 border-gray-700 z-50"
+                portal={true}
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
