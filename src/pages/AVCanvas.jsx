@@ -115,21 +115,7 @@ function AVCanvasContent() {
   const [hoveredDeviceId, setHoveredDeviceId] = useState(null);
   const [drawingArrow, setDrawingArrow] = useState(null);
   const [hoveredArrow, setHoveredArrow] = useState(null);
-  const [activeTool, setActiveTool] = useState('select');
-  const [drawingAnnotation, setDrawingAnnotation] = useState(null);
-  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
-  const [hoveredAnnotation, setHoveredAnnotation] = useState(null);
-  const [annotationColor, setAnnotationColor] = useState('#3b82f6');
-  const [annotationStrokeWidth, setAnnotationStrokeWidth] = useState(2);
-  const [annotationFill, setAnnotationFill] = useState(false);
-  const [annotationFontSize, setAnnotationFontSize] = useState(16);
-  const [editingText, setEditingText] = useState(null);
-  const [draggingAnnotation, setDraggingAnnotation] = useState(null);
-  const [annotationDragStart, setAnnotationDragStart] = useState(null);
-  const [annotationDragInitial, setAnnotationDragInitial] = useState(null);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [longPressTimer, setLongPressTimer] = useState(null);
-  const [isLongPress, setIsLongPress] = useState(false);
 
   // Create markLocalChange ref that can be set later
   const markLocalChangeRef = useRef(() => {});
