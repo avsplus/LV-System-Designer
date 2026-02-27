@@ -178,6 +178,11 @@ export default function AnnotationDetailsPanel({
     return 'Annotation';
   };
 
+  // Show specs panel for symbols on mobile
+  if (isMobile && annotation.type === 'symbol' && showSpecsPanel) {
+    return <SpecsPanel annotation={annotation} onSpecsChange={handleSpecsChange} onClose={() => setShowSpecsPanel(false)} />;
+  }
+
   // Mobile drawer for mobile devices
   if (isMobile) {
     return (
