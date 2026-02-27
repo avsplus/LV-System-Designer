@@ -104,6 +104,20 @@ export default function AnnotationDetailsPanel({
 
   if (!annotation) return null;
 
+  // Initialize specs if symbol doesn't have them
+  const initializeSpecs = () => {
+    if (annotation.type === 'symbol' && !annotation.specs) {
+      const defaults = getDefaultSpecs(annotation.symbolId);
+      if (defaults) {
+        onUpdate(index, { ...annotation, ...defaults });
+      }
+    }
+  };
+
+  const handleSpecsChange = (annotationIndex, updated) => {
+    onUpdate(annotationIndex, updated, true);
+  };
+
   const handleColorChange = (e) => {
     onUpdate(index, { ...annotation, color: e.target.value }, true);
   };
