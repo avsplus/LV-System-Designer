@@ -202,33 +202,15 @@ export default function AnnotationDetailsPanel({
         return (
           <div key={fieldKey} className="space-y-2">
             <label className="text-sm text-gray-400">{fieldConfig.label}</label>
-            <Select value={value || ''} onValueChange={onChange} modal={false}>>
+            <Select value={value || ''} onValueChange={onChange} modal={false}>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                 <SelectValue placeholder={`Select ${fieldConfig.label}`} />
               </SelectTrigger>
               <SelectContent 
                 side="bottom" 
-                avoidCollisions={false} 
+                avoidCollisions={false}
+                sideOffset={5}
                 className="bg-gray-800 border-gray-700"
-                onOpenAutoFocus={(e) => {
-                  console.log('onOpenAutoFocus triggered');
-                  e.preventDefault();
-                }}
-                onCloseAutoFocus={(e) => {
-                  console.log('onCloseAutoFocus triggered', e);
-                  e.preventDefault();
-                }}
-                onPointerDownOutside={(e) => {
-                  console.log('onPointerDownOutside triggered', e);
-                  e.preventDefault();
-                }}
-                onPointerMove={(e) => {
-                  console.log('onPointerMove triggered');
-                }}
-                onInteractOutside={(e) => {
-                  console.log('onInteractOutside triggered', e);
-                  e.preventDefault();
-                }}
               >
                 {fieldConfig.options.map((opt) => (
                   <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
@@ -273,27 +255,9 @@ export default function AnnotationDetailsPanel({
                     </SelectTrigger>
                     <SelectContent 
                       side="bottom" 
-                      avoidCollisions={false} 
+                      avoidCollisions={false}
+                      sideOffset={5}
                       className="bg-gray-800 border-gray-700"
-                      onOpenAutoFocus={(e) => {
-                        console.log('array onOpenAutoFocus triggered');
-                        e.preventDefault();
-                      }}
-                      onCloseAutoFocus={(e) => {
-                        console.log('array SelectContent onCloseAutoFocus triggered', e);
-                        e.preventDefault();
-                      }}
-                      onPointerDownOutside={(e) => {
-                        console.log('array SelectContent onPointerDownOutside triggered', e);
-                        e.preventDefault();
-                      }}
-                      onPointerMove={(e) => {
-                        console.log('array onPointerMove triggered');
-                      }}
-                      onInteractOutside={(e) => {
-                        console.log('array SelectContent onInteractOutside triggered', e);
-                        e.preventDefault();
-                      }}
                     >
                       {fieldConfig.options.map((opt) => (
                         <SelectItem key={opt} value={opt} className="text-white focus:bg-gray-700">
