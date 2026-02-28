@@ -96,7 +96,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                     variant="outline"
                     size="icon"
                     onClick={() => {
-                      console.log(`[array] delete item ${idx}`);
                       const newArr = value.filter((_, i) => i !== idx);
                       handleChange(newArr);
                     }}
