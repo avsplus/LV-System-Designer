@@ -24,7 +24,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
             <Slider
               value={[value || fieldConfig.min || 0]}
               onValueChange={(v) => {
-                console.log(`[Slider] onValueChange: ${v[0]}`);
                 handleChange(v[0]);
               }}
               min={fieldConfig.min || 0}
