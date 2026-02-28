@@ -77,7 +77,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                     type="text"
                     value={item || ''}
                     onChange={(e) => {
-                      console.log(`[array] item ${idx} change: ${e.target.value}`);
                       const newArr = [...(value || [])];
                       newArr[idx] = e.target.value;
                       handleChange(newArr);
