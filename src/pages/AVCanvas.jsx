@@ -203,7 +203,7 @@ function AVCanvasContent() {
     const { source, destination, draggableId } = result;
 
     // Ignore drag-drop operations if we're dragging an annotation
-    if (annotationMouseDownRef.current !== null || draggingAnnotation !== null) {
+    if (annotationMouseDownRef.current !== null) {
       setDragMousePosition(null);
       return;
     }
