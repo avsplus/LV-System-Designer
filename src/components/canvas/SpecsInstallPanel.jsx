@@ -171,9 +171,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
          <div className="space-y-4">
            {Object.entries(schema.installation).map(([key, config]) => {
              const handleChange = (value) => {
-               console.log(`[Installation] onChange for key=${key}, new value:`, value, 'localInstallation:', localInstallation);
                const updated = { ...localInstallation, [key]: value };
-               console.log(`[Installation] Updated state:`, updated);
                setLocalInstallation(updated);
                onInstallationChange(updated);
              };
