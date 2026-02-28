@@ -9,10 +9,7 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
   const [localInstallation, setLocalInstallation] = useState(installation || {});
 
   const renderFieldInput = (fieldKey, fieldConfig, value, onChange) => {
-    console.log(`[renderFieldInput] key=${fieldKey}, type=${fieldConfig.type}, value=`, value, 'config:', fieldConfig);
-    
     const handleChange = (newValue) => {
-      console.log(`[handleChange] ${fieldKey}: ${value} -> ${newValue}`);
       onChange(newValue);
     };
 
