@@ -40,7 +40,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
             <select
               value={value || ''}
               onChange={(e) => {
-                console.log(`[select] onChange: ${e.target.value}`);
                 handleChange(e.target.value);
               }}
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
