@@ -110,7 +110,6 @@ export default function SpecsInstallPanel({ schema, specs, installation, onSpecs
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    console.log(`[array] add new item`);
                     handleChange([...(value || []), '']);
                   }}
                   className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
