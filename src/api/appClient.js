@@ -50,6 +50,7 @@ const persistTokenFromUrl = () => {
     hashParams.delete('expires_in');
     hashParams.delete('token_type');
     hashParams.delete('type');
+    hashParams.delete('sb');
   }
 
   const nextHash = hashParams ? hashParams.toString() : window.location.hash.replace(/^#/, '');
