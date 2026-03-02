@@ -27,14 +27,33 @@ const TOKEN_KEYS = ['auth_token', 'sb-access-token'];
 
 const persistTokenFromUrl = () => {
   const params = new URLSearchParams(window.location.search);
-  const tokenFromUrl = params.get('access_token');
+  let tokenFromUrl = params.get('access_token');
+  let hashParams = null;
+
+  if (!tokenFromUrl && window.location.hash) {
+    hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    tokenFromUrl = hashParams.get('access_token');
+  }
+
   if (!tokenFromUrl) {
     return;
   }
 
   localStorage.setItem('auth_token', tokenFromUrl);
+  localStorage.setItem('sb-access-token', tokenFromUrl);
+
   params.delete('access_token');
-  const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
+  if (hashParams) {
+    hashParams.delete('access_token');
+    hashParams.delete('refresh_token');
+    hashParams.delete('expires_at');
+    hashParams.delete('expires_in');
+    hashParams.delete('token_type');
+    hashParams.delete('type');
+  }
+
+  const nextHash = hashParams ? hashParams.toString() : window.location.hash.replace(/^#/, '');
+  const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${nextHash ? `#${nextHash}` : ''}`;
   window.history.replaceState({}, document.title, newUrl);
 };
 
