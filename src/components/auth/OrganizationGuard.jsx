@@ -27,7 +27,6 @@ export default function OrganizationGuard({ children }) {
     staleTime: 60 * 1000
   });
 
-  const hasAnyOrganization = bootstrapData?.has_any_organization;
   const pendingInvite = bootstrapData?.pending_invite || null;
 
   // Show landing page for non-authenticated users
@@ -73,12 +72,8 @@ export default function OrganizationGuard({ children }) {
     // Check if user has pending invites in the database
     const hasPendingInvite = !!pendingInvite;
     
-    // If no organizations exist at all and no pending invites, show setup flow (first user)
-    if (!hasInviteUrl && !hasPendingInvite && !hasAnyOrganization) {
-      return <SetupOrganization />;
-    }
-    
-    // Otherwise show the no-org/invitation page (pass pending invite info)
+    // Show the no-org/invitation page first for all no-org users.
+    // Setup flow is entered only when user explicitly chooses to create an organization.
     return <NoOrganization pendingInvite={pendingInvite} />;
   }
 
