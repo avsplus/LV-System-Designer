@@ -120,11 +120,6 @@ export default function Login() {
           throw signUpError;
         }
 
-        // Supabase can return an obfuscated user without error for existing accounts.
-        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-          throw new Error('An account with this email already exists. Use Sign In instead.');
-        }
-
         const sessionToken = data?.session?.access_token;
         if (sessionToken) {
           localStorage.setItem('auth_token', sessionToken);
