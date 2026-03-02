@@ -1,4 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+const isLocalHost =
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = configuredApiBaseUrl || (isLocalHost ? 'http://localhost:4000' : '');
 import { supabase } from '@/lib/supabaseClient';
 
 const RAW_LOGIN_URL = import.meta.env.VITE_LOGIN_URL || '/login';
@@ -26,14 +29,14 @@ const LOGIN_URL = resolveLoginUrl();
 const TOKEN_KEYS = ['auth_token', 'sb-access-token'];
 
 const persistTokenFromUrl = () => {
-  const params = new URLSearchParams(window.location.search);
-  let tokenFromUrl = params.get('access_token');
-  let hashParams = null;
-
-  if (!tokenFromUrl && window.location.hash) {
-    hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    tokenFromUrl = hashParams.get('access_token');
+  // Let AuthCallback exclusively handle Supabase callback fragments.
+  if (window.location.pathname === '/auth/callback') {
+    return;
   }
+
+  const params = new URLSearchParams(window.location.search);
+  const tokenFromUrl = params.get('access_token');
+  let hashParams = null;
 
   if (!tokenFromUrl) {
     return;

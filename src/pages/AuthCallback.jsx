@@ -25,6 +25,12 @@ export default function AuthCallback() {
         const code = params.get('code');
         const tokenHash = params.get('token_hash');
         const type = params.get('type');
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+
+        if (error) {
+          throw new Error(errorDescription || error);
+        }
 
         if (tokenHash && type) {
           const { error: verifyError } = await supabase.auth.verifyOtp({
@@ -44,16 +50,36 @@ export default function AuthCallback() {
         }
 
         let accessToken = null;
+        let refreshToken = null;
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) {
           throw sessionError;
         }
         accessToken = sessionData?.session?.access_token || null;
+        refreshToken = sessionData?.session?.refresh_token || null;
 
         // Fallback for hash-based callbacks
-        if (!accessToken && window.location.hash) {
+        if (window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-          accessToken = hashParams.get('access_token');
+          accessToken = accessToken || hashParams.get('access_token');
+          refreshToken = refreshToken || hashParams.get('refresh_token');
+
+          const hashError = hashParams.get('error');
+          const hashErrorDescription = hashParams.get('error_description');
+          if (hashError) {
+            throw new Error(hashErrorDescription || hashError);
+          }
+        }
+
+        // If callback carried tokens but Supabase session is not hydrated yet, set it explicitly.
+        if (accessToken && refreshToken && !sessionData?.session) {
+          const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          if (setSessionError) {
+            throw setSessionError;
+          }
         }
 
         if (!accessToken) {
