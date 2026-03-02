@@ -44,6 +44,18 @@ export const getUserFromRequest = async (request) => {
     }
   }
 
+  // Owners should never be blocked behind pending approval.
+  if (profile?.organization_role === 'owner' && profile?.status !== 'approved') {
+    const { error: ownerStatusError } = await supabaseAdmin
+      .from('users')
+      .update({ status: 'approved' })
+      .eq('id', profile.id);
+
+    if (!ownerStatusError) {
+      profile = { ...profile, status: 'approved' };
+    }
+  }
+
   return {
     token,
     authUser,
@@ -66,4 +78,3 @@ export const requireAuth = async (request, reply) => {
   }
   return auth;
 };
-
