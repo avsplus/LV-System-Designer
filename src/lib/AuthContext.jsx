@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { appClient } from '@/api/appClient';
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -32,6 +33,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkUserAuth = async () => {
+    const hydrateTokenFromSupabase = async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        return false;
+      }
+
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        return false;
+      }
+
+      const token = data?.session?.access_token;
+      if (!token) {
+        return false;
+      }
+
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('sb-access-token', token);
+      return true;
+    };
+
     try {
       setIsLoadingAuth(true);
       const response = await appClient.getMe();
@@ -41,10 +62,24 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
     } catch (error) {
       console.error('User auth check failed:', error);
+      const tokenRecovered = await hydrateTokenFromSupabase();
+      if (tokenRecovered) {
+        try {
+          const response = await appClient.getMe();
+          setUser(response.user);
+          setIsAuthenticated(true);
+          setAuthError(null);
+          setIsLoadingAuth(false);
+          return;
+        } catch (retryError) {
+          console.error('User auth retry failed:', retryError);
+        }
+      }
+
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setUser(null);
-      
+
       setAuthError({
         type: 'auth_required',
         message: 'Authentication required'
