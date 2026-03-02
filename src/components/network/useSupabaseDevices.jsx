@@ -1,0 +1,136 @@
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { base44 } from "@/api/base44Client";
+
+export function useSupabaseDevices(organizationId, agentId, supabaseClient) {
+  const [devices, setDevices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!supabaseClient || !organizationId) {
+      setIsLoading(false);
+      return;
+    }
+
+    let mounted = true;
+    let channel = null;
+
+    // 1. Initial fetch
+    async function loadInitial() {
+      try {
+        let query = supabaseClient
+          .from('devices')
+          .select('*')
+          .eq('organization_id', organizationId);
+
+        // Only filter by agent_id if a specific agent is selected (not 'all')
+        if (agentId && agentId !== 'all') {
+          query = query.eq('agent_id', agentId);
+        }
+
+        const { data, error: fetchError } = await query.order('created_at', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        if (mounted) {
+          setDevices(data ?? []);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('Failed to load devices:', err);
+        if (mounted) {
+          setError(err);
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInitial();
+
+    // 2. Subscribe to realtime changes
+    const channelName = agentId && agentId !== 'all' 
+      ? `devices-changes-${agentId}` 
+      : `devices-changes-org-${organizationId}`;
+    
+    channel = supabaseClient
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'devices',
+          filter: agentId && agentId !== 'all' 
+            ? `agent_id=eq.${agentId}`
+            : `organization_id=eq.${organizationId}`,
+        },
+        (payload) => {
+          if (!mounted) return;
+
+          console.log('🔔 Device Realtime event:', payload.eventType, payload.new || payload.old);
+
+          setDevices((prev) => {
+            if (payload.eventType === 'INSERT') {
+              console.log('➕ Adding device:', payload.new.name);
+              return [...prev, payload.new];
+            }
+            if (payload.eventType === 'UPDATE') {
+              console.log('🔄 Updating device:', payload.new.name, 'Status:', payload.new.status);
+              return prev.map(d =>
+                d.id === payload.new.id ? payload.new : d
+              );
+            }
+            if (payload.eventType === 'DELETE') {
+              console.log('➖ Deleting device:', payload.old.id);
+              return prev.filter(d => d.id !== payload.old.id);
+            }
+            return prev;
+          });
+        }
+      )
+      .subscribe((status, err) => {
+        console.log('🔔 Devices Realtime subscription status:', status);
+        if (err) {
+          console.error('❌ Devices subscription error:', err);
+        }
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to devices changes');
+        }
+      });
+
+    // 3. Cleanup
+    return () => {
+      mounted = false;
+      if (channel) {
+        supabaseClient.removeChannel(channel);
+        }
+        };
+        }, [organizationId, agentId, supabaseClient]);
+
+  const refresh = async () => {
+    if (!supabaseClient || !organizationId) return;
+    
+    try {
+      let query = supabaseClient
+        .from('devices')
+        .select('*')
+        .eq('organization_id', organizationId);
+
+      // Only filter by agent_id if a specific agent is selected (not 'all')
+      if (agentId && agentId !== 'all') {
+        query = query.eq('agent_id', agentId);
+      }
+
+      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+      setDevices(data ?? []);
+    } catch (err) {
+      console.error('Failed to refresh devices:', err);
+      setError(err);
+    }
+  };
+
+  return { devices, isLoading, error, refresh };
+}
