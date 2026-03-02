@@ -1,6 +1,6 @@
 {
-  "name": "AV System Design",
-  "short_name": "AVDesign",
+  "name": "AV System Designer",
+  "short_name": "AVDesigner",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#030712",
