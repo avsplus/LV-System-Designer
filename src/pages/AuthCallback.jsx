@@ -23,6 +23,18 @@ export default function AuthCallback() {
       try {
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
+        const tokenHash = params.get('token_hash');
+        const type = params.get('type');
+
+        if (tokenHash && type) {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type
+          });
+          if (verifyError) {
+            throw verifyError;
+          }
+        }
 
         if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
