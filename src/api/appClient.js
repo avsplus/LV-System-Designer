@@ -122,6 +122,27 @@ const unwrapRedirectTarget = (value) => {
   return target;
 };
 
+const sanitizeRedirectTarget = (value) => {
+  if (!value) return value;
+  try {
+    const parsed = new URL(value, window.location.origin);
+    const hash = parsed.hash.replace(/^#/, '');
+    const hashParams = new URLSearchParams(hash);
+    const hasAuthHash =
+      hashParams.has('access_token') ||
+      hashParams.has('refresh_token') ||
+      hashParams.has('sb') ||
+      hashParams.has('type');
+
+    if (hasAuthHash) {
+      parsed.hash = '';
+    }
+    return parsed.toString();
+  } catch {
+    return value;
+  }
+};
+
 async function request(path, options = {}) {
   const token = getToken();
   const headers = {
@@ -214,8 +235,8 @@ export const appClient = {
       return;
     }
 
-    const rawTarget = returnTo || window.location.href;
-    const normalizedTarget = unwrapRedirectTarget(rawTarget);
+    const rawTarget = returnTo || `${window.location.origin}${window.location.pathname}${window.location.search}`;
+    const normalizedTarget = sanitizeRedirectTarget(unwrapRedirectTarget(rawTarget));
     if (normalizedTarget) {
       url.searchParams.set('redirect_to', normalizedTarget);
     }

@@ -8,7 +8,24 @@ const DEFAULT_REDIRECT = '/AVCanvas';
 const getRedirectTarget = () => {
   const params = new URLSearchParams(window.location.search);
   const redirectTo = params.get('redirect_to');
-  return redirectTo || DEFAULT_REDIRECT;
+  if (!redirectTo) return DEFAULT_REDIRECT;
+
+  try {
+    const parsed = new URL(redirectTo, window.location.origin);
+    const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
+    const hasAuthHash =
+      hashParams.has('access_token') ||
+      hashParams.has('refresh_token') ||
+      hashParams.has('sb') ||
+      hashParams.has('type');
+
+    if (hasAuthHash) {
+      parsed.hash = '';
+    }
+    return parsed.toString();
+  } catch {
+    return DEFAULT_REDIRECT;
+  }
 };
 
 export default function Login() {
