@@ -271,6 +271,8 @@ export default async function onboardingRoutes(fastify) {
       }
     }
 
+    const nextStatus = assignedRole === 'owner' ? 'approved' : 'pending';
+
     const userUpdate = await supabaseAdmin
       .from(usersTable)
       .upsert(
@@ -279,7 +281,7 @@ export default async function onboardingRoutes(fastify) {
           email: auth.user.email,
           organization_id,
           organization_role: assignedRole,
-          status: 'pending'
+          status: nextStatus
         },
         { onConflict: 'id' }
       );
@@ -290,10 +292,13 @@ export default async function onboardingRoutes(fastify) {
 
     return {
       success: true,
-      message: 'Successfully joined organization - awaiting approval',
+      message:
+        nextStatus === 'approved'
+          ? 'Successfully joined organization'
+          : 'Successfully joined organization - awaiting approval',
       organization_id,
       role: assignedRole,
-      status: 'pending'
+      status: nextStatus
     };
   });
 }
