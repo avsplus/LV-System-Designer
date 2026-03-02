@@ -28,12 +28,19 @@ const getRedirectTarget = () => {
   }
 };
 
+const getAuthMode = () => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('mode') === 'signup' ? 'signup' : 'signin';
+};
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const redirectTarget = useMemo(() => getRedirectTarget(), []);
+  const authMode = useMemo(() => getAuthMode(), []);
+  const isSignup = authMode === 'signup';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -76,8 +83,12 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h1 className="text-2xl font-semibold mb-2">Sign In</h1>
-        <p className="text-sm text-gray-400 mb-6">Enter your email to receive a secure login link.</p>
+        <h1 className="text-2xl font-semibold mb-2">{isSignup ? 'Start Free' : 'Sign In'}</h1>
+        <p className="text-sm text-gray-400 mb-6">
+          {isSignup
+            ? 'Enter your email to create your free account.'
+            : 'Enter your email to receive a secure login link.'}
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -90,10 +101,14 @@ export default function Login() {
           />
 
           {error && <p className="text-sm text-red-400">{error}</p>}
-          {sent && <p className="text-sm text-green-400">Check your email for the sign-in link.</p>}
+          {sent && (
+            <p className="text-sm text-green-400">
+              {isSignup ? 'Check your email to finish creating your account.' : 'Check your email for the sign-in link.'}
+            </p>
+          )}
 
           <Button type="submit" disabled={loading || sent} className="w-full bg-blue-600 hover:bg-blue-700">
-            {loading ? 'Sending...' : sent ? 'Link Sent' : 'Send Login Link'}
+            {loading ? 'Sending...' : sent ? 'Link Sent' : isSignup ? 'Create Free Account' : 'Send Login Link'}
           </Button>
         </form>
       </div>

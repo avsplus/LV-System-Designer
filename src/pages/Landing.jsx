@@ -58,8 +58,12 @@ const PLANS = [
 ];
 
 export default function Landing() {
-  const handleGetStarted = () => {
-    appClient.redirectToLogin('/AVCanvas');
+  const handleSignIn = () => {
+    appClient.redirectToLogin('/AVCanvas', 'signin');
+  };
+
+  const handleStartFree = () => {
+    appClient.redirectToLogin('/AVCanvas', 'signup');
   };
 
   return (
@@ -76,10 +80,10 @@ export default function Landing() {
           <div className="flex items-center gap-4">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
             <a href="#pricing" className="text-gray-400 hover:text-white transition-colors hidden sm:block">Pricing</a>
-            <Button onClick={handleGetStarted} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800">
+            <Button onClick={handleSignIn} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800">
               Sign In
             </Button>
-            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleStartFree} className="bg-blue-600 hover:bg-blue-700">
               Start Free Trial
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -107,7 +111,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              onClick={handleGetStarted}
+              onClick={handleStartFree}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6"
             >
               Start Designing Free
@@ -268,7 +272,7 @@ export default function Landing() {
                   className={`w-full ${
                     plan.popular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-700'
                   }`}
-                  onClick={handleGetStarted}
+                  onClick={handleStartFree}
                 >
                   Get Started
                 </Button>
@@ -288,7 +292,7 @@ export default function Landing() {
             </p>
             <Button 
               size="lg"
-              onClick={handleGetStarted}
+              onClick={handleStartFree}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6"
             >
               Start Your Free Account

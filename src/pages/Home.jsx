@@ -72,8 +72,12 @@ export default function Home() {
     });
   }, []);
 
-  const handleGetStarted = () => {
-    appClient.redirectToLogin('/AVCanvas');
+  const handleSignIn = () => {
+    appClient.redirectToLogin('/AVCanvas', 'signin');
+  };
+
+  const handleStartFree = () => {
+    appClient.redirectToLogin('/AVCanvas', 'signup');
   };
 
   // Show nothing while checking auth to avoid flash
@@ -96,10 +100,10 @@ export default function Home() {
           <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors hidden md:block text-xs sm:text-sm">Features</a>
             <a href="#pricing" className="text-gray-400 hover:text-white transition-colors hidden md:block text-xs sm:text-sm">Pricing</a>
-            <Button onClick={handleGetStarted} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800 text-xs sm:text-sm px-2 sm:px-3 hidden sm:inline-flex h-8 sm:h-9">
+            <Button onClick={handleSignIn} variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800 text-xs sm:text-sm px-2 sm:px-3 hidden sm:inline-flex h-8 sm:h-9">
               Sign In
             </Button>
-            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-9">
+            <Button onClick={handleStartFree} className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-9">
               <span className="hidden sm:inline">Start Free</span>
               <span className="sm:hidden">Try</span>
               <ArrowRight className="w-3 h-3 ml-1" />
@@ -127,7 +131,7 @@ export default function Home() {
 
            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center px-3 sm:px-4">
              <Button 
-               onClick={handleGetStarted}
+               onClick={handleStartFree}
                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-6 h-10 sm:h-11 md:h-12"
              >
                Start Free
@@ -286,7 +290,7 @@ export default function Home() {
                   className={`w-full ${
                     plan.popular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-700'
                   }`}
-                  onClick={handleGetStarted}
+                  onClick={handleStartFree}
                 >
                   Get Started
                 </Button>
@@ -305,7 +309,7 @@ export default function Home() {
               Join AV professionals who are designing better systems, faster.
             </p>
             <Button 
-              onClick={handleGetStarted}
+              onClick={handleStartFree}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-6 h-10 sm:h-11 md:h-12"
             >
               Start Free
