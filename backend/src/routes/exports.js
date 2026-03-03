@@ -5,9 +5,9 @@ const canExport = (role) => ['owner', 'administrator', 'collaborator'].includes(
 
 const getTemplateIdForType = (exportType) => {
   // Prefer per-type overrides, fall back to one shared template.
-  if (exportType === 'client') return config.apiTemplateTemplateClient || config.apiTemplateTemplateDefault;
-  if (exportType === 'documentation') return config.apiTemplateTemplateDocumentation || config.apiTemplateTemplateDefault;
-  return config.apiTemplateTemplateInstaller || config.apiTemplateTemplateDefault;
+  if (exportType === 'client') return sanitize(config.apiTemplateTemplateClient || config.apiTemplateTemplateDefault);
+  if (exportType === 'documentation') return sanitize(config.apiTemplateTemplateDocumentation || config.apiTemplateTemplateDefault);
+  return sanitize(config.apiTemplateTemplateInstaller || config.apiTemplateTemplateDefault);
 };
 
 const sanitize = (value) => String(value ?? '').trim();
@@ -35,6 +35,7 @@ export default async function exportRoutes(fastify) {
     }
 
     const apiPayload = {
+      // Keep in payload for backwards compatibility with providers/proxies that accept body config.
       template_id: templateId,
       output_format: 'pdf',
       data: {
@@ -59,7 +60,11 @@ export default async function exportRoutes(fastify) {
       }
     };
 
-    const response = await fetch(config.apiTemplateEndpoint, {
+    const endpointUrl = new URL(config.apiTemplateEndpoint);
+    // APITemplate v2 expects template_id in querystring.
+    endpointUrl.searchParams.set('template_id', templateId);
+
+    const response = await fetch(endpointUrl.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
