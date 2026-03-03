@@ -301,7 +301,7 @@ const buildHtmlBody = (payload, exportType) => {
             </tr>
           </thead>
           <tbody>
-            ${roomDevices.map((cp) => `
+            ${roomDevices.map((cp, idx) => `
               <tr>
                 <td style="padding:8px;border:1px solid #dbe5f1;">${escapeHtml(deviceLabel(cp, idx))}</td>
                 <td style="padding:8px;border:1px solid #dbe5f1;">${escapeHtml(deviceName(cp))}</td>
