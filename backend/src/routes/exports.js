@@ -162,6 +162,13 @@ const toMoney = (value) => `$${asNumber(value, 0).toLocaleString('en-US', { mini
 const deviceName = (cp) => sanitize(`${cp?.product?.brand || ''} ${cp?.product?.model || ''}`) || sanitize(cp?.label) || 'Unnamed device';
 const isLikelyAnnotationId = (value) => /^ann[:_-]/i.test(sanitize(value));
 const pageBreak = `<div style="page-break-before: always;"></div>`;
+const toRenderableImageUrl = (value) => {
+  const url = sanitize(value);
+  if (!url) return '';
+  if (url.startsWith('data:') || url.startsWith('blob:')) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return '';
+};
 
 const buildHtmlBody = (payload, exportType) => {
   const products = asArray(payload.canvasProducts);
@@ -342,8 +349,8 @@ const buildHtmlBody = (payload, exportType) => {
     ${floorplans.length ? floorplans.map((fp, idx) => `
       <div style="${idx > 0 ? 'page-break-before: always;' : ''}">
         <h3 style="font-size:18px; margin: 14px 0 10px;">${escapeHtml(sanitize(fp?.name || `Floorplan ${idx + 1}`))}</h3>
-        ${sanitize(fp?.url || fp?.originalUrl || fp?.image_url)
-          ? `<img class="floor-img" src="${escapeHtml(sanitize(fp?.url || fp?.originalUrl || fp?.image_url))}" alt="${escapeHtml(sanitize(fp?.name || `Floorplan ${idx + 1}`))}" />`
+        ${toRenderableImageUrl(fp?.url || fp?.originalUrl || fp?.image_url)
+          ? `<img class="floor-img" src="${escapeHtml(toRenderableImageUrl(fp?.url || fp?.originalUrl || fp?.image_url))}" alt="${escapeHtml(sanitize(fp?.name || `Floorplan ${idx + 1}`))}" />`
           : '<div class="card small muted">No floorplan image available.</div>'}
         <div class="small muted" style="margin-top:8px;">
           SCALE INFORMATION · Calibration: ${escapeHtml(String(asNumber(fp?.pixelsPerInch, 1)))} px/inch
@@ -598,14 +605,7 @@ export default async function exportRoutes(fastify) {
           connections: Array.isArray(payload.connections) ? payload.connections.length : 0,
           rooms: Array.isArray(payload.rooms) ? payload.rooms.length : 0,
           floorplans: Array.isArray(payload.floorplans) ? payload.floorplans.length : 0
-        },
-        canvas_products: Array.isArray(payload.canvasProducts) ? payload.canvasProducts : [],
-        connections: Array.isArray(payload.connections) ? payload.connections : [],
-        rooms: Array.isArray(payload.rooms) ? payload.rooms : [],
-        floorplans: Array.isArray(payload.floorplans) ? payload.floorplans : [],
-        arrows: Array.isArray(payload.arrows) ? payload.arrows : [],
-        annotations: Array.isArray(payload.annotations) ? payload.annotations : [],
-        org_settings: payload.orgSettings || {}
+        }
       }
     };
 
