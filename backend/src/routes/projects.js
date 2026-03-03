@@ -4,6 +4,37 @@ import { supabaseAdmin } from '../lib/supabase.js';
 const normalizeEmail = (value) => (value || '').trim().toLowerCase();
 
 const toArray = (value) => (Array.isArray(value) ? value : []);
+const sanitize = (value) => String(value ?? '').trim();
+
+const normalizeFloorplansForStorage = (value) =>
+  toArray(value).map((fp) => {
+    if (!fp || typeof fp !== 'object') return fp;
+    const url = sanitize(fp.url);
+    const originalUrl = sanitize(fp.originalUrl || fp.image_url);
+    const imageUrl = sanitize(fp.image_url || fp.originalUrl);
+
+    // Avoid persisting large inline data/blob URLs in project row.
+    const safeUrl =
+      url.startsWith('http://') || url.startsWith('https://')
+        ? url
+        : originalUrl.startsWith('http://') || originalUrl.startsWith('https://')
+          ? originalUrl
+          : imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+            ? imageUrl
+            : '';
+
+    const safeImageUrl =
+      imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+        ? imageUrl
+        : safeUrl;
+
+    return {
+      ...fp,
+      url: safeUrl,
+      image_url: safeImageUrl,
+      originalUrl: originalUrl || safeUrl
+    };
+  });
 
 const mapProject = (project) => {
   if (!project) {
@@ -179,7 +210,7 @@ export default async function projectRoutes(fastify) {
       canvas_products: payload.canvas_products || [],
       connections: payload.connections || [],
       rooms: payload.rooms || [],
-      floorplans: payload.floorplans || [],
+      floorplans: normalizeFloorplansForStorage(payload.floorplans || []),
       arrows: payload.arrows || [],
       annotations: payload.annotations || []
     };
@@ -227,7 +258,7 @@ export default async function projectRoutes(fastify) {
       updates.rooms = payload.rooms;
     }
     if (payload.floorplans !== undefined) {
-      updates.floorplans = payload.floorplans;
+      updates.floorplans = normalizeFloorplansForStorage(payload.floorplans);
     }
     if (payload.arrows !== undefined) {
       updates.arrows = payload.arrows;
