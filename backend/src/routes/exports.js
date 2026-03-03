@@ -466,7 +466,7 @@ const buildHtmlBody = (payload, exportType) => {
   const deviceDocumentationSection = `
     ${pageBreak}
     ${section('Device Documentation')}
-    ${products.length ? products.map((cp) => {
+    ${products.length ? products.map((cp, idx) => {
       const roomName = roomNameById.get(sanitize(cp?.room)) || sanitize(cp?.room) || 'Unassigned';
       const net = isPlainObject(cp?.networkInfo) ? cp.networkInfo : {};
       const connectionCount = connections.filter((c) => sanitize(c?.from) === sanitize(cp?.instanceId) || sanitize(c?.to) === sanitize(cp?.instanceId)).length;
