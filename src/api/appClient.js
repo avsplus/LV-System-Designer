@@ -294,8 +294,9 @@ export const appClient = {
     });
     return result.project;
   },
-  updateProject: async (id, payload) => {
-    const result = await request(`/api/projects/${id}`, {
+  updateProject: async (id, payload, options = {}) => {
+    const fullQuery = options.full ? '?full=1' : '';
+    const result = await request(`/api/projects/${id}${fullQuery}`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
     });

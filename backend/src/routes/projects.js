@@ -247,11 +247,17 @@ export default async function projectRoutes(fastify) {
       return { project: mapProject(project) };
     }
 
+    const fullParam = String(request.query?.full || '').toLowerCase();
+    const returnFull = fullParam === '1' || fullParam === 'true';
+    const selectColumns = returnFull
+      ? '*'
+      : 'id,name,description,organization_id,owner_email,shared_with,created_date,created_at,updated_date,updated_at';
+
     const { data: updated, error } = await supabaseAdmin
       .from('av_projects')
       .update(updates)
       .eq('id', project.id)
-      .select('*')
+      .select(selectColumns)
       .single();
 
     if (error) {

@@ -73,7 +73,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     onSaveCompleteRef.current = onSaveComplete;
   }, [onSaveComplete]);
 
-  // Auto-save to database instantly (with 100ms debounce for batching)
+  // Auto-save to database with debounce to avoid request storms on large canvases.
   useEffect(() => {
     if (!currentProject?.id || !currentUserEmail) return;
 
@@ -110,10 +110,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
           markLocalChange();
         }
         try {
-          console.log('💾 SAVING TO DATABASE:');
-          console.log('  - Annotations:', annotations?.length || 0, JSON.stringify(annotations, null, 2));
-          console.log('  - Arrows:', arrows?.length || 0, JSON.stringify(arrows, null, 2));
-          console.log('  - Floorplans:', floorplans?.length || 0);
           const updatedProject = await appClient.updateProject(currentProject.id, {
            canvas_products: canvasProducts,
            connections: connections,
@@ -123,7 +119,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
            annotations: annotations || []
           });
           lastSavedRef.current = { products: productsJson, connections: connectionsJson, rooms: roomsJson, floorplans: floorplansJson, arrows: arrowsJson, annotations: annotationsJson };
-          console.log('✅ SAVE COMPLETE - new timestamp:', updatedProject.updated_date);
 
           // CRITICAL: Update currentProject's timestamp immediately to prevent sync race condition
           if (onSaveCompleteRef.current && updatedProject) {
@@ -137,7 +132,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       };
 
       saveProject();
-    }, 200);
+    }, 1200);
 
     return () => clearTimeout(saveTimer);
     }, [canvasProducts, connections, rooms, floorplans, arrows, annotations, currentProject?.id, currentUserEmail, currentProject?.owner_email, currentProject?.shared_with, markLocalChange, onSaveComplete]);
@@ -153,7 +148,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       setFloorplans(project.floorplans || []);
       setArrows(project.arrows || []);
       setAnnotations(project.annotations || []);
-      console.log('📍 STATE UPDATED - Annotations:', (project.annotations || []).length, 'Arrows:', (project.arrows || []).length);
       
       // Migrate old string-based rooms to new object format
       const loadedRooms = (project.rooms || []).map(room => {
@@ -178,7 +172,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
         rooms: JSON.stringify(loadedRooms),
         floorplans: JSON.stringify(project.floorplans || []),
         arrows: JSON.stringify(project.arrows || []),
-        annotations: JSON.stringify(project.annotations || [])
+        annotations: JSON.stringify(project.annotations || []),
       };
       // Mark that project has been loaded, safe to auto-save now
       projectLoadedRef.current = true;
@@ -203,7 +197,6 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
 
   // Handle sync updates from collaborators
    const handleProjectUpdatedFromSync = useCallback((updatedProject) => {
-    console.log('🔄 Syncing from collaborator - Floorplans:', updatedProject.floorplans?.map(fp => ({ id: fp.id, name: fp.name, position: fp.position, scale: fp.scale })));
     setCanvasProducts(updatedProject.canvas_products || []);
     setConnections(updatedProject.connections || []);
     setRooms(updatedProject.rooms || []);
@@ -217,7 +210,7 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
       rooms: JSON.stringify(updatedProject.rooms || []),
       floorplans: JSON.stringify(updatedProject.floorplans || []),
       arrows: JSON.stringify(updatedProject.arrows || []),
-      annotations: JSON.stringify(updatedProject.annotations || [])
+      annotations: JSON.stringify(updatedProject.annotations || []),
     };
   }, []);
 
@@ -367,3 +360,4 @@ export default function useProjectData(currentProject, currentUserEmail, markLoc
     lastSavedRef
   };
 }
+

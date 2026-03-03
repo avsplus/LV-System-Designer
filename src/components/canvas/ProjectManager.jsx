@@ -91,7 +91,7 @@ export default function ProjectManager({
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (currentProject && currentProject.id) {
-        const updated = await appClient.updateProject(currentProject.id, data);
+        const updated = await appClient.updateProject(currentProject.id, data, { full: true });
         await trackActivity(ActivityActions.UPDATED_PROJECT, currentProject.id, data.name, {}, organizationId);
         return updated;
       }
