@@ -28,6 +28,13 @@ export default function useCanvasAnnotations({
   const [annotationDragInitial, setAnnotationDragInitial] = useState(null);
   const [longPressTimer, setLongPressTimer] = useState(null);
   const [isLongPress, setIsLongPress] = useState(false);
+  const nextAnnotationLabel = useCallback((prefix) => {
+    const count = annotations.filter((ann) => {
+      const label = String(ann?.label || ann?.title || '');
+      return label.startsWith(prefix);
+    }).length + 1;
+    return `${prefix}-${count}`;
+  }, [annotations]);
 
   // Handle snapshot placement on click
   const handleSnapshotClick = useCallback((e) => {
@@ -37,16 +44,17 @@ export default function useCanvasAnnotations({
     const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
     const floorplan = getFloorplanAtPoint(canvasX, canvasY);
     const position = floorplan ? canvasToFloorplanCoords(canvasX, canvasY, floorplan) : { x: canvasX, y: canvasY };
+    const snapshotLabel = nextAnnotationLabel('SNAP');
     const newAnnotation = {
       id: Date.now().toString(), type: 'snapshot', floorplanId: floorplan?.id,
-      position, title: 'Snapshot', caption: '', images: [], scale: 1, color: '#f59e0b'
+      position, title: snapshotLabel, label: snapshotLabel, caption: '', images: [], scale: 1, color: '#f59e0b'
     };
     const updated = [...annotations, newAnnotation];
     setAnnotations(updated);
     setSelectedAnnotation(updated.length - 1);
     markLocalChange();
     return true;
-  }, [annotations, setAnnotations, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, markLocalChange]);
+  }, [annotations, setAnnotations, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, markLocalChange, nextAnnotationLabel]);
 
   // Handle text placement on click
   const handleTextClick = useCallback((e) => {
@@ -56,15 +64,16 @@ export default function useCanvasAnnotations({
     const canvasY = (e.clientY - canvasRect.top - pan.y) / zoom;
     const floorplan = getFloorplanAtPoint(canvasX, canvasY);
     const fpCoords = floorplan ? canvasToFloorplanCoords(canvasX, canvasY, floorplan) : { x: canvasX, y: canvasY };
+    const textLabel = nextAnnotationLabel('TXT');
     const newAnnotation = {
       id: Date.now().toString(), type: 'text', floorplanId: floorplan?.id,
-      position: fpCoords, text: 'Text', color: annotationColor, fontSize: annotationFontSize
+      position: fpCoords, text: 'Text', label: textLabel, color: annotationColor, fontSize: annotationFontSize
     };
     setAnnotations([...annotations, newAnnotation]);
     setEditingText(newAnnotation.id);
     markLocalChange();
     return true;
-  }, [annotations, setAnnotations, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, annotationColor, annotationFontSize, markLocalChange]);
+  }, [annotations, setAnnotations, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, annotationColor, annotationFontSize, markLocalChange, nextAnnotationLabel]);
 
   // Start drawing shape annotations on mousedown
   const handleAnnotationMouseDown = useCallback((e) => {
@@ -78,14 +87,14 @@ export default function useCanvasAnnotations({
 
     let newAnnotation;
     if (activeTool === 'rectangle') {
-      newAnnotation = { id: Date.now().toString(), type: 'rectangle', floorplanId: floorplan?.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, width: 0, height: 0 };
+      newAnnotation = { id: Date.now().toString(), type: 'rectangle', floorplanId: floorplan?.id, label: nextAnnotationLabel('RECT'), position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, width: 0, height: 0 };
     } else if (activeTool === 'circle') {
-      newAnnotation = { id: Date.now().toString(), type: 'circle', floorplanId: floorplan?.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, radius: 0 };
+      newAnnotation = { id: Date.now().toString(), type: 'circle', floorplanId: floorplan?.id, label: nextAnnotationLabel('CIRC'), position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth, fill: annotationFill, radius: 0 };
     } else if (activeTool === 'line') {
-      newAnnotation = { id: Date.now().toString(), type: 'line', floorplanId: floorplan?.id, position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth };
+      newAnnotation = { id: Date.now().toString(), type: 'line', floorplanId: floorplan?.id, label: nextAnnotationLabel('LINE'), position: fpCoords, color: annotationColor, strokeWidth: annotationStrokeWidth };
     }
     if (newAnnotation) setDrawingAnnotation(newAnnotation);
-  }, [activeTool, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, annotationColor, annotationStrokeWidth, annotationFill]);
+  }, [activeTool, pan, zoom, canvasRef, getFloorplanAtPoint, canvasToFloorplanCoords, annotationColor, annotationStrokeWidth, annotationFill, nextAnnotationLabel]);
 
   const handleSymbolAnnotationDragStart = useCallback((e, idx) => {
     e.stopPropagation();

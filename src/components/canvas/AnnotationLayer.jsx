@@ -185,7 +185,8 @@ export default function AnnotationLayer({
                  specs: ann.specs || {},
                  installation: ann.installation || {},
                  position: canvasPos,
-                 scale: ann.scale || 1
+                 scale: ann.scale || 1,
+                 customLabel: ann.label || ''
                })}
              </g>
            );

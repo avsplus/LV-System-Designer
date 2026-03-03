@@ -9,6 +9,57 @@ import EnrichConnectionsDialog from "./EnrichConnectionsDialog";
 import ImportProductsDialog from "./ImportProductsDialog";
 import RoomSelectDialog from "./RoomSelectDialog";
 
+const floorplanImageToCompactDataUrl = async (imageUrl) => {
+  const source = String(imageUrl || '');
+  if (!source) return '';
+  if (source.startsWith('data:image/') && source.length <= 380000) return source;
+  if (source.startsWith('blob:')) return '';
+  try {
+    const response = await fetch(source);
+    if (!response.ok) return source;
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = objectUrl;
+    });
+    const maxWidth = 1600;
+    const ratio = Math.min(1, maxWidth / Math.max(1, img.naturalWidth || img.width || 1));
+    const width = Math.max(1, Math.round((img.naturalWidth || img.width) * ratio));
+    const height = Math.max(1, Math.round((img.naturalHeight || img.height) * ratio));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      URL.revokeObjectURL(objectUrl);
+      return source;
+    }
+    ctx.drawImage(img, 0, 0, width, height);
+    const compressed = canvas.toDataURL('image/jpeg', 0.72);
+    URL.revokeObjectURL(objectUrl);
+    return compressed.length <= 420000 ? compressed : '';
+  } catch {
+    return source.startsWith('data:image/') && source.length <= 420000 ? source : '';
+  }
+};
+
+const prepareFloorplansForCloudExport = async (floorplans = []) => {
+  const prepared = [];
+  for (const fp of floorplans) {
+    const rawImage = fp?.url || fp?.image_url || '';
+    const compact = await floorplanImageToCompactDataUrl(rawImage);
+    prepared.push({
+      ...fp,
+      url: compact || fp?.url || '',
+      image_url: compact || fp?.image_url || ''
+    });
+  }
+  return prepared;
+};
+
 export default function ExportDialogs({
   showExportDialog, setShowExportDialog,
   showEnrichDialog, setShowEnrichDialog,
@@ -20,6 +71,7 @@ export default function ExportDialogs({
   enrichmentProgress, setEnrichmentProgress,
   importProgress, setImportProgress,
   currentProject,
+  currentUserName,
   canvasProducts, connections, rooms, floorplans, arrows, annotations,
   orgSettings,
   selectedFloorplanId, floorplans: fp,
@@ -47,15 +99,17 @@ export default function ExportDialogs({
             setIsExporting(true);
             try {
               if (engine === 'apitemplate') {
+                const floorplansForCloud = await prepareFloorplansForCloudExport(exportFloorplans || floorplans);
                 const result = await appClient.exportPdfCloud({
                   projectName: currentProject?.name || 'AV-System-Design',
                   clientName,
                   location,
+                  preparedBy: currentUserName || '',
                   exportType: exportType || 'installer',
                   canvasProducts,
                   connections,
                   rooms,
-                  floorplans: exportFloorplans || floorplans,
+                  floorplans: floorplansForCloud,
                   arrows,
                   annotations,
                   orgSettings

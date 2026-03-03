@@ -131,6 +131,9 @@ export default function AnnotationDetailsPanel({
   const handleTextChange = (e) => {
     onUpdate(index, { ...annotation, text: e.target.value });
   };
+  const handleLabelChange = (e) => {
+    onUpdate(index, { ...annotation, label: e.target.value });
+  };
 
   const handleRadiusChange = (value) => {
     onUpdate(index, { ...annotation, radius: value[0] });
@@ -212,6 +215,16 @@ export default function AnnotationDetailsPanel({
                 <div>
                   <p className="text-sm text-gray-500 mb-2">Symbol</p>
                   <div className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white">{annotation.symbolId}</div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Label</p>
+                  <input
+                    type="text"
+                    value={annotation.label || ''}
+                    onChange={handleLabelChange}
+                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                    placeholder="Enter symbol label..."
+                  />
                 </div>
                 <ItemsSection />
                 <div>
@@ -346,6 +359,18 @@ export default function AnnotationDetailsPanel({
               <div>
                 <p className="text-sm text-gray-500 mb-2">Symbol</p>
                 <div className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white">{annotation.symbolId}</div>
+              </div>
+            )}
+            {annotation.type === 'symbol' && (
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Label</p>
+                <input
+                  type="text"
+                  value={annotation.label || ''}
+                  onChange={handleLabelChange}
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                  placeholder="Enter symbol label..."
+                />
               </div>
             )}
 

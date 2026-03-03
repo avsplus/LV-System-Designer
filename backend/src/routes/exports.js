@@ -159,13 +159,30 @@ const normalizeExportPayload = (payload) => {
 };
 
 const toMoney = (value) => `$${asNumber(value, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const deviceName = (cp) => sanitize(`${cp?.product?.brand || ''} ${cp?.product?.model || ''}`) || sanitize(cp?.label) || 'Unnamed device';
+const looksLikeGeneratedId = (value) => {
+  const raw = sanitize(value);
+  if (!raw) return false;
+  if (raw.startsWith('ann:')) return true;
+  return raw.length > 28 && /[_-]/.test(raw) && /\d{5,}/.test(raw);
+};
+const deviceName = (cp) => sanitize(`${cp?.product?.brand || ''} ${cp?.product?.model || ''}`) || 'Unnamed device';
+const deviceLabel = (cp, index = 0) => {
+  const preferred = sanitize(cp?.label);
+  if (preferred && !looksLikeGeneratedId(preferred)) return preferred;
+  const fallback = sanitize(cp?.instanceId);
+  if (fallback && !looksLikeGeneratedId(fallback)) return fallback;
+  return `DEV-${index + 1}`;
+};
 const isLikelyAnnotationId = (value) => /^ann[:_-]/i.test(sanitize(value));
 const pageBreak = `<div style="page-break-before: always;"></div>`;
 const toRenderableImageUrl = (value) => {
   const url = sanitize(value);
   if (!url) return '';
-  if (url.startsWith('data:') || url.startsWith('blob:')) return '';
+  if (url.startsWith('data:image/')) {
+    // Keep inline image support for floorplans but cap to avoid APITemplate 413 payload errors.
+    return url.length <= 420_000 ? url : '';
+  }
+  if (url.startsWith('blob:')) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   return '';
 };
@@ -196,12 +213,12 @@ const buildHtmlBody = (payload, exportType) => {
     const key = sanitize(id);
     if (!key) return '-';
     const cp = productById.get(key);
-    if (cp) return deviceName(cp);
+    if (cp) return deviceLabel(cp, products.indexOf(cp));
 
     const ann = annotationById.get(key);
     if (ann) {
       const kind = sanitize(ann?.type || 'Annotation');
-      const label = sanitize(ann?.title || ann?.text || ann?.symbolId || key);
+      const label = sanitize(ann?.label || ann?.title || ann?.text || ann?.symbolId || key);
       return `${kind}: ${label}`;
     }
 
@@ -286,7 +303,7 @@ const buildHtmlBody = (payload, exportType) => {
           <tbody>
             ${roomDevices.map((cp) => `
               <tr>
-                <td style="padding:8px;border:1px solid #dbe5f1;">${escapeHtml(sanitize(cp?.instanceId) || sanitize(cp?.label) || '-')}</td>
+                <td style="padding:8px;border:1px solid #dbe5f1;">${escapeHtml(deviceLabel(cp, idx))}</td>
                 <td style="padding:8px;border:1px solid #dbe5f1;">${escapeHtml(deviceName(cp))}</td>
                 <td style="padding:8px;border:1px solid #dbe5f1;">${escapeHtml(sanitize(cp?.product?.category || 'other'))}</td>
                 <td style="padding:8px;border:1px solid #dbe5f1; text-align:right;">${escapeHtml(toMoney(cp?.product?.price))}</td>
@@ -456,7 +473,7 @@ const buildHtmlBody = (payload, exportType) => {
       return `
         <div class="card">
           <div style="font-size:11px; letter-spacing:0.04em; color:#475569; text-transform:uppercase;">${escapeHtml(sanitize(cp?.product?.category || 'other'))}</div>
-          <div style="font-size:17px; font-weight:700; margin-top:2px;">${escapeHtml(sanitize(cp?.instanceId) || cp?.label || '-')}</div>
+          <div style="font-size:17px; font-weight:700; margin-top:2px;">${escapeHtml(deviceLabel(cp, idx))}</div>
           <div style="font-size:15px; font-weight:600;">${escapeHtml(deviceName(cp))}</div>
           <div class="small muted">${connectionCount} connection(s)</div>
           <div style="margin-top:8px;" class="small">Room: ${escapeHtml(roomName)}</div>
@@ -567,6 +584,9 @@ export default async function exportRoutes(fastify) {
     }
 
     const payload = normalizeExportPayload(rawPayload);
+    if (!payload.preparedBy || payload.preparedBy === 'N/A') {
+      payload.preparedBy = sanitize(auth.user?.display_name || auth.user?.full_name || auth.user?.email || 'N/A');
+    }
     const exportType = sanitize(payload.exportType || 'installer');
     const templateId = getTemplateIdForType(exportType);
     if (!templateId) {

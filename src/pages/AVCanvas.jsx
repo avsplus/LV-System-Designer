@@ -74,10 +74,14 @@ function AVCanvasContent() {
   // Project and current user state
   const [currentProject, setCurrentProject] = useState(null);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const [currentUserName, setCurrentUserName] = useState(null);
 
   // Get current user
   useEffect(() => {
-    appClient.getMe().then(({ user }) => setCurrentUserEmail(user.email)).catch(() => {});
+    appClient.getMe().then(({ user }) => {
+      setCurrentUserEmail(user.email);
+      setCurrentUserName(user.display_name || user.full_name || user.email || null);
+    }).catch(() => {});
   }, []);
 
   // UI state
@@ -1951,11 +1955,14 @@ function AVCanvasContent() {
                 const position = floorplan
                   ? canvasToFloorplanCoords(canvasX, canvasY, floorplan)
                   : { x: canvasX, y: canvasY };
+                const symbolCount = annotations.filter(a => a.type === 'symbol' && a.symbolId === symbol).length + 1;
+                const symbolLabel = `${symbol}-${symbolCount}`;
 
                 const newAnnotation = {
                   id: Date.now().toString(),
                   type: 'symbol',
                   symbolId: symbol,
+                  label: symbolLabel,
                   floorplanId: floorplan?.id,
                   position,
                   color: annotationColor,
@@ -2308,6 +2315,7 @@ function AVCanvasContent() {
           enrichmentProgress={enrichmentProgress} setEnrichmentProgress={setEnrichmentProgress}
           importProgress={importProgress} setImportProgress={setImportProgress}
           currentProject={currentProject}
+          currentUserName={currentUserName}
           canvasProducts={canvasProducts} connections={connections} rooms={rooms}
           floorplans={floorplans} arrows={arrows} annotations={annotations}
           orgSettings={orgSettings}

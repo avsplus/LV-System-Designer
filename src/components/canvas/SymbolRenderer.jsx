@@ -374,8 +374,8 @@ export default function SymbolRenderer({ symbolId, position, color, scale = 1, r
 }
 
 // Render specs label below symbol
-export function renderSymbolLabel({ symbolId, specs, installation, position, scale = 1 }) {
-  const label = getSymbolLabel(symbolId, specs, installation);
+export function renderSymbolLabel({ symbolId, specs, installation, position, scale = 1, customLabel = '' }) {
+  const label = customLabel || getSymbolLabel(symbolId, specs, installation);
   if (!label) return null;
 
   const lines = label.split('\n');
