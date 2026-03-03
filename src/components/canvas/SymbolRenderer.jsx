@@ -392,8 +392,8 @@ export function renderSymbolLabel({ symbolId, specs, installation, position, sca
           textAnchor="middle"
           fontSize={11}
           fontFamily="monospace"
-          fill="#94a3b8"
-          opacity="0.9"
+          fill="#000000"
+          opacity="1"
           pointerEvents="none"
         >
           {line}
