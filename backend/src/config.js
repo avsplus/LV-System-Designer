@@ -10,7 +10,11 @@ dotenv.config({ path: envPath });
 
 const parseOrigins = (raw) => {
   if (!raw) {
-    return ['http://localhost:5173'];
+    return [
+      'http://localhost:5173',
+      'https://avsystemdesigner.com',
+      'https://www.avsystemdesigner.com'
+    ];
   }
 
   return raw

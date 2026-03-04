@@ -24,7 +24,14 @@ const buildServer = () => {
   });
 
   app.register(cors, {
-    origin: config.corsOrigins,
+    origin: (origin, cb) => {
+      // Allow non-browser or same-origin server calls.
+      if (!origin) return cb(null, true);
+      if (config.corsOrigins.includes('*') || config.corsOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+      return cb(new Error(`CORS origin not allowed: ${origin}`), false);
+    },
     credentials: true
   });
 
