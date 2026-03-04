@@ -3,7 +3,7 @@ import { supabaseAdmin } from '../lib/supabase.js';
 
 const canMutateWirePricing = (role) => ['owner', 'administrator'].includes(role);
 
-const normalizePayload = (payload = {}, organizationId = null) => {
+const normalizeCreatePayload = (payload = {}, organizationId = null) => {
   const normalized = {
     wire_type: payload.wire_type || '',
     wire_spec: payload.wire_spec || null,
@@ -14,6 +14,28 @@ const normalizePayload = (payload = {}, organizationId = null) => {
 
   if (organizationId !== undefined) {
     normalized.organization_id = organizationId;
+  }
+
+  return normalized;
+};
+
+const normalizeUpdatePayload = (payload = {}) => {
+  const normalized = {};
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'wire_type')) {
+    normalized.wire_type = payload.wire_type || '';
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'wire_spec')) {
+    normalized.wire_spec = payload.wire_spec || null;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'material_price_per_foot')) {
+    normalized.material_price_per_foot = payload.material_price_per_foot ?? 0;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'labor_price_per_run')) {
+    normalized.labor_price_per_run = payload.labor_price_per_run ?? 0;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'termination_price')) {
+    normalized.termination_price = payload.termination_price ?? 0;
   }
 
   return normalized;
@@ -59,7 +81,7 @@ export default async function wirePricingRoutes(fastify) {
       return reply.code(400).send({ error: 'User must belong to an organization' });
     }
 
-    const payload = normalizePayload(request.body || {}, auth.user.organization_id);
+    const payload = normalizeCreatePayload(request.body || {}, auth.user.organization_id);
     if (!payload.wire_type) {
       return reply.code(400).send({ error: 'wire_type is required' });
     }
@@ -103,8 +125,10 @@ export default async function wirePricingRoutes(fastify) {
       return reply.code(403).send({ error: 'You can only update your organization wire pricing' });
     }
 
-    const updates = normalizePayload(request.body || {}, undefined);
-    delete updates.organization_id;
+    const updates = normalizeUpdatePayload(request.body || {});
+    if (!Object.keys(updates).length) {
+      return reply.code(400).send({ error: 'No fields provided for update' });
+    }
 
     const { data, error } = await supabaseAdmin
       .from('wire_pricing')
