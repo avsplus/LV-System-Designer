@@ -98,6 +98,7 @@ export default function ExportDialogs({
           onExport={async ({ clientName, location, engine, exportType, floorplans: exportFloorplans }) => {
             setIsExporting(true);
             try {
+              const wirePricing = await appClient.listWirePricing().catch(() => []);
               if (engine === 'apitemplate') {
                 const floorplansForCloud = await prepareFloorplansForCloudExport(exportFloorplans || floorplans);
                 const result = await appClient.exportPdfCloud({
@@ -112,7 +113,8 @@ export default function ExportDialogs({
                   floorplans: floorplansForCloud,
                   arrows,
                   annotations,
-                  orgSettings
+                  orgSettings,
+                  wirePricing
                 });
                 window.open(result.download_url, '_blank', 'noopener,noreferrer');
               } else {
@@ -127,7 +129,8 @@ export default function ExportDialogs({
                   floorplans: exportFloorplans || floorplans,
                   arrows,
                   annotations,
-                  orgSettings
+                  orgSettings,
+                  wirePricing
                 });
               }
               toast.success('PDF exported successfully');

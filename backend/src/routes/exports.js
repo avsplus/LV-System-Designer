@@ -46,6 +46,66 @@ const normalizeRoom = (value) => asString(value, 'Unassigned');
 const normalizeWireId = (connection, index) => asString(connection?.wireId, `C${index + 1}`);
 const normalizeWireSpec = (connection) => asString(connection?.wireSpec || connection?.spec, '-');
 const normalizeConnectionType = (connection) => asString(connection?.type, '-');
+const normalizeWireTypeKey = (value) => sanitize(value).toLowerCase().replace(/[\s_-]+/g, '');
+const normalizeWireSpecKey = (value) => sanitize(value).toLowerCase().replace(/[\s_-]+/g, '');
+const needsTermination = (type) => {
+  const key = normalizeWireTypeKey(type);
+  return key === 'ethernet' || key === 'hdbaset';
+};
+const normalizeWirePricing = (row, index) => ({
+  id: asString(row?.id, `wire-${index + 1}`),
+  wire_type: asString(row?.wire_type, ''),
+  wire_spec: asString(row?.wire_spec, ''),
+  material_price_per_foot: asNumber(row?.material_price_per_foot, 0),
+  labor_price_per_run: asNumber(row?.labor_price_per_run, 0),
+  termination_price: asNumber(row?.termination_price, 0)
+});
+const buildWirePricingIndex = (rows = []) => {
+  const byTypeAndSpec = new Map();
+  const byTypeOnly = new Map();
+  rows.forEach((row) => {
+    const typeKey = normalizeWireTypeKey(row?.wire_type);
+    if (!typeKey) return;
+    const specKey = normalizeWireSpecKey(row?.wire_spec);
+    if (specKey) byTypeAndSpec.set(`${typeKey}|${specKey}`, row);
+    if (!byTypeOnly.has(typeKey)) byTypeOnly.set(typeKey, row);
+  });
+  return { byTypeAndSpec, byTypeOnly };
+};
+const calculateCablePricing = (connections, wirePricing) => {
+  const index = buildWirePricingIndex(wirePricing);
+  let material = 0;
+  let termination = 0;
+  let labor = 0;
+
+  for (const conn of connections) {
+    const typeKey = normalizeWireTypeKey(conn?.type);
+    const specKey = normalizeWireSpecKey(conn?.wireSpec || conn?.spec);
+    const matched =
+      index.byTypeAndSpec.get(`${typeKey}|${specKey}`) ||
+      index.byTypeOnly.get(typeKey) ||
+      null;
+
+    if (matched) {
+      const runLength = asNumber(conn?.length, 50);
+      material += asNumber(matched.material_price_per_foot, 0) * runLength;
+      labor += asNumber(matched.labor_price_per_run, 0);
+      if (needsTermination(conn?.type)) {
+        termination += asNumber(matched.termination_price, 0) * 2;
+      }
+      continue;
+    }
+
+    material += asNumber(conn?.wireRunPrice, 75);
+  }
+
+  return {
+    material,
+    termination,
+    labor,
+    cableSubtotal: material + termination
+  };
+};
 
 const normalizeProduct = (product, index) => {
   const p = isPlainObject(product?.product) ? product.product : {};
@@ -111,7 +171,7 @@ const validateExportPayload = (payload) => {
     }
   }
 
-  const mustBeArray = ['canvasProducts', 'connections', 'rooms', 'floorplans', 'arrows', 'annotations'];
+  const mustBeArray = ['canvasProducts', 'connections', 'rooms', 'floorplans', 'arrows', 'annotations', 'wirePricing'];
   for (const key of mustBeArray) {
     if (payload[key] != null && !Array.isArray(payload[key])) {
       return `"${key}" must be an array when provided.`;
@@ -154,6 +214,7 @@ const normalizeExportPayload = (payload) => {
     })),
     arrows: asArray(payload.arrows),
     annotations: asArray(payload.annotations),
+    wirePricing: asArray(payload.wirePricing).map((row, idx) => normalizeWirePricing(row, idx)),
     orgSettings: isPlainObject(payload.orgSettings) ? payload.orgSettings : {}
   };
 };
@@ -262,11 +323,8 @@ const buildHtmlBody = (payload, exportType) => {
     laborConfigTotal += row.qty * row.config;
   }
 
-  // Cable pricing fallback: $75 per run if no explicit per-connection pricing is available.
-  const cableSubtotal = connections.reduce((sum, conn) => {
-    const unitPerRun = asNumber(conn?.wireRunPrice, 75);
-    return sum + unitPerRun;
-  }, 0);
+  const cablePricing = calculateCablePricing(connections, asArray(payload.wirePricing));
+  const cableSubtotal = cablePricing.cableSubtotal;
 
   const laborRates = isPlainObject(payload.orgSettings?.labor_rates) ? payload.orgSettings.labor_rates : {};
   const laborDesign = asNumber(laborRates.design_engineering_rate, 0);
@@ -274,7 +332,7 @@ const buildHtmlBody = (payload, exportType) => {
   const laborProgrammingFromSettings = asNumber(laborRates.system_programming_rate, 0);
   const laborInstall = laborInstallTotal > 0 ? laborInstallTotal : laborInstallFromSettings;
   const laborProgramming = laborConfigTotal > 0 ? laborConfigTotal : laborProgrammingFromSettings;
-  const laborCable = connections.length * 280;
+  const laborCable = cablePricing.labor > 0 ? cablePricing.labor : connections.length * 280;
   const laborSubtotal = laborDesign + laborInstall + laborCable + laborProgramming;
   const projectTotal = equipmentMaterialTotal + cableSubtotal + laborSubtotal;
 

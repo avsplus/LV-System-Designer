@@ -41,6 +41,70 @@ const list = (v) => (Array.isArray(v) ? v.filter(Boolean) : []);
 const money = (v) => `$${Number(v || 0).toFixed(2)}`;
 const slug = (v) => s(v).replace(/[^a-z0-9-_]+/gi, '_');
 const deviceName = (cp) => `${cp?.product?.brand || 'Unknown'} ${cp?.product?.model || ''}`.trim();
+const n = (v, fallback = 0) => {
+  const parsed = Number(v);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+const normalizeWireTypeKey = (value) => s(value).toLowerCase().replace(/[\s_-]+/g, '');
+const normalizeWireSpecKey = (value) => s(value).toLowerCase().replace(/[\s_-]+/g, '');
+const inferConnectionLengthFeet = (conn, productsById) => {
+  const explicit = n(conn?.length, NaN);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  const fromRoom = productsById.get(conn?.from)?.room;
+  const toRoom = productsById.get(conn?.to)?.room;
+  return fromRoom && toRoom && fromRoom !== toRoom ? 250 : 50;
+};
+const needsTermination = (type) => {
+  const key = normalizeWireTypeKey(type);
+  return key === 'ethernet' || key === 'hdbaset';
+};
+const buildWirePricingIndex = (rows = []) => {
+  const byTypeAndSpec = new Map();
+  const byTypeOnly = new Map();
+  rows.forEach((row) => {
+    const typeKey = normalizeWireTypeKey(row?.wire_type);
+    if (!typeKey) return;
+    const specKey = normalizeWireSpecKey(row?.wire_spec);
+    if (specKey) byTypeAndSpec.set(`${typeKey}|${specKey}`, row);
+    if (!byTypeOnly.has(typeKey)) byTypeOnly.set(typeKey, row);
+  });
+  return { byTypeAndSpec, byTypeOnly };
+};
+const calculateCablePricing = (connections = [], canvasProducts = [], wirePricing = []) => {
+  const productsById = new Map((canvasProducts || []).map((cp) => [cp.instanceId, cp]));
+  const index = buildWirePricingIndex(wirePricing);
+  let material = 0;
+  let termination = 0;
+  let labor = 0;
+
+  (connections || []).forEach((conn) => {
+    const typeKey = normalizeWireTypeKey(conn?.type);
+    const specKey = normalizeWireSpecKey(conn?.wireSpec || conn?.spec);
+    const row =
+      index.byTypeAndSpec.get(`${typeKey}|${specKey}`) ||
+      index.byTypeOnly.get(typeKey) ||
+      null;
+
+    if (row) {
+      const runLength = inferConnectionLengthFeet(conn, productsById);
+      material += n(row?.material_price_per_foot, 0) * runLength;
+      labor += n(row?.labor_price_per_run, 0);
+      if (needsTermination(conn?.type)) {
+        termination += n(row?.termination_price, 0) * 2;
+      }
+      return;
+    }
+
+    material += n(conn?.wireRunPrice, 75);
+  });
+
+  return {
+    material,
+    termination,
+    labor,
+    cableSubtotal: material + termination
+  };
+};
 
 const fill = (doc, [r, g, b]) => doc.setFillColor(r, g, b);
 const stroke = (doc, [r, g, b]) => doc.setDrawColor(r, g, b);
@@ -820,11 +884,19 @@ const client = (ctx, data, title = 'Client Package') => {
     text(doc, money(m + l), MARGIN + 176, y + 1.2, 20, { size: 8.7, bold: true });
     y += 13;
   });
+  const cablePricing = calculateCablePricing(data.connections, data.canvasProducts, data.wirePricing);
   y = ensure(y, 12, `${title} | Investment`);
   fill(doc, [237, 247, 255]);
   stroke(doc, [191, 219, 254]);
   doc.roundedRect(MARGIN, y - 4, PAGE.w - MARGIN * 2, 10, 2, 2, 'FD');
-  text(doc, `Total Investment ${money(mat + lab)} (Materials ${money(mat)} + Labor ${money(lab)})`, MARGIN + 3, y + 1, PAGE.w - MARGIN * 2 - 6, { size: 9.7, bold: true, color: C.blue });
+  text(
+    doc,
+    `Total Investment ${money(mat + lab + cablePricing.cableSubtotal + cablePricing.labor)} (Materials ${money(mat + cablePricing.cableSubtotal)} + Labor ${money(lab + cablePricing.labor)})`,
+    MARGIN + 3,
+    y + 1,
+    PAGE.w - MARGIN * 2 - 6,
+    { size: 9.7, bold: true, color: C.blue }
+  );
 };
 
 export const exportProjectPdf = async ({
@@ -836,7 +908,8 @@ export const exportProjectPdf = async ({
   connections = [],
   rooms = [],
   floorplans = [],
-  annotations = []
+  annotations = [],
+  wirePricing = []
 }) => {
   const data = {
     projectName: s(projectName || 'AV System Design'),
@@ -847,7 +920,8 @@ export const exportProjectPdf = async ({
     connections: list(connections),
     rooms: list(rooms),
     floorplans: list(floorplans),
-    annotations: list(annotations)
+    annotations: list(annotations),
+    wirePricing: list(wirePricing)
   };
 
   const ctx = createCtx(data.projectName, data.exportType);
