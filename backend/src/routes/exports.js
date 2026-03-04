@@ -72,11 +72,14 @@ const buildWirePricingIndex = (rows = []) => {
   });
   return { byTypeAndSpec, byTypeOnly };
 };
+const toConnectionLength = (connection) => asNumber(connection?.length, 50);
+
 const calculateCablePricing = (connections, wirePricing) => {
   const index = buildWirePricingIndex(wirePricing);
   let material = 0;
   let termination = 0;
   let labor = 0;
+  const lineItemsMap = new Map();
 
   for (const conn of connections) {
     const typeKey = normalizeWireTypeKey(conn?.type);
@@ -86,24 +89,57 @@ const calculateCablePricing = (connections, wirePricing) => {
       index.byTypeOnly.get(typeKey) ||
       null;
 
+    const displayType = asString(conn?.type, 'Unknown');
+    const displaySpec = asString(conn?.wireSpec || conn?.spec, '-');
+    const lineKey = `${displayType}|${displaySpec}`;
+    if (!lineItemsMap.has(lineKey)) {
+      lineItemsMap.set(lineKey, {
+        type: displayType,
+        spec: displaySpec,
+        qty: 0,
+        totalLength: 0,
+        material: 0,
+        termination: 0,
+        labor: 0
+      });
+    }
+    const line = lineItemsMap.get(lineKey);
+    const runLength = toConnectionLength(conn);
+    line.qty += 1;
+    line.totalLength += runLength;
+
     if (matched) {
-      const runLength = asNumber(conn?.length, 50);
-      material += asNumber(matched.material_price_per_foot, 0) * runLength;
-      labor += asNumber(matched.labor_price_per_run, 0);
-      if (needsTermination(conn?.type)) {
-        termination += asNumber(matched.termination_price, 0) * 2;
-      }
+      const materialForRun = asNumber(matched.material_price_per_foot, 0) * runLength;
+      const laborForRun = asNumber(matched.labor_price_per_run, 0);
+      const terminationForRun = needsTermination(conn?.type) ? asNumber(matched.termination_price, 0) * 2 : 0;
+      material += materialForRun;
+      labor += laborForRun;
+      termination += terminationForRun;
+      line.material += materialForRun;
+      line.labor += laborForRun;
+      line.termination += terminationForRun;
       continue;
     }
 
-    material += asNumber(conn?.wireRunPrice, 75);
+    const fallbackRun = asNumber(conn?.wireRunPrice, 75);
+    material += fallbackRun;
+    line.material += fallbackRun;
   }
+
+  const lineItems = [...lineItemsMap.values()]
+    .map((row) => ({
+      ...row,
+      unitPrice: row.qty > 0 ? (row.material + row.termination) / row.qty : 0,
+      total: row.material + row.termination
+    }))
+    .sort((a, b) => `${a.type}|${a.spec}`.localeCompare(`${b.type}|${b.spec}`));
 
   return {
     material,
     termination,
     labor,
-    cableSubtotal: material + termination
+    cableSubtotal: material + termination,
+    lineItems
   };
 };
 
@@ -498,13 +534,23 @@ const buildHtmlBody = (payload, exportType) => {
         <tr><th>Item</th><th>Type / Spec</th><th>Qty</th><th class="right">Unit Price</th><th class="right">Total</th></tr>
       </thead>
       <tbody>
-        <tr>
-          <td>Cable/Wire</td>
-          <td>${escapeHtml(connections[0]?.type || 'Mixed')} / ${escapeHtml(connections[0]?.wireSpec || 'Standard')}</td>
-          <td>${escapeHtml(String(connections.length))} runs</td>
-          <td class="right">${escapeHtml(toMoney(connections.length ? cableSubtotal / connections.length : 0))}</td>
-          <td class="right">${escapeHtml(toMoney(cableSubtotal))}</td>
-        </tr>
+        ${cablePricing.lineItems.length ? cablePricing.lineItems.map((item) => `
+          <tr>
+            <td>Cable/Wire</td>
+            <td>${escapeHtml(item.type)} / ${escapeHtml(item.spec)}<br/><span class="small muted">${escapeHtml(String(item.totalLength.toFixed(2)))} ft total</span></td>
+            <td>${escapeHtml(String(item.qty))} runs</td>
+            <td class="right">${escapeHtml(toMoney(item.unitPrice))}</td>
+            <td class="right">${escapeHtml(toMoney(item.total))}</td>
+          </tr>
+        `).join('') : `
+          <tr>
+            <td>Cable/Wire</td>
+            <td>${escapeHtml(connections[0]?.type || 'Mixed')} / ${escapeHtml(connections[0]?.wireSpec || 'Standard')}</td>
+            <td>${escapeHtml(String(connections.length))} runs</td>
+            <td class="right">${escapeHtml(toMoney(connections.length ? cableSubtotal / connections.length : 0))}</td>
+            <td class="right">${escapeHtml(toMoney(cableSubtotal))}</td>
+          </tr>
+        `}
       </tbody>
     </table>
     <p><strong>Cabling Subtotal:</strong> ${escapeHtml(toMoney(cableSubtotal))}</p>
