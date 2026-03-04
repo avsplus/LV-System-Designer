@@ -45,7 +45,20 @@ const normalizePort = (value) => asString(value, '-');
 const normalizeRoom = (value) => asString(value, 'Unassigned');
 const normalizeWireId = (connection, index) => asString(connection?.wireId, `C${index + 1}`);
 const normalizeWireSpec = (connection) => asString(connection?.wireSpec || connection?.spec, '-');
-const normalizeConnectionType = (connection) => asString(connection?.type, '-');
+const humanizeConnectionType = (rawType) => {
+  const key = normalizeWireTypeKey(rawType);
+  if (key === 'speakerwire') return 'Speaker Wire';
+  if (key === 'ethernet') return 'Ethernet';
+  if (key === 'hdbaset') return 'HDBaseT';
+  if (key === 'hdmi') return 'HDMI';
+  if (key === 'opticaltoslink' || key === 'optical') return 'Optical';
+  if (key === 'rca') return 'RCA';
+  if (key === 'xlr') return 'XLR';
+  if (key === 'usb') return 'USB';
+  return asString(rawType, '-');
+};
+
+const normalizeConnectionType = (connection) => humanizeConnectionType(connection?.type);
 const normalizeWireTypeKey = (value) => sanitize(value).toLowerCase().replace(/[\s_-]+/g, '');
 const normalizeWireSpecKey = (value) => sanitize(value).toLowerCase().replace(/[\s_-]+/g, '');
 const needsTermination = (type) => {

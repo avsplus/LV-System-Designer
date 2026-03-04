@@ -46,10 +46,236 @@ const floorplanImageToCompactDataUrl = async (imageUrl) => {
   }
 };
 
-const prepareFloorplansForCloudExport = async (floorplans = []) => {
+const toRgb = (color, fallback = [59, 130, 246]) => {
+  if (Array.isArray(color) && color.length === 3) return color;
+  const value = String(color || '').trim().toLowerCase();
+  if (!value) return fallback;
+  if (value.startsWith('#')) {
+    const hex = value.slice(1);
+    if (hex.length === 3) {
+      return [
+        parseInt(hex[0] + hex[0], 16),
+        parseInt(hex[1] + hex[1], 16),
+        parseInt(hex[2] + hex[2], 16)
+      ];
+    }
+    if (hex.length === 6) {
+      return [
+        parseInt(hex.slice(0, 2), 16),
+        parseInt(hex.slice(2, 4), 16),
+        parseInt(hex.slice(4, 6), 16)
+      ];
+    }
+  }
+  return fallback;
+};
+
+const getFloorplanCanvasSize = (fp) => {
+  const fpScale = Number(fp?.scale || 1);
+  const hasCal = fp?.imageWidth && fp?.imageHeight && fp?.pixelsPerInch;
+  if (hasCal) {
+    const sf = (1 / Number(fp.pixelsPerInch || 1)) * fpScale;
+    return {
+      width: Number(fp.imageWidth) * sf,
+      height: Number(fp.imageHeight) * sf
+    };
+  }
+  if (fp?.imageWidth && fp?.imageHeight) {
+    const width = 500 * fpScale;
+    return {
+      width,
+      height: width * (Number(fp.imageHeight) / Math.max(1, Number(fp.imageWidth)))
+    };
+  }
+  return { width: 500 * fpScale, height: 500 * fpScale };
+};
+
+const pointInFloorplan = (x, y, fp) => {
+  const pos = fp?.position || { x: 0, y: 0 };
+  const size = getFloorplanCanvasSize(fp);
+  return (
+    Number(x || 0) >= Number(pos.x || 0) &&
+    Number(x || 0) <= Number(pos.x || 0) + size.width &&
+    Number(y || 0) >= Number(pos.y || 0) &&
+    Number(y || 0) <= Number(pos.y || 0) + size.height
+  );
+};
+
+const renderFloorplanWithOverlays = async (
+  floorplan,
+  {
+    canvasProducts = [],
+    connections = [],
+    annotations = [],
+    arrows = [],
+    rooms = []
+  } = {}
+) => {
+  const source = String(floorplan?.url || floorplan?.image_url || '');
+  if (!source) return '';
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.crossOrigin = 'anonymous';
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = source;
+  }).catch(() => null);
+
+  if (!img) return '';
+
+  const width = Math.max(1, img.naturalWidth || img.width || 1600);
+  const height = Math.max(1, img.naturalHeight || img.height || 900);
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  const drawRoundedRect = (x, y, w, h, r) => {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    }
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+  };
+
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const fpPos = floorplan?.position || { x: 0, y: 0 };
+  const fpSize = getFloorplanCanvasSize(floorplan);
+  const toPx = (canvasX, canvasY) => ({
+    x: ((Number(canvasX || 0) - Number(fpPos.x || 0)) / Math.max(1, fpSize.width)) * width,
+    y: ((Number(canvasY || 0) - Number(fpPos.y || 0)) / Math.max(1, fpSize.height)) * height
+  });
+
+  const roomFloorplanById = new Map((rooms || []).map((r) => [r.id, r?.floorplanId || null]));
+  const productsOnFloorplan = (canvasProducts || []).filter((cp) => {
+    const roomFloorplanId = roomFloorplanById.get(cp?.room);
+    if (roomFloorplanId && roomFloorplanId === floorplan?.id) return true;
+    return pointInFloorplan(cp?.position?.x, cp?.position?.y, floorplan);
+  });
+  const productIds = new Set(productsOnFloorplan.map((cp) => cp.instanceId));
+  const positions = new Map((canvasProducts || []).map((cp) => [cp.instanceId, cp?.position || { x: 0, y: 0 }]));
+
+  // Connections
+  ctx.lineWidth = Math.max(1.2, width * 0.0015);
+  (connections || []).forEach((conn) => {
+    if (!productIds.has(conn?.from) || !productIds.has(conn?.to)) return;
+    const from = positions.get(conn?.from);
+    const to = positions.get(conn?.to);
+    if (!from || !to) return;
+    const p1 = toPx(from.x, from.y);
+    const p2 = toPx(to.x, to.y);
+    const type = String(conn?.type || '').toLowerCase();
+    if (type.includes('ethernet')) ctx.strokeStyle = '#22c55e';
+    else if (type.includes('speaker')) ctx.strokeStyle = '#b45309';
+    else if (type.includes('hdmi')) ctx.strokeStyle = '#ef4444';
+    else ctx.strokeStyle = '#8b5cf6';
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+  });
+
+  // Arrows
+  ctx.strokeStyle = '#60a5fa';
+  ctx.lineWidth = Math.max(1.1, width * 0.0012);
+  (arrows || []).forEach((arrow) => {
+    const start = arrow?.start;
+    const end = arrow?.end;
+    if (!start || !end) return;
+    if (!pointInFloorplan(start.x, start.y, floorplan) && !pointInFloorplan(end.x, end.y, floorplan)) return;
+    const p1 = toPx(start.x, start.y);
+    const p2 = toPx(end.x, end.y);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+  });
+
+  // Devices
+  productsOnFloorplan.forEach((cp) => {
+    const pos = cp?.position || { x: 0, y: 0 };
+    const p = toPx(pos.x, pos.y);
+    const label = String(cp?.label || `${cp?.product?.brand || 'Device'} ${cp?.product?.model || ''}`).trim();
+    const boxW = Math.max(34, width * 0.03);
+    const boxH = Math.max(24, height * 0.024);
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#60a5fa';
+    ctx.lineWidth = 1.4;
+    drawRoundedRect(p.x - boxW / 2, p.y - boxH / 2, boxW, boxH, 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = `${Math.max(8, Math.round(width * 0.008))}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.fillText(label.slice(0, 14), p.x, p.y + boxH / 2 + 11);
+  });
+
+  // Annotations (including symbols)
+  const fpAnnotations = (annotations || []).filter((ann) => ann?.floorplanId === floorplan?.id && !ann?.hidden);
+  fpAnnotations.forEach((ann) => {
+    const rgb = toRgb(ann?.color);
+    const startCanvasX = Number(fpPos.x || 0) + Number(ann?.position?.x || 0) * fpSize.width;
+    const startCanvasY = Number(fpPos.y || 0) + Number(ann?.position?.y || 0) * fpSize.height;
+    const p = toPx(startCanvasX, startCanvasY);
+    ctx.strokeStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    ctx.lineWidth = Math.max(1, Number(ann?.strokeWidth || 1));
+
+    if (ann?.type === 'line' && ann?.endPosition) {
+      const endCanvasX = Number(fpPos.x || 0) + Number(ann.endPosition.x || 0) * fpSize.width;
+      const endCanvasY = Number(fpPos.y || 0) + Number(ann.endPosition.y || 0) * fpSize.height;
+      const p2 = toPx(endCanvasX, endCanvasY);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+      return;
+    }
+    if (ann?.type === 'rectangle') {
+      const rw = Number(ann?.width || 0) * width;
+      const rh = Number(ann?.height || 0) * height;
+      ann?.fill ? ctx.fillRect(p.x, p.y, rw, rh) : ctx.strokeRect(p.x, p.y, rw, rh);
+      return;
+    }
+    if (ann?.type === 'circle') {
+      const rr = Number(ann?.radius || 0) * width;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
+      ann?.fill ? ctx.fill() : ctx.stroke();
+      return;
+    }
+    if (ann?.type === 'text') {
+      ctx.font = `${Math.max(10, Number(ann?.fontSize || 12))}px Arial`;
+      ctx.textAlign = 'left';
+      ctx.fillText(String(ann?.text || ''), p.x, p.y);
+      return;
+    }
+
+    // Symbols/snapshots fallback marker
+    const badge = String(ann?.label || ann?.symbolId || ann?.type || 'ANN');
+    const bw = Math.max(36, width * 0.022);
+    const bh = Math.max(24, height * 0.02);
+    ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    drawRoundedRect(p.x - bw / 2, p.y - bh / 2, bw, bh, 6);
+    ctx.fill();
+    ctx.fillStyle = '#0b1220';
+    ctx.font = `${Math.max(8, Math.round(width * 0.0075))}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.fillText(badge.slice(0, 8), p.x, p.y + 3);
+  });
+
+  return canvas.toDataURL('image/jpeg', 0.82);
+};
+
+const prepareFloorplansForCloudExport = async (floorplans = [], context = {}) => {
   const prepared = [];
   for (const fp of floorplans) {
-    const rawImage = fp?.url || fp?.image_url || '';
+    const rendered = await renderFloorplanWithOverlays(fp, context).catch(() => '');
+    const rawImage = rendered || fp?.url || fp?.image_url || '';
     const compact = await floorplanImageToCompactDataUrl(rawImage);
     prepared.push({
       ...fp,
@@ -100,7 +326,13 @@ export default function ExportDialogs({
             try {
               const wirePricing = await appClient.listWirePricing().catch(() => []);
               if (engine === 'apitemplate') {
-                const floorplansForCloud = await prepareFloorplansForCloudExport(exportFloorplans || floorplans);
+                const floorplansForCloud = await prepareFloorplansForCloudExport(exportFloorplans || floorplans, {
+                  canvasProducts,
+                  connections,
+                  annotations,
+                  arrows,
+                  rooms
+                });
                 const result = await appClient.exportPdfCloud({
                   projectName: currentProject?.name || 'AV-System-Design',
                   clientName,
