@@ -12,19 +12,34 @@ const normalizeFloorplansForStorage = (value) =>
     const url = sanitize(fp.url);
     const originalUrl = sanitize(fp.originalUrl || fp.image_url);
     const imageUrl = sanitize(fp.image_url || fp.originalUrl);
+    const isInlineImage = (v) => v.startsWith('data:image/');
+    const isRemoteFile = (v) => v.startsWith('http://') || v.startsWith('https://');
 
-    // Avoid persisting large inline data/blob URLs in project row.
-    const safeUrl =
-      url.startsWith('http://') || url.startsWith('https://')
+    // Keep inline raster previews for floorplan display if reasonably sized.
+    const inlinePreviewLimit = 2_200_000;
+    const safePreview =
+      (isInlineImage(url) && url.length <= inlinePreviewLimit)
         ? url
-        : originalUrl.startsWith('http://') || originalUrl.startsWith('https://')
+        : (isInlineImage(imageUrl) && imageUrl.length <= inlinePreviewLimit)
+          ? imageUrl
+          : '';
+
+    // Avoid storing blob URLs and keep persistent URLs where possible.
+    const persistentUrl =
+      isRemoteFile(url)
+        ? url
+        : isRemoteFile(originalUrl)
           ? originalUrl
-          : imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+          : isRemoteFile(imageUrl)
             ? imageUrl
             : '';
 
+    const safeUrl = safePreview || persistentUrl;
+
     const safeImageUrl =
-      imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+      (isInlineImage(imageUrl) && imageUrl.length <= inlinePreviewLimit)
+        ? imageUrl
+        : imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
         ? imageUrl
         : safeUrl;
 

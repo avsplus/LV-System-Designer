@@ -283,6 +283,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
             id: calibrating.id,
             name: calibrating.name,
             url: calibrating.url,
+            image_url: calibrating.url,
             originalUrl: calibrating.originalUrl || calibrating.url,
             isPdf: calibrating.isPdf,
             pixelsPerInch: pixelsPerInch,
