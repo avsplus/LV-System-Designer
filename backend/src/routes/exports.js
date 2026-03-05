@@ -75,15 +75,23 @@ const normalizeWirePricing = (row, index) => ({
 });
 const buildWirePricingIndex = (rows = []) => {
   const byTypeAndSpec = new Map();
-  const byTypeOnly = new Map();
+  const byTypeAnySpec = new Map();
+  const byTypeFallback = new Map();
   rows.forEach((row) => {
     const typeKey = normalizeWireTypeKey(row?.wire_type);
     if (!typeKey) return;
     const specKey = normalizeWireSpecKey(row?.wire_spec);
     if (specKey) byTypeAndSpec.set(`${typeKey}|${specKey}`, row);
-    if (!byTypeOnly.has(typeKey)) byTypeOnly.set(typeKey, row);
+    if (!specKey && !byTypeAnySpec.has(typeKey)) byTypeAnySpec.set(typeKey, row);
+    const existing = byTypeFallback.get(typeKey);
+    const rowUnit = asNumber(row?.material_price_per_foot, 0) + asNumber(row?.labor_price_per_run, 0);
+    const existingUnit = existing
+      ? asNumber(existing?.material_price_per_foot, 0) + asNumber(existing?.labor_price_per_run, 0)
+      : -1;
+    // Conservative fallback: if no exact/any-spec match, pick highest priced row for this type.
+    if (!existing || rowUnit > existingUnit) byTypeFallback.set(typeKey, row);
   });
-  return { byTypeAndSpec, byTypeOnly };
+  return { byTypeAndSpec, byTypeAnySpec, byTypeFallback };
 };
 const toConnectionLength = (connection) => asNumber(connection?.length, 50);
 
@@ -98,8 +106,9 @@ const calculateCablePricing = (connections, wirePricing) => {
     const typeKey = normalizeWireTypeKey(conn?.type);
     const specKey = normalizeWireSpecKey(conn?.wireSpec || conn?.spec);
     const matched =
-      index.byTypeAndSpec.get(`${typeKey}|${specKey}`) ||
-      index.byTypeOnly.get(typeKey) ||
+      (specKey ? index.byTypeAndSpec.get(`${typeKey}|${specKey}`) : null) ||
+      index.byTypeAnySpec.get(typeKey) ||
+      index.byTypeFallback.get(typeKey) ||
       null;
 
     const displayType = asString(conn?.type, 'Unknown');

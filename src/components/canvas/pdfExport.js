@@ -60,15 +60,21 @@ const needsTermination = (type) => {
 };
 const buildWirePricingIndex = (rows = []) => {
   const byTypeAndSpec = new Map();
-  const byTypeOnly = new Map();
+  const byTypeAnySpec = new Map();
+  const byTypeFallback = new Map();
   rows.forEach((row) => {
     const typeKey = normalizeWireTypeKey(row?.wire_type);
     if (!typeKey) return;
     const specKey = normalizeWireSpecKey(row?.wire_spec);
     if (specKey) byTypeAndSpec.set(`${typeKey}|${specKey}`, row);
-    if (!byTypeOnly.has(typeKey)) byTypeOnly.set(typeKey, row);
+    if (!specKey && !byTypeAnySpec.has(typeKey)) byTypeAnySpec.set(typeKey, row);
+    const existing = byTypeFallback.get(typeKey);
+    const rowUnit = n(row?.material_price_per_foot, 0) + n(row?.labor_price_per_run, 0);
+    const existingUnit = existing ? n(existing?.material_price_per_foot, 0) + n(existing?.labor_price_per_run, 0) : -1;
+    // Conservative fallback when spec is missing and no Any-spec row exists.
+    if (!existing || rowUnit > existingUnit) byTypeFallback.set(typeKey, row);
   });
-  return { byTypeAndSpec, byTypeOnly };
+  return { byTypeAndSpec, byTypeAnySpec, byTypeFallback };
 };
 const calculateCablePricing = (connections = [], canvasProducts = [], wirePricing = []) => {
   const productsById = new Map((canvasProducts || []).map((cp) => [cp.instanceId, cp]));
@@ -81,8 +87,9 @@ const calculateCablePricing = (connections = [], canvasProducts = [], wirePricin
     const typeKey = normalizeWireTypeKey(conn?.type);
     const specKey = normalizeWireSpecKey(conn?.wireSpec || conn?.spec);
     const row =
-      index.byTypeAndSpec.get(`${typeKey}|${specKey}`) ||
-      index.byTypeOnly.get(typeKey) ||
+      (specKey ? index.byTypeAndSpec.get(`${typeKey}|${specKey}`) : null) ||
+      index.byTypeAnySpec.get(typeKey) ||
+      index.byTypeFallback.get(typeKey) ||
       null;
 
     if (row) {
