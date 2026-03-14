@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from './surveillanceSymbolArtwork';
 
 const SYMBOL_ICONS = {
   'ELEC-1G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/227d623c7_1GangOutlet.png',
@@ -51,7 +52,7 @@ const SYMBOL_CATEGORIES = {
 };
 
 function SymbolIcon({ id, color }) {
-  const iconUrl = SYMBOL_ICONS[id];
+  const iconUrl = SYMBOL_ICONS[id] || (isSurveillanceSymbol(id) ? getSurveillanceSymbolDataUrl(id, color || '#ffffff') : '');
   
   // Use PNG icon if available, with color filter
   if (iconUrl) {
@@ -243,37 +244,6 @@ function SymbolIcon({ id, color }) {
           <path d="M457 1422 l-47 -38 0 -534 c0 -657 -54 -590 474 -590 526 0 476 -62 476 591 l0 511 -49 49 c-68 68 -772 77 -854 11z m804 -43 c48 -25 61 -989 15 -1035 -34 -34 -758 -34 -792 0 -43 43 -33 1009 11 1034 47 28 716 28 766 1z"/>
           <path d="M528 1325 c-38 -37 -41 -784 -4 -821 15 -15 85 -24 180 -24 142 0 189 -17 136 -50 -31 -19 -23 -64 14 -79 47 -18 103 40 70 73 -46 46 -23 56 132 56 95 0 165 9 180 24 41 41 33 784 -9 826 -44 44 -654 40 -699 -5z m647 -410 l-5 -365 -290 0 -290 0 -5 365 -6 365 301 0 301 0 -6 -365z"/>
         </g>
-      </svg>
-    );
-  }
-  
-  // Surveillance symbols
-  if (id === 'SURV-DOME') { // Dome Camera
-    return (
-      <svg {...commonProps}>
-        <ellipse cx="30" cy="32" rx="12" ry="8" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="30" cy="25" r="6" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="30" cy="25" r="3" fill={color} />
-      </svg>
-    );
-  }
-  
-  if (id === 'SURV-BULLET') { // Bullet Camera
-    return (
-      <svg {...commonProps}>
-        <rect x="15" y="25" width="20" height="10" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="35" cy="30" r="8" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="35" cy="30" r="4" fill={color} />
-      </svg>
-    );
-  }
-  
-  if (id === 'SURV-TURRET') { // Turret Camera
-    return (
-      <svg {...commonProps}>
-        <path d="M20,35 L20,28 Q20,22 26,22 L34,22 Q40,22 40,28 L40,35" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="30" cy="27" r="5" fill="none" stroke={color} strokeWidth="2" />
-        <circle cx="30" cy="27" r="2.5" fill={color} />
       </svg>
     );
   }

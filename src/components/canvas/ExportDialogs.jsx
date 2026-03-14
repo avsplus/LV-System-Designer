@@ -8,6 +8,7 @@ import ExportPDFDialog from "./ExportPDFDialog";
 import EnrichConnectionsDialog from "./EnrichConnectionsDialog";
 import ImportProductsDialog from "./ImportProductsDialog";
 import RoomSelectDialog from "./RoomSelectDialog";
+import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from "./surveillanceSymbolArtwork";
 
 const floorplanImageToCompactDataUrl = async (imageUrl) => {
   const source = String(imageUrl || '');
@@ -45,6 +46,15 @@ const floorplanImageToCompactDataUrl = async (imageUrl) => {
     return source.startsWith('data:image/') && source.length <= 420000 ? source : '';
   }
 };
+
+const loadImageElement = (src) =>
+  new Promise((resolve, reject) => {
+    const el = new Image();
+    el.crossOrigin = 'anonymous';
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = src;
+  });
 
 const toRgb = (color, fallback = [59, 130, 246]) => {
   if (Array.isArray(color) && color.length === 3) return color;
@@ -216,7 +226,7 @@ const renderFloorplanWithOverlays = async (
 
   // Annotations (including symbols)
   const fpAnnotations = (annotations || []).filter((ann) => ann?.floorplanId === floorplan?.id && !ann?.hidden);
-  fpAnnotations.forEach((ann) => {
+  for (const ann of fpAnnotations) {
     const rgb = toRgb(ann?.color);
     const startCanvasX = Number(fpPos.x || 0) + Number(ann?.position?.x || 0) * fpSize.width;
     const startCanvasY = Number(fpPos.y || 0) + Number(ann?.position?.y || 0) * fpSize.height;
@@ -233,26 +243,46 @@ const renderFloorplanWithOverlays = async (
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
-      return;
+      continue;
     }
     if (ann?.type === 'rectangle') {
       const rw = Number(ann?.width || 0) * width;
       const rh = Number(ann?.height || 0) * height;
       ann?.fill ? ctx.fillRect(p.x, p.y, rw, rh) : ctx.strokeRect(p.x, p.y, rw, rh);
-      return;
+      continue;
     }
     if (ann?.type === 'circle') {
       const rr = Number(ann?.radius || 0) * width;
       ctx.beginPath();
       ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
       ann?.fill ? ctx.fill() : ctx.stroke();
-      return;
+      continue;
     }
     if (ann?.type === 'text') {
       ctx.font = `${Math.max(10, Number(ann?.fontSize || 12))}px Arial`;
       ctx.textAlign = 'left';
       ctx.fillText(String(ann?.text || ''), p.x, p.y);
-      return;
+      continue;
+    }
+
+    if (ann?.type === 'symbol') {
+      const symbolId = String(ann?.symbolId || '');
+      if (isSurveillanceSymbol(symbolId)) {
+        try {
+          const icon = await loadImageElement(getSurveillanceSymbolDataUrl(symbolId, `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`));
+          const scale = Math.max(0.5, Number(ann?.scale || 1));
+          const size = Math.max(18, 60 * scale);
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          if (ann?.rotation) ctx.rotate((Number(ann.rotation) * Math.PI) / 180);
+          ctx.scale(ann?.flipped ? -1 : 1, 1);
+          ctx.drawImage(icon, -size / 2, -size / 2, size, size);
+          ctx.restore();
+          continue;
+        } catch {
+          // fall through to fallback badge
+        }
+      }
     }
 
     // Symbols/snapshots fallback marker
@@ -266,7 +296,7 @@ const renderFloorplanWithOverlays = async (
     ctx.font = `${Math.max(8, Math.round(width * 0.0075))}px Arial`;
     ctx.textAlign = 'center';
     ctx.fillText(badge.slice(0, 8), p.x, p.y + 3);
-  });
+  }
 
   return canvas.toDataURL('image/jpeg', 0.82);
 };

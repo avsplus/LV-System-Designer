@@ -1,5 +1,6 @@
 import React from 'react';
 import { getSymbolLabel } from './symbolRenderHelpers';
+import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from './surveillanceSymbolArtwork';
 
 const SYMBOL_ICONS = {
   'ELEC-1G': 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69220e1df953a2fd292e8b12/146c18ff0_1GangOutlet_1.png',
@@ -17,7 +18,7 @@ const SYMBOL_ICONS = {
 export default function SymbolRenderer({ symbolId, position, color, scale = 1, rotation = 0, flipped = false, specs = {}, installation = {} }) {
         const baseSize = 60;
         const scaledSize = baseSize * scale;
-        const iconUrl = SYMBOL_ICONS[symbolId];
+        const iconUrl = SYMBOL_ICONS[symbolId] || (isSurveillanceSymbol(symbolId) ? getSurveillanceSymbolDataUrl(symbolId, color || '#3b82f6') : '');
 
         if (!symbolId) {
           console.warn('SymbolRenderer: No symbolId provided', { position, color });

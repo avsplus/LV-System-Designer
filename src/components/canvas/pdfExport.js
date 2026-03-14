@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from './surveillanceSymbolArtwork';
 
 const PAGE = { w: 210, h: 297 };
 const MARGIN = 14;
@@ -725,7 +726,7 @@ const installer = async (ctx, data) => {
       }
       if (ann?.type === 'symbol') {
         const symbolId = s(ann?.symbolId || '');
-        const iconUrl = SYMBOL_ICONS[symbolId];
+        const iconUrl = SYMBOL_ICONS[symbolId] || (isSurveillanceSymbol(symbolId) ? getSurveillanceSymbolDataUrl(symbolId, '#ffffff') : '');
         const symbolScale = Number(ann?.scale || 1);
         const rotation = Number(ann?.rotation || 0);
         const flipped = Boolean(ann?.flipped);
