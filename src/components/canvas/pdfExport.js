@@ -733,13 +733,18 @@ const installer = async (ctx, data) => {
         if (isSurveillanceSymbol(symbolId)) {
           const coverage = getSurveillanceCoverageSettings(ann);
           if (coverage.coverageEnabled) {
+            const coverageHeading = rotation + Number(coverage.coverageRotationDeg || 0);
             const canvasDistance = getCoverageDistanceCanvasUnits(coverage.coverageDistanceFt, fp);
             const pdfDistance = canvasDistance * uniformScale;
-            const cone = getCoverageConePoints(startPdf, rotation || 0, coverage.coverageAngle, pdfDistance);
             fill(doc, [Math.min(255, rgb[0] + 90), Math.min(255, rgb[1] + 90), Math.min(255, rgb[2] + 90)]);
             stroke(doc, rgb);
             doc.setLineWidth(0.35);
-            doc.triangle(cone.start.x, cone.start.y, cone.left.x, cone.left.y, cone.right.x, cone.right.y, 'FD');
+            if (coverage.coverageAngle >= 359.5) {
+              doc.circle(startPdf.x, startPdf.y, pdfDistance, 'FD');
+            } else {
+              const cone = getCoverageConePoints(startPdf, coverageHeading, coverage.coverageAngle, pdfDistance);
+              doc.triangle(cone.start.x, cone.start.y, cone.left.x, cone.left.y, cone.right.x, cone.right.y, 'FD');
+            }
           }
         }
         const iconUrl = SYMBOL_ICONS[symbolId] || (isSurveillanceSymbol(symbolId) ? getSurveillanceSymbolDataUrl(symbolId, '#ffffff') : '');

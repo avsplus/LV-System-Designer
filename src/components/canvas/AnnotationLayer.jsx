@@ -41,7 +41,23 @@ export default function AnnotationLayer({
           const coverage = getSurveillanceCoverageSettings(ann);
           if (!coverage.coverageEnabled) return null;
           const distance = getCoverageDistanceCanvasUnits(coverage.coverageDistanceFt, fp);
-          const cone = getCoverageConePoints(canvasPos, ann.rotation || 0, coverage.coverageAngle, distance);
+          const coverageHeading = Number(ann.rotation || 0) + Number(coverage.coverageRotationDeg || 0);
+          if (coverage.coverageAngle >= 359.5) {
+            return (
+              <circle
+                key={`coverage-${ann.id}`}
+                cx={canvasPos.x}
+                cy={canvasPos.y}
+                r={distance}
+                fill={ann.color || '#3b82f6'}
+                fillOpacity={coverage.coverageOpacity}
+                stroke={ann.color || '#3b82f6'}
+                strokeOpacity={Math.min(0.65, coverage.coverageOpacity + 0.18)}
+                strokeWidth="1.2"
+              />
+            );
+          }
+          const cone = getCoverageConePoints(canvasPos, coverageHeading, coverage.coverageAngle, distance);
           const color = ann.color || '#3b82f6';
           const path = `M ${cone.start.x} ${cone.start.y} L ${cone.left.x} ${cone.left.y} A ${distance} ${distance} 0 0 1 ${cone.right.x} ${cone.right.y} Z`;
           return (

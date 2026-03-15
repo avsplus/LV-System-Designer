@@ -271,14 +271,19 @@ const renderFloorplanWithOverlays = async (
       if (isSurveillanceSymbol(symbolId)) {
         const coverage = getSurveillanceCoverageSettings(ann);
         if (coverage.coverageEnabled) {
+          const coverageHeading = Number(ann?.rotation || 0) + Number(coverage.coverageRotationDeg || 0);
           const distancePx = getCoverageDistanceCanvasUnits(coverage.coverageDistanceFt, floorplan) * (width / Math.max(1, fpSize.width));
-          const cone = getCoverageConePoints(p, ann?.rotation || 0, coverage.coverageAngle, distancePx);
           ctx.save();
           ctx.beginPath();
-          ctx.moveTo(cone.start.x, cone.start.y);
-          ctx.lineTo(cone.left.x, cone.left.y);
-          ctx.arc(p.x, p.y, distancePx, (Number(ann?.rotation || 0) - coverage.coverageAngle / 2) * Math.PI / 180, (Number(ann?.rotation || 0) + coverage.coverageAngle / 2) * Math.PI / 180);
-          ctx.closePath();
+          if (coverage.coverageAngle >= 359.5) {
+            ctx.arc(p.x, p.y, distancePx, 0, Math.PI * 2);
+          } else {
+            const cone = getCoverageConePoints(p, coverageHeading, coverage.coverageAngle, distancePx);
+            ctx.moveTo(cone.start.x, cone.start.y);
+            ctx.lineTo(cone.left.x, cone.left.y);
+            ctx.arc(p.x, p.y, distancePx, (coverageHeading - coverage.coverageAngle / 2) * Math.PI / 180, (coverageHeading + coverage.coverageAngle / 2) * Math.PI / 180);
+            ctx.closePath();
+          }
           ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${coverage.coverageOpacity})`;
           ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.min(0.65, coverage.coverageOpacity + 0.18)})`;
           ctx.lineWidth = Math.max(1, width * 0.0012);

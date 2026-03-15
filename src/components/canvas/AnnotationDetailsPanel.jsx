@@ -183,6 +183,7 @@ export default function AnnotationDetailsPanel({
   const schema = annotation.type === 'symbol' ? getSymbolSchema(annotation.symbolId) : null;
   const isSurveillance = annotation.type === 'symbol' && isSurveillanceSymbol(annotation.symbolId);
   const surveillanceCoverage = isSurveillance ? getSurveillanceCoverageSettings(annotation) : null;
+  const maxCoverageAngle = annotation?.symbolId === 'SURV-DOME' ? 360 : 180;
   
   // Initialize specs/installation from schema defaults if missing
   React.useEffect(() => {
@@ -275,7 +276,14 @@ export default function AnnotationDetailsPanel({
                         <p className="text-sm text-gray-500">Angle</p>
                         <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageAngle)}°</span>
                       </div>
-                      <Slider value={[surveillanceCoverage.coverageAngle]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageAngle', value[0])} min={15} max={180} step={5} className="w-full" />
+                      <Slider value={[surveillanceCoverage.coverageAngle]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageAngle', value[0])} min={15} max={maxCoverageAngle} step={5} className="w-full" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Direction Offset</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageRotationDeg)}°</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageRotationDeg]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageRotationDeg', value[0])} min={-180} max={180} step={5} className="w-full" />
                     </div>
                     <div>
                       <div className="flex justify-between items-center mb-2">
@@ -460,7 +468,14 @@ export default function AnnotationDetailsPanel({
                         <p className="text-sm text-gray-500">Angle</p>
                         <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageAngle)}°</span>
                       </div>
-                      <Slider value={[surveillanceCoverage.coverageAngle]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageAngle', value[0])} min={15} max={180} step={5} className="w-full" />
+                      <Slider value={[surveillanceCoverage.coverageAngle]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageAngle', value[0])} min={15} max={maxCoverageAngle} step={5} className="w-full" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Direction Offset</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageRotationDeg)}°</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageRotationDeg]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageRotationDeg', value[0])} min={-180} max={180} step={5} className="w-full" />
                     </div>
                     <div>
                       <div className="flex justify-between items-center mb-2">
