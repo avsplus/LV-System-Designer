@@ -130,6 +130,40 @@ const pointInFloorplan = (x, y, fp) => {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+const cropRenderedFloorplanImage = async (imageUrl, exportCrop) => {
+  const source = String(imageUrl || '');
+  if (!source || !exportCrop) return source;
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = source;
+  }).catch(() => null);
+
+  if (!img) return '';
+
+  const cropX = clamp(Number(exportCrop.x || 0), 0, 1);
+  const cropY = clamp(Number(exportCrop.y || 0), 0, 1);
+  const cropW = clamp(Number(exportCrop.width || 1), 0.001, 1 - cropX);
+  const cropH = clamp(Number(exportCrop.height || 1), 0.001, 1 - cropY);
+
+  const sx = Math.round(img.width * cropX);
+  const sy = Math.round(img.height * cropY);
+  const sw = Math.max(1, Math.round(img.width * cropW));
+  const sh = Math.max(1, Math.round(img.height * cropH));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, sw, sh);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  return canvas.toDataURL('image/png');
+};
+
 const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
   if (!canvasCapture?.dataUrl || !canvasCapture?.viewportWidth || !canvasCapture?.viewportHeight) return '';
 
@@ -415,9 +449,14 @@ const renderFloorplanWithOverlays = async (
 const prepareFloorplansForCloudExport = async (floorplans = [], context = {}, canvasCapture = null) => {
   const prepared = [];
   for (const fp of floorplans) {
-    const captured = canvasCapture ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '') : '';
-    const rendered = captured || await renderFloorplanWithOverlays(fp, context).catch(() => '');
-    const rawImage = rendered || fp?.url || fp?.image_url || '';
+    const renderedBase = await renderFloorplanWithOverlays(fp, context).catch(() => '');
+    const renderedCropped = fp?.exportCrop
+      ? await cropRenderedFloorplanImage(renderedBase || fp?.url || fp?.image_url || '', fp.exportCrop).catch(() => '')
+      : '';
+    const captured = !fp?.exportCrop && canvasCapture
+      ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '')
+      : '';
+    const rawImage = renderedCropped || captured || renderedBase || fp?.url || fp?.image_url || '';
     const compact = await floorplanImageToCompactDataUrl(rawImage);
     prepared.push({
       ...fp,
