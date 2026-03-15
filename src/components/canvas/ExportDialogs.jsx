@@ -449,14 +449,14 @@ const renderFloorplanWithOverlays = async (
 const prepareFloorplansForCloudExport = async (floorplans = [], context = {}, canvasCapture = null) => {
   const prepared = [];
   for (const fp of floorplans) {
+    const captured = canvasCapture
+      ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '')
+      : '';
     const renderedBase = await renderFloorplanWithOverlays(fp, context).catch(() => '');
     const renderedCropped = fp?.exportCrop
       ? await cropRenderedFloorplanImage(renderedBase || fp?.url || fp?.image_url || '', fp.exportCrop).catch(() => '')
       : '';
-    const captured = !fp?.exportCrop && canvasCapture
-      ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '')
-      : '';
-    const rawImage = renderedCropped || captured || renderedBase || fp?.url || fp?.image_url || '';
+    const rawImage = captured || renderedCropped || renderedBase || fp?.url || fp?.image_url || '';
     const compact = await floorplanImageToCompactDataUrl(rawImage);
     prepared.push({
       ...fp,
