@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Trash2, FlipHorizontal, RotateCw, Copy, HelpCircle, CheckSquare, StickyNote, Check, Plus, ChevronDown } from 'lucide-react';
 import { getSymbolSchema } from './symbolSchemas';
 import SpecsInstallPanel from './SpecsInstallPanel';
+import { getSurveillanceCoverageSettings } from './surveillanceCoverage';
+import { isSurveillanceSymbol } from './surveillanceSymbolArtwork';
 
 const ITEM_TYPES = [
   { key: 'question', label: 'Question', icon: HelpCircle, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30' },
@@ -134,6 +136,15 @@ export default function AnnotationDetailsPanel({
   const handleLabelChange = (e) => {
     onUpdate(index, { ...annotation, label: e.target.value });
   };
+  const handleSurveillanceCoverageChange = (key, value) => {
+    onUpdate(index, {
+      ...annotation,
+      specs: {
+        ...(annotation.specs || {}),
+        [key]: value
+      }
+    });
+  };
 
   const handleRadiusChange = (value) => {
     onUpdate(index, { ...annotation, radius: value[0] });
@@ -170,6 +181,8 @@ export default function AnnotationDetailsPanel({
   };
 
   const schema = annotation.type === 'symbol' ? getSymbolSchema(annotation.symbolId) : null;
+  const isSurveillance = annotation.type === 'symbol' && isSurveillanceSymbol(annotation.symbolId);
+  const surveillanceCoverage = isSurveillance ? getSurveillanceCoverageSettings(annotation) : null;
   
   // Initialize specs/installation from schema defaults if missing
   React.useEffect(() => {
@@ -246,6 +259,40 @@ export default function AnnotationDetailsPanel({
                 <Button onClick={handleFlipHorizontal} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
                   <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
                 </Button>
+                {isSurveillance && surveillanceCoverage && (
+                  <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-300 font-medium">Coverage View</p>
+                      <input
+                        type="checkbox"
+                        checked={surveillanceCoverage.coverageEnabled}
+                        onChange={(e) => handleSurveillanceCoverageChange('coverageEnabled', e.target.checked)}
+                        className="w-4 h-4 accent-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Angle</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageAngle)}°</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageAngle]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageAngle', value[0])} min={15} max={180} step={5} className="w-full" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Distance</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageDistanceFt)} ft</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageDistanceFt]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageDistanceFt', value[0])} min={1} max={100} step={1} className="w-full" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Opacity</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageOpacity * 100)}%</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageOpacity]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageOpacity', value[0])} min={0.05} max={0.5} step={0.01} className="w-full" />
+                    </div>
+                  </div>
+                )}
               </>
             )}
             {annotation.type === 'text' && (
@@ -397,6 +444,40 @@ export default function AnnotationDetailsPanel({
                 <Button onClick={handleFlipHorizontal} variant="outline" className="w-full bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
                   <FlipHorizontal className="w-4 h-4 mr-2" />{annotation.flipped ? 'Unflip' : 'Flip'} Horizontal
                 </Button>
+                {isSurveillance && surveillanceCoverage && (
+                  <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-300 font-medium">Coverage View</p>
+                      <input
+                        type="checkbox"
+                        checked={surveillanceCoverage.coverageEnabled}
+                        onChange={(e) => handleSurveillanceCoverageChange('coverageEnabled', e.target.checked)}
+                        className="w-4 h-4 accent-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Angle</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageAngle)}°</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageAngle]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageAngle', value[0])} min={15} max={180} step={5} className="w-full" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Distance</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageDistanceFt)} ft</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageDistanceFt]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageDistanceFt', value[0])} min={1} max={100} step={1} className="w-full" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">Opacity</p>
+                        <span className="text-sm text-blue-400 font-medium">{Math.round(surveillanceCoverage.coverageOpacity * 100)}%</span>
+                      </div>
+                      <Slider value={[surveillanceCoverage.coverageOpacity]} onValueChange={(value) => handleSurveillanceCoverageChange('coverageOpacity', value[0])} min={0.05} max={0.5} step={0.01} className="w-full" />
+                    </div>
+                  </div>
+                )}
               </>
             )}
 

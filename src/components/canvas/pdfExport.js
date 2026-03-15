@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from './surveillanceSymbolArtwork';
+import { getCoverageConePoints, getCoverageDistanceCanvasUnits, getSurveillanceCoverageSettings } from './surveillanceCoverage';
 
 const PAGE = { w: 210, h: 297 };
 const MARGIN = 14;
@@ -726,10 +727,22 @@ const installer = async (ctx, data) => {
       }
       if (ann?.type === 'symbol') {
         const symbolId = s(ann?.symbolId || '');
-        const iconUrl = SYMBOL_ICONS[symbolId] || (isSurveillanceSymbol(symbolId) ? getSurveillanceSymbolDataUrl(symbolId, '#ffffff') : '');
         const symbolScale = Number(ann?.scale || 1);
         const rotation = Number(ann?.rotation || 0);
         const flipped = Boolean(ann?.flipped);
+        if (isSurveillanceSymbol(symbolId)) {
+          const coverage = getSurveillanceCoverageSettings(ann);
+          if (coverage.coverageEnabled) {
+            const canvasDistance = getCoverageDistanceCanvasUnits(coverage.coverageDistanceFt, fp);
+            const pdfDistance = canvasDistance * uniformScale;
+            const cone = getCoverageConePoints(startPdf, rotation || 0, coverage.coverageAngle, pdfDistance);
+            fill(doc, [Math.min(255, rgb[0] + 90), Math.min(255, rgb[1] + 90), Math.min(255, rgb[2] + 90)]);
+            stroke(doc, rgb);
+            doc.setLineWidth(0.35);
+            doc.triangle(cone.start.x, cone.start.y, cone.left.x, cone.left.y, cone.right.x, cone.right.y, 'FD');
+          }
+        }
+        const iconUrl = SYMBOL_ICONS[symbolId] || (isSurveillanceSymbol(symbolId) ? getSurveillanceSymbolDataUrl(symbolId, '#ffffff') : '');
         const baseCanvasPx = 60 * symbolScale;
         const targetSize = Math.max(3.5, baseCanvasPx * uniformScale);
         if (iconUrl) {

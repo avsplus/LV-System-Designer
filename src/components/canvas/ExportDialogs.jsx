@@ -9,6 +9,7 @@ import EnrichConnectionsDialog from "./EnrichConnectionsDialog";
 import ImportProductsDialog from "./ImportProductsDialog";
 import RoomSelectDialog from "./RoomSelectDialog";
 import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from "./surveillanceSymbolArtwork";
+import { getCoverageConePoints, getCoverageDistanceCanvasUnits, getSurveillanceCoverageSettings } from "./surveillanceCoverage";
 
 const floorplanImageToCompactDataUrl = async (imageUrl) => {
   const source = String(imageUrl || '');
@@ -267,6 +268,25 @@ const renderFloorplanWithOverlays = async (
 
     if (ann?.type === 'symbol') {
       const symbolId = String(ann?.symbolId || '');
+      if (isSurveillanceSymbol(symbolId)) {
+        const coverage = getSurveillanceCoverageSettings(ann);
+        if (coverage.coverageEnabled) {
+          const distancePx = getCoverageDistanceCanvasUnits(coverage.coverageDistanceFt, floorplan) * (width / Math.max(1, fpSize.width));
+          const cone = getCoverageConePoints(p, ann?.rotation || 0, coverage.coverageAngle, distancePx);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(cone.start.x, cone.start.y);
+          ctx.lineTo(cone.left.x, cone.left.y);
+          ctx.arc(p.x, p.y, distancePx, (Number(ann?.rotation || 0) - coverage.coverageAngle / 2) * Math.PI / 180, (Number(ann?.rotation || 0) + coverage.coverageAngle / 2) * Math.PI / 180);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${coverage.coverageOpacity})`;
+          ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.min(0.65, coverage.coverageOpacity + 0.18)})`;
+          ctx.lineWidth = Math.max(1, width * 0.0012);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
       if (isSurveillanceSymbol(symbolId)) {
         try {
           const icon = await loadImageElement(getSurveillanceSymbolDataUrl(symbolId, `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`));

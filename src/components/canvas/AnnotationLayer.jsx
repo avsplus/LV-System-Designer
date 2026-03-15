@@ -3,6 +3,8 @@ import SymbolRenderer, { renderSymbolLabel } from './SymbolRenderer';
 import SymbolLegend from './SymbolLegend';
 import SnapshotMarker from './SnapshotMarker';
 import { appClient } from '@/api/appClient';
+import { getCoverageConePoints, getCoverageDistanceCanvasUnits, getSurveillanceCoverageSettings } from './surveillanceCoverage';
+import { isSurveillanceSymbol } from './surveillanceSymbolArtwork';
 
 /**
  * Renders all annotation DOM elements and SVG elements on the canvas.
@@ -30,6 +32,31 @@ export default function AnnotationLayer({
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
+      <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible', zIndex: 1100 }}>
+        {annotations.map((ann) => {
+          if (ann.type !== 'symbol' || !isSurveillanceSymbol(ann.symbolId) || ann.hidden) return null;
+          const fp = ann.floorplanId ? floorplans.find(f => f.id === ann.floorplanId) : null;
+          if (ann.floorplanId && (!fp || !fp.visible)) return null;
+          const canvasPos = fp ? floorplanToCanvasCoords(ann.position.x, ann.position.y, fp) : ann.position;
+          const coverage = getSurveillanceCoverageSettings(ann);
+          if (!coverage.coverageEnabled) return null;
+          const distance = getCoverageDistanceCanvasUnits(coverage.coverageDistanceFt, fp);
+          const cone = getCoverageConePoints(canvasPos, ann.rotation || 0, coverage.coverageAngle, distance);
+          const color = ann.color || '#3b82f6';
+          const path = `M ${cone.start.x} ${cone.start.y} L ${cone.left.x} ${cone.left.y} A ${distance} ${distance} 0 0 1 ${cone.right.x} ${cone.right.y} Z`;
+          return (
+            <path
+              key={`coverage-${ann.id}`}
+              d={path}
+              fill={color}
+              fillOpacity={coverage.coverageOpacity}
+              stroke={color}
+              strokeOpacity={Math.min(0.65, coverage.coverageOpacity + 0.18)}
+              strokeWidth="1.2"
+            />
+          );
+        })}
+      </svg>
       {/* DOM annotations: symbols & snapshots */}
       {annotations.map((ann, idx) => {
         const isSelected = selectedAnnotation === idx;

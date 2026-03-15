@@ -31,6 +31,8 @@ import RoomSelectDialog from "../components/canvas/RoomSelectDialog";
 import ExportDialogs from "../components/canvas/ExportDialogs";
 import AnnotationToolbar from "../components/canvas/AnnotationToolbar";
 import AnnotationPanelRouter from "../components/canvas/AnnotationPanelRouter";
+import { getSurveillanceCoverageSettings } from "../components/canvas/surveillanceCoverage";
+import { isSurveillanceSymbol } from "../components/canvas/surveillanceSymbolArtwork";
 import AnnotationLayer from "../components/canvas/AnnotationLayer";
 import CanvasConnectionLayer from "../components/canvas/CanvasConnectionLayer";
 import useCanvasAnnotations from "../components/canvas/hooks/useCanvasAnnotations";
@@ -1968,7 +1970,10 @@ function AVCanvasContent() {
                   color: annotationColor,
                   scale: 1,
                   rotation: 0,
-                  flipped: false
+                  flipped: false,
+                  ...(isSurveillanceSymbol(symbol)
+                    ? { specs: { ...getSurveillanceCoverageSettings({ symbolId: symbol }) } }
+                    : {})
                 };
                 const updated = [...annotations, newAnnotation];
                 setAnnotations(updated);
