@@ -223,6 +223,19 @@ function AVCanvasContent() {
 
   const captureCanvasForExport = useCallback(async () => {
     if (!canvasRef.current) return null;
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const floorplanRects = {};
+    canvasRef.current.querySelectorAll('[data-floorplan-id]').forEach((el) => {
+      const id = el.getAttribute('data-floorplan-id');
+      if (!id) return;
+      const rect = el.getBoundingClientRect();
+      floorplanRects[id] = {
+        x: rect.left - canvasRect.left,
+        y: rect.top - canvasRect.top,
+        width: rect.width,
+        height: rect.height
+      };
+    });
     const rendered = await html2canvas(canvasRef.current, {
       backgroundColor: null,
       useCORS: true,
@@ -237,6 +250,7 @@ function AVCanvasContent() {
       height: rendered.height,
       viewportWidth: canvasRef.current.clientWidth,
       viewportHeight: canvasRef.current.clientHeight,
+      floorplanRects,
       pan,
       zoom
     };

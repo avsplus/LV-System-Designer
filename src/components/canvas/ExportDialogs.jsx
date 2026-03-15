@@ -126,21 +126,30 @@ const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
 
   if (!img) return '';
 
+  const scaleX = img.width / Math.max(1, Number(canvasCapture.viewportWidth));
+  const scaleY = img.height / Math.max(1, Number(canvasCapture.viewportHeight));
+  const domRect = canvasCapture?.floorplanRects?.[floorplan?.id];
   const fpPos = floorplan?.position || { x: 0, y: 0 };
   const fpSize = getFloorplanCanvasSize(floorplan);
   const zoom = Number(canvasCapture.zoom || 1);
   const panX = Number(canvasCapture.pan?.x || 0);
   const panY = Number(canvasCapture.pan?.y || 0);
-  const scaleX = img.width / Math.max(1, Number(canvasCapture.viewportWidth));
-  const scaleY = img.height / Math.max(1, Number(canvasCapture.viewportHeight));
 
-  const paddingX = Math.max(40, fpSize.width * zoom * 0.04);
-  const paddingY = Math.max(40, fpSize.height * zoom * 0.04);
+  const paddingPxX = domRect ? Math.max(18, domRect.width * 0.015) : Math.max(40, fpSize.width * zoom * 0.04);
+  const paddingPxY = domRect ? Math.max(18, domRect.height * 0.015) : Math.max(40, fpSize.height * zoom * 0.04);
 
-  const rawX = (panX + Number(fpPos.x || 0) * zoom - paddingX) * scaleX;
-  const rawY = (panY + Number(fpPos.y || 0) * zoom - paddingY) * scaleY;
-  const rawW = (fpSize.width * zoom + paddingX * 2) * scaleX;
-  const rawH = (fpSize.height * zoom + paddingY * 2) * scaleY;
+  const rawX = domRect
+    ? (domRect.x - paddingPxX) * scaleX
+    : (panX + Number(fpPos.x || 0) * zoom - paddingPxX) * scaleX;
+  const rawY = domRect
+    ? (domRect.y - paddingPxY) * scaleY
+    : (panY + Number(fpPos.y || 0) * zoom - paddingPxY) * scaleY;
+  const rawW = domRect
+    ? (domRect.width + paddingPxX * 2) * scaleX
+    : (fpSize.width * zoom + paddingPxX * 2) * scaleX;
+  const rawH = domRect
+    ? (domRect.height + paddingPxY * 2) * scaleY
+    : (fpSize.height * zoom + paddingPxY * 2) * scaleY;
 
   const sx = clamp(rawX, 0, img.width);
   const sy = clamp(rawY, 0, img.height);
@@ -152,6 +161,8 @@ const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
   canvas.height = Math.max(1, Math.round(sh));
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL('image/png');
 };
