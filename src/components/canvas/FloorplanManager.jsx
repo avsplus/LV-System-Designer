@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug } from "lucide-react";
+import { X, Eye, EyeOff, Trash2, Upload, Ruler, Lock, Unlock, Home, ChevronDown, ChevronUp, Tv, Video, RectangleHorizontal, Box, Network, LayoutGrid, Music, Play, Speaker, Volume2, AudioLines, Gauge, Layers, Cpu, Radio, Router, Settings2, Cable, GripVertical, Pencil, Check, Circle, Compass, Wifi, Phone, HardDrive, Camera, Plug, Crop } from "lucide-react";
 import { appClient } from "@/api/appClient";
 import { toast } from "sonner";
 import * as pdfjsLib from 'pdfjs-dist';
