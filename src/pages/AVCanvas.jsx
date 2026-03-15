@@ -227,7 +227,8 @@ function AVCanvasContent() {
       backgroundColor: null,
       useCORS: true,
       allowTaint: true,
-      scale: 2,
+      scale: 3,
+      foreignObjectRendering: true,
       logging: false
     });
     return {

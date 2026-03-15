@@ -14,7 +14,7 @@ import { getCoverageConePoints, getCoverageDistanceCanvasUnits, getSurveillanceC
 const floorplanImageToCompactDataUrl = async (imageUrl) => {
   const source = String(imageUrl || '');
   if (!source) return '';
-  if (source.startsWith('data:image/') && source.length <= 380000) return source;
+  if (source.startsWith('data:image/') && source.length <= 900000) return source;
   if (source.startsWith('blob:')) return '';
   try {
     const response = await fetch(source);
@@ -27,7 +27,7 @@ const floorplanImageToCompactDataUrl = async (imageUrl) => {
       el.onerror = reject;
       el.src = objectUrl;
     });
-    const maxWidth = 1600;
+    const maxWidth = 2400;
     const ratio = Math.min(1, maxWidth / Math.max(1, img.naturalWidth || img.width || 1));
     const width = Math.max(1, Math.round((img.naturalWidth || img.width) * ratio));
     const height = Math.max(1, Math.round((img.naturalHeight || img.height) * ratio));
@@ -40,11 +40,11 @@ const floorplanImageToCompactDataUrl = async (imageUrl) => {
       return source;
     }
     ctx.drawImage(img, 0, 0, width, height);
-    const compressed = canvas.toDataURL('image/jpeg', 0.72);
+    const compressed = canvas.toDataURL('image/jpeg', 0.88);
     URL.revokeObjectURL(objectUrl);
-    return compressed.length <= 420000 ? compressed : '';
+    return compressed.length <= 1100000 ? compressed : '';
   } catch {
-    return source.startsWith('data:image/') && source.length <= 420000 ? source : '';
+    return source.startsWith('data:image/') && source.length <= 1100000 ? source : '';
   }
 };
 
@@ -153,7 +153,7 @@ const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', 0.92);
+  return canvas.toDataURL('image/png');
 };
 
 const renderFloorplanWithOverlays = async (
