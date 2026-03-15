@@ -61,6 +61,10 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
   const exportCropImageRef = useRef(null);
+  const getFloorplanOpacity = (fp) => {
+    const value = Number(fp?.opacity);
+    return Number.isFinite(value) ? value : 0.3;
+  };
 
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'];
   const STROKE_WIDTHS = [1, 2, 3, 4, 6, 8];
@@ -832,9 +836,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                 
                 {fp.visible && (
                    <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
-                    <label className="text-xs text-gray-400">Opacity: {Math.round(fp.opacity * 100)}%</label>
+                    <label className="text-xs text-gray-400">Opacity: {Math.round(getFloorplanOpacity(fp) * 100)}%</label>
                     <Slider
-                      value={[fp.opacity]}
+                      value={[getFloorplanOpacity(fp)]}
                       onValueChange={(value) => handleOpacityChange(fp.id, value)}
                       min={0}
                       max={1}

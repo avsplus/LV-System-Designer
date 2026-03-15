@@ -29,6 +29,10 @@ export default function AnnotationLayer({
 }) {
   const dataOutletSymbolIds = new Set(['NET-DO', 'NET-DP', 'NET-WAP']);
   const isDataOutletSymbol = (ann) => dataOutletSymbolIds.has(ann?.symbolId);
+  const floorplanOpacity = (fp) => {
+    const value = Number(fp?.opacity);
+    return Number.isFinite(value) ? value : 0.3;
+  };
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', overflow: 'visible' }}>
@@ -358,7 +362,7 @@ export default function AnnotationLayer({
           <div key={fp.id} data-floorplan="true" data-floorplan-id={fp.id} onMouseDown={(e) => handleFloorplanMouseDown(e, fp.id)} onClick={(e) => handleFloorplanClick(e, fp.id)}
             style={{ position:'absolute', top:`${curY}px`, left:`${curX}px`, width:`${dW}px`, height:`${dH}px`, pointerEvents:'auto', cursor:isDragging?'grabbing':'grab', outline:isSel?'3px solid #3b82f6':'none', outlineOffset:isSel?'4px':'0', boxShadow:isSel?'0 0 20px rgba(59,130,246,0.5)':'none', zIndex:isSel?1000:index, transition:isDragging||resizingFloorplan?.id===fp.id?'none':'all 0.2s ease', flexShrink:0, overflow:'visible', backgroundColor:'#000' }}
           >
-            <img src={fp.image_url || fp.url} alt={fp.name} onLoad={(e) => { if (!fp.imageWidth||!fp.imageHeight) { const u = floorplans.map(f=>f.id===fp.id?{...f,imageWidth:e.target.naturalWidth,imageHeight:e.target.naturalHeight}:f); setFloorplans(u); if (currentProject?.id) { setCurrentProject(c=>({...c,floorplans:u})); appClient.updateProject(currentProject.id,{floorplans:u}).catch(()=>{}); } } }} style={{ width:'100%', height:'100%', opacity:fp.opacity, filter:fp.locked?'brightness(0.8)':'none', display:'block', pointerEvents:'none' }} />
+            <img src={fp.image_url || fp.url} alt={fp.name} onLoad={(e) => { if (!fp.imageWidth||!fp.imageHeight) { const u = floorplans.map(f=>f.id===fp.id?{...f,imageWidth:e.target.naturalWidth,imageHeight:e.target.naturalHeight}:f); setFloorplans(u); if (currentProject?.id) { setCurrentProject(c=>({...c,floorplans:u})); appClient.updateProject(currentProject.id,{floorplans:u}).catch(()=>{}); } } }} style={{ width:'100%', height:'100%', opacity:floorplanOpacity(fp), filter:fp.locked?'brightness(0.8)':'none', display:'block', pointerEvents:'none' }} />
             {isSel && !fp.locked && (
               <>
                 {['nw','ne','sw','se'].map(corner => {
