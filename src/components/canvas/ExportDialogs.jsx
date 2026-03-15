@@ -11,16 +11,23 @@ import RoomSelectDialog from "./RoomSelectDialog";
 import { getSurveillanceSymbolDataUrl, isSurveillanceSymbol } from "./surveillanceSymbolArtwork";
 import { getCoverageConePoints, getCoverageDistanceCanvasUnits, getSurveillanceCoverageSettings } from "./surveillanceCoverage";
 
+const MAX_INLINE_FLOORPLAN_DATA_URL = 380000;
+
 const floorplanImageToCompactDataUrl = async (imageUrl) => {
   const source = String(imageUrl || '');
   if (!source) return '';
-  if (source.startsWith('data:image/') && source.length <= 900000) return source;
+  if (source.startsWith('data:image/') && source.length <= MAX_INLINE_FLOORPLAN_DATA_URL) return source;
   if (source.startsWith('blob:')) return '';
   try {
-    const response = await fetch(source);
-    if (!response.ok) return source;
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
+    let objectUrl = '';
+    if (source.startsWith('data:image/')) {
+      objectUrl = source;
+    } else {
+      const response = await fetch(source);
+      if (!response.ok) return source;
+      const blob = await response.blob();
+      objectUrl = URL.createObjectURL(blob);
+    }
     const img = await new Promise((resolve, reject) => {
       const el = new Image();
       el.onload = () => resolve(el);
@@ -36,15 +43,24 @@ const floorplanImageToCompactDataUrl = async (imageUrl) => {
     canvas.height = height;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-      URL.revokeObjectURL(objectUrl);
+      if (!source.startsWith('data:image/')) URL.revokeObjectURL(objectUrl);
       return source;
     }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
     ctx.drawImage(img, 0, 0, width, height);
-    const compressed = canvas.toDataURL('image/jpeg', 0.88);
-    URL.revokeObjectURL(objectUrl);
-    return compressed.length <= 1100000 ? compressed : '';
+
+    let quality = 0.88;
+    let compressed = canvas.toDataURL('image/jpeg', quality);
+    while (compressed.length > MAX_INLINE_FLOORPLAN_DATA_URL && quality > 0.35) {
+      quality -= 0.08;
+      compressed = canvas.toDataURL('image/jpeg', quality);
+    }
+
+    if (!source.startsWith('data:image/')) URL.revokeObjectURL(objectUrl);
+    return compressed.length <= MAX_INLINE_FLOORPLAN_DATA_URL ? compressed : '';
   } catch {
-    return source.startsWith('data:image/') && source.length <= 1100000 ? source : '';
+    return source.startsWith('data:image/') && source.length <= MAX_INLINE_FLOORPLAN_DATA_URL ? source : '';
   }
 };
 
