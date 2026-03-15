@@ -48,6 +48,9 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationZoom, setCalibrationZoom] = useState(0.25);
   const [editingScale, setEditingScale] = useState(null);
+  const [editingExportCrop, setEditingExportCrop] = useState(null);
+  const [exportCropDraft, setExportCropDraft] = useState(null);
+  const [cropDragStart, setCropDragStart] = useState(null);
   const [expandedFloorplan, setExpandedFloorplan] = useState(null);
   const [newRoomName, setNewRoomName] = useState('');
   const [draggedDevice, setDraggedDevice] = useState(null);
@@ -57,6 +60,7 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+  const exportCropImageRef = useRef(null);
 
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'];
   const STROKE_WIDTHS = [1, 2, 3, 4, 6, 8];
@@ -229,6 +233,77 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
       setEditingScale(null);
       toast.success('Scale updated');
     }
+  };
+
+  const openExportCropEditor = (floorplan) => {
+    setEditingExportCrop(floorplan);
+    setExportCropDraft(
+      floorplan?.exportCrop || {
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1
+      }
+    );
+    setCropDragStart(null);
+  };
+
+  const saveExportCrop = () => {
+    if (!editingExportCrop || !exportCropDraft) return;
+    onUpdate(
+      floorplans.map((fp) =>
+        fp.id === editingExportCrop.id
+          ? {
+              ...fp,
+              exportCrop: {
+                x: Math.max(0, Math.min(1, exportCropDraft.x)),
+                y: Math.max(0, Math.min(1, exportCropDraft.y)),
+                width: Math.max(0.02, Math.min(1, exportCropDraft.width)),
+                height: Math.max(0.02, Math.min(1, exportCropDraft.height))
+              }
+            }
+          : fp
+      )
+    );
+    setEditingExportCrop(null);
+    setExportCropDraft(null);
+    setCropDragStart(null);
+    toast.success('Export area saved');
+  };
+
+  const clearExportCrop = () => {
+    if (!editingExportCrop) return;
+    setExportCropDraft({ x: 0, y: 0, width: 1, height: 1 });
+  };
+
+  const handleExportCropPointerDown = (e) => {
+    if (!exportCropImageRef.current) return;
+    const rect = exportCropImageRef.current.getBoundingClientRect();
+    const startX = (e.clientX - rect.left) / rect.width;
+    const startY = (e.clientY - rect.top) / rect.height;
+    setCropDragStart({ x: startX, y: startY });
+    setExportCropDraft({ x: startX, y: startY, width: 0.001, height: 0.001 });
+  };
+
+  const handleExportCropPointerMove = (e) => {
+    if (!cropDragStart || !exportCropImageRef.current) return;
+    const rect = exportCropImageRef.current.getBoundingClientRect();
+    const currentX = (e.clientX - rect.left) / rect.width;
+    const currentY = (e.clientY - rect.top) / rect.height;
+    const x = Math.max(0, Math.min(cropDragStart.x, currentX));
+    const y = Math.max(0, Math.min(cropDragStart.y, currentY));
+    const width = Math.min(1 - x, Math.abs(currentX - cropDragStart.x));
+    const height = Math.min(1 - y, Math.abs(currentY - cropDragStart.y));
+    setExportCropDraft({
+      x,
+      y,
+      width: Math.max(0.001, width),
+      height: Math.max(0.001, height)
+    });
+  };
+
+  const handleExportCropPointerUp = () => {
+    setCropDragStart(null);
   };
 
   const handleCanvasClick = (e) => {
@@ -488,6 +563,96 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
     );
   }
 
+  if (editingExportCrop) {
+    return (
+      <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-6xl w-full mx-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Set Export Area</h3>
+              <p className="text-sm text-gray-400">Drag a rectangle over the area this floorplan should use in PDF exports.</p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                setEditingExportCrop(null);
+                setExportCropDraft(null);
+                setCropDragStart(null);
+              }}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg overflow-auto max-h-[70vh] p-4">
+            <div
+              ref={exportCropImageRef}
+              className="relative inline-block select-none"
+              onMouseDown={handleExportCropPointerDown}
+              onMouseMove={handleExportCropPointerMove}
+              onMouseUp={handleExportCropPointerUp}
+              onMouseLeave={handleExportCropPointerUp}
+            >
+              <img
+                src={editingExportCrop.image_url || editingExportCrop.url}
+                alt={editingExportCrop.name}
+                className="block max-w-full h-auto"
+                draggable={false}
+              />
+              {exportCropDraft && (
+                <div
+                  className="absolute border-2 border-blue-400 bg-blue-400/15 pointer-events-none"
+                  style={{
+                    left: `${exportCropDraft.x * 100}%`,
+                    top: `${exportCropDraft.y * 100}%`,
+                    width: `${exportCropDraft.width * 100}%`,
+                    height: `${exportCropDraft.height * 100}%`
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-xs text-gray-400">
+              {exportCropDraft
+                ? `Crop: x ${exportCropDraft.x.toFixed(3)}, y ${exportCropDraft.y.toFixed(3)}, w ${exportCropDraft.width.toFixed(3)}, h ${exportCropDraft.height.toFixed(3)}`
+                : 'Draw an export area'}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={clearExportCrop}
+                className="border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700"
+              >
+                Reset Full Area
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditingExportCrop(null);
+                  setExportCropDraft(null);
+                  setCropDragStart(null);
+                }}
+                className="border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={saveExportCrop}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Save Export Area
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed right-0 top-[87px] bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-40 flex flex-col overflow-hidden">
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
@@ -616,6 +781,18 @@ export default function FloorplanManager({ floorplans = [], onUpdate, onClose, s
                       )}
                     </div>
                     <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openExportCropEditor(fp);
+                        }}
+                        className="h-7 w-7 text-blue-400 hover:text-blue-300"
+                        title="Set export area"
+                      >
+                        <Crop className="w-3 h-3" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"

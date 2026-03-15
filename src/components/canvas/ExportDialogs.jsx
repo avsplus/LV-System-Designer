@@ -129,6 +129,7 @@ const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
   const scaleX = img.width / Math.max(1, Number(canvasCapture.viewportWidth));
   const scaleY = img.height / Math.max(1, Number(canvasCapture.viewportHeight));
   const domRect = canvasCapture?.floorplanRects?.[floorplan?.id];
+  const exportCrop = floorplan?.exportCrop;
   const fpPos = floorplan?.position || { x: 0, y: 0 };
   const fpSize = getFloorplanCanvasSize(floorplan);
   const zoom = Number(canvasCapture.zoom || 1);
@@ -138,18 +139,32 @@ const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
   const paddingPxX = domRect ? Math.max(18, domRect.width * 0.015) : Math.max(40, fpSize.width * zoom * 0.04);
   const paddingPxY = domRect ? Math.max(18, domRect.height * 0.015) : Math.max(40, fpSize.height * zoom * 0.04);
 
-  const rawX = domRect
-    ? (domRect.x - paddingPxX) * scaleX
-    : (panX + Number(fpPos.x || 0) * zoom - paddingPxX) * scaleX;
-  const rawY = domRect
-    ? (domRect.y - paddingPxY) * scaleY
-    : (panY + Number(fpPos.y || 0) * zoom - paddingPxY) * scaleY;
-  const rawW = domRect
-    ? (domRect.width + paddingPxX * 2) * scaleX
-    : (fpSize.width * zoom + paddingPxX * 2) * scaleX;
-  const rawH = domRect
-    ? (domRect.height + paddingPxY * 2) * scaleY
-    : (fpSize.height * zoom + paddingPxY * 2) * scaleY;
+  const cropX = exportCrop ? Number(exportCrop.x || 0) : 0;
+  const cropY = exportCrop ? Number(exportCrop.y || 0) : 0;
+  const cropW = exportCrop ? Number(exportCrop.width || 1) : 1;
+  const cropH = exportCrop ? Number(exportCrop.height || 1) : 1;
+
+  const domCropRect = domRect
+    ? {
+        x: domRect.x + domRect.width * cropX,
+        y: domRect.y + domRect.height * cropY,
+        width: domRect.width * cropW,
+        height: domRect.height * cropH
+      }
+    : null;
+
+  const rawX = domCropRect
+    ? (domCropRect.x - paddingPxX) * scaleX
+    : (panX + (Number(fpPos.x || 0) + fpSize.width * cropX) * zoom - paddingPxX) * scaleX;
+  const rawY = domCropRect
+    ? (domCropRect.y - paddingPxY) * scaleY
+    : (panY + (Number(fpPos.y || 0) + fpSize.height * cropY) * zoom - paddingPxY) * scaleY;
+  const rawW = domCropRect
+    ? (domCropRect.width + paddingPxX * 2) * scaleX
+    : (fpSize.width * cropW * zoom + paddingPxX * 2) * scaleX;
+  const rawH = domCropRect
+    ? (domCropRect.height + paddingPxY * 2) * scaleY
+    : (fpSize.height * cropH * zoom + paddingPxY * 2) * scaleY;
 
   const sx = clamp(rawX, 0, img.width);
   const sy = clamp(rawY, 0, img.height);
