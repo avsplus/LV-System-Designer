@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import html2canvas from 'html2canvas';
 import { appClient } from "@/api/appClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
@@ -219,6 +220,26 @@ function AVCanvasContent() {
     setSelectedConnection(null);
     setSelectedCanvasProduct(null);
   };
+
+  const captureCanvasForExport = useCallback(async () => {
+    if (!canvasRef.current) return null;
+    const rendered = await html2canvas(canvasRef.current, {
+      backgroundColor: null,
+      useCORS: true,
+      allowTaint: true,
+      scale: 2,
+      logging: false
+    });
+    return {
+      dataUrl: rendered.toDataURL('image/png'),
+      width: rendered.width,
+      height: rendered.height,
+      viewportWidth: canvasRef.current.clientWidth,
+      viewportHeight: canvasRef.current.clientHeight,
+      pan,
+      zoom
+    };
+  }, [pan, zoom]);
 
 
 
@@ -2239,7 +2260,7 @@ function AVCanvasContent() {
                         type: pendingSymbolLink.connectionType,
                         fromPort: isUplink ? pendingSymbolLink.selectedDevicePort : pendingSymbolLink.selectedPort,
                         toPort: isUplink ? pendingSymbolLink.selectedPort : pendingSymbolLink.selectedDevicePort,
-                        wireSpec: null,
+                        wireSpec: parentUplinkConnection?.wireSpec || null,
                         parentWireId: parentUplinkConnection?.wireId || null
                       },
                       {
@@ -2326,6 +2347,7 @@ function AVCanvasContent() {
           canvasProducts={canvasProducts} connections={connections} rooms={rooms}
           floorplans={floorplans} arrows={arrows} annotations={annotations}
           orgSettings={orgSettings}
+          captureCanvasForExport={captureCanvasForExport}
           selectedFloorplanId={selectedFloorplanId}
           handleAddRoom={handleAddRoom}
           addProductToCanvas={addProductToCanvas}

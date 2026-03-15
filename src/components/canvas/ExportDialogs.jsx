@@ -112,6 +112,50 @@ const pointInFloorplan = (x, y, fp) => {
   );
 };
 
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
+  if (!canvasCapture?.dataUrl || !canvasCapture?.viewportWidth || !canvasCapture?.viewportHeight) return '';
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = canvasCapture.dataUrl;
+  }).catch(() => null);
+
+  if (!img) return '';
+
+  const fpPos = floorplan?.position || { x: 0, y: 0 };
+  const fpSize = getFloorplanCanvasSize(floorplan);
+  const zoom = Number(canvasCapture.zoom || 1);
+  const panX = Number(canvasCapture.pan?.x || 0);
+  const panY = Number(canvasCapture.pan?.y || 0);
+  const scaleX = img.width / Math.max(1, Number(canvasCapture.viewportWidth));
+  const scaleY = img.height / Math.max(1, Number(canvasCapture.viewportHeight));
+
+  const paddingX = Math.max(40, fpSize.width * zoom * 0.04);
+  const paddingY = Math.max(40, fpSize.height * zoom * 0.04);
+
+  const rawX = (panX + Number(fpPos.x || 0) * zoom - paddingX) * scaleX;
+  const rawY = (panY + Number(fpPos.y || 0) * zoom - paddingY) * scaleY;
+  const rawW = (fpSize.width * zoom + paddingX * 2) * scaleX;
+  const rawH = (fpSize.height * zoom + paddingY * 2) * scaleY;
+
+  const sx = clamp(rawX, 0, img.width);
+  const sy = clamp(rawY, 0, img.height);
+  const sw = clamp(rawW - Math.max(0, sx - rawX), 1, img.width - sx);
+  const sh = clamp(rawH - Math.max(0, sy - rawY), 1, img.height - sy);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(sw));
+  canvas.height = Math.max(1, Math.round(sh));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.92);
+};
+
 const renderFloorplanWithOverlays = async (
   floorplan,
   {
@@ -326,10 +370,11 @@ const renderFloorplanWithOverlays = async (
   return canvas.toDataURL('image/jpeg', 0.82);
 };
 
-const prepareFloorplansForCloudExport = async (floorplans = [], context = {}) => {
+const prepareFloorplansForCloudExport = async (floorplans = [], context = {}, canvasCapture = null) => {
   const prepared = [];
   for (const fp of floorplans) {
-    const rendered = await renderFloorplanWithOverlays(fp, context).catch(() => '');
+    const captured = canvasCapture ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '') : '';
+    const rendered = captured || await renderFloorplanWithOverlays(fp, context).catch(() => '');
     const rawImage = rendered || fp?.url || fp?.image_url || '';
     const compact = await floorplanImageToCompactDataUrl(rawImage);
     prepared.push({
@@ -355,6 +400,7 @@ export default function ExportDialogs({
   currentUserName,
   canvasProducts, connections, rooms, floorplans, arrows, annotations,
   orgSettings,
+  captureCanvasForExport,
   selectedFloorplanId, floorplans: fp,
   handleAddRoom, addProductToCanvas,
   projectData, queryClient,
@@ -381,13 +427,14 @@ export default function ExportDialogs({
             try {
               const wirePricing = await appClient.listWirePricing().catch(() => []);
               if (engine === 'apitemplate') {
+                const canvasCapture = captureCanvasForExport ? await captureCanvasForExport().catch(() => null) : null;
                 const floorplansForCloud = await prepareFloorplansForCloudExport(exportFloorplans || floorplans, {
                   canvasProducts,
                   connections,
                   annotations,
                   arrows,
                   rooms
-                });
+                }, canvasCapture);
                 const result = await appClient.exportPdfCloud({
                   projectName: currentProject?.name || 'AV-System-Design',
                   clientName,

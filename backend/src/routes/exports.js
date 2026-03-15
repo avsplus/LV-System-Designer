@@ -73,6 +73,21 @@ const normalizeWirePricing = (row, index) => ({
   labor_price_per_run: asNumber(row?.labor_price_per_run, 0),
   termination_price: asNumber(row?.termination_price, 0)
 });
+const getMatchedWirePricingRow = (connection, pricingIndex) => {
+  const typeKey = normalizeWireTypeKey(connection?.type);
+  const specKey = normalizeWireSpecKey(connection?.wireSpec || connection?.spec);
+  return (
+    (specKey ? pricingIndex.byTypeAndSpec.get(`${typeKey}|${specKey}`) : null) ||
+    pricingIndex.byTypeAnySpec.get(typeKey) ||
+    pricingIndex.byTypeFallback.get(typeKey) ||
+    null
+  );
+};
+const getConnectionDisplaySpec = (connection, matchedPricingRow = null) =>
+  asString(
+    connection?.wireSpec || connection?.spec || matchedPricingRow?.wire_spec,
+    matchedPricingRow?.wire_spec ? matchedPricingRow.wire_spec : 'All specs'
+  );
 const buildWirePricingIndex = (rows = []) => {
   const byTypeAndSpec = new Map();
   const byTypeAnySpec = new Map();
@@ -103,16 +118,10 @@ const calculateCablePricing = (connections, wirePricing) => {
   const lineItemsMap = new Map();
 
   for (const conn of connections) {
-    const typeKey = normalizeWireTypeKey(conn?.type);
-    const specKey = normalizeWireSpecKey(conn?.wireSpec || conn?.spec);
-    const matched =
-      (specKey ? index.byTypeAndSpec.get(`${typeKey}|${specKey}`) : null) ||
-      index.byTypeAnySpec.get(typeKey) ||
-      index.byTypeFallback.get(typeKey) ||
-      null;
+    const matched = getMatchedWirePricingRow(conn, index);
 
     const displayType = asString(conn?.type, 'Unknown');
-    const displaySpec = asString(conn?.wireSpec || conn?.spec, '-');
+    const displaySpec = getConnectionDisplaySpec(conn, matched);
     const lineKey = `${displayType}|${displaySpec}`;
     if (!lineItemsMap.has(lineKey)) {
       lineItemsMap.set(lineKey, {
@@ -254,6 +263,12 @@ const normalizeExportPayload = (payload) => {
   const canvasProducts = asArray(payload.canvasProducts).map((cp, idx) => normalizeProduct(cp, idx));
   const productsById = new Map(canvasProducts.map((cp) => [cp.instanceId, cp]));
   const connections = asArray(payload.connections).map((conn, idx) => normalizeConnection(conn, idx, productsById));
+  const wirePricing = asArray(payload.wirePricing).map((row, idx) => normalizeWirePricing(row, idx));
+  const pricingIndex = buildWirePricingIndex(wirePricing);
+  const hydratedConnections = connections.map((conn) => ({
+    ...conn,
+    wireSpec: getConnectionDisplaySpec(conn, getMatchedWirePricingRow(conn, pricingIndex))
+  }));
 
   return {
     projectName: asString(payload.projectName, 'AV System Design'),
@@ -262,7 +277,7 @@ const normalizeExportPayload = (payload) => {
     preparedBy: asString(payload.preparedBy, 'N/A'),
     exportType: asString(payload.exportType, 'installer'),
     canvasProducts,
-    connections,
+    connections: hydratedConnections,
     rooms: asArray(payload.rooms),
     floorplans: asArray(payload.floorplans).map((fp) => ({
       ...fp,
@@ -272,7 +287,7 @@ const normalizeExportPayload = (payload) => {
     })),
     arrows: asArray(payload.arrows),
     annotations: asArray(payload.annotations),
-    wirePricing: asArray(payload.wirePricing).map((row, idx) => normalizeWirePricing(row, idx)),
+    wirePricing,
     orgSettings: isPlainObject(payload.orgSettings) ? payload.orgSettings : {}
   };
 };
