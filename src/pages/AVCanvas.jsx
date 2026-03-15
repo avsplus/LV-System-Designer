@@ -2036,6 +2036,7 @@ function AVCanvasContent() {
             toProduct={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.product}
             fromLabel={canvasProducts.find(cp => cp.instanceId === selectedConnection.from)?.label}
             toLabel={canvasProducts.find(cp => cp.instanceId === selectedConnection.to)?.label}
+            annotations={annotations}
             fromPosition={connectionPositions[selectedConnection.index]?.fromPoint || null}
             toPosition={connectionPositions[selectedConnection.index]?.toPoint || null}
             allConnections={connections}
@@ -2050,8 +2051,9 @@ function AVCanvasContent() {
             product={ensureNetworkInfo(selectedCanvasProduct)}
             label={selectedCanvasProduct.label}
             networkInfo={ensureNetworkInfo(selectedCanvasProduct).networkInfo}
-            activeConnections={connections}
+           activeConnections={connections}
             allProducts={canvasProducts.map(ensureNetworkInfo)}
+            annotations={annotations}
             onClose={() => {
               setSelectedCanvasProduct(null);
               setPanelHistory(prev => prev.filter(p => p !== 'deviceConnections'));

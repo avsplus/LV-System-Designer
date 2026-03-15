@@ -55,7 +55,35 @@ const connectionTypes = {
   }
 };
 
-export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, fromLabel, toLabel, allConnections, onClose, onDelete, fromPosition, toPosition, floorplans = [] }) {
+const resolveEndpointDisplay = ({ endpointId, product, label, port, annotations = [] }) => {
+  if (product) {
+    return {
+      title: product.brand || label || 'Unknown Device',
+      subtitle: product.model || 'N/A',
+      portLabel: port || ''
+    };
+  }
+
+  if (typeof endpointId === 'string' && endpointId.startsWith('ann:')) {
+    const annotationId = endpointId.slice(4);
+    const annotation = annotations.find((ann) => String(ann?.id) === annotationId);
+    if (annotation) {
+      return {
+        title: annotation.label || annotation.symbolId || 'Symbol',
+        subtitle: annotation.symbolId || 'Symbol',
+        portLabel: port || ''
+      };
+    }
+  }
+
+  return {
+    title: label || 'Unknown Device',
+    subtitle: 'N/A',
+    portLabel: port || ''
+  };
+};
+
+export default function ConnectionDetailsPanel({ connection, fromProduct, toProduct, fromLabel, toLabel, annotations = [], allConnections, onClose, onDelete, fromPosition, toPosition, floorplans = [] }) {
   // Normalize connection type - handle both "Speaker Wire" and "speaker_wire"
   const normalizeTypeKey = (type) => type.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const typeKey = normalizeTypeKey(connection.type);
@@ -66,6 +94,20 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
   )?.[1] || connectionTypes.speaker_wire;
 
   const isEmpty = connection.isEmpty;
+  const fromEndpoint = resolveEndpointDisplay({
+    endpointId: connection?.from,
+    product: fromProduct,
+    label: fromLabel,
+    port: connection?.fromPort,
+    annotations
+  });
+  const toEndpoint = resolveEndpointDisplay({
+    endpointId: connection?.to,
+    product: toProduct,
+    label: toLabel,
+    port: connection?.toPort,
+    annotations
+  });
   
   // Calculate wire length if we have positions and a calibrated floorplan
   const activeFloorplan = floorplans?.find(fp => fp.visible && fp.pixelsPerInch);
@@ -187,12 +229,12 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
             <div className="space-y-3">
               <div className="bg-gray-800 rounded-lg p-3">
                 <p className="text-xs text-gray-400 mb-1">From</p>
-                <p className="text-sm font-medium text-white">{fromProduct?.brand || 'Unknown Device'}</p>
-                <p className="text-xs text-gray-400">{fromProduct?.model || 'N/A'}</p>
+                <p className="text-sm font-medium text-white">{fromEndpoint.title}</p>
+                <p className="text-xs text-gray-400">{fromEndpoint.subtitle}</p>
                 {connection.fromPort && (
                   <div className="mt-2 inline-block">
                     <Badge className="bg-purple-500/10 text-purple-300 border-purple-500/30 text-xs">
-                      {connection.fromPort}
+                      {fromEndpoint.portLabel}
                     </Badge>
                   </div>
                 )}
@@ -202,12 +244,12 @@ export default function ConnectionDetailsPanel({ connection, fromProduct, toProd
               </div>
               <div className="bg-gray-800 rounded-lg p-3">
                 <p className="text-xs text-gray-400 mb-1">To</p>
-                <p className="text-sm font-medium text-white">{toProduct?.brand || 'Unknown Device'}</p>
-                <p className="text-xs text-gray-400">{toProduct?.model || 'N/A'}</p>
+                <p className="text-sm font-medium text-white">{toEndpoint.title}</p>
+                <p className="text-xs text-gray-400">{toEndpoint.subtitle}</p>
                 {connection.toPort && (
                   <div className="mt-2 inline-block">
                     <Badge className="bg-blue-500/10 text-blue-300 border-blue-500/30 text-xs">
-                      {connection.toPort}
+                      {toEndpoint.portLabel}
                     </Badge>
                   </div>
                 )}

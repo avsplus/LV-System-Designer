@@ -220,7 +220,35 @@ const connectionTypeInfo = {
   "Various": { color: "bg-gray-500/10 text-gray-400 border-gray-500/20", signals: "Multiple Types", highlight: { bg: "bg-gray-500/20", border: "border-gray-500/40", hover: "hover:border-gray-500", text: "text-gray-300" } }
 };
 
-export default function DeviceConnectionsPanel({ product, label, networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }, activeConnections, allProducts, onClose, onHighlightConnections, onNetworkInfoChange, onDeviceUpdate }) {
+const resolveConnectedEndpoint = ({ endpointId, allProducts = [], annotations = [] }) => {
+  const connectedDevice = allProducts.find((p) => p.instanceId === endpointId);
+  if (connectedDevice) {
+    const productData = connectedDevice.product || connectedDevice;
+    return {
+      label: connectedDevice.label || productData.brand || 'Unknown Device',
+      brand: productData.brand || connectedDevice.label || 'Unknown Device',
+      model: productData.model || 'N/A',
+      kind: 'product'
+    };
+  }
+
+  if (typeof endpointId === 'string' && endpointId.startsWith('ann:')) {
+    const annotationId = endpointId.slice(4);
+    const annotation = annotations.find((ann) => String(ann?.id) === annotationId);
+    if (annotation) {
+      return {
+        label: annotation.label || annotation.symbolId || 'Symbol',
+        brand: annotation.label || annotation.symbolId || 'Symbol',
+        model: annotation.symbolId || 'Symbol',
+        kind: 'annotation'
+      };
+    }
+  }
+
+  return null;
+};
+
+export default function DeviceConnectionsPanel({ product, label, networkInfo = { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' }, activeConnections, allProducts, annotations = [], onClose, onHighlightConnections, onNetworkInfoChange, onDeviceUpdate }) {
   const [localNetworkInfo, setLocalNetworkInfo] = useState(networkInfo || { sw: '', port: '', ip: '000.000.000.000', mac: '00:00:00:00:00:00' });
   const [showQuickEdit, setShowQuickEdit] = useState(false);
 
@@ -319,7 +347,7 @@ export default function DeviceConnectionsPanel({ product, label, networkInfo = {
     if (!conn) return null;
 
     const connectedId = conn.from === instanceId ? conn.to : conn.from;
-    const connectedDevice = allProducts.find(p => p.instanceId === connectedId);
+    const connectedDevice = resolveConnectedEndpoint({ endpointId: connectedId, allProducts, annotations });
     const connectedPort = conn.from === instanceId ? conn.toPort : conn.fromPort;
 
     return { device: connectedDevice, port: connectedPort, conn };
