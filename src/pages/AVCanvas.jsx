@@ -248,8 +248,8 @@ function AVCanvasContent() {
       dataUrl: rendered.toDataURL('image/png'),
       width: rendered.width,
       height: rendered.height,
-      viewportWidth: canvasRef.current.clientWidth,
-      viewportHeight: canvasRef.current.clientHeight,
+      viewportWidth: canvasRect.width,
+      viewportHeight: canvasRect.height,
       floorplanRects,
       pan,
       zoom

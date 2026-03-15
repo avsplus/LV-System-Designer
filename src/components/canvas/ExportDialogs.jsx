@@ -186,8 +186,13 @@ const cropFloorplanFromCanvasCapture = async (floorplan, canvasCapture) => {
   const panX = Number(canvasCapture.pan?.x || 0);
   const panY = Number(canvasCapture.pan?.y || 0);
 
-  const paddingPxX = domRect ? Math.max(18, domRect.width * 0.015) : Math.max(40, fpSize.width * zoom * 0.04);
-  const paddingPxY = domRect ? Math.max(18, domRect.height * 0.015) : Math.max(40, fpSize.height * zoom * 0.04);
+  const hasManualCrop = Boolean(exportCrop);
+  const paddingPxX = hasManualCrop
+    ? 0
+    : (domRect ? Math.max(18, domRect.width * 0.015) : Math.max(40, fpSize.width * zoom * 0.04));
+  const paddingPxY = hasManualCrop
+    ? 0
+    : (domRect ? Math.max(18, domRect.height * 0.015) : Math.max(40, fpSize.height * zoom * 0.04));
 
   const cropX = exportCrop ? Number(exportCrop.x || 0) : 0;
   const cropY = exportCrop ? Number(exportCrop.y || 0) : 0;
@@ -449,14 +454,14 @@ const renderFloorplanWithOverlays = async (
 const prepareFloorplansForCloudExport = async (floorplans = [], context = {}, canvasCapture = null) => {
   const prepared = [];
   for (const fp of floorplans) {
+    const captured = canvasCapture
+      ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '')
+      : '';
     const renderedBase = await renderFloorplanWithOverlays(fp, context).catch(() => '');
     const renderedCropped = fp?.exportCrop
       ? await cropRenderedFloorplanImage(renderedBase || fp?.url || fp?.image_url || '', fp.exportCrop).catch(() => '')
       : '';
-    const captured = !fp?.exportCrop && canvasCapture
-      ? await cropFloorplanFromCanvasCapture(fp, canvasCapture).catch(() => '')
-      : '';
-    const rawImage = renderedCropped || captured || renderedBase || fp?.url || fp?.image_url || '';
+    const rawImage = captured || renderedCropped || renderedBase || fp?.url || fp?.image_url || '';
     const compact = await floorplanImageToCompactDataUrl(rawImage);
     prepared.push({
       ...fp,
