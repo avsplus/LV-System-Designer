@@ -392,7 +392,7 @@ export const appClient = {
       window.location.href = redirectUrl;
     }
   },
-  redirectToLogin: (returnTo, mode = 'signin') => {
+  redirectToLogin: (returnTo, mode = 'signin', options = {}) => {
     let url;
     try {
       url = new URL(LOGIN_URL, window.location.origin);
@@ -417,6 +417,11 @@ export const appClient = {
       url.searchParams.set('mode', 'signup');
     } else {
       url.searchParams.delete('mode');
+    }
+    if (options.reason) {
+      url.searchParams.set('reason', options.reason);
+    } else {
+      url.searchParams.delete('reason');
     }
     window.location.href = url.toString();
   },

@@ -33,6 +33,17 @@ const getAuthMode = () => {
   return params.get('mode') === 'signup' ? 'signup' : 'signin';
 };
 
+const getLoginMessage = () => {
+  const params = new URLSearchParams(window.location.search);
+  const reason = params.get('reason');
+
+  if (reason === 'auth_required') {
+    return 'Please sign in to access that page.';
+  }
+
+  return '';
+};
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,6 +53,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
+  const [infoMessage] = useState(() => getLoginMessage());
   const redirectTarget = useMemo(() => getRedirectTarget(), []);
   const authMode = useMemo(() => getAuthMode(), []);
   const isSignup = authMode === 'signup';
@@ -229,6 +241,8 @@ export default function Login() {
             ? 'Enter your email to create your free account.'
             : 'Sign in with email and password, then verify with a one-time code.'}
         </p>
+
+        {infoMessage && <p className="text-sm text-blue-300 mb-4">{infoMessage}</p>}
 
         <Button
           type="button"

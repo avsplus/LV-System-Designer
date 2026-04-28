@@ -6,7 +6,6 @@ import { Loader2 } from "lucide-react";
 import NoOrganization from "../../pages/NoOrganization";
 import SetupOrganization from "../../pages/SetupOrganization";
 import PendingApproval from "../../pages/PendingApproval";
-import Landing from "../../pages/Landing";
 import { useAuth } from '@/lib/AuthContext';
 
 export default function OrganizationGuard({ children }) {
@@ -29,9 +28,10 @@ export default function OrganizationGuard({ children }) {
 
   const pendingInvite = bootstrapData?.pending_invite || null;
 
-  // Show landing page for non-authenticated users
   if (isAuthenticated === false) {
-    return <Landing />;
+    const currentUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+    appClient.redirectToLogin(currentUrl, 'signin', { reason: 'auth_required' });
+    return null;
   }
 
   // Show loading while checking auth or fetching user data
@@ -65,13 +65,6 @@ export default function OrganizationGuard({ children }) {
       );
     }
 
-    // Check URL for invitation params first
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasInviteUrl = urlParams.get('org');
-    
-    // Check if user has pending invites in the database
-    const hasPendingInvite = !!pendingInvite;
-    
     // Show the no-org/invitation page first for all no-org users.
     // Setup flow is entered only when user explicitly chooses to create an organization.
     return <NoOrganization pendingInvite={pendingInvite} />;
