@@ -27,38 +27,120 @@ const resolveLoginUrl = () => {
 const LOGIN_URL = resolveLoginUrl();
 
 const TOKEN_KEYS = ['auth_token', 'sb-access-token'];
+const AUTH_REDIRECT_KEY = 'auth_redirect_target';
+const CALLBACK_PATH = '/auth/callback';
+
+const persistAccessToken = (token) => {
+  if (!token) {
+    return;
+  }
+
+  localStorage.setItem('auth_token', token);
+  localStorage.setItem('sb-access-token', token);
+};
+
+const readStoredAuthRedirect = () => sessionStorage.getItem(AUTH_REDIRECT_KEY);
+
+const storeAuthRedirect = (value) => {
+  if (!value) {
+    sessionStorage.removeItem(AUTH_REDIRECT_KEY);
+    return;
+  }
+
+  sessionStorage.setItem(AUTH_REDIRECT_KEY, value);
+};
+
+const clearStoredAuthRedirect = () => {
+  sessionStorage.removeItem(AUTH_REDIRECT_KEY);
+};
+
+const readAuthParams = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+  return {
+    searchParams,
+    hashParams,
+    accessToken: searchParams.get('access_token') || hashParams.get('access_token'),
+    refreshToken: searchParams.get('refresh_token') || hashParams.get('refresh_token'),
+    code: searchParams.get('code'),
+    tokenHash: searchParams.get('token_hash'),
+    type: searchParams.get('type') || hashParams.get('type'),
+    error: searchParams.get('error') || hashParams.get('error'),
+    errorDescription:
+      searchParams.get('error_description') || hashParams.get('error_description'),
+    redirectTo: searchParams.get('redirect_to') || readStoredAuthRedirect()
+  };
+};
+
+const stripAuthParamsFromUrl = ({ preserveRedirectTo = false } = {}) => {
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+  const searchKeys = [
+    'access_token',
+    'refresh_token',
+    'expires_at',
+    'expires_in',
+    'token_type',
+    'type',
+    'code',
+    'token_hash',
+    'error',
+    'error_description',
+    'provider_token',
+    'provider_refresh_token'
+  ];
+
+  searchKeys.forEach((key) => {
+    if (key === 'redirect_to' && preserveRedirectTo) {
+      return;
+    }
+    url.searchParams.delete(key);
+    hashParams.delete(key);
+  });
+
+  if (!preserveRedirectTo) {
+    url.searchParams.delete('redirect_to');
+  }
+
+  url.hash = hashParams.toString() ? `#${hashParams.toString()}` : '';
+  const cleanedUrl = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState({}, document.title, cleanedUrl);
+};
+
+const hasAuthPayloadInUrl = () => {
+  const authParams = readAuthParams();
+
+  return Boolean(
+    authParams.accessToken ||
+      authParams.refreshToken ||
+      authParams.code ||
+      authParams.tokenHash ||
+      authParams.error
+  );
+};
 
 const persistTokenFromUrl = () => {
-  // Let AuthCallback exclusively handle Supabase callback fragments.
-  if (window.location.pathname === '/auth/callback') {
+  if (window.location.pathname === CALLBACK_PATH) {
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const tokenFromUrl = params.get('access_token');
-  let hashParams = null;
+  const { accessToken, refreshToken } = readAuthParams();
 
-  if (!tokenFromUrl) {
+  if (!accessToken) {
     return;
   }
 
-  localStorage.setItem('auth_token', tokenFromUrl);
-  localStorage.setItem('sb-access-token', tokenFromUrl);
+  persistAccessToken(accessToken);
 
-  params.delete('access_token');
-  if (hashParams) {
-    hashParams.delete('access_token');
-    hashParams.delete('refresh_token');
-    hashParams.delete('expires_at');
-    hashParams.delete('expires_in');
-    hashParams.delete('token_type');
-    hashParams.delete('type');
-    hashParams.delete('sb');
+  if (supabase && refreshToken) {
+    supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    }).catch(() => {});
   }
 
-  const nextHash = hashParams ? hashParams.toString() : window.location.hash.replace(/^#/, '');
-  const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${nextHash ? `#${nextHash}` : ''}`;
-  window.history.replaceState({}, document.title, newUrl);
+  stripAuthParamsFromUrl();
 };
 
 persistTokenFromUrl();
@@ -201,6 +283,91 @@ const readAsBase64 = (file) =>
   });
 
 export const appClient = {
+  completeAuthFromUrl: async () => {
+    if (!supabase) {
+      return {
+        completed: false,
+        redirectTo: null,
+        error: 'Supabase auth is not configured.'
+      };
+    }
+
+    const authParams = readAuthParams();
+    const shouldAttemptCompletion =
+      window.location.pathname === CALLBACK_PATH || hasAuthPayloadInUrl();
+
+    if (!shouldAttemptCompletion) {
+      return {
+        completed: false,
+        redirectTo: sanitizeRedirectTarget(authParams.redirectTo) || null,
+        error: null
+      };
+    }
+
+    try {
+      if (authParams.error) {
+        throw new Error(authParams.errorDescription || authParams.error);
+      }
+
+      if (authParams.tokenHash && authParams.type) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: authParams.tokenHash,
+          type: authParams.type
+        });
+        if (error) {
+          throw error;
+        }
+      }
+
+      if (authParams.code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(authParams.code);
+        if (error) {
+          throw error;
+        }
+      }
+
+      if (authParams.accessToken && authParams.refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: authParams.accessToken,
+          refresh_token: authParams.refreshToken
+        });
+        if (error) {
+          throw error;
+        }
+      }
+
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        throw error;
+      }
+
+      const accessToken = data?.session?.access_token || authParams.accessToken || null;
+      if (!accessToken) {
+        throw new Error('No access token found in auth callback.');
+      }
+
+      persistAccessToken(accessToken);
+      const redirectTo = sanitizeRedirectTarget(authParams.redirectTo) || '/AVCanvas';
+
+      clearStoredAuthRedirect();
+      stripAuthParamsFromUrl();
+
+      return {
+        completed: true,
+        redirectTo,
+        error: null
+      };
+    } catch (error) {
+      clearStoredAuthRedirect();
+      stripAuthParamsFromUrl({ preserveRedirectTo: true });
+
+      return {
+        completed: false,
+        redirectTo: sanitizeRedirectTarget(authParams.redirectTo) || null,
+        error: error.message || 'Failed to complete sign-in.'
+      };
+    }
+  },
   getMe: () => request('/api/me'),
   updateMe: (payload) =>
     request('/api/me', {
@@ -220,6 +387,7 @@ export const appClient = {
       supabase.auth.signOut().catch(() => {});
     }
     clearTokens();
+    clearStoredAuthRedirect();
     if (redirectUrl) {
       window.location.href = redirectUrl;
     }
@@ -242,6 +410,7 @@ export const appClient = {
     const rawTarget = returnTo || `${window.location.origin}${window.location.pathname}${window.location.search}`;
     const normalizedTarget = sanitizeRedirectTarget(unwrapRedirectTarget(rawTarget));
     if (normalizedTarget) {
+      storeAuthRedirect(normalizedTarget);
       url.searchParams.set('redirect_to', normalizedTarget);
     }
     if (mode === 'signup') {

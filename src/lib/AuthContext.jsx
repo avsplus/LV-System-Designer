@@ -21,6 +21,23 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       setAuthError(null);
 
+      const authCompletion = await appClient.completeAuthFromUrl();
+      if (authCompletion?.error) {
+        setAuthError({
+          type: 'auth_callback_error',
+          message: authCompletion.error
+        });
+        setIsAuthenticated(false);
+        setUser(null);
+        setIsLoadingAuth(false);
+        return;
+      }
+
+      if (authCompletion?.completed && authCompletion.redirectTo) {
+        window.location.replace(authCompletion.redirectTo);
+        return;
+      }
+
       await checkUserAuth();
     } catch (error) {
       console.error('Unexpected error:', error);

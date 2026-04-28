@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
+import { Button } from '@/components/ui/button';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -36,6 +37,22 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
+    } else if (authError.type === 'auth_callback_error') {
+      return (
+        <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+          <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+            <div>
+              <h1 className="text-xl font-semibold">Sign-in could not be completed</h1>
+              <p className="text-sm text-gray-400 mt-2">
+                {authError.message || 'The authentication callback did not finish successfully.'}
+              </p>
+            </div>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => window.location.href = '/login'}>
+              Try Sign In Again
+            </Button>
+          </div>
+        </div>
+      );
     } else if (authError.type === 'auth_required') {
       // Allow public routes/pages to render when the user is not authenticated.
       // Hard-redirecting here causes loops/blank screens when login is same-origin.
